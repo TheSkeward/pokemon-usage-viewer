@@ -9,18 +9,23 @@ import {
   resolveQueryEntries,
 } from './data';
 
+const POOL_STORAGE_KEY = 'pokemon-usage-viewer:owned-pool:v1';
+
 const app = document.querySelector('#pool-app');
 
 let availability = null;
 let formatsIndex = [];
 let pokemonIndex = [];
 
+const initialQuery = getParam('poolQuery') || loadSavedPool();
+
 const state = {
   family: getParam('family') || 'singles',
   selection: getParam('selection') || 'all',
-  query: getParam('poolQuery') || '',
+  query: initialQuery,
   result: null,
   loading: false,
+  statusMessage: '',
 };
 
 init().catch((error) => {
@@ -41,7 +46,8 @@ async function init() {
     loadPokemonIndex(),
   ]);
 
-  if (state.query.trim()) {
+  if (initialQuery.trim()) {
+    savePool(initialQuery);
     await computeAndRender();
   } else {
     render();
@@ -50,11 +56,13 @@ async function init() {
 
 async function computeAndRender() {
   state.loading = true;
+  state.statusMessage = 'Optimizing pool...';
   render();
   await waitForPaint();
 
   state.result = await computePoolResult();
   state.loading = false;
+  state.statusMessage = '';
   writeUrl();
   render();
 }
@@ -69,11 +77,7 @@ async function computePoolResult() {
 }
 
 function buildInputGroups(query) {
-  const tokens = query
-    .split(/[,\n]+/)
-    .map((token) => token.trim())
-    .filter(Boolean);
-
+  const tokens = parsePoolTokens(query);
   const groups = [];
 
   for (const token of tokens) {
@@ -266,6 +270,7 @@ function sumTeamScore(team) {
 function render() {
   const familyLabel = state.family === 'doubles' ? 'Doubles' : 'Singles';
   const result = state.result;
+  const poolStats = getPoolStats(state.query);
 
   app.innerHTML = `
     <div class="app-shell">
@@ -280,6 +285,13 @@ function render() {
       </nav>
 
       <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Owned Pokémon Pool</h2>
+            <p>${poolStats.uniqueCount} unique entries${poolStats.duplicateCount ? ` · ${poolStats.duplicateCount} duplicates ignored` : ''}. Autosaved in this browser.</p>
+          </div>
+        </div>
+
         <div class="toolbar pool-toolbar">
           <label>
             <span>Period</span>
@@ -290,11 +302,17 @@ function render() {
 
           <label class="wide-control">
             <span>Available Pokémon pool</span>
-            <textarea id="pool-query-input" rows="5" placeholder="Bulbasaur, Charmander, Squirtle...">${escapeHtml(state.query)}</textarea>
+            <textarea id="pool-query-input" rows="8" placeholder="Bulbasaur, Charmander, Squirtle...">${escapeHtml(state.query)}</textarea>
           </label>
         </div>
 
-        <button class="view-tab" id="optimize-button">${state.loading ? 'Optimizing...' : 'Optimize team'}</button>
+        <div class="toolbar">
+          <button class="view-tab" id="optimize-button">${state.loading ? 'Optimizing...' : 'Optimize team'}</button>
+          <button class="view-tab" id="copy-pool-button">Copy pool</button>
+          <button class="view-tab" id="normalize-pool-button">Normalize / dedupe</button>
+          <button class="view-tab danger-button" id="clear-pool-button">Clear saved pool</button>
+          <span class="muted">${escapeHtml(state.statusMessage)}</span>
+        </div>
       </section>
 
       ${state.loading ? renderLoading() : ''}
@@ -325,14 +343,14 @@ function renderEmpty() {
   if (!state.query.trim()) {
     return `
       <section class="panel">
-        <p class="muted">Enter your available Pokémon pool, then optimize. v0 chooses the strongest six by competitive signal, with at most one Mega.</p>
+        <p class="muted">Enter your available Pokémon pool, then optimize. Your list is stored locally in this browser.</p>
       </section>
     `;
   }
 
   return `
     <section class="panel">
-      <p class="muted">No recommendation yet.</p>
+      <p class="muted">No recommendation yet. Click Optimize team.</p>
     </section>
   `;
 }
@@ -418,21 +436,113 @@ function bindEvents() {
     });
   });
 
+  document.querySelector('#selection-input')?.addEventListener('change', async (event) => {
+    state.selection = event.target.value;
+    await computeAndRender();
+  });
+
   document.querySelector('#pool-query-input')?.addEventListener('input', (event) => {
     state.query = event.target.value;
+    savePool(state.query);
+    state.result = null;
+    state.statusMessage = 'Saved locally';
     writeUrl();
+    render();
   });
 
   document.querySelector('#optimize-button')?.addEventListener('click', async () => {
+    savePool(state.query);
     await computeAndRender();
   });
+
+  document.querySelector('#copy-pool-button')?.addEventListener('click', async () => {
+    await copyPool();
+  });
+
+  document.querySelector('#normalize-pool-button')?.addEventListener('click', () => {
+    state.query = normalizePoolText(state.query);
+    savePool(state.query);
+    state.result = null;
+    state.statusMessage = 'Normalized and saved';
+    render();
+  });
+
+  document.querySelector('#clear-pool-button')?.addEventListener('click', () => {
+    const confirmed = window.confirm('Clear the saved owned Pokémon pool from this browser?');
+    if (!confirmed) return;
+
+    state.query = '';
+    state.result = null;
+    state.statusMessage = 'Saved pool cleared';
+    localStorage.removeItem(POOL_STORAGE_KEY);
+    writeUrl();
+    render();
+  });
+}
+
+async function copyPool() {
+  const text = state.query.trim();
+  if (!text) {
+    state.statusMessage = 'Nothing to copy';
+    render();
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    state.statusMessage = 'Copied pool to clipboard';
+  } catch {
+    state.statusMessage = 'Clipboard copy failed';
+  }
+
+  render();
+}
+
+function parsePoolTokens(query) {
+  return query
+    .split(/[,\n]+/)
+    .map((token) => token.trim())
+    .filter(Boolean);
+}
+
+function getPoolStats(query) {
+  const tokens = parsePoolTokens(query);
+  const unique = new Set(tokens.map(normalizeName).filter(Boolean));
+
+  return {
+    totalCount: tokens.length,
+    uniqueCount: unique.size,
+    duplicateCount: Math.max(0, tokens.length - unique.size),
+  };
+}
+
+function normalizePoolText(query) {
+  const byKey = new Map();
+
+  for (const token of parsePoolTokens(query)) {
+    const key = normalizeName(token);
+    if (!key || byKey.has(key)) continue;
+    byKey.set(key, token);
+  }
+
+  return [...byKey.values()].sort((a, b) => a.localeCompare(b)).join(', ');
+}
+
+function savePool(value) {
+  localStorage.setItem(POOL_STORAGE_KEY, value);
+}
+
+function loadSavedPool() {
+  return localStorage.getItem(POOL_STORAGE_KEY) || '';
 }
 
 function writeUrl() {
   const params = new URLSearchParams();
   params.set('family', state.family);
   params.set('selection', state.selection);
-  if (state.query) params.set('poolQuery', state.query);
+
+  // Deliberately do not write the full pool to the URL. Large Reborn-style
+  // inventories belong in localStorage, not a grotesque query string.
   window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
 }
 
