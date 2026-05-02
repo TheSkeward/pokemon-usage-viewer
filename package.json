@@ -10,7 +10,8 @@
     "build:data": "node scripts/build-data.mjs",
     "dev:bg": "nohup npm run dev > /tmp/pokemon-vite.log 2>&1 &",
     "dev:log": "tail -50 /tmp/pokemon-vite.log",
-    "dev:stop": "pkill -f 'vite --port 5173' || true"
+    "dev:stop": "pkill -f 'vite --port 5173' || true",
+    "build:site": "npm run build && node scripts/copy-data.mjs"
   },
   "devDependencies": {
     "vite": "^8.0.10"

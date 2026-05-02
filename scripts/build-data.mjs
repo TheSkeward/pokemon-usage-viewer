@@ -12,7 +12,7 @@ import {
 } from './config.mjs';
 
 const projectRoot = process.cwd();
-const publicDataDir = path.join(projectRoot, 'public', 'data');
+const publicDataDir = path.join(projectRoot, 'site-data', 'data');
 const byFormatDir = path.join(publicDataDir, 'by-format');
 const browserMovesetsDir = path.join(publicDataDir, 'movesets');
 const resolverSourcesDir = path.join(publicDataDir, 'sources');
