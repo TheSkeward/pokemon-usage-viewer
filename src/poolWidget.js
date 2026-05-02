@@ -313,11 +313,10 @@ export function mountPoolOptimizer(container, options = {}) {
         </div>
 
         <div class="toolbar">
-          <button class="view-tab" id="optimize-button">${state.loading ? 'Optimizing...' : 'Optimize team'}</button>
+          <button class="view-tab primary-action" id="optimize-button">${state.loading ? 'Optimizing...' : 'Normalize + optimize team'}</button>
           <button class="view-tab" id="copy-pool-button">Copy pool</button>
-          <button class="view-tab" id="normalize-pool-button">Normalize / dedupe</button>
           <button class="view-tab danger-button" id="clear-pool-button">Clear saved pool</button>
-          <span class="muted">${escapeHtml(state.statusMessage)}</span>
+          <span class="muted" data-pool-status>${escapeHtml(state.statusMessage)}</span>
         </div>
       </section>
 
@@ -543,24 +542,18 @@ export function mountPoolOptimizer(container, options = {}) {
       state.result = null;
       state.statusMessage = 'Saved locally';
       writeUrl();
-      render();
+      updatePoolStatusMessage('Saved locally');
     });
 
     document.querySelector('#optimize-button')?.addEventListener('click', async () => {
+      state.query = normalizePoolText(state.query);
       savePool(state.query);
+      state.statusMessage = 'Normalized and saved';
       await computeAndRender();
     });
 
     document.querySelector('#copy-pool-button')?.addEventListener('click', async () => {
       await copyPool();
-    });
-
-    document.querySelector('#normalize-pool-button')?.addEventListener('click', () => {
-      state.query = normalizePoolText(state.query);
-      savePool(state.query);
-      state.result = null;
-      state.statusMessage = 'Normalized and saved';
-      render();
     });
 
     document.querySelector('#clear-pool-button')?.addEventListener('click', () => {
@@ -622,6 +615,11 @@ export function mountPoolOptimizer(container, options = {}) {
     }
 
     return [...byKey.values()].sort((a, b) => a.localeCompare(b)).join(', ');
+  }
+
+  function updatePoolStatusMessage(message) {
+    const statusNode = app.querySelector('[data-pool-status]');
+    if (statusNode) statusNode.textContent = message || '';
   }
 
   function writeUrl() {
