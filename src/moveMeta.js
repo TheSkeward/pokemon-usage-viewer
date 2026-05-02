@@ -1,14 +1,24 @@
-import { Dex } from '@pkmn/dex';
-
-const dex = Dex.forGen(7);
-const cache = new Map();
+import { MOVE_META } from './generated/gen7MoveMeta.generated.js';
 
 const TYPE_COLORS = {
-  Normal: '#A8A77A', Fire: '#EE8130', Water: '#6390F0', Electric: '#F7D02C',
-  Grass: '#7AC74C', Ice: '#96D9D6', Fighting: '#C22E28', Poison: '#A33EA1',
-  Ground: '#E2BF65', Flying: '#A98FF3', Psychic: '#F95587', Bug: '#A6B91A',
-  Rock: '#B6A136', Ghost: '#735797', Dragon: '#6F35FC', Dark: '#705746',
-  Steel: '#B7B7CE', Fairy: '#D685AD',
+  Normal: '#A8A77A',
+  Fire: '#EE8130',
+  Water: '#6390F0',
+  Electric: '#F7D02C',
+  Grass: '#7AC74C',
+  Ice: '#96D9D6',
+  Fighting: '#C22E28',
+  Poison: '#A33EA1',
+  Ground: '#E2BF65',
+  Flying: '#A98FF3',
+  Psychic: '#F95587',
+  Bug: '#A6B91A',
+  Rock: '#B6A136',
+  Ghost: '#735797',
+  Dragon: '#6F35FC',
+  Dark: '#705746',
+  Steel: '#B7B7CE',
+  Fairy: '#D685AD',
 };
 
 const CATEGORY_COLORS = {
@@ -17,23 +27,15 @@ const CATEGORY_COLORS = {
   Status: '#9AA5B1',
 };
 
+const cache = new Map();
+
 export function getMoveMeta(name) {
-  const trimmed = String(name || '').trim();
-  if (!trimmed) return null;
-  if (cache.has(trimmed)) return cache.get(trimmed);
+  const id = moveId(name);
+  if (!id) return null;
+  if (cache.has(id)) return cache.get(id);
 
-  const move = dex.moves.get(trimmed);
-  if (!move?.exists) {
-    cache.set(trimmed, null);
-    return null;
-  }
-
-  const meta = {
-    type: move.type,
-    category: move.category,
-  };
-
-  cache.set(trimmed, meta);
+  const meta = MOVE_META[id] || null;
+  cache.set(id, meta);
   return meta;
 }
 
@@ -43,4 +45,8 @@ export function getTypeColor(type) {
 
 export function getCategoryColor(category) {
   return CATEGORY_COLORS[category] || '#AAB5C3';
+}
+
+function moveId(name) {
+  return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
 }
