@@ -1,4 +1,12 @@
 const LEAD_SMOOTHING_K = 200;
+
+function dataUrl(path) {
+  const base = import.meta.env.BASE_URL || '/';
+  const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
+  const cleanPath = String(path).replace(/^\/+/, '');
+  return `${cleanBase}/data/${cleanPath}`;
+}
+
 const HIDDEN_MOVESET_ENTRY_KEYS = new Set(['other', 'nothing']);
 
 const FAMILY_CONFIGS = {
@@ -20,15 +28,15 @@ const browserMovesetCache = new Map();
 const resolverSummaryCache = new Map();
 const aggregatedMovesetCandidateCache = new Map();
 
-export async function loadFormatsIndex() { return loadJson('/data/formats.json'); }
-export async function loadAvailability() { return loadJson('/data/availability.json'); }
-export async function loadPokemonIndex() { return loadJson('/data/pokemon-index.json'); }
-export async function loadFormatData(formatId) { return loadJson(`/data/by-format/${formatId}.json`); }
+export async function loadFormatsIndex() { return loadJson(dataUrl('formats.json')); }
+export async function loadAvailability() { return loadJson(dataUrl('availability.json')); }
+export async function loadPokemonIndex() { return loadJson(dataUrl('pokemon-index.json')); }
+export async function loadFormatData(formatId) { return loadJson(dataUrl(`by-format/${formatId}.json`)); }
 
 export async function loadMovesetData(formatId, month) {
   const key = `${formatId}:${month}`;
   if (browserMovesetCache.has(key)) return browserMovesetCache.get(key);
-  const response = await fetch(`/data/movesets/${formatId}/${month}.json`);
+  const response = await fetch(dataUrl(`movesets/${formatId}/${month}.json`));
   if (response.status === 404) { browserMovesetCache.set(key, null); return null; }
   if (!response.ok) throw new Error(`Failed to load movesets for ${formatId} ${month}`);
   const data = await response.json();
@@ -39,7 +47,7 @@ export async function loadMovesetData(formatId, month) {
 export async function loadSourceData(month, formatId, cutoff, dataKind) {
   const key = `${month}:${formatId}:${cutoff}:${dataKind}`;
   if (sourceCache.has(key)) return sourceCache.get(key);
-  const response = await fetch(`/data/sources/${month}/${formatId}/${cutoff}/${dataKind}.json`);
+  const response = await fetch(dataUrl(`sources/${month}/${formatId}/${cutoff}/${dataKind}.json`));
   if (response.status === 404) { sourceCache.set(key, null); return null; }
   if (!response.ok) throw new Error(`Failed to load source data for ${month} ${formatId} ${cutoff} ${dataKind}`);
   const data = await response.json();
