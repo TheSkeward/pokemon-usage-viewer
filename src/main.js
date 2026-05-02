@@ -11,10 +11,7 @@ import {
   getResolvedFormatLabel,
   getRowsForSelection,
   getSelectionLabel,
-  getLineRepresentativeCandidates,
-  getMovesetResolverCandidates,
   isSyntheticFormat,
-  loadAggregatedMovesetCandidate,
   loadAvailability,
   loadFormatData,
   loadFormatsIndex,
@@ -32,6 +29,7 @@ import { renderResolverResults } from "./views/resolverResultsView";
 import { renderTable } from "./views/tableView";
 import { mountPoolOptimizer } from "./poolWidget";
 import { computeResolverRepresentativeResults } from "./resolver/representatives";
+import { createResolverMovesetController } from "./resolver/movesets";
 
 const app = document.querySelector("#app");
 const DESC_SORT_FIELDS = new Set(["usage", "rawCount", "leadTendency"]);
@@ -47,36 +45,33 @@ let dataset = null,
   browserMovesetKey = null,
   resolverResults = [];
 let resolverLoadingState = { loading: false, message: "" };
-let resolverMovesetDetail = null,
-  resolverMovesetStatus = {
-    phase: "idle",
-    checked: 0,
-    total: 0,
-    contributed: 0,
-  },
-  resolverMovesetSelectionKey = null,
-  resolverMovesetRequestToken = 0,
-  resolverMovesetInFlightKey = null;
-const resolverMovesetDetailCache = new Map();
 let syncGeneration = 0,
   resolverDebounceTimer = null;
+
+const resolverMovesets = createResolverMovesetController({
+  cacheSchemaVersion: RESOLVER_MOVESET_CACHE_SCHEMA_VERSION,
+  getAvailability: () => availability,
+  getFormatLabel,
+  getState,
+  onUpdate: () => rerenderPreservingFocus(),
+});
 
 async function init() {
   replaceState(readStateFromUrl());
   formatsIndex = await loadFormatsIndex();
   availability = await loadAvailability();
   pokemonIndex = await loadPokemonIndex();
-  loadResolverMovesetPersistentCache();
+  resolverMovesets.loadPersistentCache();
   ensureValidFamilyAndFormat();
   dataset = await loadFormatData(getState().format);
   ensureValidMonth();
   ensureValidResolverMonth();
   await ensureBrowserMovesetData();
   resolverResults = await computeResolverResults();
-  primeResolverMovesetState();
+  resolverMovesets.prime();
   writeStateToUrl(getState());
   renderApp();
-  kickResolverMovesetLoad();
+  resolverMovesets.kick();
 }
 function ensureValidFamilyAndFormat() {
   const state = getState();
@@ -159,6 +154,9 @@ function renderResolverPage(pageRoot) {
     resolverResults.find(
       (row) => row.pokemonId === state.resolverSelectedPokemon,
     ) || null;
+  const resolverMovesetDetail = resolverMovesets.getDetail();
+  const resolverMovesetStatus = resolverMovesets.getStatus();
+
   pageRoot.innerHTML = `<section id="resolver-controls-root"></section><section id="resolver-results-root"></section><section id="details-root"></section>`;
   renderResolverControls(
     document.querySelector("#resolver-controls-root"),
@@ -371,242 +369,6 @@ function clearPendingResolverDebounce() {
     resolverDebounceTimer = null;
   }
 }
-function primeResolverMovesetState() {
-  const state = getState();
-  const key = state.resolverSelectedPokemon
-    ? `${state.family}:${state.resolverMonth}:${state.resolverSelectedPokemon}`
-    : null;
-  if (!key) {
-    resolverMovesetSelectionKey = null;
-    resolverMovesetDetail = null;
-    resolverMovesetStatus = {
-      phase: "idle",
-      checked: 0,
-      total: 0,
-      contributed: 0,
-    };
-    resolverMovesetRequestToken += 1;
-    resolverMovesetInFlightKey = null;
-    return;
-  }
-  const cached = resolverMovesetDetailCache.get(key);
-  resolverMovesetSelectionKey = key;
-  resolverMovesetRequestToken += 1;
-  resolverMovesetInFlightKey = null;
-  if (cached) {
-    resolverMovesetDetail = cloneValue(cached.detail);
-    resolverMovesetStatus = cloneValue(cached.status);
-    return;
-  }
-  resolverMovesetDetail = null;
-  resolverMovesetStatus = {
-    phase: "loading",
-    checked: 0,
-    total: 0,
-    contributed: 0,
-  };
-}
-async function kickResolverMovesetLoad() {
-  const state = getState();
-  if (state.view !== "resolver") return;
-  const pokemonId = state.resolverSelectedPokemon,
-    selection = state.resolverMonth,
-    family = state.family;
-  if (!pokemonId) return;
-  const key = `${family}:${selection}:${pokemonId}`;
-  if (resolverMovesetDetailCache.has(key) || resolverMovesetInFlightKey === key)
-    return;
-  const candidates = getMovesetResolverCandidates(
-    availability,
-    family,
-    selection,
-  );
-  const total = candidates.length;
-  const token = resolverMovesetRequestToken;
-  resolverMovesetInFlightKey = key;
-  let detail = null,
-    contributed = 0;
-  const seen = {
-    moves: new Set(),
-    items: new Set(),
-    abilities: new Set(),
-    spreads: new Set(),
-  };
-  for (let index = 0; index < candidates.length; index += 1) {
-    const candidate = candidates[index];
-    const aggregated = await loadAggregatedMovesetCandidate(
-      candidate,
-      pokemonId,
-    );
-    if (
-      resolverMovesetSelectionKey !== key ||
-      token !== resolverMovesetRequestToken
-    ) {
-      if (resolverMovesetInFlightKey === key) resolverMovesetInFlightKey = null;
-      return;
-    }
-    if (aggregated) {
-      if (!detail) {
-        detail = createResolverMovesetDetail(aggregated);
-        resolverMovesetDetail = detail;
-        seedSeenSetsFromDetail(seen, detail);
-        contributed = 1;
-      } else if (appendResolverFallback(detail, aggregated, seen)) {
-        detail.stitched = true;
-        detail.sourcesUsed.push({
-          formatId: aggregated.formatId,
-          cutoff: aggregated.cutoff,
-          monthsAvailable: aggregated.monthsAvailable,
-          monthsPresent: aggregated.monthsPresent,
-          sourceText: formatFallbackSource(aggregated),
-        });
-        contributed += 1;
-        resolverMovesetDetail = detail;
-      }
-    }
-    const checked = index + 1;
-    let phase = "loading";
-    if (checked >= total) phase = detail ? "ready" : "empty";
-    else if (detail) phase = "loading-tail";
-    resolverMovesetStatus = { phase, checked, total, contributed };
-    rerenderPreservingFocus();
-  }
-  if (
-    resolverMovesetSelectionKey === key &&
-    token === resolverMovesetRequestToken
-  ) {
-    resolverMovesetInFlightKey = null;
-    const persisted = {
-      detail: resolverMovesetDetail,
-      status: resolverMovesetStatus,
-    };
-    resolverMovesetDetailCache.set(key, cloneValue(persisted));
-    saveResolverMovesetPersistentCache();
-  }
-}
-function createResolverMovesetDetail(aggregated) {
-  return {
-    ...aggregated,
-    stitched: false,
-    sourcesUsed: [
-      {
-        formatId: aggregated.formatId,
-        cutoff: aggregated.cutoff,
-        monthsAvailable: aggregated.monthsAvailable,
-        monthsPresent: aggregated.monthsPresent,
-        sourceText: formatFallbackSource(aggregated),
-      },
-    ],
-    moves: aggregated.entry.moves.map((entry) => ({
-      ...entry,
-      kind: "primary",
-    })),
-    items: aggregated.entry.items.map((entry) => ({
-      ...entry,
-      kind: "primary",
-    })),
-    abilities: aggregated.entry.abilities.map((entry) => ({
-      ...entry,
-      kind: "primary",
-    })),
-    spreads: aggregated.entry.spreads.map((entry) => ({
-      ...entry,
-      kind: "primary",
-    })),
-  };
-}
-function seedSeenSetsFromDetail(seen, detail) {
-  for (const entry of detail.moves) seen.moves.add(normalizeName(entry.name));
-  for (const entry of detail.items) seen.items.add(normalizeName(entry.name));
-  for (const entry of detail.abilities)
-    seen.abilities.add(normalizeName(entry.name));
-  for (const entry of detail.spreads)
-    seen.spreads.add(normalizeName(entry.name));
-}
-function appendResolverFallback(detail, aggregated, seen) {
-  const sourceText = formatFallbackSource(aggregated);
-  return (
-    appendFallbackEntries(
-      detail.moves,
-      aggregated.entry.moves,
-      seen.moves,
-      sourceText,
-    ) ||
-    appendFallbackEntries(
-      detail.items,
-      aggregated.entry.items,
-      seen.items,
-      sourceText,
-    ) ||
-    appendFallbackEntries(
-      detail.abilities,
-      aggregated.entry.abilities,
-      seen.abilities,
-      sourceText,
-    ) ||
-    appendFallbackEntries(
-      detail.spreads,
-      aggregated.entry.spreads,
-      seen.spreads,
-      sourceText,
-    )
-  );
-}
-function appendFallbackEntries(target, entries, seenSet, sourceText) {
-  let contributed = false;
-  for (const entry of entries) {
-    const key = normalizeName(entry.name);
-    if (!key || seenSet.has(key)) continue;
-    seenSet.add(key);
-    target.push({
-      name: entry.name,
-      usage: null,
-      kind: "fallback",
-      sourceText,
-    });
-    contributed = true;
-  }
-  return contributed;
-}
-function formatFallbackSource(source) {
-  const label = getFormatLabel(source.formatId);
-  return source.selection === "all"
-    ? `${label} @ ${source.cutoff} (${source.monthsPresent}/${source.monthsAvailable} mo)`
-    : `${label} @ ${source.cutoff}`;
-}
-function normalizeName(value) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
-}
-function getResolverMovesetCacheStorageKey() {
-  return `resolverMovesets:${RESOLVER_MOVESET_CACHE_SCHEMA_VERSION}:${availability?.latestMonth || "none"}`;
-}
-function loadResolverMovesetPersistentCache() {
-  resolverMovesetDetailCache.clear();
-  try {
-    const raw = localStorage.getItem(getResolverMovesetCacheStorageKey());
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return;
-    for (const [key, value] of Object.entries(parsed))
-      resolverMovesetDetailCache.set(key, value);
-  } catch (error) {
-    console.warn("Failed to load resolver moveset cache", error);
-  }
-}
-function saveResolverMovesetPersistentCache() {
-  try {
-    const payload = Object.fromEntries(resolverMovesetDetailCache);
-    localStorage.setItem(
-      getResolverMovesetCacheStorageKey(),
-      JSON.stringify(payload),
-    );
-  } catch (error) {
-    console.warn("Failed to save resolver moveset cache", error);
-  }
-}
-function cloneValue(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value));
-}
 function getResolverLoadingMessage() {
   const query = getState().resolverQuery || "";
   const tokens = query
@@ -651,7 +413,7 @@ async function sync(options = {}) {
   const focusState = captureFocusState();
   const generation = ++syncGeneration;
 
-  primeResolverMovesetState();
+  resolverMovesets.prime();
   await ensureBrowserMovesetData();
 
   let nextResolverResults = resolverResults;
@@ -674,7 +436,7 @@ async function sync(options = {}) {
       !validIds.has(getState().resolverSelectedPokemon)
     ) {
       setState({ resolverSelectedPokemon: null });
-      primeResolverMovesetState();
+      resolverMovesets.prime();
     }
   }
 
@@ -684,7 +446,7 @@ async function sync(options = {}) {
   if (generation !== syncGeneration) return;
 
   restoreFocusState(focusState);
-  kickResolverMovesetLoad();
+  resolverMovesets.kick();
 }
 
 function rerenderPreservingFocus() {
