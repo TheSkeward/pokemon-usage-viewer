@@ -64,3 +64,16 @@ select, input { width: 100%; border: 1px solid #344355; background: #0f141a; col
   0%, 100% { opacity: 0.35; transform: scale(0.85); }
   50% { opacity: 1; transform: scale(1.15); }
 }
+
+.sort-header-button {
+  all: unset;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  color: inherit;
+}
+
+.sort-header-button:hover,
+.sort-header-button.active {
+  text-decoration: underline;
+}

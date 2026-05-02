@@ -10,6 +10,8 @@ import {
 } from './data';
 
 const POOL_STORAGE_KEY = 'pokemon-usage-viewer:owned-pool:v1';
+const TEAM_SORT_STORAGE_KEY = 'pokemon-usage-viewer:pool-team-sort:v1';
+const TEAM_SORT_DIR_STORAGE_KEY = 'pokemon-usage-viewer:pool-team-sort-dir:v1';
 
 const app = document.querySelector('#pool-app');
 
@@ -23,6 +25,8 @@ const state = {
   family: getParam('family') || 'singles',
   selection: getParam('selection') || 'all',
   query: initialQuery,
+  teamSort: getParam('teamSort') || loadSavedTeamSort() || 'lead',
+  teamSortDir: getParam('teamSortDir') || loadSavedTeamSortDir() || 'desc',
   result: null,
   loading: false,
   statusMessage: '',
@@ -207,9 +211,7 @@ function choosePoolTeam(lines) {
       .sort((a, b) => sumTeamScore(b.team) - sumTeamScore(a.team))[0] ||
     { team: [], megaUsed: null };
 
-  bestTeam.team = bestTeam.team
-    .slice(0, 6)
-    .sort((a, b) => b.score - a.score);
+  bestTeam.team = bestTeam.team.slice(0, 6);
 
   return {
     team: bestTeam.team,
@@ -357,6 +359,7 @@ function renderEmpty() {
 
 function renderResult(result, familyLabel) {
   const megaText = result.megaUsed ? `Mega used: ${escapeHtml(result.megaUsed.name)}` : 'No Mega selected';
+  const sortedTeam = getSortedTeam(result.team, state.teamSort, state.teamSortDir);
 
   return `
     <section class="panel">
@@ -364,7 +367,7 @@ function renderResult(result, familyLabel) {
         <div>
           <h2>Recommended ${escapeHtml(familyLabel)} Team</h2>
           <p>${result.team.length} picks from ${result.linesConsidered} resolved input lines. ${megaText}.</p>
-          <p>v0 rules: at most one Mega, one representative per input line, ranked by usage/raw/lead signal.</p>
+          <p>v0 rules: at most one Mega, one representative per input line, selected by optimizer score; displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}.</p>
         </div>
       </div>
 
@@ -373,22 +376,36 @@ function renderResult(result, familyLabel) {
           <thead>
             <tr>
               <th>#</th>
-              <th>Input</th>
-              <th>Pick</th>
-              <th>Usage %</th>
-              <th>Lead %</th>
+              ${renderSortHeader('input', 'Input')}
+              ${renderSortHeader('name', 'Pick')}
+              ${renderSortHeader('usage', 'Usage %')}
+              ${renderSortHeader('lead', 'Lead %')}
+              ${renderSortHeader('score', 'Score')}
               <th>Source</th>
               <th>Notes</th>
             </tr>
           </thead>
           <tbody>
-            ${result.team.map(renderTeamRow).join('')}
+            ${sortedTeam.map(renderTeamRow).join('')}
           </tbody>
         </table>
       </div>
     </section>
 
     ${renderUnresolved(result.unresolved)}
+  `;
+}
+
+function renderSortHeader(sortBy, label) {
+  const active = state.teamSort === sortBy;
+  const arrow = active ? (state.teamSortDir === 'asc' ? ' ▲' : ' ▼') : '';
+
+  return `
+    <th>
+      <button class="sort-header-button ${active ? 'active' : ''}" data-team-sort="${escapeHtml(sortBy)}">
+        ${escapeHtml(label)}${arrow}
+      </button>
+    </th>
   `;
 }
 
@@ -403,10 +420,58 @@ function renderTeamRow(row, index) {
       </td>
       <td>${formatPercent(row.bundle?.usage?.value)}</td>
       <td>${formatPercent(row.bundle?.leads?.value)}</td>
+      <td>${Number.isFinite(row.score) ? Math.round(row.score).toLocaleString() : ''}</td>
       <td>${renderSource(row.bundle?.usage)}</td>
       <td>${escapeHtml(row.note || '')}</td>
     </tr>
   `;
+}
+
+function getSortedTeam(team, sortBy, sortDir = 'desc') {
+  const rows = [...team];
+  const direction = sortDir === 'asc' ? 1 : -1;
+
+  rows.sort((a, b) => {
+    let primary = 0;
+
+    if (sortBy === 'lead') {
+      primary = compareNumber(a.bundle?.leads?.value, b.bundle?.leads?.value);
+    } else if (sortBy === 'usage') {
+      primary = compareNumber(a.bundle?.usage?.value, b.bundle?.usage?.value);
+    } else if (sortBy === 'score') {
+      primary = compareNumber(a.score, b.score);
+    } else if (sortBy === 'input') {
+      primary = a.inputName.localeCompare(b.inputName);
+    } else {
+      primary = a.name.localeCompare(b.name);
+    }
+
+    if (primary !== 0) return primary * direction;
+
+    return (
+      compareNumber(b.score, a.score) ||
+      compareNumber(b.bundle?.usage?.value, a.bundle?.usage?.value) ||
+      a.name.localeCompare(b.name)
+    );
+  });
+
+  return rows;
+}
+
+function compareNumber(a, b) {
+  const safeA = typeof a === 'number' ? a : -Infinity;
+  const safeB = typeof b === 'number' ? b : -Infinity;
+  return safeA === safeB ? 0 : safeA - safeB;
+}
+
+function getSortLabel(sortBy, sortDir = 'desc') {
+  const direction = sortDir === 'asc' ? 'ascending' : 'descending';
+
+  if (sortBy === 'lead') return `Lead % ${direction}`;
+  if (sortBy === 'usage') return `Usage % ${direction}`;
+  if (sortBy === 'score') return `optimizer score ${direction}`;
+  if (sortBy === 'input') return `input name ${direction}`;
+  return `Pokémon name ${direction}`;
 }
 
 function renderUnresolved(unresolved = []) {
@@ -439,6 +504,24 @@ function bindEvents() {
   document.querySelector('#selection-input')?.addEventListener('change', async (event) => {
     state.selection = event.target.value;
     await computeAndRender();
+  });
+
+  document.querySelectorAll('[data-team-sort]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const nextSort = button.dataset.teamSort;
+
+      if (state.teamSort === nextSort) {
+        state.teamSortDir = state.teamSortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        state.teamSort = nextSort;
+        state.teamSortDir = nextSort === 'name' || nextSort === 'input' ? 'asc' : 'desc';
+      }
+
+      saveTeamSort(state.teamSort);
+      saveTeamSortDir(state.teamSortDir);
+      writeUrl();
+      render();
+    });
   });
 
   document.querySelector('#pool-query-input')?.addEventListener('input', (event) => {
@@ -536,10 +619,28 @@ function loadSavedPool() {
   return localStorage.getItem(POOL_STORAGE_KEY) || '';
 }
 
+function saveTeamSort(value) {
+  localStorage.setItem(TEAM_SORT_STORAGE_KEY, value);
+}
+
+function loadSavedTeamSort() {
+  return localStorage.getItem(TEAM_SORT_STORAGE_KEY) || '';
+}
+
+function saveTeamSortDir(value) {
+  localStorage.setItem(TEAM_SORT_DIR_STORAGE_KEY, value);
+}
+
+function loadSavedTeamSortDir() {
+  return localStorage.getItem(TEAM_SORT_DIR_STORAGE_KEY) || '';
+}
+
 function writeUrl() {
   const params = new URLSearchParams();
   params.set('family', state.family);
   params.set('selection', state.selection);
+  params.set('teamSort', state.teamSort);
+  params.set('teamSortDir', state.teamSortDir);
 
   // Deliberately do not write the full pool to the URL. Large Reborn-style
   // inventories belong in localStorage, not a grotesque query string.
