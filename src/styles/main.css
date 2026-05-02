@@ -22,3 +22,18 @@ select, input { width: 100%; border: 1px solid #344355; background: #0f141a; col
 .moves-filter-bar { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; } .moves-filter-status { color: #aab5c3; font-size: .9rem; } .moves-filter-clear { padding: 4px 10px; } .moves-filter-clear.hidden { display: none; }
 @media (max-width: 900px) { .toolbar, .resolver-toolbar, .moveset-summary-grid, .moveset-main-grid { grid-template-columns: 1fr; } .panel-header { flex-direction: column; } }
 @media (max-width: 760px) { .move-entry { grid-template-columns: 1fr; gap: 8px; } .move-row-types { justify-content: flex-start; } }
+
+.representative-cell {
+  display: grid;
+  gap: 3px;
+}
+
+.input-mon,
+.arrow,
+.representative-note {
+  color: #aab5c3;
+}
+
+.representative-note {
+  font-size: 0.82rem;
+}

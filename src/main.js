@@ -1,6 +1,7 @@
 import './styles/main.css';
 
-import { formatBelongsToFamily, getAvailabilitySelectionLabel, getDefaultBrowserFormat, getLatestAvailabilityMonth, getLatestMonth, getMovesetEntry, getMovesetLookupContext, getResolvedFormatLabel, getRowsForSelection, getSelectionLabel, getMovesetResolverCandidates, isSyntheticFormat, loadAggregatedMovesetCandidate, loadAvailability, loadFormatData, loadFormatsIndex, loadMovesetData, loadPokemonIndex, resolveBestAvailableLightBundle, resolveQueryEntries } from './data';
+import { formatBelongsToFamily, getAvailabilitySelectionLabel, getDefaultBrowserFormat, getLatestAvailabilityMonth, getLatestMonth, getMovesetEntry, getMovesetLookupContext, getResolvedFormatLabel, getRowsForSelection, getSelectionLabel,
+  getLineRepresentativeCandidates, getMovesetResolverCandidates, isSyntheticFormat, loadAggregatedMovesetCandidate, loadAvailability, loadFormatData, loadFormatsIndex, loadMovesetData, loadPokemonIndex, resolveBestAvailableLightBundle, resolveQueryEntries } from './data';
 import { readStateFromUrl, writeStateToUrl } from './router';
 import { getState, replaceState, setState } from './state';
 import { renderControls } from './views/controlsView';
@@ -11,7 +12,8 @@ import { renderTable } from './views/tableView';
 
 const app = document.querySelector('#app');
 const DESC_SORT_FIELDS = new Set(['usage', 'rawCount', 'leadTendency']);
-const RESOLVER_INPUT_DEBOUNCE_MS = 150;
+const LITERAL_RESOLVE_LIMIT = 25;
+const RESOLVER_INPUT_DEBOUNCE_MS = 300;
 const RESOLVER_MOVESET_CACHE_SCHEMA_VERSION = 'v4';
 
 let dataset = null, formatsIndex = [], availability = null, pokemonIndex = [], browserMovesetData = null, browserMovesetKey = null, resolverResults = [];
@@ -29,7 +31,297 @@ function ensureValidFamilyAndFormat() { const state = getState(); const fallback
 function ensureValidMonth() { const state = getState(); const months = dataset.months || []; const synthetic = isSyntheticFormat(state.format, formatsIndex); if (synthetic) { if (state.month === 'all' || !months.includes(state.month)) setState({ month: getLatestMonth(dataset), selectedPokemon: null }); return; } if (state.month !== 'all' && !months.includes(state.month)) setState({ month: 'all', selectedPokemon: null }); }
 function ensureValidResolverMonth() { const state = getState(); const latest = getLatestAvailabilityMonth(availability); const months = Object.keys(availability?.months || {}); if (state.resolverMonth !== 'all' && (!state.resolverMonth || !months.includes(state.resolverMonth))) setState({ resolverMonth: latest || 'all' }); }
 async function ensureBrowserMovesetData() { const state = getState(); const context = getMovesetLookupContext(dataset, formatsIndex, state); if (!context) { browserMovesetData = null; browserMovesetKey = null; return; } const key = `${context.formatId}:${context.month}`; if (browserMovesetKey === key) return; browserMovesetData = await loadMovesetData(context.formatId, context.month); browserMovesetKey = key; }
-async function computeResolverResults() { const state = getState(); const entries = resolveQueryEntries(state.resolverQuery, pokemonIndex); const results = await Promise.all(entries.map(async (entry) => ({ pokemonId: entry.id, name: entry.name, token: entry.token, bundle: await resolveBestAvailableLightBundle({ availability, family: state.family, selection: state.resolverMonth, pokemonId: entry.id }) }))); results.sort((a, b) => { const leadA = a.bundle.leads?.value ?? -Infinity, leadB = b.bundle.leads?.value ?? -Infinity; if (leadB !== leadA) return leadB - leadA; const usageA = a.bundle.usage?.value ?? -Infinity, usageB = b.bundle.usage?.value ?? -Infinity; if (usageB !== usageA) return usageB - usageA; return a.name.localeCompare(b.name); }); return results; }
+async function computeResolverResults() {
+  const state = getState();
+  const entries = resolveQueryEntries(state.resolverQuery, pokemonIndex);
+  const groups = groupResolverEntries(entries);
+
+  const rawResults = await Promise.all(
+    groups.map(async (group) => {
+      if (group.mode === 'literal') {
+        return resolveLiteralSearchGroup(group, state);
+      }
+
+      const representativeCandidates = buildRepresentativeCandidatePool(group.entries);
+      const forcedExact = getForcedExactRepresentative(group.entries, representativeCandidates);
+      const candidatesToScore = forcedExact ? [forcedExact] : representativeCandidates;
+
+      const candidateResults = await Promise.all(
+        candidatesToScore.map(async (candidate) => {
+          const bundle = await resolveBestAvailableLightBundle({
+            availability,
+            family: state.family,
+            selection: state.resolverMonth,
+            pokemonId: candidate.id,
+          });
+
+          return {
+            candidate,
+            bundle,
+            score: scoreRepresentativeCandidate(candidate, bundle, state.family),
+          };
+        })
+      );
+
+      const best =
+        candidateResults
+          .filter((result) => Number.isFinite(result.score))
+          .sort((a, b) => b.score - a.score)[0] ||
+        candidateResults.find((result) => result.candidate.isExactInput) ||
+        candidateResults[0];
+
+      const displayInput = getDisplayInputForGroup(group.entries);
+
+      if (!best) {
+        return {
+          pokemonId: displayInput.id,
+          name: displayInput.name,
+          inputPokemonId: displayInput.id,
+          inputName: displayInput.name,
+          token: displayInput.token,
+          representativeIsMega: false,
+          representativeScore: -Infinity,
+          bundle: { usage: null, leads: null },
+        };
+      }
+
+      return {
+        pokemonId: best.candidate.id,
+        name: best.candidate.name,
+        inputPokemonId: displayInput.id,
+        inputName: displayInput.name,
+        token: displayInput.token,
+        representativeIsMega: Boolean(best.candidate.isMega),
+        representativeScore: best.score,
+        candidateCount: representativeCandidates.length,
+        bundle: best.bundle,
+      };
+    })
+  );
+
+  const results = dedupeRepresentativeRows(rawResults.flat());
+
+  results.sort((a, b) => {
+    if (a.broadMatch || b.broadMatch) {
+      if (a.broadMatch !== b.broadMatch) return a.broadMatch ? 1 : -1;
+
+      const usageA = a.bundle.usage?.value ?? -Infinity;
+      const usageB = b.bundle.usage?.value ?? -Infinity;
+      if (usageB !== usageA) return usageB - usageA;
+
+      return a.name.localeCompare(b.name);
+    }
+
+    const leadA = a.bundle.leads?.value ?? -Infinity;
+    const leadB = b.bundle.leads?.value ?? -Infinity;
+    if (leadB !== leadA) return leadB - leadA;
+
+    const scoreA = a.representativeScore ?? -Infinity;
+    const scoreB = b.representativeScore ?? -Infinity;
+    if (scoreB !== scoreA) return scoreB - scoreA;
+
+    const usageA = a.bundle.usage?.value ?? -Infinity;
+    const usageB = b.bundle.usage?.value ?? -Infinity;
+    if (usageB !== usageA) return usageB - usageA;
+
+    return a.name.localeCompare(b.name);
+  });
+
+  return results;
+}
+
+async function resolveLiteralSearchGroup(group, state) {
+  const shouldResolveData = group.entries.length <= LITERAL_RESOLVE_LIMIT;
+
+  return Promise.all(
+    group.entries.map(async (entry) => ({
+      pokemonId: entry.id,
+      name: entry.name,
+      inputPokemonId: entry.id,
+      inputName: entry.name,
+      token: entry.token,
+      representativeIsMega: false,
+      representativeScore: -Infinity,
+      broadMatch: true,
+      literalSearchOnly: !shouldResolveData,
+      bundle: shouldResolveData
+        ? await resolveBestAvailableLightBundle({
+            availability,
+            family: state.family,
+            selection: state.resolverMonth,
+            pokemonId: entry.id,
+          })
+        : { usage: null, leads: null },
+    }))
+  );
+}
+
+function groupResolverEntries(entries) {
+  const tokenGroups = new Map();
+
+  for (const entry of entries) {
+    const tokenKey = normalizeName(entry.token || entry.name);
+    if (!tokenGroups.has(tokenKey)) tokenGroups.set(tokenKey, []);
+    tokenGroups.get(tokenKey).push(entry);
+  }
+
+  const groups = [];
+
+  for (const tokenEntries of tokenGroups.values()) {
+    const entriesByLine = new Map();
+
+    for (const entry of tokenEntries) {
+      const lineKey = getRepresentativeLineKey(entry.id);
+      if (!entriesByLine.has(lineKey)) entriesByLine.set(lineKey, []);
+      entriesByLine.get(lineKey).push(entry);
+    }
+
+    const hasBroadMatch = tokenEntries.some((entry) => entry.broadMatch);
+    const token = normalizeName(tokenEntries[0]?.token || '');
+    const formSpecificPrefix =
+      tokenEntries.length > 1 &&
+      tokenLooksLikeSpecificFormPrefix(token) &&
+      tokenEntries.every((entry) => isSpecificFormId(entry.id));
+
+    // If one typed token fans out into unrelated evo/reachability lines, this is search,
+    // not competitive inference. Do not let Machamp and Medicham share a candidate pool.
+    //
+    // Also, if the token is form-specific-but-incomplete, e.g. "mewtwo-m",
+    // show the matching forms literally instead of turning Mega-X into Mega-Y.
+    if (hasBroadMatch || entriesByLine.size > 1 || formSpecificPrefix) {
+      groups.push({ mode: 'literal', entries: tokenEntries });
+      continue;
+    }
+
+    groups.push({ mode: 'representative', entries: tokenEntries });
+  }
+
+  return groups;
+}
+
+function tokenLooksLikeSpecificFormPrefix(token) {
+  return (
+    token.includes('mega') ||
+    token.endsWith('m') ||
+    token.includes('alola') ||
+    token.includes('galar') ||
+    token.includes('hisui')
+  );
+}
+
+function getRepresentativeLineKey(pokemonId) {
+  const candidates = getLineRepresentativeCandidates(pokemonId, pokemonIndex);
+  if (!candidates.length) return pokemonId;
+  return candidates
+    .map((candidate) => candidate.id)
+    .sort()
+    .join('|');
+}
+
+function buildRepresentativeCandidatePool(group) {
+  const candidateMap = new Map();
+
+  for (const entry of group) {
+    for (const candidate of getLineRepresentativeCandidates(entry.id, pokemonIndex)) {
+      const existing = candidateMap.get(candidate.id);
+
+      if (existing) {
+        existing.isExactInput ||= candidate.id === entry.id;
+        existing.sourceInputs.push(entry);
+      } else {
+        candidateMap.set(candidate.id, {
+          ...candidate,
+          isExactInput: candidate.id === entry.id,
+          sourceInputs: [entry],
+        });
+      }
+    }
+  }
+
+  return [...candidateMap.values()];
+}
+
+function getForcedExactRepresentative(group, candidates) {
+  for (const entry of group) {
+    const tokenId = normalizeName(entry.token || '');
+    const exactId = normalizeName(entry.name || '');
+
+    if (tokenId === exactId && isSpecificFormId(entry.id)) {
+      return candidates.find((candidate) => candidate.id === entry.id) || null;
+    }
+  }
+
+  return null;
+}
+
+function isSpecificFormId(pokemonId) {
+  return (
+    pokemonId.includes('mega') ||
+    pokemonId.includes('alola') ||
+    pokemonId.includes('galar') ||
+    pokemonId.includes('hisui')
+  );
+}
+
+function getDisplayInputForGroup(group) {
+  const exactNonForm = group.find(
+    (entry) => normalizeName(entry.token || '') === normalizeName(entry.name || '') && !isSpecificFormId(entry.id)
+  );
+  if (exactNonForm) return exactNonForm;
+
+  const nonForm = group.find((entry) => !isSpecificFormId(entry.id));
+  if (nonForm) return nonForm;
+
+  return group[0];
+}
+
+function dedupeRepresentativeRows(rows) {
+  const byRepresentative = new Map();
+
+  for (const row of rows) {
+    if (!row?.pokemonId) continue;
+
+    const existing = byRepresentative.get(row.pokemonId);
+    if (!existing) {
+      byRepresentative.set(row.pokemonId, row);
+      continue;
+    }
+
+    const existingScore = existing.representativeScore ?? -Infinity;
+    const rowScore = row.representativeScore ?? -Infinity;
+
+    if (rowScore > existingScore) {
+      byRepresentative.set(row.pokemonId, row);
+    }
+  }
+
+  return [...byRepresentative.values()];
+}
+
+function scoreRepresentativeCandidate(candidate, bundle, family) {
+  const usage = bundle?.usage;
+  if (!usage) return -Infinity;
+
+  const familyConfig = availability?.familyConfigs?.[family] || {};
+  const formatOrder = familyConfig.formatOrder || [];
+  const cutoffPriority = familyConfig.cutoffPriority || [];
+
+  const formatIndex = formatOrder.indexOf(usage.formatId);
+  const cutoffIndex = cutoffPriority.indexOf(usage.cutoff);
+
+  const formatScore = formatIndex >= 0 ? (formatOrder.length - formatIndex) * 1000 : 0;
+  const cutoffScore = cutoffIndex >= 0 ? (cutoffPriority.length - cutoffIndex) * 100 : 0;
+  const usageScore = (usage.value || 0) * 20;
+  const rawScore = Math.log1p(usage.entry?.rawCount || 0) * 5;
+  const leadScore = (bundle.leads?.value || 0) * 0.2;
+  const megaBonus = candidate.isMega ? 25 : 0;
+  const exactFormBonus = candidate.isExactInput && isSpecificFormId(candidate.id) ? 100000 : 0;
+  const exactBonus = candidate.isExactInput ? 2 : 0;
+
+  return formatScore + cutoffScore + usageScore + rawScore + leadScore + megaBonus + exactFormBonus + exactBonus;
+}
+
+
 function renderApp() { const state = getState(); app.innerHTML = `<div class="app-shell"><header><h1>Pokémon Showdown Usage Viewer</h1></header><nav class="view-tabs"><button class="view-tab ${state.family === 'singles' ? 'active' : ''}" data-app-family="singles">Singles</button><button class="view-tab ${state.family === 'doubles' ? 'active' : ''}" data-app-family="doubles">Doubles</button></nav><nav class="view-tabs secondary-tabs"><button class="view-tab ${state.view === 'resolver' ? 'active' : ''}" data-app-view="resolver">Resolver</button><button class="view-tab ${state.view === 'browser' ? 'active' : ''}" data-app-view="browser">Usage Browser</button></nav><section id="page-root" class="page-stack"></section></div>`; const pageRoot = document.querySelector('#page-root'); if (state.view === 'resolver') renderResolverPage(pageRoot); else renderBrowserPage(pageRoot); bindEvents(); }
 function renderResolverPage(pageRoot) { const state = getState(); const resolverSelectionLabel = getAvailabilitySelectionLabel(availability, state.resolverMonth); const resolverSelected = resolverResults.find((row) => row.pokemonId === state.resolverSelectedPokemon) || null; pageRoot.innerHTML = `<section id="resolver-controls-root"></section><section id="resolver-results-root"></section><section id="details-root"></section>`; renderResolverControls(document.querySelector('#resolver-controls-root'), state, availability); renderResolverResults(document.querySelector('#resolver-results-root'), resolverResults, state, formatsIndex, resolverSelectionLabel); renderMovesetPanel(document.querySelector('#details-root'), { selectedPokemonName: resolverSelected?.name || null, movesetEntry: resolverMovesetDetail, lookupLabel: resolverMovesetDetail ? describeResolverMovesetSource(resolverMovesetDetail) : '', aggregate: getState().resolverMonth === 'all', stitched: Boolean(resolverMovesetDetail?.stitched), status: resolverMovesetStatus }); }
 function renderBrowserPage(pageRoot) { const state = getState(); const rows = getRowsForSelection(dataset, state.month); const resolvedFormatLabel = getResolvedFormatLabel(dataset, formatsIndex, state.month); const selectionLabel = getSelectionLabel(dataset, state.month); const browserSelectedRow = rows.find((row) => row.pokemonId === state.selectedPokemon) || null; const browserMovesetContext = getMovesetLookupContext(dataset, formatsIndex, state); const browserMovesetEntry = getMovesetEntry(browserMovesetData, state.selectedPokemon); pageRoot.innerHTML = `<section id="controls-root"></section><main id="content-root"></main><section id="details-root"></section>`; renderControls(document.querySelector('#controls-root'), state, dataset, formatsIndex); renderTable(document.querySelector('#content-root'), rows, state, { isAggregate: state.month === 'all', resolvedFormatLabel, selectionLabel }); renderMovesetPanel(document.querySelector('#details-root'), { selectedPokemonName: browserSelectedRow?.name || browserMovesetEntry?.name || null, movesetEntry: browserMovesetEntry, lookupLabel: browserMovesetContext?.label || '', aggregate: Boolean(browserMovesetContext?.aggregate), stitched: false, status: null }); }

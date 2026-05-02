@@ -11,10 +11,23 @@ export function renderResolverResults(container, rows, state, formatsIndex, sele
     <section class="panel">
       <div class="panel-header"><div><h2>Resolver Results</h2><p>${rows.length} Pokémon resolved for ${selectionLabel}</p><p>Sorted by Lead % descending. Click a row to load movesets.</p></div></div>
       <table class="usage-table resolver-results-table"><thead><tr><th>Pokémon</th><th>Usage %</th><th>Lead %</th><th>Source</th></tr></thead><tbody>
-        ${rows.map((row) => `<tr data-resolver-pokemon-id="${row.pokemonId}" class="${row.pokemonId === state.resolverSelectedPokemon ? 'selected' : ''}"><td>${escapeHtml(row.name)}</td><td>${row.bundle.usage ? row.bundle.usage.value.toFixed(2) : '—'}</td><td>${row.bundle.leads ? row.bundle.leads.value.toFixed(1) : '—'}</td><td>${renderSourceCell(row.bundle, formatsIndex)}</td></tr>`).join('')}
+        ${rows.map((row) => `<tr data-resolver-pokemon-id="${row.pokemonId}" class="${row.pokemonId === state.resolverSelectedPokemon ? 'selected' : ''}"><td>${renderPokemonCell(row)}</td><td>${row.bundle.usage ? row.bundle.usage.value.toFixed(2) : '—'}</td><td>${row.bundle.leads ? row.bundle.leads.value.toFixed(1) : '—'}</td><td>${renderSourceCell(row.bundle, formatsIndex)}</td></tr>`).join('')}
       </tbody></table>
     </section>`;
 }
+function renderPokemonCell(row) {
+  if (row.inputName && row.inputName !== row.name) {
+    return `
+      <div class="representative-cell">
+        <div><span class="input-mon">${escapeHtml(row.inputName)}</span> <span class="arrow">→</span> <strong>${escapeHtml(row.name)}</strong></div>
+        <div class="representative-note">${row.representativeIsMega ? 'Best line representative · Mega candidate' : 'Best line representative'}</div>
+      </div>
+    `;
+  }
+
+  return escapeHtml(row.name);
+}
+
 function renderSourceCell(bundle, formatsIndex) {
   const usageSource = bundle.usage, leadSource = bundle.leads;
   if (!usageSource && !leadSource) return '—';

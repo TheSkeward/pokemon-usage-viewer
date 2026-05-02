@@ -1,3 +1,5 @@
+import { LINE_REPRESENTATIVE_CANDIDATES } from './generated/gen7LineRepresentativeCandidates.generated.js';
+
 const LEAD_SMOOTHING_K = 200;
 
 function dataUrl(path) {
@@ -128,25 +130,92 @@ export function getAvailabilitySelectionLabel(availability, selection) {
   return `All available (${months[0]} → ${months[months.length - 1]})`;
 }
 
+export function getLineRepresentativeCandidates(pokemonId, pokemonIndex) {
+  const nameById = new Map(pokemonIndex.map((entry) => [entry.id, entry.name]));
+  const rawCandidates = LINE_REPRESENTATIVE_CANDIDATES[pokemonId] || [
+    { id: pokemonId, name: nameById.get(pokemonId) || pokemonId, isMega: false },
+  ];
+
+  const seen = new Set();
+  return rawCandidates
+    .filter((candidate) => {
+      if (!candidate?.id || seen.has(candidate.id)) return false;
+      seen.add(candidate.id);
+      return true;
+    })
+    .map((candidate) => ({
+      id: candidate.id,
+      name: nameById.get(candidate.id) || candidate.name || candidate.id,
+      isMega: Boolean(candidate.isMega),
+      isExact: candidate.id === pokemonId,
+    }));
+}
+
 export function resolveQueryEntries(query, pokemonIndex) {
   const raw = query.trim();
   if (!raw) return [];
-  const tokens = raw.split(/[,\n]+/).map((token) => token.trim()).filter(Boolean);
-  const indexed = pokemonIndex.map((entry) => ({ ...entry, normalizedName: normalizeSearch(entry.name) }));
+
+  const tokens = raw
+    .split(/[,\n]+/)
+    .map((token) => token.trim())
+    .filter(Boolean);
+
+  const indexed = pokemonIndex.map((entry) => ({
+    ...entry,
+    normalizedName: normalizeSearch(entry.name),
+  }));
+
   const seen = new Set();
   const results = [];
+
   for (const token of tokens) {
     const normalizedToken = normalizeSearch(token);
     if (!normalizedToken) continue;
+
     const exactMatches = indexed.filter((entry) => entry.normalizedName === normalizedToken);
-    const prefixMatches = exactMatches.length > 0 ? exactMatches : indexed.filter((entry) => entry.normalizedName.startsWith(normalizedToken));
-    const fallbackMatches = prefixMatches.length > 0 ? prefixMatches : indexed.filter((entry) => entry.normalizedName.includes(normalizedToken));
-    for (const match of [...fallbackMatches].sort((a, b) => a.name.localeCompare(b.name))) {
-      if (seen.has(match.id)) continue;
-      seen.add(match.id);
-      results.push({ id: match.id, name: match.name, token });
+    const prefixMatches = indexed.filter((entry) => entry.normalizedName.startsWith(normalizedToken));
+    const substringMatches = indexed.filter((entry) => entry.normalizedName.includes(normalizedToken));
+
+    let matches = [];
+    let matchMode = 'substring';
+
+    if (exactMatches.length > 0) {
+      matches = exactMatches;
+      matchMode = 'exact';
+    } else if (prefixMatches.length > 0) {
+      matches = prefixMatches;
+      matchMode = 'prefix';
+    } else {
+      matches = substringMatches;
+      matchMode = 'substring';
+    }
+
+    const limit = normalizedToken.length <= 2 ? 250 : 200;
+
+    const orderedMatches = [...matches]
+      .sort((a, b) => {
+        const aPrefix = a.normalizedName.startsWith(normalizedToken) ? 0 : 1;
+        const bPrefix = b.normalizedName.startsWith(normalizedToken) ? 0 : 1;
+        if (aPrefix !== bPrefix) return aPrefix - bPrefix;
+        return a.name.localeCompare(b.name);
+      })
+      .slice(0, limit);
+
+    for (const match of orderedMatches) {
+      const seenKey = `${normalizedToken}:${match.id}`;
+      if (seen.has(seenKey)) continue;
+      seen.add(seenKey);
+
+      results.push({
+        id: match.id,
+        name: match.name,
+        token,
+        matchMode,
+        broadMatch: normalizedToken.length <= 2 || matchMode === 'substring',
+      });
     }
   }
+
   return results;
 }
 
