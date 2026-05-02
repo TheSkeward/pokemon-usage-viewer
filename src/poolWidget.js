@@ -606,7 +606,9 @@ export function mountPoolOptimizer(container, options = {}) {
     const byKey = new Map();
 
     for (const name of extractPoolNames(query)) {
-      const canonical = canonicalizePoolName(name);
+      const canonical = findPokemonNameInText(name);
+      if (!canonical) continue;
+
       const key = normalizeName(canonical);
       if (!key || byKey.has(key)) continue;
       byKey.set(key, canonical);
@@ -622,18 +624,18 @@ export function mountPoolOptimizer(container, options = {}) {
       const line = rawLine.trim();
       if (!line) continue;
 
-      // If this is a comma-separated hand-written list, split it.
-      // If this is a pasted table row, it usually has no commas and should
-      // be handled as one row.
+      // Comma-separated hand-written list.
       if (line.includes(',')) {
         for (const part of line.split(',')) {
           const name = extractNameFromPoolToken(part);
           if (name) names.push(name);
         }
-      } else {
-        const name = extractNameFromPoolToken(line);
-        if (name) names.push(name);
+        continue;
       }
+
+      // Pasted table row / single Pokémon line.
+      const name = extractNameFromPoolToken(line);
+      if (name) names.push(name);
     }
 
     return names;
@@ -643,56 +645,43 @@ export function mountPoolOptimizer(container, options = {}) {
     const text = String(value || '').trim();
     if (!text) return '';
 
-    // TSV / copied table rows: "Trubbish\t3-9\t57%".
-    const firstTabCell = text.split('\t')[0].trim();
-    if (firstTabCell && firstTabCell !== text) {
-      return canonicalizePoolName(firstTabCell);
+    // First: scan the whole row for a canonical Pokémon name.
+    // This handles rows like:
+    //   #001    001MS    Bulbasaur    Grass    Poison ...
+    const anywhere = findPokemonNameInText(text);
+    if (anywhere) return anywhere;
+
+    // Second: TSV row fallback. Some encounter tables put the mon in cell 1.
+    for (const cell of text.split('\t')) {
+      const fromCell = findPokemonNameInText(cell);
+      if (fromCell) return fromCell;
     }
 
-    // Space-separated table rows: "Trubbish 3-9 57%".
-    const beforeNumericColumns = text.split(/\s+(?=\d|--)/)[0]?.trim();
+    // Third: space-separated table rows like "Wurmple 2-7 20%".
+    const beforeNumericColumns = text.split(/\s+(?=\d|--|#)/)[0]?.trim();
     if (beforeNumericColumns && beforeNumericColumns !== text) {
-      return canonicalizePoolName(beforeNumericColumns);
+      const fromPrefix = findPokemonNameInText(beforeNumericColumns);
+      if (fromPrefix) return fromPrefix;
     }
 
-    return canonicalizePoolName(text);
+    // Unknown token: drop it. Do not optimize "#001" or random table junk.
+    return '';
   }
 
-  function canonicalizePoolName(value) {
+  function findPokemonNameInText(value) {
     const text = String(value || '').trim();
-    if (!text) return '';
-
-    return (
-      findExactPokemonName(text) ||
-      findLeadingPokemonName(text) ||
-      titleCaseLoose(text)
-    );
-  }
-
-  function findExactPokemonName(value) {
-    const key = normalizeName(value);
+    const key = normalizeName(text);
     if (!key) return null;
 
-    return pokemonIndex.find((pokemon) => normalizeName(pokemon.name) === key)?.name || null;
-  }
-
-  function findLeadingPokemonName(value) {
-    const key = normalizeName(value);
-    if (!key) return null;
+    const exact = pokemonIndex.find((pokemon) => normalizeName(pokemon.name) === key);
+    if (exact) return exact.name;
 
     const matches = pokemonIndex
-      .filter((pokemon) => key.startsWith(normalizeName(pokemon.name)))
-      .sort((a, b) => normalizeName(b.name).length - normalizeName(a.name).length);
+      .map((pokemon) => ({ pokemon, key: normalizeName(pokemon.name) }))
+      .filter(({ key: pokemonKey }) => pokemonKey && key.includes(pokemonKey))
+      .sort((a, b) => b.key.length - a.key.length);
 
-    return matches[0]?.name || null;
-  }
-
-  function titleCaseLoose(value) {
-    return String(value || '')
-      .trim()
-      .split(/\s+/)
-      .map((word) => word ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() : word)
-      .join(' ');
+    return matches[0]?.pokemon.name || null;
   }
 
   function updatePoolStatusMessage(message) {
