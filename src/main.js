@@ -17,6 +17,7 @@ const RESOLVER_INPUT_DEBOUNCE_MS = 300;
 const RESOLVER_MOVESET_CACHE_SCHEMA_VERSION = 'v4';
 
 let dataset = null, formatsIndex = [], availability = null, pokemonIndex = [], browserMovesetData = null, browserMovesetKey = null, resolverResults = [];
+let resolverLoadingState = { loading: false, message: '' };
 let resolverMovesetDetail = null, resolverMovesetStatus = { phase: 'idle', checked: 0, total: 0, contributed: 0 }, resolverMovesetSelectionKey = null, resolverMovesetRequestToken = 0, resolverMovesetInFlightKey = null;
 const resolverMovesetDetailCache = new Map();
 let syncGeneration = 0, resolverDebounceTimer = null;
@@ -309,21 +310,40 @@ function scoreRepresentativeCandidate(candidate, bundle, family) {
   const formatIndex = formatOrder.indexOf(usage.formatId);
   const cutoffIndex = cutoffPriority.indexOf(usage.cutoff);
 
-  const formatScore = formatIndex >= 0 ? (formatOrder.length - formatIndex) * 1000 : 0;
-  const cutoffScore = cutoffIndex >= 0 ? (cutoffPriority.length - cutoffIndex) * 100 : 0;
-  const usageScore = (usage.value || 0) * 20;
-  const rawScore = Math.log1p(usage.entry?.rawCount || 0) * 5;
-  const leadScore = (bundle.leads?.value || 0) * 0.2;
-  const megaBonus = candidate.isMega ? 25 : 0;
-  const exactFormBonus = candidate.isExactInput && isSpecificFormId(candidate.id) ? 100000 : 0;
-  const exactBonus = candidate.isExactInput ? 2 : 0;
+  // For exact-mon resolution, source strength should dominate.
+  // For line-representative choice, it should not.
+  //
+  // Otherwise a joke Charmander appearance in AG can beat a genuinely useful
+  // Charizard/mega in a lower but still serious tier. Here, usage/raw/lead are
+  // the primary signal; format/cutoff are quality modifiers.
+  const usageScore = Math.max(0, usage.value || 0) * 1000;
+  const rawScore = Math.log1p(usage.entry?.rawCount || 0) * 40;
+  const leadScore = (bundle.leads?.value || 0) * 2;
 
-  return formatScore + cutoffScore + usageScore + rawScore + leadScore + megaBonus + exactFormBonus + exactBonus;
+  const formatQuality = formatIndex >= 0 ? (formatOrder.length - formatIndex) * 15 : 0;
+  const cutoffQuality = cutoffIndex >= 0 ? (cutoffPriority.length - cutoffIndex) * 5 : 0;
+
+  // Prefer evolved/mega representatives when their competitive signal is in
+  // the same rough ballpark. This is intentionally smaller than usageScore,
+  // so real NFE signals like Chansey/Porygon2 can still win.
+  const megaBonus = candidate.isMega ? 350 : 0;
+  const exactFormBonus = candidate.isExactInput && isSpecificFormId(candidate.id) ? 100000 : 0;
+  const exactBonus = candidate.isExactInput ? 1 : 0;
+
+  return (
+    usageScore +
+    rawScore +
+    leadScore +
+    formatQuality +
+    cutoffQuality +
+    megaBonus +
+    exactFormBonus +
+    exactBonus
+  );
 }
 
-
 function renderApp() { const state = getState(); app.innerHTML = `<div class="app-shell"><header><h1>Pokémon Showdown Usage Viewer</h1></header><nav class="view-tabs"><button class="view-tab ${state.family === 'singles' ? 'active' : ''}" data-app-family="singles">Singles</button><button class="view-tab ${state.family === 'doubles' ? 'active' : ''}" data-app-family="doubles">Doubles</button></nav><nav class="view-tabs secondary-tabs"><button class="view-tab ${state.view === 'resolver' ? 'active' : ''}" data-app-view="resolver">Resolver</button><button class="view-tab ${state.view === 'browser' ? 'active' : ''}" data-app-view="browser">Usage Browser</button></nav><section id="page-root" class="page-stack"></section></div>`; const pageRoot = document.querySelector('#page-root'); if (state.view === 'resolver') renderResolverPage(pageRoot); else renderBrowserPage(pageRoot); bindEvents(); }
-function renderResolverPage(pageRoot) { const state = getState(); const resolverSelectionLabel = getAvailabilitySelectionLabel(availability, state.resolverMonth); const resolverSelected = resolverResults.find((row) => row.pokemonId === state.resolverSelectedPokemon) || null; pageRoot.innerHTML = `<section id="resolver-controls-root"></section><section id="resolver-results-root"></section><section id="details-root"></section>`; renderResolverControls(document.querySelector('#resolver-controls-root'), state, availability); renderResolverResults(document.querySelector('#resolver-results-root'), resolverResults, state, formatsIndex, resolverSelectionLabel); renderMovesetPanel(document.querySelector('#details-root'), { selectedPokemonName: resolverSelected?.name || null, movesetEntry: resolverMovesetDetail, lookupLabel: resolverMovesetDetail ? describeResolverMovesetSource(resolverMovesetDetail) : '', aggregate: getState().resolverMonth === 'all', stitched: Boolean(resolverMovesetDetail?.stitched), status: resolverMovesetStatus }); }
+function renderResolverPage(pageRoot) { const state = getState(); const resolverSelectionLabel = getAvailabilitySelectionLabel(availability, state.resolverMonth); const resolverSelected = resolverResults.find((row) => row.pokemonId === state.resolverSelectedPokemon) || null; pageRoot.innerHTML = `<section id="resolver-controls-root"></section><section id="resolver-results-root"></section><section id="details-root"></section>`; renderResolverControls(document.querySelector('#resolver-controls-root'), state, availability); renderResolverResults(document.querySelector('#resolver-results-root'), resolverResults, state, formatsIndex, resolverSelectionLabel, resolverLoadingState); renderMovesetPanel(document.querySelector('#details-root'), { selectedPokemonName: resolverSelected?.name || null, movesetEntry: resolverMovesetDetail, lookupLabel: resolverMovesetDetail ? describeResolverMovesetSource(resolverMovesetDetail) : '', aggregate: getState().resolverMonth === 'all', stitched: Boolean(resolverMovesetDetail?.stitched), status: resolverMovesetStatus }); }
 function renderBrowserPage(pageRoot) { const state = getState(); const rows = getRowsForSelection(dataset, state.month); const resolvedFormatLabel = getResolvedFormatLabel(dataset, formatsIndex, state.month); const selectionLabel = getSelectionLabel(dataset, state.month); const browserSelectedRow = rows.find((row) => row.pokemonId === state.selectedPokemon) || null; const browserMovesetContext = getMovesetLookupContext(dataset, formatsIndex, state); const browserMovesetEntry = getMovesetEntry(browserMovesetData, state.selectedPokemon); pageRoot.innerHTML = `<section id="controls-root"></section><main id="content-root"></main><section id="details-root"></section>`; renderControls(document.querySelector('#controls-root'), state, dataset, formatsIndex); renderTable(document.querySelector('#content-root'), rows, state, { isAggregate: state.month === 'all', resolvedFormatLabel, selectionLabel }); renderMovesetPanel(document.querySelector('#details-root'), { selectedPokemonName: browserSelectedRow?.name || browserMovesetEntry?.name || null, movesetEntry: browserMovesetEntry, lookupLabel: browserMovesetContext?.label || '', aggregate: Boolean(browserMovesetContext?.aggregate), stitched: false, status: null }); }
 function describeResolverMovesetSource(source) { const label = getFormatLabel(source.formatId); if (source.selection === 'all') return source.stitched ? `${label} @ ${source.cutoff} (all available, ${source.monthsPresent}/${source.monthsAvailable} months with this mon; fallback tail)` : `${label} @ ${source.cutoff} (all available, ${source.monthsPresent}/${source.monthsAvailable} months with this mon)`; return source.stitched ? `${label} @ ${source.cutoff} (${source.month}; fallback tail)` : `${label} @ ${source.cutoff} (${source.month})`; }
 function getFormatLabel(formatId) { return formatsIndex.find((format) => format.id === formatId)?.label || formatId; }
@@ -334,7 +354,8 @@ function bindEvents() { const formatSelect = document.querySelector('#format-sel
   monthSelect?.addEventListener('change', async (event) => { clearPendingResolverDebounce(); setState({ month: event.target.value, selectedPokemon: null }); await sync(); });
   searchInput?.addEventListener('input', async (event) => { clearPendingResolverDebounce(); setState({ search: event.target.value }); await sync(); });
   resolverMonthSelect?.addEventListener('change', async (event) => { clearPendingResolverDebounce(); setState({ resolverMonth: event.target.value, resolverSelectedPokemon: null }); await sync(); });
-  resolverQueryInput?.addEventListener('input', (event) => { setState({ resolverQuery: event.target.value, resolverSelectedPokemon: null }); clearPendingResolverDebounce(); resolverDebounceTimer = setTimeout(() => sync(), RESOLVER_INPUT_DEBOUNCE_MS); });
+  resolverQueryInput?.addEventListener('input', (event) => { setState({ resolverQuery: event.target.value, resolverSelectedPokemon: null });
+    writeStateToUrl(getState()); clearPendingResolverDebounce(); resolverDebounceTimer = setTimeout(() => sync(), RESOLVER_INPUT_DEBOUNCE_MS); });
   document.querySelectorAll('[data-sort-by]').forEach((button) => button.addEventListener('click', async (event) => { clearPendingResolverDebounce(); const nextSortBy = event.currentTarget.dataset.sortBy; const state = getState(); const nextSortDir = state.sortBy === nextSortBy ? state.sortDir === 'asc' ? 'desc' : 'asc' : DESC_SORT_FIELDS.has(nextSortBy) ? 'desc' : 'asc'; setState({ sortBy: nextSortBy, sortDir: nextSortDir }); await sync(); }));
   document.querySelectorAll('[data-pokemon-id]').forEach((row) => row.addEventListener('click', async (event) => { clearPendingResolverDebounce(); const pokemonId = event.currentTarget.dataset.pokemonId; const state = getState(); setState({ selectedPokemon: state.selectedPokemon === pokemonId ? null : pokemonId, resolverSelectedPokemon: null, view: 'browser' }); await sync({ recomputeResolverResults: false }); }));
   document.querySelectorAll('[data-resolver-pokemon-id]').forEach((row) => row.addEventListener('click', async (event) => { clearPendingResolverDebounce(); const pokemonId = event.currentTarget.dataset.resolverPokemonId; const state = getState(); setState({ resolverSelectedPokemon: state.resolverSelectedPokemon === pokemonId ? null : pokemonId, selectedPokemon: null, view: 'resolver' }); await sync({ recomputeResolverResults: false }); })); }
@@ -351,7 +372,83 @@ function getResolverMovesetCacheStorageKey() { return `resolverMovesets:${RESOLV
 function loadResolverMovesetPersistentCache() { resolverMovesetDetailCache.clear(); try { const raw = localStorage.getItem(getResolverMovesetCacheStorageKey()); if (!raw) return; const parsed = JSON.parse(raw); if (!parsed || typeof parsed !== 'object') return; for (const [key, value] of Object.entries(parsed)) resolverMovesetDetailCache.set(key, value); } catch (error) { console.warn('Failed to load resolver moveset cache', error); } }
 function saveResolverMovesetPersistentCache() { try { const payload = Object.fromEntries(resolverMovesetDetailCache); localStorage.setItem(getResolverMovesetCacheStorageKey(), JSON.stringify(payload)); } catch (error) { console.warn('Failed to save resolver moveset cache', error); } }
 function cloneValue(value) { return value == null ? value : JSON.parse(JSON.stringify(value)); }
-async function sync(options = {}) { const { recomputeResolverResults = true } = options; const focusState = captureFocusState(); const generation = ++syncGeneration; primeResolverMovesetState(); await ensureBrowserMovesetData(); let nextResolverResults = resolverResults; if (recomputeResolverResults) nextResolverResults = await computeResolverResults(); if (generation !== syncGeneration) return; if (recomputeResolverResults) { resolverResults = nextResolverResults; const validIds = new Set(resolverResults.map((row) => row.pokemonId)); if (getState().resolverSelectedPokemon && !validIds.has(getState().resolverSelectedPokemon)) { setState({ resolverSelectedPokemon: null }); primeResolverMovesetState(); } } writeStateToUrl(getState()); renderApp(); if (generation !== syncGeneration) return; restoreFocusState(focusState); kickResolverMovesetLoad(); }
+function getResolverLoadingMessage() {
+  const query = getState().resolverQuery || '';
+  const tokens = query
+    .split(/[,\n]+/)
+    .map((token) => token.trim())
+    .filter(Boolean);
+
+  if (tokens.length >= 8) {
+    return `Resolving ${tokens.length} inputs across best available data...`;
+  }
+
+  if (tokens.length > 1) {
+    return `Resolving ${tokens.length} inputs...`;
+  }
+
+  return 'Resolving Pokémon...';
+}
+
+function waitForPaint() {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
+}
+
+function renderResolverLoadingNow() {
+  const state = getState();
+  if (state.view !== 'resolver' || !state.resolverQuery.trim()) return;
+
+  resolverLoadingState = {
+    loading: true,
+    message: getResolverLoadingMessage(),
+  };
+
+  const focusState = captureFocusState();
+  writeStateToUrl(getState());
+  renderApp();
+  restoreFocusState(focusState);
+}
+
+async function sync(options = {}) {
+  const { recomputeResolverResults = true } = options;
+  const focusState = captureFocusState();
+  const generation = ++syncGeneration;
+
+  primeResolverMovesetState();
+  await ensureBrowserMovesetData();
+
+  let nextResolverResults = resolverResults;
+
+  if (recomputeResolverResults) {
+    renderResolverLoadingNow();
+    await waitForPaint();
+    nextResolverResults = await computeResolverResults();
+  }
+
+  if (generation !== syncGeneration) return;
+
+  if (recomputeResolverResults) {
+    resolverLoadingState = { loading: false, message: '' };
+    resolverResults = nextResolverResults;
+
+    const validIds = new Set(resolverResults.map((row) => row.pokemonId));
+    if (getState().resolverSelectedPokemon && !validIds.has(getState().resolverSelectedPokemon)) {
+      setState({ resolverSelectedPokemon: null });
+      primeResolverMovesetState();
+    }
+  }
+
+  writeStateToUrl(getState());
+  renderApp();
+
+  if (generation !== syncGeneration) return;
+
+  restoreFocusState(focusState);
+  kickResolverMovesetLoad();
+}
+
 function rerenderPreservingFocus() { const focusState = captureFocusState(); renderApp(); restoreFocusState(focusState); }
 function captureFocusState() { const active = document.activeElement; if (active?.id === 'search-input' || active?.id === 'resolver-query-input') return { id: active.id, selectionStart: active.selectionStart ?? null, selectionEnd: active.selectionEnd ?? null }; return null; }
 function restoreFocusState(focusState) { if (!focusState?.id) return; const input = document.querySelector(`#${focusState.id}`); if (!input) return; input.focus(); if (typeof focusState.selectionStart === 'number' && typeof focusState.selectionEnd === 'number') input.setSelectionRange(focusState.selectionStart, focusState.selectionEnd); }

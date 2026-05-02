@@ -1,15 +1,23 @@
-export function renderResolverResults(container, rows, state, formatsIndex, selectionLabel) {
+export function renderResolverResults(container, rows, state, formatsIndex, selectionLabel, status = {}) {
   if (!state.resolverQuery.trim()) {
     container.innerHTML = `<section class="panel"><p class="muted">Enter one or more Pokémon to resolve best available usage, lead data, and movesets.</p></section>`;
     return;
   }
+
+  const loadingNotice = status.loading
+    ? `<div class="resolver-loading-banner">
+        <span class="spinner-dot"></span>
+        <span>${escapeHtml(status.message || 'Resolving Pokémon...')}</span>
+      </div>`
+    : '';
   if (rows.length === 0) {
-    container.innerHTML = `<section class="panel"><p class="muted">No matching Pokémon found.</p></section>`;
+    container.innerHTML = `<section class="panel">${loadingNotice}<p class="muted">No matching Pokémon found.</p></section>`;
     return;
   }
   container.innerHTML = `
     <section class="panel">
       <div class="panel-header"><div><h2>Resolver Results</h2><p>${rows.length} Pokémon resolved for ${selectionLabel}</p><p>Sorted by Lead % descending. Click a row to load movesets.</p></div></div>
+      ${loadingNotice}
       <table class="usage-table resolver-results-table"><thead><tr><th>Pokémon</th><th>Usage %</th><th>Lead %</th><th>Source</th></tr></thead><tbody>
         ${rows.map((row) => `<tr data-resolver-pokemon-id="${row.pokemonId}" class="${row.pokemonId === state.resolverSelectedPokemon ? 'selected' : ''}"><td>${renderPokemonCell(row)}</td><td>${row.bundle.usage ? row.bundle.usage.value.toFixed(2) : '—'}</td><td>${row.bundle.leads ? row.bundle.leads.value.toFixed(1) : '—'}</td><td>${renderSourceCell(row.bundle, formatsIndex)}</td></tr>`).join('')}
       </tbody></table>

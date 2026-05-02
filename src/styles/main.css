@@ -37,3 +37,30 @@ select, input { width: 100%; border: 1px solid #344355; background: #0f141a; col
 .representative-note {
   font-size: 0.82rem;
 }
+
+.resolver-loading-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 14px;
+  padding: 8px 12px;
+  border: 1px solid #344355;
+  border-radius: 999px;
+  background: #202a36;
+  color: #dfe7f0;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.spinner-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #aab5c3;
+  animation: resolver-pulse 900ms ease-in-out infinite;
+}
+
+@keyframes resolver-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
