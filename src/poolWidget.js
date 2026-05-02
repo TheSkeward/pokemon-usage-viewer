@@ -588,10 +588,7 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 
   function parsePoolTokens(query) {
-    return query
-      .split(/[,\n]+/)
-      .map((token) => token.trim())
-      .filter(Boolean);
+    return extractPoolNames(query);
   }
 
   function getPoolStats(query) {
@@ -608,13 +605,94 @@ export function mountPoolOptimizer(container, options = {}) {
   function normalizePoolText(query) {
     const byKey = new Map();
 
-    for (const token of parsePoolTokens(query)) {
-      const key = normalizeName(token);
+    for (const name of extractPoolNames(query)) {
+      const canonical = canonicalizePoolName(name);
+      const key = normalizeName(canonical);
       if (!key || byKey.has(key)) continue;
-      byKey.set(key, token);
+      byKey.set(key, canonical);
     }
 
     return [...byKey.values()].sort((a, b) => a.localeCompare(b)).join(', ');
+  }
+
+  function extractPoolNames(query) {
+    const names = [];
+
+    for (const rawLine of String(query || '').split(/\n+/)) {
+      const line = rawLine.trim();
+      if (!line) continue;
+
+      // If this is a comma-separated hand-written list, split it.
+      // If this is a pasted table row, it usually has no commas and should
+      // be handled as one row.
+      if (line.includes(',')) {
+        for (const part of line.split(',')) {
+          const name = extractNameFromPoolToken(part);
+          if (name) names.push(name);
+        }
+      } else {
+        const name = extractNameFromPoolToken(line);
+        if (name) names.push(name);
+      }
+    }
+
+    return names;
+  }
+
+  function extractNameFromPoolToken(value) {
+    const text = String(value || '').trim();
+    if (!text) return '';
+
+    // TSV / copied table rows: "Trubbish\t3-9\t57%".
+    const firstTabCell = text.split('\t')[0].trim();
+    if (firstTabCell && firstTabCell !== text) {
+      return canonicalizePoolName(firstTabCell);
+    }
+
+    // Space-separated table rows: "Trubbish 3-9 57%".
+    const beforeNumericColumns = text.split(/\s+(?=\d|--)/)[0]?.trim();
+    if (beforeNumericColumns && beforeNumericColumns !== text) {
+      return canonicalizePoolName(beforeNumericColumns);
+    }
+
+    return canonicalizePoolName(text);
+  }
+
+  function canonicalizePoolName(value) {
+    const text = String(value || '').trim();
+    if (!text) return '';
+
+    return (
+      findExactPokemonName(text) ||
+      findLeadingPokemonName(text) ||
+      titleCaseLoose(text)
+    );
+  }
+
+  function findExactPokemonName(value) {
+    const key = normalizeName(value);
+    if (!key) return null;
+
+    return pokemonIndex.find((pokemon) => normalizeName(pokemon.name) === key)?.name || null;
+  }
+
+  function findLeadingPokemonName(value) {
+    const key = normalizeName(value);
+    if (!key) return null;
+
+    const matches = pokemonIndex
+      .filter((pokemon) => key.startsWith(normalizeName(pokemon.name)))
+      .sort((a, b) => normalizeName(b.name).length - normalizeName(a.name).length);
+
+    return matches[0]?.name || null;
+  }
+
+  function titleCaseLoose(value) {
+    return String(value || '')
+      .trim()
+      .split(/\s+/)
+      .map((word) => word ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() : word)
+      .join(' ');
   }
 
   function updatePoolStatusMessage(message) {
