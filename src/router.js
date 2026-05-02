@@ -2,7 +2,7 @@ import { DEFAULT_STATE } from './state';
 
 const VALID_SORT_FIELDS = new Set(['rank', 'name', 'usage', 'rawCount', 'leadTendency']);
 const VALID_SORT_DIRS = new Set(['asc', 'desc']);
-const VALID_VIEWS = new Set(['resolver', 'browser']);
+const VALID_VIEWS = new Set(['resolver', 'pool', 'browser']);
 const VALID_FAMILIES = new Set(['singles', 'doubles']);
 
 export function readStateFromUrl() {
