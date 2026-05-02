@@ -46,4 +46,12 @@ function localDataMiddleware() {
 export default defineConfig({
   base: process.env.NODE_ENV === 'production' ? '/pokemon-usage-viewer/' : '/',
   plugins: [localDataMiddleware()],
+  build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(process.cwd(), 'index.html'),
+        pool: path.resolve(process.cwd(), 'pool.html'),
+      },
+    },
+  },
 });
