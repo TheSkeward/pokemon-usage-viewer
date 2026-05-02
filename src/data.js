@@ -29,6 +29,7 @@ const jsonCache = new Map();
 const sourceCache = new Map();
 const browserMovesetCache = new Map();
 const resolverSummaryCache = new Map();
+const resolverIndexCache = new Map();
 const aggregatedMovesetCandidateCache = new Map();
 
 export async function loadFormatsIndex() { return loadJson(dataUrl('formats.json')); }
@@ -219,15 +220,48 @@ export function resolveQueryEntries(query, pokemonIndex) {
   return results;
 }
 
+async function loadResolverIndex(family, selection) {
+  if (selection !== 'all') return null;
+
+  const key = `${family}:${selection}`;
+  if (resolverIndexCache.has(key)) return resolverIndexCache.get(key);
+
+  const response = await fetch(dataUrl(`resolver-index/${family}/${selection}.json`));
+  if (response.status === 404) {
+    resolverIndexCache.set(key, null);
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(`Failed to load resolver index for ${family}/${selection}`);
+  }
+
+  const index = await response.json();
+  resolverIndexCache.set(key, index);
+  return index;
+}
+
 export async function resolveBestAvailableLightBundle({ availability, family, selection, pokemonId }) {
   const cacheKey = `${family}:${selection}:${pokemonId}`;
   if (resolverSummaryCache.has(cacheKey)) return resolverSummaryCache.get(cacheKey);
+
+  const resolverIndex = await loadResolverIndex(family, selection);
+  const indexedBundle = resolverIndex?.pokemon?.[pokemonId];
+
+  if (indexedBundle) {
+    resolverSummaryCache.set(cacheKey, indexedBundle);
+    return indexedBundle;
+  }
+
   const usage = await resolveBestAvailableUsage({ availability, family, selection, pokemonId });
   const leads = await resolveBestAvailableLeads({ availability, family, selection, pokemonId });
+
   const bundle = { usage, leads };
   resolverSummaryCache.set(cacheKey, bundle);
   return bundle;
 }
+
+
 
 export function getMovesetResolverCandidates(availability, family, selection) {
   const families = family === 'doubles' ? ['doubles', 'singles'] : ['singles', 'doubles'];

@@ -56,7 +56,7 @@ jobs:
 
       - name: Refresh data
         if: github.event_name == 'schedule' || github.event.inputs.refresh_data == 'true'
-        run: npm run build:data -- --refresh-current
+        run: npm run refresh:data
 
       - name: Commit refreshed generated data
         if: github.event_name == 'schedule' || github.event.inputs.refresh_data == 'true'
