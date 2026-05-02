@@ -71,6 +71,11 @@ async function computeResolverResults() {
         candidateResults.find((result) => result.candidate.isExactInput) ||
         candidateResults[0];
 
+      const bestNonMega =
+        candidateResults
+          .filter((result) => Number.isFinite(result.score) && !result.candidate.isMega)
+          .sort((a, b) => b.score - a.score)[0] || null;
+
       const displayInput = getDisplayInputForGroup(group.entries);
 
       if (!best) {
@@ -94,6 +99,10 @@ async function computeResolverResults() {
         token: displayInput.token,
         representativeIsMega: Boolean(best.candidate.isMega),
         representativeScore: best.score,
+        bestNonMegaPokemonId: bestNonMega?.candidate.id || null,
+        bestNonMegaName: bestNonMega?.candidate.name || null,
+        bestNonMegaScore: bestNonMega?.score ?? null,
+        bestNonMegaUsage: bestNonMega?.bundle?.usage?.value ?? null,
         candidateCount: representativeCandidates.length,
         bundle: best.bundle,
       };
@@ -310,24 +319,28 @@ function scoreRepresentativeCandidate(candidate, bundle, family) {
   const formatIndex = formatOrder.indexOf(usage.formatId);
   const cutoffIndex = cutoffPriority.indexOf(usage.cutoff);
 
-  // For exact-mon resolution, source strength should dominate.
-  // For line-representative choice, it should not.
-  //
-  // Otherwise a joke Charmander appearance in AG can beat a genuinely useful
-  // Charizard/mega in a lower but still serious tier. Here, usage/raw/lead are
-  // the primary signal; format/cutoff are quality modifiers.
-  const usageScore = Math.max(0, usage.value || 0) * 1000;
-  const rawScore = Math.log1p(usage.entry?.rawCount || 0) * 40;
-  const leadScore = (bundle.leads?.value || 0) * 2;
+  // For line-representative choice, competitive signal should dominate.
+  // Source tier/cutoff quality matters, but should not let a near-zero baby
+  // appearance in AG beat a real evolved/mega usage signal lower down.
+  const usagePercent = Math.max(0, usage.value || 0);
+  const rawCount = Math.max(0, usage.entry?.rawCount || 0);
+  const leadPercent = Math.max(0, bundle.leads?.value || 0);
 
-  const formatQuality = formatIndex >= 0 ? (formatOrder.length - formatIndex) * 15 : 0;
-  const cutoffQuality = cutoffIndex >= 0 ? (cutoffPriority.length - cutoffIndex) * 5 : 0;
+  const usageScore = Math.log1p(usagePercent) * 2000 + usagePercent * 250;
+  const rawScore = Math.log1p(rawCount) * 35;
+  const leadScore = leadPercent * 2;
 
-  // Prefer evolved/mega representatives when their competitive signal is in
-  // the same rough ballpark. This is intentionally smaller than usageScore,
-  // so real NFE signals like Chansey/Porygon2 can still win.
-  const megaBonus = candidate.isMega ? 350 : 0;
+  const formatQuality = formatIndex >= 0 ? (formatOrder.length - formatIndex) * 20 : 0;
+  const cutoffQuality = cutoffIndex >= 0 ? (cutoffPriority.length - cutoffIndex) * 6 : 0;
+
+  // Small preference for mega representatives when competitive signal is close.
+  // Future Pool mode will enforce at most one mega across the team.
+  const megaBonus = candidate.isMega ? 300 : 0;
+
+  // If the user explicitly typed a specific form, respect it absolutely.
   const exactFormBonus = candidate.isExactInput && isSpecificFormId(candidate.id) ? 100000 : 0;
+
+  // Tiny stable tie-breaker only. Do not let exact baby input beat evolution.
   const exactBonus = candidate.isExactInput ? 1 : 0;
 
   return (
@@ -341,6 +354,7 @@ function scoreRepresentativeCandidate(candidate, bundle, family) {
     exactBonus
   );
 }
+
 
 function renderApp() { const state = getState(); app.innerHTML = `<div class="app-shell"><header><h1>Pokémon Showdown Usage Viewer</h1></header><nav class="view-tabs"><button class="view-tab ${state.family === 'singles' ? 'active' : ''}" data-app-family="singles">Singles</button><button class="view-tab ${state.family === 'doubles' ? 'active' : ''}" data-app-family="doubles">Doubles</button></nav><nav class="view-tabs secondary-tabs"><button class="view-tab ${state.view === 'resolver' ? 'active' : ''}" data-app-view="resolver">Resolver</button><button class="view-tab ${state.view === 'browser' ? 'active' : ''}" data-app-view="browser">Usage Browser</button></nav><section id="page-root" class="page-stack"></section></div>`; const pageRoot = document.querySelector('#page-root'); if (state.view === 'resolver') renderResolverPage(pageRoot); else renderBrowserPage(pageRoot); bindEvents(); }
 function renderResolverPage(pageRoot) { const state = getState(); const resolverSelectionLabel = getAvailabilitySelectionLabel(availability, state.resolverMonth); const resolverSelected = resolverResults.find((row) => row.pokemonId === state.resolverSelectedPokemon) || null; pageRoot.innerHTML = `<section id="resolver-controls-root"></section><section id="resolver-results-root"></section><section id="details-root"></section>`; renderResolverControls(document.querySelector('#resolver-controls-root'), state, availability); renderResolverResults(document.querySelector('#resolver-results-root'), resolverResults, state, formatsIndex, resolverSelectionLabel, resolverLoadingState); renderMovesetPanel(document.querySelector('#details-root'), { selectedPokemonName: resolverSelected?.name || null, movesetEntry: resolverMovesetDetail, lookupLabel: resolverMovesetDetail ? describeResolverMovesetSource(resolverMovesetDetail) : '', aggregate: getState().resolverMonth === 'all', stitched: Boolean(resolverMovesetDetail?.stitched), status: resolverMovesetStatus }); }

@@ -28,12 +28,29 @@ function renderPokemonCell(row) {
     return `
       <div class="representative-cell">
         <div><span class="input-mon">${escapeHtml(row.inputName)}</span> <span class="arrow">→</span> <strong>${escapeHtml(row.name)}</strong></div>
-        <div class="representative-note">${row.representativeIsMega ? 'Best line representative · Mega candidate' : 'Best line representative'}</div>
+        <div class="representative-note">${escapeHtml(getRepresentativeNote(row))}</div>
       </div>
     `;
   }
 
   return escapeHtml(row.name);
+}
+
+function getRepresentativeNote(row) {
+  const parts = [
+    row.representativeIsMega ? 'Best line representative · Mega candidate' : 'Best line representative',
+  ];
+
+  if (row.representativeIsMega && row.bestNonMegaName && row.bestNonMegaName !== row.name) {
+    const usageText =
+      typeof row.bestNonMegaUsage === 'number'
+        ? ` (${row.bestNonMegaUsage.toFixed(2)}%)`
+        : '';
+
+    parts.push(`best non-mega: ${row.bestNonMegaName}${usageText}`);
+  }
+
+  return parts.join(' · ');
 }
 
 function renderSourceCell(bundle, formatsIndex) {
