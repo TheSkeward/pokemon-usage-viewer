@@ -8,6 +8,7 @@ function dataUrl(path) {
 }
 
 const HIDDEN_MOVESET_ENTRY_KEYS = new Set(['other', 'nothing']);
+const SOURCE_FETCH_CONCURRENCY = 16;
 
 const FAMILY_CONFIGS = {
   singles: {
@@ -174,56 +175,178 @@ export async function loadAggregatedMovesetCandidate(candidate, pokemonId) {
 
 async function resolveBestAvailableUsage({ availability, family, selection, pokemonId }) {
   for (const candidate of iterateCandidateSources(availability, family, selection, 'usage')) {
-    let totalUsage = 0, totalRawCount = 0, monthsPresent = 0, name = null;
-    for (const month of candidate.months) {
+    let totalUsage = 0;
+    let totalRawCount = 0;
+    let monthsPresent = 0;
+    let name = null;
+
+    const monthEntries = await mapLimit(candidate.months, SOURCE_FETCH_CONCURRENCY, async (month) => {
       const source = await loadSourceData(month, candidate.formatId, candidate.cutoff, 'usage');
-      const entry = source?.pokemon?.[pokemonId];
+      return source?.pokemon?.[pokemonId] || null;
+    });
+
+    for (const entry of monthEntries) {
       if (!entry) continue;
-      name = entry.name; totalUsage += entry.usage; totalRawCount += entry.rawCount; monthsPresent += 1;
+      name = entry.name;
+      totalUsage += entry.usage;
+      totalRawCount += entry.rawCount;
+      monthsPresent += 1;
     }
+
     if (monthsPresent === 0) continue;
-    return { selection, family, month: selection === 'all' ? null : candidate.months[0], formatId: candidate.formatId, cutoff: candidate.cutoff, monthsAvailable: candidate.months.length, monthsPresent, entry: { pokemonId, name, usage: totalUsage / candidate.months.length, rawCount: totalRawCount }, value: totalUsage / candidate.months.length };
+
+    return {
+      selection,
+      family,
+      month: selection === 'all' ? null : candidate.months[0],
+      formatId: candidate.formatId,
+      cutoff: candidate.cutoff,
+      monthsAvailable: candidate.months.length,
+      monthsPresent,
+      entry: {
+        pokemonId,
+        name,
+        usage: totalUsage / candidate.months.length,
+        rawCount: totalRawCount,
+      },
+      value: totalUsage / candidate.months.length,
+    };
   }
+
   return null;
 }
 
 async function resolveBestAvailableLeads({ availability, family, selection, pokemonId }) {
   for (const candidate of iterateCandidateSources(availability, family, selection, 'leads')) {
-    let totalUsageRawForPrior = 0, totalLeadRawForPrior = 0, usageRawCount = 0, leadRawCount = 0, monthsPresent = 0, name = null;
-    for (const month of candidate.months) {
-      const usageSource = await loadSourceData(month, candidate.formatId, candidate.cutoff, 'usage');
-      const leadsSource = await loadSourceData(month, candidate.formatId, candidate.cutoff, 'leads');
-      if (!usageSource || !leadsSource) continue;
-      totalUsageRawForPrior += leadsSource.summary?.totalUsageRaw || 0;
-      totalLeadRawForPrior += leadsSource.summary?.totalLeadRaw || 0;
-      const usageEntry = usageSource.pokemon?.[pokemonId];
-      const leadEntry = leadsSource.pokemon?.[pokemonId];
-      if (usageEntry) { name = usageEntry.name; usageRawCount += usageEntry.rawCount; monthsPresent += 1; }
-      if (leadEntry) leadRawCount += leadEntry.leadRawCount || 0;
+    let totalUsageRawForPrior = 0;
+    let totalLeadRawForPrior = 0;
+    let usageRawCount = 0;
+    let leadRawCount = 0;
+    let monthsPresent = 0;
+    let name = null;
+
+    const monthEntries = await mapLimit(candidate.months, SOURCE_FETCH_CONCURRENCY, async (month) => {
+      const [usageSource, leadsSource] = await Promise.all([
+        loadSourceData(month, candidate.formatId, candidate.cutoff, 'usage'),
+        loadSourceData(month, candidate.formatId, candidate.cutoff, 'leads'),
+      ]);
+
+      if (!usageSource || !leadsSource) return null;
+
+      return {
+        usageEntry: usageSource.pokemon?.[pokemonId] || null,
+        leadEntry: leadsSource.pokemon?.[pokemonId] || null,
+        totalUsageRaw: leadsSource.summary?.totalUsageRaw || 0,
+        totalLeadRaw: leadsSource.summary?.totalLeadRaw || 0,
+      };
+    });
+
+    for (const monthEntry of monthEntries) {
+      if (!monthEntry) continue;
+
+      totalUsageRawForPrior += monthEntry.totalUsageRaw;
+      totalLeadRawForPrior += monthEntry.totalLeadRaw;
+
+      if (monthEntry.usageEntry) {
+        name = monthEntry.usageEntry.name;
+        usageRawCount += monthEntry.usageEntry.rawCount;
+        monthsPresent += 1;
+      }
+
+      if (monthEntry.leadEntry) {
+        leadRawCount += monthEntry.leadEntry.leadRawCount || 0;
+      }
     }
+
     if (usageRawCount === 0 || monthsPresent === 0) continue;
+
     const prior = totalUsageRawForPrior > 0 ? totalLeadRawForPrior / totalUsageRawForPrior : 0;
     const value = ((leadRawCount + LEAD_SMOOTHING_K * prior) / (usageRawCount + LEAD_SMOOTHING_K)) * 100;
-    return { selection, family, month: selection === 'all' ? null : candidate.months[0], formatId: candidate.formatId, cutoff: candidate.cutoff, monthsAvailable: candidate.months.length, monthsPresent, entry: { pokemonId, name, usageRawCount, leadRawCount }, value };
+
+    return {
+      selection,
+      family,
+      month: selection === 'all' ? null : candidate.months[0],
+      formatId: candidate.formatId,
+      cutoff: candidate.cutoff,
+      monthsAvailable: candidate.months.length,
+      monthsPresent,
+      entry: { pokemonId, name, usageRawCount, leadRawCount },
+      value,
+    };
   }
+
   return null;
 }
 
 async function aggregateMovesetCandidate(candidate, pokemonId) {
-  const aggregate = { moves: new Map(), items: new Map(), abilities: new Map(), spreads: new Map() };
-  let totalRawCount = 0, monthsPresent = 0, name = null;
-  for (const month of candidate.months) {
+  const aggregate = {
+    moves: new Map(),
+    items: new Map(),
+    abilities: new Map(),
+    spreads: new Map(),
+  };
+
+  let totalRawCount = 0;
+  let monthsPresent = 0;
+  let name = null;
+
+  const monthEntries = await mapLimit(candidate.months, SOURCE_FETCH_CONCURRENCY, async (month) => {
     const source = await loadSourceData(month, candidate.formatId, candidate.cutoff, 'moveset');
-    const entry = source?.pokemon?.[pokemonId];
+    return source?.pokemon?.[pokemonId] || null;
+  });
+
+  for (const entry of monthEntries) {
     if (!entry) continue;
-    name = entry.name; totalRawCount += entry.rawCount || 0; monthsPresent += 1;
+
+    name = entry.name;
+    totalRawCount += entry.rawCount || 0;
+    monthsPresent += 1;
+
     accumulateSection(aggregate.moves, filterVisibleMovesetEntries(entry.moves), entry.rawCount);
     accumulateSection(aggregate.items, filterVisibleMovesetEntries(entry.items), entry.rawCount);
     accumulateSection(aggregate.abilities, filterVisibleMovesetEntries(entry.abilities), entry.rawCount);
     accumulateSection(aggregate.spreads, filterVisibleMovesetEntries(entry.spreads), entry.rawCount);
   }
+
   if (totalRawCount === 0 || monthsPresent === 0) return null;
-  return { selection: candidate.selection, family: candidate.family, month: candidate.selection === 'all' ? null : candidate.months[0], formatId: candidate.formatId, cutoff: candidate.cutoff, monthsAvailable: candidate.months.length, monthsPresent, entry: { pokemonId, name, rawCount: totalRawCount, moves: finalizeSection(aggregate.moves, totalRawCount), items: finalizeSection(aggregate.items, totalRawCount), abilities: finalizeSection(aggregate.abilities, totalRawCount), spreads: finalizeSection(aggregate.spreads, totalRawCount) } };
+
+  return {
+    selection: candidate.selection,
+    family: candidate.family,
+    month: candidate.selection === 'all' ? null : candidate.months[0],
+    formatId: candidate.formatId,
+    cutoff: candidate.cutoff,
+    monthsAvailable: candidate.months.length,
+    monthsPresent,
+    entry: {
+      pokemonId,
+      name,
+      rawCount: totalRawCount,
+      moves: finalizeSection(aggregate.moves, totalRawCount),
+      items: finalizeSection(aggregate.items, totalRawCount),
+      abilities: finalizeSection(aggregate.abilities, totalRawCount),
+      spreads: finalizeSection(aggregate.spreads, totalRawCount),
+    },
+  };
+}
+
+async function mapLimit(items, limit, mapper) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(limit, items.length);
+
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < items.length) {
+        const index = nextIndex;
+        nextIndex += 1;
+        results[index] = await mapper(items[index], index);
+      }
+    })
+  );
+
+  return results;
 }
 
 function* iterateCandidateSources(availability, family, selection, dataKind) {
