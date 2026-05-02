@@ -1,0 +1,21 @@
+{
+  "name": "pokemon-usage-viewer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5173 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:data": "node scripts/build-data.mjs",
+    "dev:bg": "nohup npm run dev > /tmp/pokemon-vite.log 2>&1 &",
+    "dev:log": "tail -50 /tmp/pokemon-vite.log",
+    "dev:stop": "pkill -f 'vite --port 5173' || true"
+  },
+  "devDependencies": {
+    "vite": "^8.0.10"
+  },
+  "dependencies": {
+    "@pkmn/dex": "^0.10.7"
+  }
+}
