@@ -447,38 +447,6 @@ input {
   filter: brightness(1.08);
 }
 
-.selected-row {
-  outline: 1px solid rgb(255 255 255 / 18%);
-}
-
-.team-builder-set-row > td {
-  padding: 0;
-}
-
-.team-builder-set-row .panel {
-  margin: 0.75rem;
-}
-
-.team-pick-row {
-  cursor: pointer;
-}
-
-.team-pick-row:hover {
-  filter: brightness(1.08);
-}
-
-.selected-row {
-  outline: 1px solid rgb(255 255 255 / 18%);
-}
-
-.team-builder-set-row > td {
-  padding: 0;
-}
-
-.team-builder-set-row .panel {
-  margin: 0.75rem;
-}
-
 .moveset-row {
   align-items: flex-start;
   gap: 0.6rem;
@@ -534,4 +502,44 @@ input {
   .move-row-types {
     justify-content: flex-start;
   }
+}
+
+.progression-panel {
+  border-style: dashed;
+}
+
+.progression-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.9rem;
+}
+
+.progression-grid label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.progression-grid .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  align-self: end;
+  min-height: 2.4rem;
+}
+
+.progression-grid .checkbox-label input {
+  width: auto;
+}
+
+.progression-rules {
+  margin-top: 0.9rem;
+}
+
+.progression-rules summary {
+  cursor: pointer;
+}
+
+.progression-rules ul {
+  margin: 0.65rem 0 0;
+  padding-left: 1.25rem;
 }

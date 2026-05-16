@@ -4,6 +4,12 @@ import { createTeamBuilderSetDetailsLoader } from "./teamBuilder/setDetailsLoade
 import { getPoolStats, normalizePoolText } from "./teamBuilder/poolParsing";
 import { optimizeTeamFromPool } from "./teamBuilder/teamOptimizer";
 import {
+  clearSavedRebornProgression,
+  loadSavedRebornProgression,
+  saveRebornProgression,
+  updateRebornProgressionField,
+} from "./reborn/progression";
+import {
   readLocalStorage,
   removeLocalStorage,
   writeLocalStorage,
@@ -28,6 +34,7 @@ export function mountPoolOptimizer(container, options = {}) {
     family: initialFamily,
     selection: getParam("selection") || "all",
     query: initialQuery,
+    progression: loadSavedRebornProgression(),
     teamSort: getParam("teamSort") || loadSavedTeamSort() || "lead",
     teamSortDir: getParam("teamSortDir") || loadSavedTeamSortDir() || "desc",
     result: null,
@@ -36,12 +43,9 @@ export function mountPoolOptimizer(container, options = {}) {
   };
 
   const setDetails = createTeamBuilderSetDetailsLoader({
-    getAvailability: () => availability,
     getFamily: () => state.family,
-    getFormatLabel,
     getSelection: () => state.selection,
     onUpdate: () => render(),
-    waitForPaint,
   });
 
   init().catch((error) => {
@@ -169,6 +173,26 @@ export function mountPoolOptimizer(container, options = {}) {
       });
     });
 
+    app.querySelectorAll("[data-progression-field]").forEach((control) => {
+      const eventName = control.type === "checkbox" ? "change" : "input";
+
+      control.addEventListener(eventName, () => {
+        state.progression = updateRebornProgressionField(
+          state.progression,
+          control.dataset.progressionField,
+          control.type === "checkbox" ? control.checked : control.value,
+        );
+
+        const saved = saveRebornProgression(state.progression);
+
+        updateProgressionStatusMessage(
+          saved
+            ? "Progression saved locally"
+            : "Progression could not be saved locally; browser storage is full.",
+        );
+      });
+    });
+
     app
       .querySelector("#pool-query-input")
       ?.addEventListener("input", (event) => {
@@ -214,6 +238,19 @@ export function mountPoolOptimizer(container, options = {}) {
       writeUrl();
       render();
     });
+
+    app
+      .querySelector("#clear-progression-button")
+      ?.addEventListener("click", () => {
+        const confirmed = window.confirm(
+          "Clear saved Reborn progression from this browser?",
+        );
+        if (!confirmed) return;
+
+        clearSavedRebornProgression();
+        state.progression = loadSavedRebornProgression();
+        render();
+      });
   }
 
   async function copyPool() {
@@ -240,16 +277,15 @@ export function mountPoolOptimizer(container, options = {}) {
     if (statusNode) statusNode.textContent = message || "";
   }
 
+  function updateProgressionStatusMessage(message) {
+    const statusNode = app.querySelector("[data-progression-status]");
+    if (statusNode) statusNode.textContent = message || "";
+  }
+
   function getOptimizationSummary(result) {
     if (!result) return "";
 
     return `Optimized ${result.team.length} picks from ${result.linesConsidered} resolved inputs.`;
-  }
-
-  function getFormatLabel(formatId) {
-    return (
-      formatsIndex.find((format) => format.id === formatId)?.label || formatId
-    );
   }
 
   function writeUrl() {
