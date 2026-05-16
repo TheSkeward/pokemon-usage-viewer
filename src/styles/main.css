@@ -478,3 +478,60 @@ input {
 .team-builder-set-row .panel {
   margin: 0.75rem;
 }
+
+.moveset-row {
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.move-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.move-row-main {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) auto auto;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.move-row-name {
+  min-width: 0;
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: baseline;
+}
+
+.entry-name-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.move-row-types {
+  display: inline-flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.source-meta {
+  display: block;
+  grid-column: 1 / -1;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: 0.86em;
+  opacity: 0.78;
+}
+
+@media (max-width: 760px) {
+  .move-row-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .move-row-types {
+    justify-content: flex-start;
+  }
+}
