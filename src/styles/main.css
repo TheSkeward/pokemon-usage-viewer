@@ -447,38 +447,6 @@ input {
   filter: brightness(1.08);
 }
 
-.selected-row {
-  outline: 1px solid rgb(255 255 255 / 18%);
-}
-
-.team-builder-set-row > td {
-  padding: 0;
-}
-
-.team-builder-set-row .panel {
-  margin: 0.75rem;
-}
-
-.team-pick-row {
-  cursor: pointer;
-}
-
-.team-pick-row:hover {
-  filter: brightness(1.08);
-}
-
-.selected-row {
-  outline: 1px solid rgb(255 255 255 / 18%);
-}
-
-.team-builder-set-row > td {
-  padding: 0;
-}
-
-.team-builder-set-row .panel {
-  margin: 0.75rem;
-}
-
 .moveset-row {
   align-items: flex-start;
   gap: 0.6rem;
@@ -534,4 +502,157 @@ input {
   .move-row-types {
     justify-content: flex-start;
   }
+}
+
+.progression-panel {
+  border-style: dashed;
+}
+
+.progression-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.9rem;
+}
+
+.progression-grid label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.progression-grid .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  align-self: end;
+  min-height: 2.4rem;
+}
+
+.progression-grid .checkbox-label input {
+  width: auto;
+}
+
+.progression-rules {
+  margin-top: 0.9rem;
+}
+
+.progression-rules summary {
+  cursor: pointer;
+}
+
+.progression-rules ul {
+  margin: 0.65rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.progression-option-group {
+  border: 1px solid #2b3645;
+  border-radius: 8px;
+  padding: 0.8rem;
+  background: #151c24;
+}
+
+.progression-option-group summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.progression-option-count {
+  color: #aab5c3;
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+
+.progression-option-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 0.7rem;
+}
+
+.progression-option-actions button {
+  width: auto;
+  border: 1px solid #344355;
+  border-radius: 8px;
+  background: #202a36;
+  color: #dfe7f0;
+  cursor: pointer;
+  padding: 0.35rem 0.65rem;
+}
+
+.progression-option-actions button:hover {
+  background: #2c3b4e;
+}
+
+.progression-checklist {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.35rem 0.8rem;
+  max-height: 18rem;
+  overflow: auto;
+  padding-top: 0.75rem;
+}
+
+.progression-checklist.compact {
+  max-height: none;
+  overflow: visible;
+  padding-top: 0;
+}
+
+.progression-subgroups {
+  display: grid;
+  gap: 0.75rem;
+  max-height: 22rem;
+  overflow: auto;
+  padding-top: 0.75rem;
+}
+
+.progression-subgroup {
+  border-top: 1px solid #2b3645;
+  padding-top: 0.65rem;
+}
+
+.progression-subgroup:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.progression-subgroup-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.45rem;
+}
+
+.progression-subgroup-title span {
+  color: #aab5c3;
+  font-size: 0.84rem;
+  text-align: right;
+}
+
+.progression-option {
+  display: inline-flex !important;
+  grid-template-columns: none !important;
+  align-items: baseline;
+  gap: 0.45rem !important;
+  min-width: 0;
+}
+
+.progression-option input {
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.progression-option span {
+  min-width: 0;
+}
+
+.progression-option small {
+  display: block;
+  color: #aab5c3;
+  font-size: 0.78rem;
+  line-height: 1.3;
 }

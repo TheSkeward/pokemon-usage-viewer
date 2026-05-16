@@ -1,4 +1,7 @@
-import { loadSourceData } from "../data";
+import {
+  loadSourceData,
+  resolveBestAvailableLightBundle as resolveIndexedBestAvailableLightBundle,
+} from "../data";
 
 const LEAD_SMOOTHING_K = 200;
 
@@ -9,6 +12,19 @@ export async function resolveRepresentativeLightBundle({
   pokemonId,
   selection,
 }) {
+  if (selection === "all") {
+    const indexedBundle = await resolveIndexedBestAvailableLightBundle({
+      availability,
+      family,
+      pokemonId,
+      selection,
+    });
+
+    if ((indexedBundle?.usage?.value || 0) >= minMeaningfulUsagePercent) {
+      return indexedBundle;
+    }
+  }
+
   let bestTrace = null;
 
   for (const candidate of iterateCandidateSources(

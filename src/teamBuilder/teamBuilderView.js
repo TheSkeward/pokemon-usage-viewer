@@ -1,4 +1,5 @@
 import { renderMovesetPanel } from "../views/movesetView";
+import { renderRebornProgressionPanel } from "../reborn/progressionView";
 
 export function renderTeamBuilderPage({
   app,
@@ -14,6 +15,8 @@ export function renderTeamBuilderPage({
     ${embedded ? "" : renderStandaloneHeader({ baseUrl })}
 
     ${renderPoolControls({ embedded, poolStats, state })}
+
+    ${renderRebornProgressionPanel(state.progression)}
 
     ${state.loading ? renderLoading(state) : ""}
 
@@ -138,7 +141,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
         <div>
           <h2>Recommended ${escapeHtml(familyLabel)} Team</h2>
           <p>${result.team.length} picks from ${result.linesConsidered} resolved input lines. ${megaText}.</p>
-          <p>v0 rules: at most one Mega, one representative per input line, selected by optimizer score; displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its primary set.</p>
+          <p>v0 rules: at most one Mega, one representative per input line, selected by optimizer score; displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its set.</p>
         </div>
       </div>
 

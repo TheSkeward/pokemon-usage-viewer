@@ -118,6 +118,13 @@ function ensureValidResolverMonth() {
 
 async function ensureBrowserMovesetData() {
   const state = getState();
+
+  if (state.view !== "browser") {
+    browserMovesetData = null;
+    browserMovesetKey = null;
+    return;
+  }
+
   const context = getMovesetLookupContext(dataset, formatsIndex, state);
 
   if (!context) {

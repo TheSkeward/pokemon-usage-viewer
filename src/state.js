@@ -1,5 +1,5 @@
 export const DEFAULT_STATE = {
-  view: 'resolver',
+  view: 'pool',
   family: 'singles',
   format: 'gen7anythinggoes',
   month: 'all',
