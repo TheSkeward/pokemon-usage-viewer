@@ -53,7 +53,9 @@ export function renderResolverPage(pageRoot, context) {
     lookupLabel: resolverMovesetDetail
       ? describePrecomputedSetSource(resolverMovesetDetail)
       : "",
-    aggregate: state.resolverMonth === "all",
+    aggregate:
+      state.resolverMonth === "all" ||
+      Boolean(resolverMovesetDetail?.selectionFallback),
     stitched: Boolean(resolverMovesetDetail?.stitched),
     status: setDetails.getStatus(),
   });
