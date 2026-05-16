@@ -8,12 +8,13 @@
     "build": "vite build",
     "preview": "vite preview",
     "build:data": "node scripts/build-data.mjs",
+    "build:resolver-index": "node scripts/build-resolver-index.mjs",
+    "build:set-index": "node scripts/build-set-index.mjs",
+    "build:site": "npm run build && node scripts/copy-data.mjs",
+    "refresh:data": "npm run build:data -- --refresh-current && npm run build:resolver-index && npm run build:set-index",
     "dev:bg": "nohup npm run dev > /tmp/pokemon-vite.log 2>&1 &",
     "dev:log": "tail -50 /tmp/pokemon-vite.log",
-    "dev:stop": "pkill -f 'vite --port 5173' || true",
-    "build:site": "npm run build && node scripts/copy-data.mjs",
-    "build:resolver-index": "node scripts/build-resolver-index.mjs",
-    "refresh:data": "npm run build:data -- --refresh-current && npm run build:resolver-index"
+    "dev:stop": "pkill -f 'vite --port 5173' || true"
   },
   "devDependencies": {
     "vite": "^8.0.10"
