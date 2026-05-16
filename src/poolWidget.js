@@ -1,6 +1,12 @@
-import { loadAvailability, loadFormatsIndex, loadPokemonIndex } from "./data";
+import {
+  loadAvailability,
+  loadFormatsIndex,
+  loadPokemonIndex,
+} from "./data";
+import { renderMovesetPanel } from "./views/movesetView";
 import { getPoolStats, normalizePoolText } from "./teamBuilder/poolParsing";
 import { optimizeTeamFromPool } from "./teamBuilder/teamOptimizer";
+import { createTeamBuilderSetDetailsLoader } from "./teamBuilder/setDetailsLoader";
 import {
   readLocalStorage,
   removeLocalStorage,
@@ -33,6 +39,15 @@ export function mountPoolOptimizer(container, options = {}) {
     statusMessage: "",
   };
 
+  const setDetails = createTeamBuilderSetDetailsLoader({
+    getAvailability: () => availability,
+    getFamily: () => state.family,
+    getFormatLabel,
+    getSelection: () => state.selection,
+    onUpdate: () => render(),
+    waitForPaint,
+  });
+
   init().catch((error) => {
     console.error(error);
     app.innerHTML = `
@@ -60,15 +75,16 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 
   async function computeAndRender() {
+    setDetails.cancel();
+
     state.loading = true;
     state.statusMessage = "Optimizing pool...";
     render();
     await waitForPaint();
 
     try {
-      const normalizedQuery = normalizePoolText(state.query, pokemonIndex);
+      state.query = normalizePoolText(state.query, pokemonIndex);
 
-      state.query = normalizedQuery;
       const saved = savePool(state.query);
 
       state.result = await optimizeTeamFromPool({
@@ -79,17 +95,23 @@ export function mountPoolOptimizer(container, options = {}) {
         selection: state.selection,
       });
 
+      setDetails.cancel();
+
       state.loading = false;
       state.statusMessage = saved
         ? getOptimizationSummary(state.result)
         : `${getOptimizationSummary(state.result)} Pool could not be saved locally; browser storage is full.`;
+
       writeUrl();
       render();
     } catch (error) {
       console.error("Team Builder optimization failed", error);
+
       state.loading = false;
       state.result = null;
       state.statusMessage = `Optimization failed: ${error?.message || error}`;
+
+      setDetails.cancel();
       render();
     }
   }
@@ -101,6 +123,19 @@ export function mountPoolOptimizer(container, options = {}) {
     app.innerHTML = `
       ${embedded ? "" : renderStandaloneHeader()}
 
+      ${renderPoolControls(poolStats)}
+
+      ${state.loading ? renderLoading() : ""}
+
+      ${state.result ? renderResult(state.result, familyLabel) : renderEmpty()}
+    `;
+
+    bindEvents();
+    renderSelectedSetDetails();
+  }
+
+  function renderPoolControls(poolStats) {
+    return `
       <section class="panel">
         <div class="panel-header">
           <div>
@@ -142,13 +177,7 @@ export function mountPoolOptimizer(container, options = {}) {
           <span class="muted" data-pool-status>${escapeHtml(state.statusMessage)}</span>
         </div>
       </section>
-
-      ${state.loading ? renderLoading() : ""}
-
-      ${state.result ? renderResult(state.result, familyLabel) : renderEmpty()}
     `;
-
-    bindEvents();
   }
 
   function renderStandaloneHeader() {
@@ -197,6 +226,7 @@ export function mountPoolOptimizer(container, options = {}) {
           <h2>Recommended ${escapeHtml(familyLabel)} Team</h2>
           <p class="muted">No viable team picks found from ${result.linesConsidered} resolved input lines.</p>
         </section>
+
         ${renderUnresolved(result.unresolved)}
       `;
     }
@@ -217,7 +247,7 @@ export function mountPoolOptimizer(container, options = {}) {
           <div>
             <h2>Recommended ${escapeHtml(familyLabel)} Team</h2>
             <p>${result.team.length} picks from ${result.linesConsidered} resolved input lines. ${megaText}.</p>
-            <p>v0 rules: at most one Mega, one representative per input line, selected by optimizer score; displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}.</p>
+            <p>v0 rules: at most one Mega, one representative per input line, selected by optimizer score; displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its primary set.</p>
           </div>
         </div>
 
@@ -260,8 +290,14 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 
   function renderTeamRow(row, index) {
+    const selected = setDetails.isSelected(row.pokemonId);
+
     return `
-      <tr>
+      <tr
+        class="team-pick-row ${selected ? "selected-row" : ""}"
+        data-pool-set-id="${escapeHtml(row.pokemonId)}"
+        title="Inspect ${escapeHtml(row.name)} set"
+      >
         <td>${index + 1}</td>
         <td>${escapeHtml(row.inputName)}</td>
         <td>
@@ -274,7 +310,60 @@ export function mountPoolOptimizer(container, options = {}) {
         <td>${renderSource(row.bundle?.usage)}</td>
         <td>${escapeHtml(row.note || "")}</td>
       </tr>
+
+      ${
+        selected
+          ? `<tr class="team-builder-set-row"><td colspan="8"><div id="team-builder-set-details-root"></div></td></tr>`
+          : ""
+      }
     `;
+  }
+
+  function renderSelectedSetDetails() {
+    const detailsRoot = app.querySelector("#team-builder-set-details-root");
+    if (!detailsRoot) return;
+
+    const selected = getSelectedTeamChoice();
+
+    if (!selected) {
+      detailsRoot.innerHTML = "";
+      return;
+    }
+
+    renderMovesetPanel(detailsRoot, {
+      selectedPokemonName: selected.name,
+      movesetEntry: setDetails.getDetail(),
+      lookupLabel: setDetails.getDetail()
+        ? setDetails.describeSource(setDetails.getDetail())
+        : "",
+      aggregate: state.selection === "all",
+      stitched: Boolean(setDetails.getDetail()?.stitched),
+      status: setDetails.getStatus(),
+    });
+
+    if (setDetails.getMessage()) {
+      detailsRoot.insertAdjacentHTML(
+        "afterbegin",
+        `<section class="panel"><p class="muted">${escapeHtml(setDetails.getMessage())}</p></section>`,
+      );
+    }
+  }
+
+  function getSelectedTeamChoice() {
+    const selectedPokemonId = setDetails.getSelectedPokemonId();
+
+    if (!selectedPokemonId || !state.result?.team?.length) return null;
+
+    return (
+      state.result.team.find((row) => row.pokemonId === selectedPokemonId) ||
+      null
+    );
+  }
+
+  function getFormatLabel(formatId) {
+    return (
+      formatsIndex.find((format) => format.id === formatId)?.label || formatId
+    );
   }
 
   function getSortedTeam(team, sortBy, sortDir = "desc") {
@@ -311,6 +400,7 @@ export function mountPoolOptimizer(container, options = {}) {
   function compareNumber(a, b) {
     const safeA = typeof a === "number" ? a : -Infinity;
     const safeB = typeof b === "number" ? b : -Infinity;
+
     return safeA === safeB ? 0 : safeA - safeB;
   }
 
@@ -321,6 +411,7 @@ export function mountPoolOptimizer(container, options = {}) {
     if (sortBy === "usage") return `Usage % ${direction}`;
     if (sortBy === "score") return `optimizer score ${direction}`;
     if (sortBy === "input") return `input name ${direction}`;
+
     return `Pokémon name ${direction}`;
   }
 
@@ -352,6 +443,7 @@ export function mountPoolOptimizer(container, options = {}) {
       .querySelector("#family-input")
       ?.addEventListener("change", async (event) => {
         state.family = event.target.value;
+        setDetails.cancel();
         await computeAndRender();
       });
 
@@ -359,6 +451,7 @@ export function mountPoolOptimizer(container, options = {}) {
       .querySelector("#selection-input")
       ?.addEventListener("change", async (event) => {
         state.selection = event.target.value;
+        setDetails.cancel();
         await computeAndRender();
       });
 
@@ -381,15 +474,26 @@ export function mountPoolOptimizer(container, options = {}) {
       });
     });
 
+    app.querySelectorAll("[data-pool-set-id]").forEach((row) => {
+      row.addEventListener("click", () => {
+        setDetails.select(row.dataset.poolSetId);
+      });
+    });
+
     app
       .querySelector("#pool-query-input")
       ?.addEventListener("input", (event) => {
         state.query = event.target.value;
+
         const saved = savePool(state.query);
+
         state.result = null;
+        setDetails.cancel();
+
         state.statusMessage = saved
           ? "Saved locally"
           : "Not saved locally; browser storage is full.";
+
         writeUrl();
         updatePoolStatusMessage(state.statusMessage);
       });
@@ -415,6 +519,8 @@ export function mountPoolOptimizer(container, options = {}) {
       state.query = "";
       state.result = null;
       state.statusMessage = "Saved pool cleared";
+
+      setDetails.cancel();
       removeLocalStorage(POOL_STORAGE_KEY);
       writeUrl();
       render();
@@ -447,6 +553,7 @@ export function mountPoolOptimizer(container, options = {}) {
 
   function getOptimizationSummary(result) {
     if (!result) return "";
+
     return `Optimized ${result.team.length} picks from ${result.linesConsidered} resolved inputs.`;
   }
 
