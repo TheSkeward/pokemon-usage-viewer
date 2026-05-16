@@ -456,7 +456,14 @@ function rerenderPreservingFocus() {
 
 function waitForPaint() {
   return new Promise((resolve) => {
-    requestAnimationFrame(() => requestAnimationFrame(resolve));
+    const fallback = setTimeout(resolve, 100);
+
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        clearTimeout(fallback);
+        resolve();
+      }),
+    );
   });
 }
 
