@@ -1,3 +1,5 @@
+const REBORN_MACHINE_AVAILABILITY = getRebornMachineAvailability();
+
 export const REBORN_TM_OPTIONS = [
   ["tm01", "TM01", "Work Up"],
   ["tm02", "TM02", "Dragon Claw"],
@@ -286,7 +288,8 @@ function uniqueOptions(options) {
   return unique;
 }
 
-const REBORN_MACHINE_AVAILABILITY = {
+function getRebornMachineAvailability() {
+  return {
   tm57: { available: "After Badge 01", location: "Peridot Gym" },
   tm60: { available: "After Badge 01", location: "Obsidia Slums" },
   tmx1: { available: "After Badge 01", location: "Coral Ward" },
@@ -385,4 +388,5 @@ const REBORN_MACHINE_AVAILABILITY = {
   tm25: { available: "After Badge 17", location: "Obsidia Department Store" },
   tm38: { available: "After Badge 17", location: "Obsidia Department Store" },
   tm02: { available: "After Badge 18", location: "Labradorra Gym" },
-};
+  };
+}

@@ -114,6 +114,23 @@ function renderOptionGroup({
         <span>${escapeHtml(summary)}</span>
         <span class="progression-option-count">${selectedCount}/${uniqueOptions.length} selected</span>
       </summary>
+      <div class="progression-option-actions">
+        <button
+          type="button"
+          data-progression-option-bulk="${escapeAttr(field)}"
+          data-progression-option-action="select"
+          data-progression-option-ids="${escapeAttr(uniqueOptions.map((option) => option.id).join(","))}"
+        >
+          Select all
+        </button>
+        <button
+          type="button"
+          data-progression-option-bulk="${escapeAttr(field)}"
+          data-progression-option-action="clear"
+        >
+          Clear
+        </button>
+      </div>
       ${
         groups
           ? renderOptionSubgroups({ field, groups, selected })

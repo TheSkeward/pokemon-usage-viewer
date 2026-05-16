@@ -94,6 +94,13 @@ export function updateRebornProgressionOption(
   });
 }
 
+export function setRebornProgressionOptions(progression, field, optionIds) {
+  return normalizeRebornProgression({
+    ...progression,
+    [field]: Array.isArray(optionIds) ? optionIds : [],
+  });
+}
+
 function normalizeLevelCap(value) {
   const text = String(value || "").trim();
 

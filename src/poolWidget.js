@@ -7,6 +7,7 @@ import {
   clearSavedRebornProgression,
   loadSavedRebornProgression,
   saveRebornProgression,
+  setRebornProgressionOptions,
   updateRebornProgressionField,
   updateRebornProgressionOption,
 } from "./reborn/progression";
@@ -201,6 +202,35 @@ export function mountPoolOptimizer(container, options = {}) {
           control.dataset.progressionOptionList,
           control.value,
           control.checked,
+        );
+
+        const saved = saveRebornProgression(state.progression);
+
+        updateProgressionStatusMessage(
+          saved
+            ? "Progression saved locally"
+            : "Progression could not be saved locally; browser storage is full.",
+        );
+
+        render();
+      });
+    });
+
+    app.querySelectorAll("[data-progression-option-bulk]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const field = button.dataset.progressionOptionBulk;
+        const action = button.dataset.progressionOptionAction;
+        const optionIds =
+          action === "select"
+            ? String(button.dataset.progressionOptionIds || "")
+                .split(",")
+                .filter(Boolean)
+            : [];
+
+        state.progression = setRebornProgressionOptions(
+          state.progression,
+          field,
+          optionIds,
         );
 
         const saved = saveRebornProgression(state.progression);

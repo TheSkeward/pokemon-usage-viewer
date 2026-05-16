@@ -565,6 +565,27 @@ input {
   font-weight: 500;
 }
 
+.progression-option-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 0.7rem;
+}
+
+.progression-option-actions button {
+  width: auto;
+  border: 1px solid #344355;
+  border-radius: 8px;
+  background: #202a36;
+  color: #dfe7f0;
+  cursor: pointer;
+  padding: 0.35rem 0.65rem;
+}
+
+.progression-option-actions button:hover {
+  background: #2c3b4e;
+}
+
 .progression-checklist {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
