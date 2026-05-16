@@ -57,6 +57,7 @@ for (const pokemon of pokemonIndex) {
     JSON.stringify({
       pokemonId: pokemon.id,
       pokemonName: pokemon.name,
+      types: species.types,
       learnsetPokemonId: learnsetContext.species.id,
       learnsetPokemonName: learnsetContext.species.name,
       moves,

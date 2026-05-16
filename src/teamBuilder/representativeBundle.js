@@ -20,7 +20,7 @@ export async function resolveRepresentativeLightBundle({
       selection,
     });
 
-    if ((indexedBundle?.usage?.value || 0) >= minMeaningfulUsagePercent) {
+    if (indexedBundle?.usage) {
       return indexedBundle;
     }
   }

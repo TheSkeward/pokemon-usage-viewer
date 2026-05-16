@@ -4,6 +4,7 @@ import { createTeamBuilderSetDetailsLoader } from "./teamBuilder/setDetailsLoade
 import { getPoolStats, normalizePoolText } from "./teamBuilder/poolParsing";
 import { optimizeTeamFromPool } from "./teamBuilder/teamOptimizer";
 import { renderRebornLegalMovesPanel } from "./reborn/legalMovesView";
+import { renderRebornTeamAnalysisPanel } from "./reborn/teamAnalysisView";
 import {
   clearSavedRebornProgression,
   loadSavedRebornProgression,
@@ -202,6 +203,7 @@ export function mountPoolOptimizer(container, options = {}) {
         );
 
         refreshSelectedLegalMovesPanel();
+        refreshTeamAnalysisPanel();
       });
     });
 
@@ -355,6 +357,13 @@ export function mountPoolOptimizer(container, options = {}) {
       pokemonId: selected.pokemonId,
       pokemonName: selected.name,
       progression: state.progression,
+    });
+  }
+
+  function refreshTeamAnalysisPanel() {
+    renderRebornTeamAnalysisPanel(app.querySelector("#reborn-team-analysis-root"), {
+      progression: state.progression,
+      team: state.result?.team || [],
     });
   }
 

@@ -1,6 +1,7 @@
 import { renderMovesetPanel } from "../views/movesetView";
 import { renderRebornLegalMovesPanel } from "../reborn/legalMovesView";
 import { renderRebornProgressionPanel } from "../reborn/progressionView";
+import { renderRebornTeamAnalysisPanel } from "../reborn/teamAnalysisView";
 
 export function renderTeamBuilderPage({
   app,
@@ -25,6 +26,10 @@ export function renderTeamBuilderPage({
   `;
 
   renderSelectedSetDetails({ app, setDetails, state });
+  renderRebornTeamAnalysisPanel(app.querySelector("#reborn-team-analysis-root"), {
+    progression: state.progression,
+    team: state.result?.team || [],
+  });
 }
 
 function renderStandaloneHeader({ baseUrl }) {
@@ -166,6 +171,8 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
         </table>
       </div>
     </section>
+
+    <div id="reborn-team-analysis-root"></div>
 
     ${renderUnresolved(result.unresolved)}
   `;
