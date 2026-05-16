@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { Dex } from "@pkmn/dex";
 
 const DATA_ROOT = path.resolve("site-data", "data");
 const OUT_ROOT = path.join(DATA_ROOT, "set-index");
@@ -9,6 +10,7 @@ const FALLBACK_FAMILY_ORDER = {
   doubles: ["doubles", "singles"],
 };
 const HIDDEN_ENTRY_KEYS = new Set(["other", "nothing"]);
+const DEX = getGen7Dex();
 
 async function main() {
   const [availability, formatsIndex, pokemonIndex] = await Promise.all([
@@ -16,6 +18,8 @@ async function main() {
     readJson(path.join(DATA_ROOT, "formats.json")),
     readJson(path.join(DATA_ROOT, "pokemon-index.json")),
   ]);
+
+  const speciesContext = buildSpeciesContext(pokemonIndex);
 
   await fs.rm(OUT_ROOT, { recursive: true, force: true });
 
@@ -26,6 +30,7 @@ async function main() {
       formatsIndex,
       pokemonIndex,
       selection: "all",
+      speciesContext,
     });
   }
 }
@@ -36,6 +41,7 @@ async function buildFamilySetIndex({
   formatsIndex,
   pokemonIndex,
   selection,
+  speciesContext,
 }) {
   const sourceFamilies = FALLBACK_FAMILY_ORDER[family] || [family];
 
@@ -58,9 +64,7 @@ async function buildFamilySetIndex({
     }
   }
 
-  let written = 0;
-  const outDir = path.join(OUT_ROOT, family, selection);
-  await fs.mkdir(outDir, { recursive: true });
+  const samePokemonDetails = new Map();
 
   for (const pokemon of pokemonIndex) {
     const detail = stitchPokemonSetDetail({
@@ -71,6 +75,27 @@ async function buildFamilySetIndex({
       sourceAggregates,
     });
 
+    if (detail) samePokemonDetails.set(pokemon.id, detail);
+  }
+
+  for (const pokemon of pokemonIndex) {
+    const detail = samePokemonDetails.get(pokemon.id);
+    if (!detail) continue;
+
+    appendRelatedSetOptions({
+      detail,
+      pokemon,
+      samePokemonDetails,
+      speciesContext,
+    });
+  }
+
+  let written = 0;
+  const outDir = path.join(OUT_ROOT, family, selection);
+  await fs.mkdir(outDir, { recursive: true });
+
+  for (const pokemon of pokemonIndex) {
+    const detail = samePokemonDetails.get(pokemon.id);
     if (!detail) continue;
 
     await writeJson(path.join(outDir, `${pokemon.id}.json`), detail);
@@ -331,6 +356,7 @@ function createPrimaryDetail({
     stitched: false,
     primarySource,
     sourcesUsed: [primarySource],
+    relatedPokemonUsed: [],
     entry: aggregate.entry,
     moves: markPrimaryEntries(aggregate.entry.moves),
     items: markPrimaryEntries(aggregate.entry.items),
@@ -410,6 +436,241 @@ function appendSection({ target, entries, seenSet, sourceText }) {
   }
 
   return contributed;
+}
+
+function appendRelatedSetOptions({
+  detail,
+  pokemon,
+  samePokemonDetails,
+  speciesContext,
+}) {
+  const relatedChain = buildRelatedPokemonChain(pokemon, speciesContext);
+  if (!relatedChain.length) return;
+
+  const seen = {
+    moves: new Set(detail.moves.map((entry) => normalizeName(entry.name))),
+    items: new Set(detail.items.map((entry) => normalizeName(entry.name))),
+    abilities: new Set(
+      detail.abilities.map((entry) => normalizeName(entry.name)),
+    ),
+    spreads: new Set(detail.spreads.map((entry) => normalizeName(entry.name))),
+  };
+
+  for (const related of relatedChain) {
+    const relatedDetail = samePokemonDetails.get(related.id);
+    if (!relatedDetail) continue;
+
+    const contributed = appendRelatedPokemonEntries({
+      detail,
+      related,
+      relatedDetail,
+      seen,
+    });
+
+    if (!contributed) continue;
+
+    detail.stitched = true;
+    detail.relatedPokemonUsed.push({
+      pokemonId: related.id,
+      name: related.name,
+      reason: related.reason,
+    });
+
+    detail.sourcesUsed.push({
+      kind: "related",
+      pokemonId: related.id,
+      name: related.name,
+      reason: related.reason,
+      sourceText: `Related: ${related.name} (${related.reason})`,
+    });
+  }
+}
+
+function appendRelatedPokemonEntries({ detail, related, relatedDetail, seen }) {
+  const moveContribution = appendRelatedSection({
+    target: detail.moves,
+    entries: relatedDetail.moves,
+    seenSet: seen.moves,
+    related,
+  });
+
+  const itemContribution = appendRelatedSection({
+    target: detail.items,
+    entries: relatedDetail.items,
+    seenSet: seen.items,
+    related,
+  });
+
+  const abilityContribution = appendRelatedSection({
+    target: detail.abilities,
+    entries: relatedDetail.abilities,
+    seenSet: seen.abilities,
+    related,
+  });
+
+  const spreadContribution = appendRelatedSection({
+    target: detail.spreads,
+    entries: relatedDetail.spreads,
+    seenSet: seen.spreads,
+    related,
+  });
+
+  return (
+    moveContribution ||
+    itemContribution ||
+    abilityContribution ||
+    spreadContribution
+  );
+}
+
+function appendRelatedSection({ target, entries, seenSet, related }) {
+  let contributed = false;
+
+  for (const entry of entries) {
+    const key = normalizeName(entry.name);
+    if (!key || seenSet.has(key)) continue;
+
+    seenSet.add(key);
+    target.push({
+      name: entry.name,
+      usage: null,
+      kind: "additional",
+      sourceText: `Related: ${related.name} (${related.reason})${
+        entry.sourceText ? ` — ${entry.sourceText}` : ""
+      }`,
+    });
+    contributed = true;
+  }
+
+  return contributed;
+}
+
+function buildRelatedPokemonChain(pokemon, speciesContext) {
+  const info = speciesContext.infoByPokemonId.get(pokemon.id);
+  if (!info) return [];
+
+  const chain = [];
+  const seen = new Set([pokemon.id]);
+
+  function add(id, reason) {
+    const relatedInfo = speciesContext.infoByPokemonId.get(id);
+    if (!relatedInfo || seen.has(id)) return;
+
+    seen.add(id);
+    chain.push({
+      id,
+      name: relatedInfo.name,
+      reason,
+    });
+  }
+
+  const baseId =
+    info.baseId && speciesContext.infoByPokemonId.has(info.baseId)
+      ? info.baseId
+      : info.id;
+
+  const siblingForms = speciesContext.formsByBaseId.get(baseId) || [];
+
+  if (info.isMega) {
+    for (const sibling of siblingForms.filter(
+      (candidate) => candidate.isMega && candidate.id !== info.id,
+    )) {
+      add(sibling.id, "alternate Mega form");
+    }
+
+    add(baseId, "base form");
+  } else if (info.id === baseId) {
+    for (const sibling of siblingForms.filter(
+      (candidate) => candidate.isMega,
+    )) {
+      add(sibling.id, "Mega form");
+    }
+  } else {
+    add(baseId, getFormReason(info));
+  }
+
+  appendPreEvolutionChain({ add, baseId, speciesContext });
+
+  return chain;
+}
+
+function appendPreEvolutionChain({ add, baseId, speciesContext }) {
+  let current = speciesContext.infoByPokemonId.get(baseId);
+  const seen = new Set();
+
+  while (current?.prevoId && !seen.has(current.id)) {
+    seen.add(current.id);
+
+    const prevo = speciesContext.infoByPokemonId.get(current.prevoId);
+    if (!prevo) return;
+
+    add(prevo.id, "pre-evolution");
+    current = prevo;
+  }
+}
+
+function getFormReason(info) {
+  if (info.isTotem) return "normal Totem-relative form";
+  if (info.isPrimal) return "base Primal-relative form";
+  if (info.isPikachuCosplay) return "base Pikachu form";
+  if (info.isBattleOnly) return "base form";
+  if (info.forme) return "base form";
+
+  return "related form";
+}
+
+function buildSpeciesContext(pokemonIndex) {
+  const infoByPokemonId = new Map();
+  const formsByBaseId = new Map();
+
+  for (const pokemon of pokemonIndex) {
+    const info = getSpeciesInfo(pokemon);
+    infoByPokemonId.set(info.id, info);
+  }
+
+  for (const info of infoByPokemonId.values()) {
+    if (!info.baseId) continue;
+
+    const forms = formsByBaseId.get(info.baseId) || [];
+    forms.push(info);
+    formsByBaseId.set(info.baseId, forms);
+  }
+
+  for (const forms of formsByBaseId.values()) {
+    forms.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  return { infoByPokemonId, formsByBaseId };
+}
+
+function getSpeciesInfo(pokemon) {
+  const species = DEX.species.get(pokemon.name);
+  const name = species?.exists ? species.name : pokemon.name;
+  const id = pokemon.id;
+  const baseId = species?.baseSpecies ? normalizeName(species.baseSpecies) : id;
+  const prevoId = species?.prevo ? normalizeName(species.prevo) : "";
+
+  return {
+    id,
+    name,
+    dexId: species?.id || id,
+    baseId,
+    prevoId,
+    forme: species?.forme || "",
+    isMega: Boolean(species?.isMega) || /mega/.test(id),
+    isPrimal: /primal/.test(id),
+    isTotem: /totem/.test(id),
+    isBattleOnly: Boolean(species?.battleOnly),
+    isPikachuCosplay:
+      id.startsWith("pikachu") &&
+      !["pikachu", "pichu", "raichu", "raichualola"].includes(id),
+  };
+}
+
+function getGen7Dex() {
+  if (typeof Dex.forGen === "function") return Dex.forGen(7);
+  if (typeof Dex.mod === "function") return Dex.mod("gen7");
+  return Dex;
 }
 
 function accumulateSection(targetMap, entries = [], rawCount = 0) {
