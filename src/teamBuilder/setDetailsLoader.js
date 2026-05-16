@@ -1,15 +1,7 @@
-import {
-  getMovesetResolverCandidates,
-  loadAggregatedMovesetCandidate,
-} from "../data";
-
 export function createTeamBuilderSetDetailsLoader({
-  getAvailability,
   getFamily,
-  getFormatLabel,
   getSelection,
   onUpdate,
-  waitForPaint,
 }) {
   let generation = 0;
   let selectedPokemonId = null;
@@ -19,13 +11,13 @@ export function createTeamBuilderSetDetailsLoader({
 
   return {
     cancel,
+    describeSource,
     getDetail: () => detail,
     getMessage: () => message,
     getSelectedPokemonId: () => selectedPokemonId,
     getStatus: () => status,
     isSelected: (pokemonId) => selectedPokemonId === pokemonId,
     select,
-    describeSource,
   };
 
   function select(pokemonId) {
@@ -44,14 +36,13 @@ export function createTeamBuilderSetDetailsLoader({
     status = {
       phase: "loading",
       checked: 0,
-      total: 0,
+      total: 1,
       contributed: 0,
     };
-    message = "Loading primary set details...";
+    message = "Loading set details...";
 
     onUpdate();
-
-    void loadPrimarySetDetail(pokemonId, requestGeneration);
+    void loadPrecomputedSetDetail(pokemonId, requestGeneration);
   }
 
   function cancel() {
@@ -62,61 +53,42 @@ export function createTeamBuilderSetDetailsLoader({
     message = "";
   }
 
-  async function loadPrimarySetDetail(pokemonId, requestGeneration) {
+  async function loadPrecomputedSetDetail(pokemonId, requestGeneration) {
     try {
-      const candidates = getMovesetResolverCandidates(
-        getAvailability(),
-        getFamily(),
-        getSelection(),
+      const response = await fetch(
+        dataUrl(`set-index/${getFamily()}/${getSelection()}/${pokemonId}.json`),
       );
 
-      for (let index = 0; index < candidates.length; index += 1) {
-        if (requestGeneration !== generation) return;
+      if (requestGeneration !== generation) return;
 
-        const candidate = candidates[index];
-
+      if (response.status === 404) {
+        detail = null;
         status = {
-          phase: "loading",
-          checked: index,
-          total: candidates.length,
+          phase: "empty",
+          checked: 1,
+          total: 1,
           contributed: 0,
         };
-        message = `Checking set source ${index + 1}/${candidates.length}...`;
-
-        onUpdate();
-        await waitForPaint();
-
-        const aggregated = await loadAggregatedMovesetCandidate(
-          candidate,
-          pokemonId,
-        );
-
-        if (requestGeneration !== generation) return;
-        if (!aggregated) continue;
-
-        detail = createPrimarySetDetail(aggregated);
-        status = {
-          phase: "ready",
-          checked: index + 1,
-          total: candidates.length,
-          contributed: 1,
-        };
-        message = "";
-
+        message = "No precomputed set details found for this pick.";
         onUpdate();
         return;
       }
 
+      if (!response.ok) {
+        throw new Error(`Failed to load set details (${response.status})`);
+      }
+
+      detail = await response.json();
+
       if (requestGeneration !== generation) return;
 
-      detail = null;
       status = {
-        phase: "empty",
-        checked: candidates.length,
-        total: candidates.length,
-        contributed: 0,
+        phase: "ready",
+        checked: 1,
+        total: 1,
+        contributed: detail?.sourcesUsed?.length || 1,
       };
-      message = "No set details found for this pick.";
+      message = "";
 
       onUpdate();
     } catch (error) {
@@ -128,7 +100,7 @@ export function createTeamBuilderSetDetailsLoader({
       status = {
         phase: "empty",
         checked: 0,
-        total: 0,
+        total: 1,
         contributed: 0,
       };
       message = `Set details failed: ${error?.message || error}`;
@@ -137,45 +109,21 @@ export function createTeamBuilderSetDetailsLoader({
     }
   }
 
-  function createPrimarySetDetail(aggregated) {
-    return {
-      ...aggregated,
-      stitched: false,
-      sourcesUsed: [
-        {
-          formatId: aggregated.formatId,
-          cutoff: aggregated.cutoff,
-          monthsAvailable: aggregated.monthsAvailable,
-          monthsPresent: aggregated.monthsPresent,
-          sourceText: describeSource(aggregated),
-        },
-      ],
-      moves: aggregated.entry.moves.map((entry) => ({
-        ...entry,
-        kind: "primary",
-      })),
-      items: aggregated.entry.items.map((entry) => ({
-        ...entry,
-        kind: "primary",
-      })),
-      abilities: aggregated.entry.abilities.map((entry) => ({
-        ...entry,
-        kind: "primary",
-      })),
-      spreads: aggregated.entry.spreads.map((entry) => ({
-        ...entry,
-        kind: "primary",
-      })),
-    };
-  }
-
   function describeSource(source) {
-    const label = getFormatLabel(source.formatId);
+    if (source?.primarySource?.sourceText)
+      return source.primarySource.sourceText;
 
-    if (source.selection === "all") {
-      return `${label} @ ${source.cutoff} (all available, ${source.monthsPresent}/${source.monthsAvailable} months with this mon)`;
+    if (source?.sourceText) return source.sourceText;
+
+    if (source?.selection === "all") {
+      return `${source.formatId} @ ${source.cutoff} (all available)`;
     }
 
-    return `${label} @ ${source.cutoff} (${source.month})`;
+    return source?.formatId ? `${source.formatId} @ ${source.cutoff}` : "";
   }
+}
+
+function dataUrl(path) {
+  const base = import.meta.env.BASE_URL || "/";
+  return `${base.replace(/\/$/, "")}/data/${path.replace(/^\//, "")}`;
 }
