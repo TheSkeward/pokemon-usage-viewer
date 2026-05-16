@@ -1,11 +1,11 @@
+import { loadAvailability, loadFormatsIndex, loadPokemonIndex } from "./data";
+import { getPoolStats, normalizePoolText } from "./teamBuilder/poolParsing";
+import { optimizeTeamFromPool } from "./teamBuilder/teamOptimizer";
 import {
-  getLineRepresentativeCandidates,
-  loadAvailability,
-  loadFormatsIndex,
-  loadPokemonIndex,
-  resolveBestAvailableLightBundle,
-  resolveQueryEntries,
-} from "./data";
+  readLocalStorage,
+  removeLocalStorage,
+  writeLocalStorage,
+} from "./storage/safeLocalStorage";
 
 const POOL_STORAGE_KEY = "pokemon-usage-viewer:owned-pool:v1";
 const TEAM_SORT_STORAGE_KEY = "pokemon-usage-viewer:pool-team-sort:v1";
@@ -38,7 +38,7 @@ export function mountPoolOptimizer(container, options = {}) {
     app.innerHTML = `
       <section class="panel">
         <h2>Team Builder</h2>
-        <p>Something broke while loading the optimizer.</p>
+        <p>Something broke while loading the team builder.</p>
         <pre>${escapeHtml(error.message)}</pre>
       </section>
     `;
@@ -65,238 +65,38 @@ export function mountPoolOptimizer(container, options = {}) {
     render();
     await waitForPaint();
 
-    state.result = await computePoolResult();
-    state.loading = false;
-    state.statusMessage = "";
-    writeUrl();
-    render();
-  }
+    try {
+      const normalizedQuery = normalizePoolText(state.query, pokemonIndex);
 
-  async function computePoolResult() {
-    const groups = buildInputGroups(state.query);
-    const lines = (
-      await Promise.all(groups.map((group) => resolvePoolLine(group)))
-    ).filter(Boolean);
+      state.query = normalizedQuery;
+      const saved = savePool(state.query);
 
-    return choosePoolTeam(lines);
-  }
-
-  function buildInputGroups(query) {
-    const tokens = parsePoolTokens(query);
-    const groups = [];
-
-    for (const token of tokens) {
-      const entries = resolveQueryEntries(token, pokemonIndex);
-      if (!entries.length) {
-        groups.push({
-          token,
-          input: { id: normalizeName(token), name: token, token },
-          entries: [],
-          unresolved: true,
-        });
-        continue;
-      }
-
-      const exact = entries.find(
-        (entry) => normalizeName(entry.name) === normalizeName(token),
-      );
-      const chosen = exact || entries[0];
-
-      groups.push({
-        token,
-        input: chosen,
-        entries: [chosen],
-        ambiguousCount: entries.length,
-        unresolved: false,
+      state.result = await optimizeTeamFromPool({
+        availability,
+        family: state.family,
+        pokemonIndex,
+        query: state.query,
+        selection: state.selection,
       });
+
+      state.loading = false;
+      state.statusMessage = saved
+        ? getOptimizationSummary(state.result)
+        : `${getOptimizationSummary(state.result)} Pool could not be saved locally; browser storage is full.`;
+      writeUrl();
+      render();
+    } catch (error) {
+      console.error("Team Builder optimization failed", error);
+      state.loading = false;
+      state.result = null;
+      state.statusMessage = `Optimization failed: ${error?.message || error}`;
+      render();
     }
-
-    return groups;
-  }
-
-  async function resolvePoolLine(group) {
-    if (group.unresolved || !group.entries.length) {
-      return {
-        unresolved: true,
-        inputName: group.token,
-        lineKey: `unresolved:${group.token}`,
-        best: null,
-        bestNonMega: null,
-        candidates: [],
-      };
-    }
-
-    const input = group.input;
-    const candidates = getLineRepresentativeCandidates(input.id, pokemonIndex);
-
-    const scored = await Promise.all(
-      candidates.map(async (candidate) => {
-        const bundle = await resolveBestAvailableLightBundle({
-          availability,
-          family: state.family,
-          selection: state.selection,
-          pokemonId: candidate.id,
-        });
-
-        return {
-          input,
-          candidate,
-          bundle,
-          score: scoreCandidate(candidate, bundle),
-        };
-      }),
-    );
-
-    const ranked = scored
-      .filter((candidate) => Number.isFinite(candidate.score))
-      .sort((a, b) => b.score - a.score);
-
-    if (!ranked.length) {
-      return {
-        unresolved: false,
-        inputName: input.name,
-        lineKey: getLineKey(candidates, input.id),
-        best: null,
-        bestNonMega: null,
-        candidates: [],
-      };
-    }
-
-    const best = ranked[0];
-    const bestNonMega = ranked.find((entry) => !entry.candidate.isMega) || null;
-
-    return {
-      unresolved: false,
-      inputName: input.name,
-      lineKey: getLineKey(candidates, input.id),
-      best: makeChoice(
-        input,
-        best,
-        best.candidate.isMega ? "Best overall; uses Mega slot" : "Best overall",
-      ),
-      bestNonMega: bestNonMega
-        ? makeChoice(
-            input,
-            bestNonMega,
-            best.candidate.isMega ? "Best non-Mega fallback" : "Best non-Mega",
-          )
-        : null,
-      candidates: ranked,
-    };
-  }
-
-  function choosePoolTeam(lines) {
-    const resolvedLines = lines.filter((line) => line.best || line.bestNonMega);
-    const unresolved = lines.filter((line) => line.unresolved);
-
-    const nonMegaPool = resolvedLines
-      .filter((line) => line.bestNonMega)
-      .map((line) => line.bestNonMega)
-      .sort((a, b) => b.score - a.score);
-
-    const candidateTeams = [
-      {
-        team: nonMegaPool.slice(0, 6),
-        megaUsed: null,
-      },
-    ];
-
-    for (const line of resolvedLines) {
-      if (!line.best?.isMega) continue;
-
-      const others = resolvedLines
-        .filter((other) => other.lineKey !== line.lineKey && other.bestNonMega)
-        .map((other) => other.bestNonMega)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 5);
-
-      candidateTeams.push({
-        team: [line.best, ...others],
-        megaUsed: line.best,
-      });
-    }
-
-    const bestTeam = candidateTeams
-      .filter((candidate) => candidate.team.length > 0)
-      .sort((a, b) => sumTeamScore(b.team) - sumTeamScore(a.team))[0] || {
-      team: [],
-      megaUsed: null,
-    };
-
-    bestTeam.team = bestTeam.team.slice(0, 6);
-
-    return {
-      team: bestTeam.team,
-      megaUsed: bestTeam.megaUsed,
-      lines,
-      unresolved,
-      linesConsidered: resolvedLines.length,
-    };
-  }
-
-  function scoreCandidate(candidate, bundle) {
-    const usage = bundle?.usage;
-    if (!usage) return -Infinity;
-
-    const familyConfig = availability?.familyConfigs?.[state.family] || {};
-    const formatOrder = familyConfig.formatOrder || [];
-    const cutoffPriority = familyConfig.cutoffPriority || [];
-
-    const formatIndex = formatOrder.indexOf(usage.formatId);
-    const cutoffIndex = cutoffPriority.indexOf(usage.cutoff);
-
-    const usagePercent = Math.max(0, usage.value || 0);
-    const rawCount = Math.max(0, usage.entry?.rawCount || 0);
-    const leadPercent = Math.max(0, bundle.leads?.value || 0);
-
-    const usageScore = Math.log1p(usagePercent) * 2000 + usagePercent * 250;
-    const rawScore = Math.log1p(rawCount) * 35;
-    const leadScore = leadPercent * 2;
-    const formatQuality =
-      formatIndex >= 0 ? (formatOrder.length - formatIndex) * 20 : 0;
-    const cutoffQuality =
-      cutoffIndex >= 0 ? (cutoffPriority.length - cutoffIndex) * 6 : 0;
-    const megaBonus = candidate.isMega ? 300 : 0;
-
-    return (
-      usageScore +
-      rawScore +
-      leadScore +
-      formatQuality +
-      cutoffQuality +
-      megaBonus
-    );
-  }
-
-  function makeChoice(input, result, note) {
-    return {
-      inputPokemonId: input.id,
-      inputName: input.name,
-      pokemonId: result.candidate.id,
-      name: result.candidate.name,
-      isMega: Boolean(result.candidate.isMega),
-      score: result.score,
-      bundle: result.bundle,
-      note,
-    };
-  }
-
-  function getLineKey(candidates, fallbackId) {
-    if (!candidates.length) return fallbackId;
-    return candidates
-      .map((candidate) => candidate.id)
-      .sort()
-      .join("|");
-  }
-
-  function sumTeamScore(team) {
-    return team.reduce((sum, row) => sum + (row.score || 0), 0);
   }
 
   function render() {
     const familyLabel = state.family === "doubles" ? "Doubles" : "Singles";
-    const result = state.result;
-    const poolStats = getPoolStats(state.query);
+    const poolStats = getPoolStats(state.query, pokemonIndex);
 
     app.innerHTML = `
       ${embedded ? "" : renderStandaloneHeader()}
@@ -345,9 +145,7 @@ export function mountPoolOptimizer(container, options = {}) {
 
       ${state.loading ? renderLoading() : ""}
 
-      ${
-        result?.team?.length ? renderResult(result, familyLabel) : renderEmpty()
-      }
+      ${state.result ? renderResult(state.result, familyLabel) : renderEmpty()}
     `;
 
     bindEvents();
@@ -370,7 +168,7 @@ export function mountPoolOptimizer(container, options = {}) {
       <section class="panel">
         <div class="resolver-loading-banner">
           <span class="spinner-dot"></span>
-          <span>Optimizing pool against precomputed ${escapeHtml(state.family)} resolver data...</span>
+          <span>Optimizing pool against precomputed ${escapeHtml(state.family)} set data...</span>
         </div>
       </section>
     `;
@@ -387,15 +185,26 @@ export function mountPoolOptimizer(container, options = {}) {
 
     return `
       <section class="panel">
-        <p class="muted">No recommendation yet. Click Optimize team.</p>
+        <p class="muted">No recommendation yet. Click Normalize + optimize team.</p>
       </section>
     `;
   }
 
   function renderResult(result, familyLabel) {
+    if (!result.team.length) {
+      return `
+        <section class="panel">
+          <h2>Recommended ${escapeHtml(familyLabel)} Team</h2>
+          <p class="muted">No viable team picks found from ${result.linesConsidered} resolved input lines.</p>
+        </section>
+        ${renderUnresolved(result.unresolved)}
+      `;
+    }
+
     const megaText = result.megaUsed
       ? `Mega used: ${escapeHtml(result.megaUsed.name)}`
       : "No Mega selected";
+
     const sortedTeam = getSortedTeam(
       result.team,
       state.teamSort,
@@ -528,30 +337,32 @@ export function mountPoolOptimizer(container, options = {}) {
 
   function renderSource(source) {
     if (!source) return "";
+
     const label =
       formatsIndex.find((format) => format.id === source.formatId)?.label ||
       source.formatId;
+
     return source.selection === "all"
       ? `${escapeHtml(label)} @ ${source.cutoff} (${source.monthsPresent}/${source.monthsAvailable} mo)`
       : `${escapeHtml(label)} @ ${source.cutoff}`;
   }
 
   function bindEvents() {
-    document
+    app
       .querySelector("#family-input")
       ?.addEventListener("change", async (event) => {
         state.family = event.target.value;
         await computeAndRender();
       });
 
-    document
+    app
       .querySelector("#selection-input")
       ?.addEventListener("change", async (event) => {
         state.selection = event.target.value;
         await computeAndRender();
       });
 
-    document.querySelectorAll("[data-team-sort]").forEach((button) => {
+    app.querySelectorAll("[data-team-sort]").forEach((button) => {
       button.addEventListener("click", () => {
         const nextSort = button.dataset.teamSort;
 
@@ -570,51 +381,49 @@ export function mountPoolOptimizer(container, options = {}) {
       });
     });
 
-    document
+    app
       .querySelector("#pool-query-input")
       ?.addEventListener("input", (event) => {
         state.query = event.target.value;
-        savePool(state.query);
+        const saved = savePool(state.query);
         state.result = null;
-        state.statusMessage = "Saved locally";
+        state.statusMessage = saved
+          ? "Saved locally"
+          : "Not saved locally; browser storage is full.";
         writeUrl();
-        updatePoolStatusMessage("Saved locally");
+        updatePoolStatusMessage(state.statusMessage);
       });
 
-    document
+    app
       .querySelector("#optimize-button")
       ?.addEventListener("click", async () => {
-        state.query = normalizePoolText(state.query);
-        savePool(state.query);
-        state.statusMessage = "Normalized and saved";
         await computeAndRender();
       });
 
-    document
+    app
       .querySelector("#copy-pool-button")
       ?.addEventListener("click", async () => {
         await copyPool();
       });
 
-    document
-      .querySelector("#clear-pool-button")
-      ?.addEventListener("click", () => {
-        const confirmed = window.confirm(
-          "Clear the saved owned Pokémon pool from this browser?",
-        );
-        if (!confirmed) return;
+    app.querySelector("#clear-pool-button")?.addEventListener("click", () => {
+      const confirmed = window.confirm(
+        "Clear the saved owned Pokémon pool from this browser?",
+      );
+      if (!confirmed) return;
 
-        state.query = "";
-        state.result = null;
-        state.statusMessage = "Saved pool cleared";
-        localStorage.removeItem(POOL_STORAGE_KEY);
-        writeUrl();
-        render();
-      });
+      state.query = "";
+      state.result = null;
+      state.statusMessage = "Saved pool cleared";
+      removeLocalStorage(POOL_STORAGE_KEY);
+      writeUrl();
+      render();
+    });
   }
 
   async function copyPool() {
     const text = state.query.trim();
+
     if (!text) {
       state.statusMessage = "Nothing to copy";
       render();
@@ -631,108 +440,14 @@ export function mountPoolOptimizer(container, options = {}) {
     render();
   }
 
-  function parsePoolTokens(query) {
-    return extractPoolNames(query);
-  }
-
-  function getPoolStats(query) {
-    const tokens = parsePoolTokens(query);
-    const unique = new Set(tokens.map(normalizeName).filter(Boolean));
-
-    return {
-      totalCount: tokens.length,
-      uniqueCount: unique.size,
-      duplicateCount: Math.max(0, tokens.length - unique.size),
-    };
-  }
-
-  function normalizePoolText(query) {
-    const byKey = new Map();
-
-    for (const name of extractPoolNames(query)) {
-      const canonical = findPokemonNameInText(name);
-      if (!canonical) continue;
-
-      const key = normalizeName(canonical);
-      if (!key || byKey.has(key)) continue;
-      byKey.set(key, canonical);
-    }
-
-    return [...byKey.values()].sort((a, b) => a.localeCompare(b)).join(", ");
-  }
-
-  function extractPoolNames(query) {
-    const names = [];
-
-    for (const rawLine of String(query || "").split(/\n+/)) {
-      const line = rawLine.trim();
-      if (!line) continue;
-
-      // Comma-separated hand-written list.
-      if (line.includes(",")) {
-        for (const part of line.split(",")) {
-          const name = extractNameFromPoolToken(part);
-          if (name) names.push(name);
-        }
-        continue;
-      }
-
-      // Pasted table row / single Pokémon line.
-      const name = extractNameFromPoolToken(line);
-      if (name) names.push(name);
-    }
-
-    return names;
-  }
-
-  function extractNameFromPoolToken(value) {
-    const text = String(value || "").trim();
-    if (!text) return "";
-
-    // First: scan the whole row for a canonical Pokémon name.
-    // This handles rows like:
-    //   #001    001MS    Bulbasaur    Grass    Poison ...
-    const anywhere = findPokemonNameInText(text);
-    if (anywhere) return anywhere;
-
-    // Second: TSV row fallback. Some encounter tables put the mon in cell 1.
-    for (const cell of text.split("\t")) {
-      const fromCell = findPokemonNameInText(cell);
-      if (fromCell) return fromCell;
-    }
-
-    // Third: space-separated table rows like "Wurmple 2-7 20%".
-    const beforeNumericColumns = text.split(/\s+(?=\d|--|#)/)[0]?.trim();
-    if (beforeNumericColumns && beforeNumericColumns !== text) {
-      const fromPrefix = findPokemonNameInText(beforeNumericColumns);
-      if (fromPrefix) return fromPrefix;
-    }
-
-    // Unknown token: drop it. Do not optimize "#001" or random table junk.
-    return "";
-  }
-
-  function findPokemonNameInText(value) {
-    const text = String(value || "").trim();
-    const key = normalizeName(text);
-    if (!key) return null;
-
-    const exact = pokemonIndex.find(
-      (pokemon) => normalizeName(pokemon.name) === key,
-    );
-    if (exact) return exact.name;
-
-    const matches = pokemonIndex
-      .map((pokemon) => ({ pokemon, key: normalizeName(pokemon.name) }))
-      .filter(({ key: pokemonKey }) => pokemonKey && key.includes(pokemonKey))
-      .sort((a, b) => b.key.length - a.key.length);
-
-    return matches[0]?.pokemon.name || null;
-  }
-
   function updatePoolStatusMessage(message) {
     const statusNode = app.querySelector("[data-pool-status]");
     if (statusNode) statusNode.textContent = message || "";
+  }
+
+  function getOptimizationSummary(result) {
+    if (!result) return "";
+    return `Optimized ${result.team.length} picks from ${result.linesConsidered} resolved inputs.`;
   }
 
   function writeUrl() {
@@ -753,27 +468,27 @@ export function mountPoolOptimizer(container, options = {}) {
 }
 
 export function savePool(value) {
-  localStorage.setItem(POOL_STORAGE_KEY, value);
+  return writeLocalStorage(POOL_STORAGE_KEY, value);
 }
 
 export function loadSavedPool() {
-  return localStorage.getItem(POOL_STORAGE_KEY) || "";
+  return readLocalStorage(POOL_STORAGE_KEY, "");
 }
 
 function saveTeamSort(value) {
-  localStorage.setItem(TEAM_SORT_STORAGE_KEY, value);
+  writeLocalStorage(TEAM_SORT_STORAGE_KEY, value);
 }
 
 function loadSavedTeamSort() {
-  return localStorage.getItem(TEAM_SORT_STORAGE_KEY) || "";
+  return readLocalStorage(TEAM_SORT_STORAGE_KEY, "");
 }
 
 function saveTeamSortDir(value) {
-  localStorage.setItem(TEAM_SORT_DIR_STORAGE_KEY, value);
+  writeLocalStorage(TEAM_SORT_DIR_STORAGE_KEY, value);
 }
 
 function loadSavedTeamSortDir() {
-  return localStorage.getItem(TEAM_SORT_DIR_STORAGE_KEY) || "";
+  return readLocalStorage(TEAM_SORT_DIR_STORAGE_KEY, "");
 }
 
 function getParam(name) {
@@ -792,12 +507,6 @@ function waitForPaint() {
 
 function formatPercent(value) {
   return typeof value === "number" ? value.toFixed(2) : "";
-}
-
-function normalizeName(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
 }
 
 function escapeHtml(value) {
