@@ -5,39 +5,39 @@ import {
   loadPokemonIndex,
   resolveBestAvailableLightBundle,
   resolveQueryEntries,
-} from './data';
+} from "./data";
 
-const POOL_STORAGE_KEY = 'pokemon-usage-viewer:owned-pool:v1';
-const TEAM_SORT_STORAGE_KEY = 'pokemon-usage-viewer:pool-team-sort:v1';
-const TEAM_SORT_DIR_STORAGE_KEY = 'pokemon-usage-viewer:pool-team-sort-dir:v1';
+const POOL_STORAGE_KEY = "pokemon-usage-viewer:owned-pool:v1";
+const TEAM_SORT_STORAGE_KEY = "pokemon-usage-viewer:pool-team-sort:v1";
+const TEAM_SORT_DIR_STORAGE_KEY = "pokemon-usage-viewer:pool-team-sort-dir:v1";
 
 export function mountPoolOptimizer(container, options = {}) {
   const app = container;
   const embedded = Boolean(options.embedded);
-  const initialFamily = options.family || getParam('family') || 'singles';
+  const initialFamily = options.family || getParam("family") || "singles";
 
   let availability = null;
   let formatsIndex = [];
   let pokemonIndex = [];
 
-  const initialQuery = getParam('poolQuery') || loadSavedPool();
+  const initialQuery = getParam("poolQuery") || loadSavedPool();
 
   const state = {
     family: initialFamily,
-    selection: getParam('selection') || 'all',
+    selection: getParam("selection") || "all",
     query: initialQuery,
-    teamSort: getParam('teamSort') || loadSavedTeamSort() || 'lead',
-    teamSortDir: getParam('teamSortDir') || loadSavedTeamSortDir() || 'desc',
+    teamSort: getParam("teamSort") || loadSavedTeamSort() || "lead",
+    teamSortDir: getParam("teamSortDir") || loadSavedTeamSortDir() || "desc",
     result: null,
     loading: false,
-    statusMessage: '',
+    statusMessage: "",
   };
 
   init().catch((error) => {
     console.error(error);
     app.innerHTML = `
       <section class="panel">
-        <h2>Pool Optimizer</h2>
+        <h2>Team Builder</h2>
         <p>Something broke while loading the optimizer.</p>
         <pre>${escapeHtml(error.message)}</pre>
       </section>
@@ -61,13 +61,13 @@ export function mountPoolOptimizer(container, options = {}) {
 
   async function computeAndRender() {
     state.loading = true;
-    state.statusMessage = 'Optimizing pool...';
+    state.statusMessage = "Optimizing pool...";
     render();
     await waitForPaint();
 
     state.result = await computePoolResult();
     state.loading = false;
-    state.statusMessage = '';
+    state.statusMessage = "";
     writeUrl();
     render();
   }
@@ -97,7 +97,9 @@ export function mountPoolOptimizer(container, options = {}) {
         continue;
       }
 
-      const exact = entries.find((entry) => normalizeName(entry.name) === normalizeName(token));
+      const exact = entries.find(
+        (entry) => normalizeName(entry.name) === normalizeName(token),
+      );
       const chosen = exact || entries[0];
 
       groups.push({
@@ -142,7 +144,7 @@ export function mountPoolOptimizer(container, options = {}) {
           bundle,
           score: scoreCandidate(candidate, bundle),
         };
-      })
+      }),
     );
 
     const ranked = scored
@@ -167,9 +169,17 @@ export function mountPoolOptimizer(container, options = {}) {
       unresolved: false,
       inputName: input.name,
       lineKey: getLineKey(candidates, input.id),
-      best: makeChoice(input, best, best.candidate.isMega ? 'Best overall; uses Mega slot' : 'Best overall'),
+      best: makeChoice(
+        input,
+        best,
+        best.candidate.isMega ? "Best overall; uses Mega slot" : "Best overall",
+      ),
       bestNonMega: bestNonMega
-        ? makeChoice(input, bestNonMega, best.candidate.isMega ? 'Best non-Mega fallback' : 'Best non-Mega')
+        ? makeChoice(
+            input,
+            bestNonMega,
+            best.candidate.isMega ? "Best non-Mega fallback" : "Best non-Mega",
+          )
         : null,
       candidates: ranked,
     };
@@ -206,11 +216,12 @@ export function mountPoolOptimizer(container, options = {}) {
       });
     }
 
-    const bestTeam =
-      candidateTeams
-        .filter((candidate) => candidate.team.length > 0)
-        .sort((a, b) => sumTeamScore(b.team) - sumTeamScore(a.team))[0] ||
-      { team: [], megaUsed: null };
+    const bestTeam = candidateTeams
+      .filter((candidate) => candidate.team.length > 0)
+      .sort((a, b) => sumTeamScore(b.team) - sumTeamScore(a.team))[0] || {
+      team: [],
+      megaUsed: null,
+    };
 
     bestTeam.team = bestTeam.team.slice(0, 6);
 
@@ -241,11 +252,20 @@ export function mountPoolOptimizer(container, options = {}) {
     const usageScore = Math.log1p(usagePercent) * 2000 + usagePercent * 250;
     const rawScore = Math.log1p(rawCount) * 35;
     const leadScore = leadPercent * 2;
-    const formatQuality = formatIndex >= 0 ? (formatOrder.length - formatIndex) * 20 : 0;
-    const cutoffQuality = cutoffIndex >= 0 ? (cutoffPriority.length - cutoffIndex) * 6 : 0;
+    const formatQuality =
+      formatIndex >= 0 ? (formatOrder.length - formatIndex) * 20 : 0;
+    const cutoffQuality =
+      cutoffIndex >= 0 ? (cutoffPriority.length - cutoffIndex) * 6 : 0;
     const megaBonus = candidate.isMega ? 300 : 0;
 
-    return usageScore + rawScore + leadScore + formatQuality + cutoffQuality + megaBonus;
+    return (
+      usageScore +
+      rawScore +
+      leadScore +
+      formatQuality +
+      cutoffQuality +
+      megaBonus
+    );
   }
 
   function makeChoice(input, result, note) {
@@ -263,7 +283,10 @@ export function mountPoolOptimizer(container, options = {}) {
 
   function getLineKey(candidates, fallbackId) {
     if (!candidates.length) return fallbackId;
-    return candidates.map((candidate) => candidate.id).sort().join('|');
+    return candidates
+      .map((candidate) => candidate.id)
+      .sort()
+      .join("|");
   }
 
   function sumTeamScore(team) {
@@ -271,18 +294,18 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 
   function render() {
-    const familyLabel = state.family === 'doubles' ? 'Doubles' : 'Singles';
+    const familyLabel = state.family === "doubles" ? "Doubles" : "Singles";
     const result = state.result;
     const poolStats = getPoolStats(state.query);
 
     app.innerHTML = `
-      ${embedded ? '' : renderStandaloneHeader()}
+      ${embedded ? "" : renderStandaloneHeader()}
 
       <section class="panel">
         <div class="panel-header">
           <div>
             <h2>Owned Pokémon Pool</h2>
-            <p>${poolStats.uniqueCount} unique entries${poolStats.duplicateCount ? ` · ${poolStats.duplicateCount} duplicates ignored` : ''}. Autosaved in this browser.</p>
+            <p>${poolStats.uniqueCount} unique entries${poolStats.duplicateCount ? ` · ${poolStats.duplicateCount} duplicates ignored` : ""}. Autosaved in this browser.</p>
           </div>
         </div>
 
@@ -290,18 +313,18 @@ export function mountPoolOptimizer(container, options = {}) {
           <label>
             <span>Period</span>
             <select id="selection-input">
-              <option value="all" ${state.selection === 'all' ? 'selected' : ''}>All available</option>
+              <option value="all" ${state.selection === "all" ? "selected" : ""}>All available</option>
             </select>
           </label>
 
           ${
             embedded
-              ? ''
+              ? ""
               : `<label>
                   <span>Family</span>
                   <select id="family-input">
-                    <option value="singles" ${state.family === 'singles' ? 'selected' : ''}>Singles</option>
-                    <option value="doubles" ${state.family === 'doubles' ? 'selected' : ''}>Doubles</option>
+                    <option value="singles" ${state.family === "singles" ? "selected" : ""}>Singles</option>
+                    <option value="doubles" ${state.family === "doubles" ? "selected" : ""}>Doubles</option>
                   </select>
                 </label>`
           }
@@ -313,19 +336,17 @@ export function mountPoolOptimizer(container, options = {}) {
         </div>
 
         <div class="toolbar">
-          <button class="view-tab primary-action" id="optimize-button">${state.loading ? 'Optimizing...' : 'Normalize + optimize team'}</button>
+          <button class="view-tab primary-action" id="optimize-button">${state.loading ? "Optimizing..." : "Normalize + optimize team"}</button>
           <button class="view-tab" id="copy-pool-button">Copy pool</button>
           <button class="view-tab danger-button" id="clear-pool-button">Clear saved pool</button>
           <span class="muted" data-pool-status>${escapeHtml(state.statusMessage)}</span>
         </div>
       </section>
 
-      ${state.loading ? renderLoading() : ''}
+      ${state.loading ? renderLoading() : ""}
 
       ${
-        result?.team?.length
-          ? renderResult(result, familyLabel)
-          : renderEmpty()
+        result?.team?.length ? renderResult(result, familyLabel) : renderEmpty()
       }
     `;
 
@@ -335,11 +356,11 @@ export function mountPoolOptimizer(container, options = {}) {
   function renderStandaloneHeader() {
     return `
       <header>
-        <h1>Pokémon Pool Optimizer</h1>
+        <h1>Pokémon Pool Team Builder</h1>
       </header>
 
       <nav class="view-tabs">
-        <a class="view-tab" href="${baseUrl()}">Main Viewer</a>
+        <a class="view-tab" href="${baseUrl()}">Main App</a>
       </nav>
     `;
   }
@@ -372,8 +393,14 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 
   function renderResult(result, familyLabel) {
-    const megaText = result.megaUsed ? `Mega used: ${escapeHtml(result.megaUsed.name)}` : 'No Mega selected';
-    const sortedTeam = getSortedTeam(result.team, state.teamSort, state.teamSortDir);
+    const megaText = result.megaUsed
+      ? `Mega used: ${escapeHtml(result.megaUsed.name)}`
+      : "No Mega selected";
+    const sortedTeam = getSortedTeam(
+      result.team,
+      state.teamSort,
+      state.teamSortDir,
+    );
 
     return `
       <section class="panel">
@@ -390,17 +417,17 @@ export function mountPoolOptimizer(container, options = {}) {
             <thead>
               <tr>
                 <th>#</th>
-                ${renderSortHeader('input', 'Input')}
-                ${renderSortHeader('name', 'Pick')}
-                ${renderSortHeader('usage', 'Usage %')}
-                ${renderSortHeader('lead', 'Lead %')}
-                ${renderSortHeader('score', 'Score')}
+                ${renderSortHeader("input", "Input")}
+                ${renderSortHeader("name", "Pick")}
+                ${renderSortHeader("usage", "Usage %")}
+                ${renderSortHeader("lead", "Lead %")}
+                ${renderSortHeader("score", "Score")}
                 <th>Source</th>
                 <th>Notes</th>
               </tr>
             </thead>
             <tbody>
-              ${sortedTeam.map(renderTeamRow).join('')}
+              ${sortedTeam.map(renderTeamRow).join("")}
             </tbody>
           </table>
         </div>
@@ -412,11 +439,11 @@ export function mountPoolOptimizer(container, options = {}) {
 
   function renderSortHeader(sortBy, label) {
     const active = state.teamSort === sortBy;
-    const arrow = active ? (state.teamSortDir === 'asc' ? ' ▲' : ' ▼') : '';
+    const arrow = active ? (state.teamSortDir === "asc" ? " ▲" : " ▼") : "";
 
     return `
       <th>
-        <button class="sort-header-button ${active ? 'active' : ''}" data-team-sort="${escapeHtml(sortBy)}">
+        <button class="sort-header-button ${active ? "active" : ""}" data-team-sort="${escapeHtml(sortBy)}">
           ${escapeHtml(label)}${arrow}
         </button>
       </th>
@@ -430,31 +457,31 @@ export function mountPoolOptimizer(container, options = {}) {
         <td>${escapeHtml(row.inputName)}</td>
         <td>
           <strong>${escapeHtml(row.name)}</strong>
-          ${row.isMega ? `<div class="representative-note">Mega slot</div>` : ''}
+          ${row.isMega ? `<div class="representative-note">Mega slot</div>` : ""}
         </td>
         <td>${formatPercent(row.bundle?.usage?.value)}</td>
         <td>${formatPercent(row.bundle?.leads?.value)}</td>
-        <td>${Number.isFinite(row.score) ? Math.round(row.score).toLocaleString() : ''}</td>
+        <td>${Number.isFinite(row.score) ? Math.round(row.score).toLocaleString() : ""}</td>
         <td>${renderSource(row.bundle?.usage)}</td>
-        <td>${escapeHtml(row.note || '')}</td>
+        <td>${escapeHtml(row.note || "")}</td>
       </tr>
     `;
   }
 
-  function getSortedTeam(team, sortBy, sortDir = 'desc') {
+  function getSortedTeam(team, sortBy, sortDir = "desc") {
     const rows = [...team];
-    const direction = sortDir === 'asc' ? 1 : -1;
+    const direction = sortDir === "asc" ? 1 : -1;
 
     rows.sort((a, b) => {
       let primary = 0;
 
-      if (sortBy === 'lead') {
+      if (sortBy === "lead") {
         primary = compareNumber(a.bundle?.leads?.value, b.bundle?.leads?.value);
-      } else if (sortBy === 'usage') {
+      } else if (sortBy === "usage") {
         primary = compareNumber(a.bundle?.usage?.value, b.bundle?.usage?.value);
-      } else if (sortBy === 'score') {
+      } else if (sortBy === "score") {
         primary = compareNumber(a.score, b.score);
-      } else if (sortBy === 'input') {
+      } else if (sortBy === "input") {
         primary = a.inputName.localeCompare(b.inputName);
       } else {
         primary = a.name.localeCompare(b.name);
@@ -473,60 +500,67 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 
   function compareNumber(a, b) {
-    const safeA = typeof a === 'number' ? a : -Infinity;
-    const safeB = typeof b === 'number' ? b : -Infinity;
+    const safeA = typeof a === "number" ? a : -Infinity;
+    const safeB = typeof b === "number" ? b : -Infinity;
     return safeA === safeB ? 0 : safeA - safeB;
   }
 
-  function getSortLabel(sortBy, sortDir = 'desc') {
-    const direction = sortDir === 'asc' ? 'ascending' : 'descending';
+  function getSortLabel(sortBy, sortDir = "desc") {
+    const direction = sortDir === "asc" ? "ascending" : "descending";
 
-    if (sortBy === 'lead') return `Lead % ${direction}`;
-    if (sortBy === 'usage') return `Usage % ${direction}`;
-    if (sortBy === 'score') return `optimizer score ${direction}`;
-    if (sortBy === 'input') return `input name ${direction}`;
+    if (sortBy === "lead") return `Lead % ${direction}`;
+    if (sortBy === "usage") return `Usage % ${direction}`;
+    if (sortBy === "score") return `optimizer score ${direction}`;
+    if (sortBy === "input") return `input name ${direction}`;
     return `Pokémon name ${direction}`;
   }
 
   function renderUnresolved(unresolved = []) {
-    if (!unresolved.length) return '';
+    if (!unresolved.length) return "";
 
     return `
       <section class="panel">
         <h2>Unresolved inputs</h2>
-        <p class="muted">${unresolved.map((line) => escapeHtml(line.inputName)).join(', ')}</p>
+        <p class="muted">${unresolved.map((line) => escapeHtml(line.inputName)).join(", ")}</p>
       </section>
     `;
   }
 
   function renderSource(source) {
-    if (!source) return '';
-    const label = formatsIndex.find((format) => format.id === source.formatId)?.label || source.formatId;
-    return source.selection === 'all'
+    if (!source) return "";
+    const label =
+      formatsIndex.find((format) => format.id === source.formatId)?.label ||
+      source.formatId;
+    return source.selection === "all"
       ? `${escapeHtml(label)} @ ${source.cutoff} (${source.monthsPresent}/${source.monthsAvailable} mo)`
       : `${escapeHtml(label)} @ ${source.cutoff}`;
   }
 
   function bindEvents() {
-    document.querySelector('#family-input')?.addEventListener('change', async (event) => {
-      state.family = event.target.value;
-      await computeAndRender();
-    });
+    document
+      .querySelector("#family-input")
+      ?.addEventListener("change", async (event) => {
+        state.family = event.target.value;
+        await computeAndRender();
+      });
 
-    document.querySelector('#selection-input')?.addEventListener('change', async (event) => {
-      state.selection = event.target.value;
-      await computeAndRender();
-    });
+    document
+      .querySelector("#selection-input")
+      ?.addEventListener("change", async (event) => {
+        state.selection = event.target.value;
+        await computeAndRender();
+      });
 
-    document.querySelectorAll('[data-team-sort]').forEach((button) => {
-      button.addEventListener('click', () => {
+    document.querySelectorAll("[data-team-sort]").forEach((button) => {
+      button.addEventListener("click", () => {
         const nextSort = button.dataset.teamSort;
 
         if (state.teamSort === nextSort) {
-          state.teamSortDir = state.teamSortDir === 'asc' ? 'desc' : 'asc';
+          state.teamSortDir = state.teamSortDir === "asc" ? "desc" : "asc";
         } else {
           state.teamSort = nextSort;
-          state.teamSortDir = nextSort === 'name' || nextSort === 'input' ? 'asc' : 'desc';
+          state.teamSortDir =
+            nextSort === "name" || nextSort === "input" ? "asc" : "desc";
         }
 
         saveTeamSort(state.teamSort);
@@ -536,52 +570,62 @@ export function mountPoolOptimizer(container, options = {}) {
       });
     });
 
-    document.querySelector('#pool-query-input')?.addEventListener('input', (event) => {
-      state.query = event.target.value;
-      savePool(state.query);
-      state.result = null;
-      state.statusMessage = 'Saved locally';
-      writeUrl();
-      updatePoolStatusMessage('Saved locally');
-    });
+    document
+      .querySelector("#pool-query-input")
+      ?.addEventListener("input", (event) => {
+        state.query = event.target.value;
+        savePool(state.query);
+        state.result = null;
+        state.statusMessage = "Saved locally";
+        writeUrl();
+        updatePoolStatusMessage("Saved locally");
+      });
 
-    document.querySelector('#optimize-button')?.addEventListener('click', async () => {
-      state.query = normalizePoolText(state.query);
-      savePool(state.query);
-      state.statusMessage = 'Normalized and saved';
-      await computeAndRender();
-    });
+    document
+      .querySelector("#optimize-button")
+      ?.addEventListener("click", async () => {
+        state.query = normalizePoolText(state.query);
+        savePool(state.query);
+        state.statusMessage = "Normalized and saved";
+        await computeAndRender();
+      });
 
-    document.querySelector('#copy-pool-button')?.addEventListener('click', async () => {
-      await copyPool();
-    });
+    document
+      .querySelector("#copy-pool-button")
+      ?.addEventListener("click", async () => {
+        await copyPool();
+      });
 
-    document.querySelector('#clear-pool-button')?.addEventListener('click', () => {
-      const confirmed = window.confirm('Clear the saved owned Pokémon pool from this browser?');
-      if (!confirmed) return;
+    document
+      .querySelector("#clear-pool-button")
+      ?.addEventListener("click", () => {
+        const confirmed = window.confirm(
+          "Clear the saved owned Pokémon pool from this browser?",
+        );
+        if (!confirmed) return;
 
-      state.query = '';
-      state.result = null;
-      state.statusMessage = 'Saved pool cleared';
-      localStorage.removeItem(POOL_STORAGE_KEY);
-      writeUrl();
-      render();
-    });
+        state.query = "";
+        state.result = null;
+        state.statusMessage = "Saved pool cleared";
+        localStorage.removeItem(POOL_STORAGE_KEY);
+        writeUrl();
+        render();
+      });
   }
 
   async function copyPool() {
     const text = state.query.trim();
     if (!text) {
-      state.statusMessage = 'Nothing to copy';
+      state.statusMessage = "Nothing to copy";
       render();
       return;
     }
 
     try {
       await navigator.clipboard.writeText(text);
-      state.statusMessage = 'Copied pool to clipboard';
+      state.statusMessage = "Copied pool to clipboard";
     } catch {
-      state.statusMessage = 'Clipboard copy failed';
+      state.statusMessage = "Clipboard copy failed";
     }
 
     render();
@@ -614,19 +658,19 @@ export function mountPoolOptimizer(container, options = {}) {
       byKey.set(key, canonical);
     }
 
-    return [...byKey.values()].sort((a, b) => a.localeCompare(b)).join(', ');
+    return [...byKey.values()].sort((a, b) => a.localeCompare(b)).join(", ");
   }
 
   function extractPoolNames(query) {
     const names = [];
 
-    for (const rawLine of String(query || '').split(/\n+/)) {
+    for (const rawLine of String(query || "").split(/\n+/)) {
       const line = rawLine.trim();
       if (!line) continue;
 
       // Comma-separated hand-written list.
-      if (line.includes(',')) {
-        for (const part of line.split(',')) {
+      if (line.includes(",")) {
+        for (const part of line.split(",")) {
           const name = extractNameFromPoolToken(part);
           if (name) names.push(name);
         }
@@ -642,8 +686,8 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 
   function extractNameFromPoolToken(value) {
-    const text = String(value || '').trim();
-    if (!text) return '';
+    const text = String(value || "").trim();
+    if (!text) return "";
 
     // First: scan the whole row for a canonical Pokémon name.
     // This handles rows like:
@@ -652,7 +696,7 @@ export function mountPoolOptimizer(container, options = {}) {
     if (anywhere) return anywhere;
 
     // Second: TSV row fallback. Some encounter tables put the mon in cell 1.
-    for (const cell of text.split('\t')) {
+    for (const cell of text.split("\t")) {
       const fromCell = findPokemonNameInText(cell);
       if (fromCell) return fromCell;
     }
@@ -665,15 +709,17 @@ export function mountPoolOptimizer(container, options = {}) {
     }
 
     // Unknown token: drop it. Do not optimize "#001" or random table junk.
-    return '';
+    return "";
   }
 
   function findPokemonNameInText(value) {
-    const text = String(value || '').trim();
+    const text = String(value || "").trim();
     const key = normalizeName(text);
     if (!key) return null;
 
-    const exact = pokemonIndex.find((pokemon) => normalizeName(pokemon.name) === key);
+    const exact = pokemonIndex.find(
+      (pokemon) => normalizeName(pokemon.name) === key,
+    );
     if (exact) return exact.name;
 
     const matches = pokemonIndex
@@ -685,20 +731,24 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 
   function updatePoolStatusMessage(message) {
-    const statusNode = app.querySelector('[data-pool-status]');
-    if (statusNode) statusNode.textContent = message || '';
+    const statusNode = app.querySelector("[data-pool-status]");
+    if (statusNode) statusNode.textContent = message || "";
   }
 
   function writeUrl() {
     if (embedded) return;
 
     const params = new URLSearchParams();
-    params.set('family', state.family);
-    params.set('selection', state.selection);
-    params.set('teamSort', state.teamSort);
-    params.set('teamSortDir', state.teamSortDir);
+    params.set("family", state.family);
+    params.set("selection", state.selection);
+    params.set("teamSort", state.teamSort);
+    params.set("teamSortDir", state.teamSortDir);
 
-    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}?${params.toString()}`,
+    );
   }
 }
 
@@ -707,7 +757,7 @@ export function savePool(value) {
 }
 
 export function loadSavedPool() {
-  return localStorage.getItem(POOL_STORAGE_KEY) || '';
+  return localStorage.getItem(POOL_STORAGE_KEY) || "";
 }
 
 function saveTeamSort(value) {
@@ -715,7 +765,7 @@ function saveTeamSort(value) {
 }
 
 function loadSavedTeamSort() {
-  return localStorage.getItem(TEAM_SORT_STORAGE_KEY) || '';
+  return localStorage.getItem(TEAM_SORT_STORAGE_KEY) || "";
 }
 
 function saveTeamSortDir(value) {
@@ -723,7 +773,7 @@ function saveTeamSortDir(value) {
 }
 
 function loadSavedTeamSortDir() {
-  return localStorage.getItem(TEAM_SORT_DIR_STORAGE_KEY) || '';
+  return localStorage.getItem(TEAM_SORT_DIR_STORAGE_KEY) || "";
 }
 
 function getParam(name) {
@@ -731,26 +781,30 @@ function getParam(name) {
 }
 
 function baseUrl() {
-  return import.meta.env.BASE_URL || '/';
+  return import.meta.env.BASE_URL || "/";
 }
 
 function waitForPaint() {
-  return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  return new Promise((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(resolve)),
+  );
 }
 
 function formatPercent(value) {
-  return typeof value === 'number' ? value.toFixed(2) : '';
+  return typeof value === "number" ? value.toFixed(2) : "";
 }
 
 function normalizeName(value) {
-  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
 }
 
 function escapeHtml(value) {
-  return String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
