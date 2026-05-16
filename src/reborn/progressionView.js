@@ -21,7 +21,7 @@ export function renderRebornProgressionPanel(progression) {
       </div>
 
       <div class="progression-grid">
-        <label>
+        <label class="progression-level-control">
           <span>Level cap</span>
           <input
             id="progression-level-cap"

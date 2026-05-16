@@ -1,4 +1,5 @@
 import { renderMovesetPanel } from "../views/movesetView";
+import { renderRebornLegalMovesPanel } from "../reborn/legalMovesView";
 import { renderRebornProgressionPanel } from "../reborn/progressionView";
 
 export function renderTeamBuilderPage({
@@ -233,6 +234,16 @@ function renderSelectedSetDetails({ app, setDetails, state }) {
     aggregate: state.selection === "all",
     stitched: Boolean(detail?.stitched),
     status: setDetails.getStatus(),
+  });
+
+  const legalMovesRoot = document.createElement("div");
+  legalMovesRoot.dataset.rebornLegalMovesRoot = "true";
+  detailsRoot.appendChild(legalMovesRoot);
+  renderRebornLegalMovesPanel(legalMovesRoot, {
+    movesetEntry: detail,
+    pokemonId: selected.pokemonId,
+    pokemonName: selected.name,
+    progression: state.progression,
   });
 
   if (setDetails.getMessage()) {

@@ -3,6 +3,7 @@ import { renderTeamBuilderPage } from "./teamBuilder/teamBuilderView";
 import { createTeamBuilderSetDetailsLoader } from "./teamBuilder/setDetailsLoader";
 import { getPoolStats, normalizePoolText } from "./teamBuilder/poolParsing";
 import { optimizeTeamFromPool } from "./teamBuilder/teamOptimizer";
+import { renderRebornLegalMovesPanel } from "./reborn/legalMovesView";
 import {
   clearSavedRebornProgression,
   loadSavedRebornProgression,
@@ -185,6 +186,13 @@ export function mountPoolOptimizer(container, options = {}) {
           control.type === "checkbox" ? control.checked : control.value,
         );
 
+        if (
+          control.dataset.progressionField === "levelCap" &&
+          control.value !== state.progression.levelCap
+        ) {
+          control.value = state.progression.levelCap;
+        }
+
         const saved = saveRebornProgression(state.progression);
 
         updateProgressionStatusMessage(
@@ -192,6 +200,8 @@ export function mountPoolOptimizer(container, options = {}) {
             ? "Progression saved locally"
             : "Progression could not be saved locally; browser storage is full.",
         );
+
+        refreshSelectedLegalMovesPanel();
       });
     });
 
@@ -334,6 +344,31 @@ export function mountPoolOptimizer(container, options = {}) {
     if (statusNode) statusNode.textContent = message || "";
   }
 
+  function refreshSelectedLegalMovesPanel() {
+    const legalMovesRoot = app.querySelector("[data-reborn-legal-moves-root]");
+    const selected = getSelectedTeamChoice();
+
+    if (!legalMovesRoot || !selected) return;
+
+    renderRebornLegalMovesPanel(legalMovesRoot, {
+      movesetEntry: setDetails.getDetail(),
+      pokemonId: selected.pokemonId,
+      pokemonName: selected.name,
+      progression: state.progression,
+    });
+  }
+
+  function getSelectedTeamChoice() {
+    const selectedPokemonId = setDetails.getSelectedPokemonId();
+
+    if (!selectedPokemonId || !state.result?.team?.length) return null;
+
+    return (
+      state.result.team.find((row) => row.pokemonId === selectedPokemonId) ||
+      null
+    );
+  }
+
   function getOptimizationSummary(result) {
     if (!result) return "";
 
@@ -390,9 +425,16 @@ function baseUrl() {
 }
 
 function waitForPaint() {
-  return new Promise((resolve) =>
-    requestAnimationFrame(() => requestAnimationFrame(resolve)),
-  );
+  return new Promise((resolve) => {
+    const fallback = setTimeout(resolve, 100);
+
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        clearTimeout(fallback);
+        resolve();
+      }),
+    );
+  });
 }
 
 function escapeHtml(value) {
