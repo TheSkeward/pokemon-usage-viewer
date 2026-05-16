@@ -8,6 +8,7 @@ import {
   loadSavedRebornProgression,
   saveRebornProgression,
   updateRebornProgressionField,
+  updateRebornProgressionOption,
 } from "./reborn/progression";
 import {
   readLocalStorage,
@@ -190,6 +191,27 @@ export function mountPoolOptimizer(container, options = {}) {
             ? "Progression saved locally"
             : "Progression could not be saved locally; browser storage is full.",
         );
+      });
+    });
+
+    app.querySelectorAll("[data-progression-option-list]").forEach((control) => {
+      control.addEventListener("change", () => {
+        state.progression = updateRebornProgressionOption(
+          state.progression,
+          control.dataset.progressionOptionList,
+          control.value,
+          control.checked,
+        );
+
+        const saved = saveRebornProgression(state.progression);
+
+        updateProgressionStatusMessage(
+          saved
+            ? "Progression saved locally"
+            : "Progression could not be saved locally; browser storage is full.",
+        );
+
+        render();
       });
     });
 

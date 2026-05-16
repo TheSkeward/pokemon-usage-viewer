@@ -4,6 +4,11 @@ import {
   REBORN_PROMOTED_TM_MOVES,
   REBORN_TMX_MOVES,
 } from "./rules";
+import {
+  REBORN_TUTOR_GROUPS,
+  REBORN_TM_OPTIONS,
+  REBORN_TMX_OPTIONS,
+} from "./progressionOptions";
 
 export function renderRebornProgressionPanel(progression) {
   return `
@@ -48,32 +53,26 @@ export function renderRebornProgressionPanel(progression) {
           <span>Daycare / breeding unlocked</span>
         </label>
 
-        <label class="wide-control">
-          <span>Available TMs</span>
-          <textarea
-            data-progression-field="availableTmsText"
-            rows="3"
-            placeholder="Flamethrower, Thunderbolt, Power-Up Punch..."
-          >${escapeHtml(progression.availableTmsText)}</textarea>
-        </label>
+        ${renderOptionGroup({
+          field: "availableTmIds",
+          options: REBORN_TM_OPTIONS,
+          selectedIds: progression.availableTmIds,
+          summary: "Available TMs",
+        })}
 
-        <label class="wide-control">
-          <span>Available TMXs</span>
-          <textarea
-            data-progression-field="availableTmxsText"
-            rows="2"
-            placeholder="Cut, Rock Smash, Fly, Surf, Waterfall..."
-          >${escapeHtml(progression.availableTmxsText)}</textarea>
-        </label>
+        ${renderOptionGroup({
+          field: "availableTmxIds",
+          options: REBORN_TMX_OPTIONS,
+          selectedIds: progression.availableTmxIds,
+          summary: "Available TMXs",
+        })}
 
-        <label class="wide-control">
-          <span>Available tutors</span>
-          <textarea
-            data-progression-field="availableTutorsText"
-            rows="3"
-            placeholder="Icy Wind, Knock Off, Signal Beam..."
-          >${escapeHtml(progression.availableTutorsText)}</textarea>
-        </label>
+        ${renderOptionGroup({
+          field: "availableTutorMoveIds",
+          groups: REBORN_TUTOR_GROUPS,
+          selectedIds: progression.availableTutorMoveIds,
+          summary: "Available tutors",
+        })}
       </div>
 
       <details class="progression-rules">
@@ -93,6 +92,98 @@ export function renderRebornProgressionPanel(progression) {
       </div>
     </section>
   `;
+}
+
+function renderOptionGroup({
+  field,
+  groups = null,
+  options = [],
+  selectedIds = [],
+  summary,
+}) {
+  const selected = new Set(selectedIds);
+  const uniqueOptions = groups ? getUniqueGroupOptions(groups) : options;
+  const selectedCount = uniqueOptions.reduce(
+    (count, option) => count + (selected.has(option.id) ? 1 : 0),
+    0,
+  );
+
+  return `
+    <details class="progression-option-group wide-control" open>
+      <summary>
+        <span>${escapeHtml(summary)}</span>
+        <span class="progression-option-count">${selectedCount}/${uniqueOptions.length} selected</span>
+      </summary>
+      ${
+        groups
+          ? renderOptionSubgroups({ field, groups, selected })
+          : `<div class="progression-checklist">${options.map((option) => renderOptionCheckbox({ field, option, selected })).join("")}</div>`
+      }
+    </details>
+  `;
+}
+
+function renderOptionSubgroups({ field, groups, selected }) {
+  return `
+    <div class="progression-subgroups">
+      ${groups
+        .map(
+          (group) => `
+            <section class="progression-subgroup">
+              <div class="progression-subgroup-title">
+                <strong>${escapeHtml(group.label)}</strong>
+                <span>${escapeHtml(group.available)}</span>
+              </div>
+              <div class="progression-checklist compact">
+                ${group.options
+                  .map((option) =>
+                    renderOptionCheckbox({ field, option, selected }),
+                  )
+                  .join("")}
+              </div>
+            </section>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function renderOptionCheckbox({ field, option, selected }) {
+  return `
+    <label class="progression-option">
+      <input
+        type="checkbox"
+        data-progression-option-list="${escapeAttr(field)}"
+        value="${escapeAttr(option.id)}"
+        ${selected.has(option.id) ? "checked" : ""}
+      />
+      <span>
+        ${option.code ? `<strong>${escapeHtml(option.code)}</strong> ` : ""}
+        ${escapeHtml(option.move)}
+        ${
+          option.available
+            ? `<small>${escapeHtml(option.available)}${option.location ? ` - ${escapeHtml(option.location)}` : ""}</small>`
+            : ""
+        }
+      </span>
+    </label>
+  `;
+}
+
+function getUniqueGroupOptions(groups) {
+  const seen = new Set();
+  const options = [];
+
+  for (const group of groups) {
+    for (const option of group.options) {
+      if (seen.has(option.id)) continue;
+      seen.add(option.id);
+      options.push(option);
+    }
+  }
+
+  return options;
 }
 
 function escapeHtml(value) {

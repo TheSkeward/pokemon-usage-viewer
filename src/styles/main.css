@@ -543,3 +543,95 @@ input {
   margin: 0.65rem 0 0;
   padding-left: 1.25rem;
 }
+
+.progression-option-group {
+  border: 1px solid #2b3645;
+  border-radius: 8px;
+  padding: 0.8rem;
+  background: #151c24;
+}
+
+.progression-option-group summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.progression-option-count {
+  color: #aab5c3;
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+
+.progression-checklist {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.35rem 0.8rem;
+  max-height: 18rem;
+  overflow: auto;
+  padding-top: 0.75rem;
+}
+
+.progression-checklist.compact {
+  max-height: none;
+  overflow: visible;
+  padding-top: 0;
+}
+
+.progression-subgroups {
+  display: grid;
+  gap: 0.75rem;
+  max-height: 22rem;
+  overflow: auto;
+  padding-top: 0.75rem;
+}
+
+.progression-subgroup {
+  border-top: 1px solid #2b3645;
+  padding-top: 0.65rem;
+}
+
+.progression-subgroup:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.progression-subgroup-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.45rem;
+}
+
+.progression-subgroup-title span {
+  color: #aab5c3;
+  font-size: 0.84rem;
+  text-align: right;
+}
+
+.progression-option {
+  display: inline-flex !important;
+  grid-template-columns: none !important;
+  align-items: baseline;
+  gap: 0.45rem !important;
+  min-width: 0;
+}
+
+.progression-option input {
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.progression-option span {
+  min-width: 0;
+}
+
+.progression-option small {
+  display: block;
+  color: #aab5c3;
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
