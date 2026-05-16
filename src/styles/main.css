@@ -458,3 +458,23 @@ input {
 .team-builder-set-row .panel {
   margin: 0.75rem;
 }
+
+.team-pick-row {
+  cursor: pointer;
+}
+
+.team-pick-row:hover {
+  filter: brightness(1.08);
+}
+
+.selected-row {
+  outline: 1px solid rgb(255 255 255 / 18%);
+}
+
+.team-builder-set-row > td {
+  padding: 0;
+}
+
+.team-builder-set-row .panel {
+  margin: 0.75rem;
+}
