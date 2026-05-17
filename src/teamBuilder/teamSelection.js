@@ -1,3 +1,8 @@
+import {
+  getTypeMultiplier,
+  REBORN_ANALYSIS_TYPES,
+} from "../reborn/typeChart.js";
+
 export function choosePoolTeam(lines) {
   const resolvedLines = lines.filter((line) => line.best || line.bestNonMega);
   const unresolved = lines.filter((line) => line.unresolved);
@@ -63,7 +68,7 @@ function compareChoices(a, b) {
 function compareCandidateTeams(a, b) {
   return (
     countMeaningfulChoices(b.team) - countMeaningfulChoices(a.team) ||
-    sumTeamScore(b.team) - sumTeamScore(a.team)
+    getTeamScore(b.team) - getTeamScore(a.team)
   );
 }
 
@@ -75,6 +80,54 @@ function sumTeamScore(team) {
   return team.reduce((sum, row) => sum + (row.score || 0), 0);
 }
 
+function getTeamScore(team) {
+  return sumTeamScore(team) + scoreTeamFit(team);
+}
+
 function getUsagePercent(choice) {
   return Math.max(0, choice.bundle?.usage?.value || 0);
+}
+
+function scoreTeamFit(team) {
+  const profiles = team
+    .map((choice) => choice.legalityProfile)
+    .filter(Boolean);
+  const attackTypes = new Set();
+  const coveredDefenseTypes = new Set();
+  let score = 0;
+
+  for (const profile of profiles) {
+    for (const attackType of profile.attackTypes || []) {
+      attackTypes.add(attackType);
+
+      for (const defenseType of REBORN_ANALYSIS_TYPES) {
+        if (getTypeMultiplier(attackType, [defenseType]) > 1) {
+          coveredDefenseTypes.add(defenseType);
+        }
+      }
+    }
+  }
+
+  score += attackTypes.size * 70;
+  score += coveredDefenseTypes.size * 90;
+  score -= (REBORN_ANALYSIS_TYPES.length - coveredDefenseTypes.size) * 80;
+
+  for (const attackType of REBORN_ANALYSIS_TYPES) {
+    const matchups = profiles.map((profile) =>
+      getTypeMultiplier(attackType, profile.currentTypes || []),
+    );
+    const weakCount = matchups.filter((multiplier) => multiplier > 1).length;
+    const coverCount = matchups.filter(
+      (multiplier) => multiplier === 0 || (multiplier > 0 && multiplier < 1),
+    ).length;
+
+    if (weakCount >= 2) {
+      score -= (weakCount - 1) * 180;
+      if (!coverCount) score -= 260;
+    }
+
+    if (coverCount >= 2) score += Math.min(3, coverCount) * 45;
+  }
+
+  return score;
 }

@@ -1,6 +1,12 @@
 export const MIN_MEANINGFUL_USAGE_PERCENT = 0.1;
 
-export function scoreCandidate({ availability, bundle, candidate, family }) {
+export function scoreCandidate({
+  availability,
+  bundle,
+  candidate,
+  family,
+  legalityProfile,
+}) {
   const usage = bundle?.usage;
 
   if (!usage) {
@@ -33,6 +39,7 @@ export function scoreCandidate({ availability, bundle, candidate, family }) {
   const cutoffQuality =
     cutoffIndex >= 0 ? (cutoffPriority.length - cutoffIndex) * 6 : 0;
   const megaBonus = candidate.isMega ? 300 : 0;
+  const legalityScore = scoreLegalityProfile(legalityProfile);
 
   return {
     score:
@@ -41,12 +48,36 @@ export function scoreCandidate({ availability, bundle, candidate, family }) {
       leadScore +
       formatQuality +
       cutoffQuality +
-      megaBonus,
+      megaBonus +
+      legalityScore,
+    legalityScore,
     meaningfulUsage,
     usagePercent,
     rawCount,
     leadPercent,
   };
+}
+
+function scoreLegalityProfile(profile) {
+  if (!profile) return 0;
+
+  const bestStabPower = profile.bestStabMove?.adjustedPower || 0;
+  const bestDamagePower = profile.bestDamagingMove?.adjustedPower || 0;
+  const coveragePower = profile.bestCoverageMoves.reduce(
+    (sum, entry) => sum + Math.min(120, entry.bestMove?.adjustedPower || 0),
+    0,
+  );
+
+  return (
+    Math.min(180, bestStabPower) * 8 +
+    Math.min(140, bestDamagePower) * 2 +
+    coveragePower * 2 +
+    Math.min(8, profile.attackTypes.length) * 55 +
+    profile.superEffectiveTargetCount * 45 +
+    Math.min(12, profile.legalDamagingMoveCount) * 18 +
+    (profile.bestStabMove ? 0 : -350) +
+    (profile.legalDamagingMoveCount ? 0 : -900)
+  );
 }
 
 export function compareScoredCandidates(a, b) {

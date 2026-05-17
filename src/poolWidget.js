@@ -96,6 +96,7 @@ export function mountPoolOptimizer(container, options = {}) {
         availability,
         family: state.family,
         pokemonIndex,
+        progression: state.progression,
         query: state.query,
         selection: state.selection,
       });
@@ -200,7 +201,7 @@ export function mountPoolOptimizer(container, options = {}) {
 
         updateProgressionStatusMessage(
           saved
-            ? "Progression saved locally"
+            ? "Progression saved locally. Re-optimize to update team picks."
             : "Progression could not be saved locally; browser storage is full.",
         );
 
@@ -222,7 +223,7 @@ export function mountPoolOptimizer(container, options = {}) {
 
         updateProgressionStatusMessage(
           saved
-            ? "Progression saved locally"
+            ? "Progression saved locally. Re-optimize to update team picks."
             : "Progression could not be saved locally; browser storage is full.",
         );
 
@@ -251,7 +252,7 @@ export function mountPoolOptimizer(container, options = {}) {
 
         updateProgressionStatusMessage(
           saved
-            ? "Progression saved locally"
+            ? "Progression saved locally. Re-optimize to update team picks."
             : "Progression could not be saved locally; browser storage is full.",
         );
 

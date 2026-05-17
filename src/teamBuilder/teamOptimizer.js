@@ -1,4 +1,14 @@
 import { getLineRepresentativeCandidates } from "../data";
+import {
+  applyBreedingContextToProgression,
+  buildRebornBreedingContext,
+} from "../reborn/breeding.js";
+import { getCurrentRebornSpeciesForChoice } from "../reborn/currentSpecies.js";
+import {
+  getAvailableRebornMoves,
+  loadRebornLegalMoveData,
+} from "../reborn/legalMoves";
+import { buildCandidateLegalityProfile } from "../reborn/teamAnalysis";
 import { buildInputGroups } from "./inputGroups";
 import {
   MIN_MEANINGFUL_USAGE_PERCENT,
@@ -12,18 +22,26 @@ export async function optimizeTeamFromPool({
   availability,
   family,
   pokemonIndex,
+  progression = {},
   query,
   selection,
 }) {
   const groups = buildInputGroups(query, pokemonIndex);
+  const breedingContext = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression,
+    query,
+  });
   const lines = (
     await Promise.all(
       groups.map((group) =>
         resolvePoolLine({
           availability,
+          breedingContext,
           family,
           group,
           pokemonIndex,
+          progression,
           selection,
         }),
       ),
@@ -35,9 +53,11 @@ export async function optimizeTeamFromPool({
 
 async function resolvePoolLine({
   availability,
+  breedingContext,
   family,
   group,
   pokemonIndex,
+  progression,
   selection,
 }) {
   if (group.unresolved || !group.entries.length) {
@@ -64,16 +84,24 @@ async function resolvePoolLine({
           pokemonId: candidate.id,
           selection,
         });
+        const legalityProfile = await resolveCandidateLegalityProfile({
+          breedingContext,
+          candidate,
+          input,
+          progression,
+        });
 
         return {
           input,
           candidate,
           bundle,
+          legalityProfile,
           ...scoreCandidate({
             availability,
             bundle,
             candidate,
             family,
+            legalityProfile,
           }),
         };
       } catch (error) {
@@ -92,6 +120,7 @@ async function resolvePoolLine({
           usagePercent: 0,
           rawCount: 0,
           leadPercent: 0,
+          legalityProfile: null,
           error,
         };
       }
@@ -140,6 +169,7 @@ function makeChoice(input, result, note) {
   const usageNote = result.meaningfulUsage
     ? note
     : `${note}; trace usage (<${MIN_MEANINGFUL_USAGE_PERCENT}%)`;
+  const legalityNote = formatLegalityNote(result.legalityProfile);
 
   return {
     inputPokemonId: input.id,
@@ -149,9 +179,61 @@ function makeChoice(input, result, note) {
     isMega: Boolean(result.candidate.isMega),
     score: result.score,
     meaningfulUsage: result.meaningfulUsage,
+    legalityProfile: result.legalityProfile,
+    legalityScore: result.legalityScore,
     bundle: result.bundle,
-    note: usageNote,
+    note: legalityNote ? `${usageNote}; ${legalityNote}` : usageNote,
   };
+}
+
+function formatLegalityNote(profile) {
+  if (!profile) return "";
+
+  const bestStab = profile.bestStabMove?.name
+    ? `best legal STAB: ${profile.bestStabMove.name}`
+    : "no current legal STAB";
+
+  return `${bestStab}; ${profile.attackTypes.length} legal attack types`;
+}
+
+async function resolveCandidateLegalityProfile({
+  breedingContext,
+  candidate,
+  input,
+  progression,
+}) {
+  const choice = {
+    inputPokemonId: input.id,
+    inputName: input.name,
+    pokemonId: candidate.id,
+    name: candidate.name,
+  };
+  const currentSpecies = getCurrentRebornSpeciesForChoice(choice, progression);
+  const legalMoveData = await loadRebornLegalMoveData(
+    currentSpecies?.id || candidate.id,
+  );
+  const memberProgression = applyBreedingContextToProgression(
+    progression,
+    legalMoveData?.pokemonId,
+    breedingContext,
+  );
+  const member = {
+    id: currentSpecies?.id || candidate.id,
+    inputName: input.name,
+    name: currentSpecies?.name || candidate.name,
+    representativeId: candidate.id,
+    representativeName: currentSpecies?.differsFromRepresentative
+      ? currentSpecies.representativeName
+      : "",
+    types: legalMoveData?.types || [],
+  };
+  const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
+
+  return buildCandidateLegalityProfile({
+    member,
+    moves,
+    representativeName: candidate.name,
+  });
 }
 
 function getLineKey(candidates, fallbackId) {

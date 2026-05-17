@@ -151,7 +151,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
         <div>
           <h2>Recommended ${escapeHtml(familyLabel)} Team</h2>
           <p>${result.team.length} picks from ${result.linesConsidered} resolved input lines. ${megaText}.</p>
-          <p>v0 rules: at most one Mega, one long-term representative per input line, selected by optimizer score; current-form legality follows Reborn progression. Displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its set.</p>
+          <p>v0 rules: at most one Mega, one long-term representative per input line, selected by usage prior plus current legal STAB, coverage, and defensive fit. Displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its set.</p>
         </div>
       </div>
 
