@@ -34,6 +34,16 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
   const selectedTmIds = new Set(progression.availableTmIds || []);
   const selectedTmxIds = new Set(progression.availableTmxIds || []);
   const selectedTutorMoveIds = new Set(progression.availableTutorMoveIds || []);
+  const selectedEggMoveIds = new Set(
+    progression.availableEggMoveIdsForPokemon ||
+      progression.availableEggMoveIdsByPokemon?.[legalMoveData?.pokemonId] ||
+      progression.availableEggMoveIds ||
+      [],
+  );
+  const eggMoveSourceById =
+    progression.availableEggMoveSourcesForPokemon ||
+    progression.availableEggMoveSourcesByPokemon?.[legalMoveData?.pokemonId] ||
+    {};
   const moveRelearnerUnlocked = Boolean(progression.moveRelearnerUnlocked);
   const daycareUnlocked = Boolean(progression.daycareUnlocked);
   const moves = [];
@@ -92,11 +102,12 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     if (
       move.sources?.egg &&
       daycareUnlocked &&
-      progression.availableEggMoveIds?.includes(move.id)
+      selectedEggMoveIds.has(move.id)
     ) {
       sources.push({
         kind: "egg",
-        label: "Egg",
+        label: eggMoveSourceById[move.id]?.label || "Egg",
+        detail: eggMoveSourceById[move.id]?.detail || "Breeding chain",
       });
     }
 

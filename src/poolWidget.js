@@ -5,6 +5,7 @@ import { getPoolStats, normalizePoolText } from "./teamBuilder/poolParsing";
 import { optimizeTeamFromPool } from "./teamBuilder/teamOptimizer";
 import { renderRebornLegalMovesPanel } from "./reborn/legalMovesView";
 import { renderRebornTeamAnalysisPanel } from "./reborn/teamAnalysisView";
+import { getCurrentRebornSpeciesForChoice } from "./reborn/currentSpecies.js";
 import {
   clearSavedRebornProgression,
   loadSavedRebornProgression,
@@ -127,6 +128,7 @@ export function mountPoolOptimizer(container, options = {}) {
       embedded,
       familyLabel: state.family === "doubles" ? "Doubles" : "Singles",
       formatsIndex,
+      pokemonIndex,
       poolStats: getPoolStats(state.query, pokemonIndex),
       setDetails,
       state,
@@ -353,7 +355,10 @@ export function mountPoolOptimizer(container, options = {}) {
     if (!legalMovesRoot || !selected) return;
 
     renderRebornLegalMovesPanel(legalMovesRoot, {
+      currentSpecies: getCurrentSpeciesForSelected(selected),
       movesetEntry: setDetails.getDetail(),
+      pokemonIndex,
+      poolQuery: state.query,
       pokemonId: selected.pokemonId,
       pokemonName: selected.name,
       progression: state.progression,
@@ -362,6 +367,8 @@ export function mountPoolOptimizer(container, options = {}) {
 
   function refreshTeamAnalysisPanel() {
     renderRebornTeamAnalysisPanel(app.querySelector("#reborn-team-analysis-root"), {
+      pokemonIndex,
+      poolQuery: state.query,
       progression: state.progression,
       team: state.result?.team || [],
     });
@@ -376,6 +383,12 @@ export function mountPoolOptimizer(container, options = {}) {
       state.result.team.find((row) => row.pokemonId === selectedPokemonId) ||
       null
     );
+  }
+
+  function getCurrentSpeciesForSelected(selected) {
+    return selected
+      ? getCurrentRebornSpeciesForChoice(selected, state.progression)
+      : null;
   }
 
   function getOptimizationSummary(result) {

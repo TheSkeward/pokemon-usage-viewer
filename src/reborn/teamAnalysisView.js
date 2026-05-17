@@ -4,7 +4,12 @@ import {
   REBORN_ANALYSIS_TYPES,
 } from "./teamAnalysis";
 
-export function renderRebornTeamAnalysisPanel(root, { progression, team }) {
+export function renderRebornTeamAnalysisPanel(root, {
+  pokemonIndex = [],
+  poolQuery = "",
+  progression,
+  team,
+}) {
   if (!root) return;
 
   if (!team?.length) {
@@ -23,7 +28,10 @@ export function renderRebornTeamAnalysisPanel(root, { progression, team }) {
     </section>
   `;
 
-  buildRebornTeamAnalysis(team, progression)
+  buildRebornTeamAnalysis(team, progression, {
+    pokemonIndex,
+    query: poolQuery,
+  })
     .then((analysis) => {
       root.innerHTML = renderAnalysis(analysis);
     })
@@ -71,6 +79,13 @@ function renderAnalysis(analysis) {
       </div>
 
       <div class="team-analysis-grid">
+        ${renderSummaryCard({
+          label: "Pool Egg Moves",
+          value: getBreedingMoveCount(analysis.breeding),
+          detail: analysis.breeding?.ownedSpecies?.length
+            ? "Egg moves proven through current pool breeding chains."
+            : "Daycare is locked, or no pool breeding chains are available.",
+        })}
         ${renderSummaryCard({
           label: "Shared Weaknesses",
           value: sharedWeaknesses.length,
@@ -123,6 +138,13 @@ function renderAnalysis(analysis) {
       </div>
     </section>
   `;
+}
+
+function getBreedingMoveCount(breeding) {
+  return Object.values(breeding?.byPokemonId || {}).reduce(
+    (sum, entry) => sum + (entry.moveIds?.length || 0),
+    0,
+  );
 }
 
 function renderSummaryCard({ detail, label, value }) {

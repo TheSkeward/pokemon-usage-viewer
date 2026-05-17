@@ -3,6 +3,10 @@ import {
   loadRebornLegalMoveData,
 } from "./legalMoves";
 import { getCurrentRebornSpeciesForChoice } from "./currentSpecies.js";
+import {
+  applyBreedingContextToProgression,
+  buildRebornBreedingContext,
+} from "./breeding.js";
 
 export const REBORN_ANALYSIS_TYPES = [
   "Normal",
@@ -25,12 +29,25 @@ export const REBORN_ANALYSIS_TYPES = [
   "Fairy",
 ];
 
-export async function buildRebornTeamAnalysis(team = [], progression = {}) {
+export async function buildRebornTeamAnalysis(
+  team = [],
+  progression = {},
+  breedingOptions = {},
+) {
+  const breedingContext = await buildRebornBreedingContext({
+    ...breedingOptions,
+    progression,
+  });
   const legalMoveEntries = await Promise.all(
     team.map(async (row) => {
       const currentSpecies = getCurrentRebornSpeciesForChoice(row, progression);
       const legalMoveData = await loadRebornLegalMoveData(
         currentSpecies?.id || row.pokemonId,
+      );
+      const memberProgression = applyBreedingContextToProgression(
+        progression,
+        legalMoveData?.pokemonId,
+        breedingContext,
       );
       const member = {
         id: currentSpecies?.id || row.pokemonId,
@@ -43,7 +60,7 @@ export async function buildRebornTeamAnalysis(team = [], progression = {}) {
 
       return {
         member,
-        moves: getAvailableRebornMoves(legalMoveData, progression),
+        moves: getAvailableRebornMoves(legalMoveData, memberProgression),
       };
     }),
   );
@@ -51,6 +68,7 @@ export async function buildRebornTeamAnalysis(team = [], progression = {}) {
 
   return {
     members,
+    breeding: breedingContext,
     defensive: analyzeDefensiveProfile(members),
     offensive: analyzeOffensiveCoverage(legalMoveEntries),
   };

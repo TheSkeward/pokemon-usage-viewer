@@ -23,6 +23,27 @@ export function getCurrentRebornSpeciesForChoice(choice, progression = {}) {
   };
 }
 
+export function getCurrentRebornSpecies(pokemonId, progression = {}) {
+  const inputId = toId(pokemonId);
+  if (!inputId) return null;
+
+  const current = getBestLevelReachableSpecies({
+    inputId,
+    levelCap: normalizeLevelCap(progression.levelCap),
+    representativeId: "",
+  });
+
+  if (!current) return null;
+
+  return {
+    id: current.id,
+    name: current.name,
+    differsFromRepresentative: current.id !== inputId,
+    representativeId: inputId,
+    representativeName: GEN7_PROGRESSION_SPECIES[inputId]?.name || inputId,
+  };
+}
+
 function getBestLevelReachableSpecies({ inputId, levelCap, representativeId }) {
   const input = GEN7_PROGRESSION_SPECIES[inputId];
   if (!input) return null;
@@ -30,10 +51,13 @@ function getBestLevelReachableSpecies({ inputId, levelCap, representativeId }) {
   const reachable = collectLevelReachableSpecies(input.id, levelCap);
   if (!reachable.length) return input;
 
-  const representativeLine = new Set(getAncestorIds(representativeId));
-  const sameLineReachable = reachable.filter((species) =>
-    representativeLine.has(species.id),
-  );
+  const representativeLine =
+    representativeId && representativeId !== inputId
+      ? new Set(getAncestorIds(representativeId))
+      : null;
+  const sameLineReachable = representativeLine
+    ? reachable.filter((species) => representativeLine.has(species.id))
+    : [];
   const candidates = sameLineReachable.length ? sameLineReachable : reachable;
 
   return candidates.sort((a, b) => getDepth(b.id) - getDepth(a.id) || a.name.localeCompare(b.name))[0];

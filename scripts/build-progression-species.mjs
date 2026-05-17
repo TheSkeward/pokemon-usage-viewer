@@ -28,6 +28,7 @@ for (const pokemon of pokemonIndex) {
     evoLevel: Number.isFinite(species.evoLevel) ? species.evoLevel : null,
     evoType: species.evoType || "",
     baseSpeciesId: toId(species.baseSpecies),
+    eggGroups: species.eggGroups || [],
     isMega: Boolean(species.isMega),
   };
 }

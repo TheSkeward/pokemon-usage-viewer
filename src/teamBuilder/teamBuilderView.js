@@ -10,6 +10,7 @@ export function renderTeamBuilderPage({
   embedded,
   familyLabel,
   formatsIndex,
+  pokemonIndex,
   poolStats,
   setDetails,
   state,
@@ -26,8 +27,10 @@ export function renderTeamBuilderPage({
     ${state.result ? renderResult({ familyLabel, formatsIndex, setDetails, state }) : renderEmpty(state)}
   `;
 
-  renderSelectedSetDetails({ app, setDetails, state });
+  renderSelectedSetDetails({ app, pokemonIndex, setDetails, state });
   renderRebornTeamAnalysisPanel(app.querySelector("#reborn-team-analysis-root"), {
+    pokemonIndex,
+    poolQuery: state.query,
     progression: state.progression,
     team: state.result?.team || [],
   });
@@ -228,7 +231,7 @@ function renderTeamRow({ formatsIndex, index, progression, row, setDetails }) {
   `;
 }
 
-function renderSelectedSetDetails({ app, setDetails, state }) {
+function renderSelectedSetDetails({ app, pokemonIndex, setDetails, state }) {
   const detailsRoot = app.querySelector("#team-builder-set-details-root");
   if (!detailsRoot) return;
 
@@ -260,6 +263,8 @@ function renderSelectedSetDetails({ app, setDetails, state }) {
   renderRebornLegalMovesPanel(legalMovesRoot, {
     currentSpecies,
     movesetEntry: detail,
+    pokemonIndex,
+    poolQuery: state.query,
     pokemonId: selected.pokemonId,
     pokemonName: selected.name,
     progression: state.progression,

@@ -4,6 +4,10 @@ import {
   getRebornMoveId,
   loadRebornLegalMoveData,
 } from "./legalMoves";
+import {
+  applyBreedingContextToProgression,
+  buildRebornBreedingContext,
+} from "./breeding.js";
 
 const HIDDEN_MOVESET_ENTRY_KEYS = new Set(["other", "nothing"]);
 const SOURCE_TONE = {
@@ -28,10 +32,18 @@ export function renderRebornLegalMovesPanel(container, options) {
     </section>
   `;
 
-  loadRebornLegalMoveData(legalityPokemonId)
-    .then((legalMoveData) => {
+  Promise.all([
+    loadRebornLegalMoveData(legalityPokemonId),
+    buildRebornBreedingContext({
+      pokemonIndex: options.pokemonIndex,
+      progression,
+      query: options.poolQuery,
+    }),
+  ])
+    .then(([legalMoveData, breedingContext]) => {
       if (container.dataset.legalMovesKey !== renderKey) return;
       container.innerHTML = renderLoadedPanel({
+        breedingContext,
         currentSpecies,
         legalMoveData,
         legalityPokemonName,
@@ -52,6 +64,7 @@ export function renderRebornLegalMovesPanel(container, options) {
 }
 
 function renderLoadedPanel({
+  breedingContext,
   currentSpecies,
   legalMoveData,
   legalityPokemonName,
@@ -68,8 +81,22 @@ function renderLoadedPanel({
     `;
   }
 
-  const availableMoves = getAvailableRebornMoves(legalMoveData, progression);
-  const availableMoveMap = getAvailableMoveMap(legalMoveData, progression);
+  const progressionWithBreeding = applyBreedingContextToProgression(
+    progression,
+    legalMoveData.pokemonId,
+    breedingContext,
+  );
+  const availableMoves = getAvailableRebornMoves(
+    legalMoveData,
+    progressionWithBreeding,
+  );
+  const availableMoveMap = getAvailableMoveMap(
+    legalMoveData,
+    progressionWithBreeding,
+  );
+  const eggMoveCount =
+    breedingContext?.byPokemonId?.[legalMoveData.pokemonId]?.moveIds?.length ||
+    0;
   const observedMoves = cleanObservedMoves(movesetEntry?.moves || []);
   const observedAvailableCount = observedMoves.reduce(
     (count, move) =>
@@ -86,6 +113,11 @@ function renderLoadedPanel({
           ${
             currentSpecies?.differsFromRepresentative
               ? `<p class="muted">Long-term representative: ${escapeHtml(currentSpecies.representativeName)}. Current progression is checked against ${escapeHtml(currentSpecies.name)}.</p>`
+              : ""
+          }
+          ${
+            progression.daycareUnlocked
+              ? `<p class="muted">${eggMoveCount} egg moves are supported by the current pool breeding chain.</p>`
               : ""
           }
           ${
