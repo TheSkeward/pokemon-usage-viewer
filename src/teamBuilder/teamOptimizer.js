@@ -161,8 +161,54 @@ async function resolvePoolLine({
           best.candidate.isMega ? "Best non-Mega fallback" : "Best non-Mega",
         )
       : null,
+    choiceOptions: buildChoiceOptions(input, ranked, best, bestNonMega),
     candidates: ranked,
   };
+}
+
+function buildChoiceOptions(input, ranked, best, bestNonMega) {
+  const options = [];
+
+  for (const result of ranked.slice(0, 5)) {
+    options.push(
+      makeChoice(
+        input,
+        result,
+        getChoiceOptionNote(result, best, bestNonMega),
+      ),
+    );
+  }
+
+  if (
+    bestNonMega &&
+    !options.some((choice) => choice.pokemonId === bestNonMega.candidate.id)
+  ) {
+    options.push(
+      makeChoice(
+        input,
+        bestNonMega,
+        getChoiceOptionNote(bestNonMega, best, bestNonMega),
+      ),
+    );
+  }
+
+  return options;
+}
+
+function getChoiceOptionNote(result, best, bestNonMega) {
+  if (result.candidate.id === best.candidate.id) {
+    return best.candidate.isMega
+      ? "Best overall; uses Mega slot"
+      : "Best overall";
+  }
+
+  if (bestNonMega && result.candidate.id === bestNonMega.candidate.id) {
+    return best.candidate.isMega ? "Best non-Mega fallback" : "Best non-Mega";
+  }
+
+  return result.candidate.isMega
+    ? "Team-fit option; uses Mega slot"
+    : "Team-fit option";
 }
 
 function makeChoice(input, result, note) {

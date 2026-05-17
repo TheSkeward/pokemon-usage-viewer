@@ -6,50 +6,170 @@ import {
 export function choosePoolTeam(lines) {
   const resolvedLines = lines.filter((line) => line.best || line.bestNonMega);
   const unresolved = lines.filter((line) => line.unresolved);
-
-  const nonMegaPool = resolvedLines
-    .filter((line) => line.bestNonMega)
-    .map((line) => line.bestNonMega)
-    .sort(compareChoices);
-
-  const candidateTeams = [
-    {
-      team: nonMegaPool.slice(0, 6),
-      megaUsed: null,
-    },
-  ];
-
-  for (const line of resolvedLines) {
-    if (!line.best?.isMega) continue;
-
-    const others = resolvedLines
-      .filter((other) => other.lineKey !== line.lineKey && other.bestNonMega)
-      .map((other) => other.bestNonMega)
-      .sort(compareChoices)
-      .slice(0, 5);
-
-    candidateTeams.push({
-      team: [line.best, ...others],
-      megaUsed: line.best,
-    });
-  }
-
-  const bestTeam = candidateTeams
-    .filter((candidate) => candidate.team.length > 0)
-    .sort(compareCandidateTeams)[0] || {
-    team: [],
-    megaUsed: null,
-  };
-
-  bestTeam.team = bestTeam.team.slice(0, 6);
+  const bestTeam = selectTeamByFit(resolvedLines);
+  const team = addTeamFitNotes(bestTeam.team);
+  const megaUsed = bestTeam.megaUsed
+    ? team.find(
+        (choice) =>
+          choice.inputPokemonId === bestTeam.megaUsed.inputPokemonId &&
+          choice.pokemonId === bestTeam.megaUsed.pokemonId,
+      )
+    : null;
 
   return {
-    team: bestTeam.team,
-    megaUsed: bestTeam.megaUsed,
+    team,
+    megaUsed,
     lines,
     unresolved,
     linesConsidered: resolvedLines.length,
   };
+}
+
+function addTeamFitNotes(team) {
+  const attackTypeCounts = new Map();
+
+  for (const choice of team) {
+    for (const attackType of choice.legalityProfile?.attackTypes || []) {
+      attackTypeCounts.set(
+        attackType,
+        (attackTypeCounts.get(attackType) || 0) + 1,
+      );
+    }
+  }
+
+  return team.map((choice) => {
+    const reasons = getTeamFitReasons(choice, team, attackTypeCounts);
+    if (!reasons.length) return choice;
+
+    return {
+      ...choice,
+      note: `${choice.note}; team fit: ${reasons.join("; ")}`,
+    };
+  });
+}
+
+function getTeamFitReasons(choice, team, attackTypeCounts) {
+  const profile = choice.legalityProfile;
+  if (!profile) return [];
+
+  const reasons = [];
+  const uniqueAttackTypes = (profile.attackTypes || []).filter(
+    (type) => attackTypeCounts.get(type) === 1,
+  );
+  const defensiveCovers = getDefensiveCoverTypes(profile, team);
+
+  if (uniqueAttackTypes.length) {
+    reasons.push(`adds ${uniqueAttackTypes.slice(0, 2).join("/")} attacks`);
+  }
+
+  if (defensiveCovers.length) {
+    reasons.push(`covers ${defensiveCovers.slice(0, 2).join("/")}`);
+  }
+
+  return reasons.slice(0, 2);
+}
+
+function getDefensiveCoverTypes(profile, team) {
+  return REBORN_ANALYSIS_TYPES.filter((attackType) => {
+    const multiplier = getTypeMultiplier(attackType, profile.currentTypes || []);
+    if (!(multiplier === 0 || (multiplier > 0 && multiplier < 1))) {
+      return false;
+    }
+
+    const weakCount = team.filter((choice) => {
+      const types = choice.legalityProfile?.currentTypes || [];
+      return getTypeMultiplier(attackType, types) > 1;
+    }).length;
+
+    return weakCount > 0;
+  });
+}
+
+function selectTeamByFit(lines) {
+  const targetSize = Math.min(6, lines.length);
+  let states = [
+    {
+      lineKeys: new Set(),
+      megaUsed: null,
+      team: [],
+    },
+  ];
+
+  for (const line of orderLinesForSelection(lines)) {
+    const nextStates = [...states];
+    const options = getLineChoiceOptions(line);
+
+    for (const state of states) {
+      if (state.team.length >= targetSize) continue;
+
+      for (const choice of options) {
+        if (choice.isMega && state.megaUsed) continue;
+        if (state.lineKeys.has(line.lineKey)) continue;
+
+        nextStates.push({
+          lineKeys: new Set([...state.lineKeys, line.lineKey]),
+          megaUsed: choice.isMega ? choice : state.megaUsed,
+          team: [...state.team, choice],
+        });
+      }
+    }
+
+    states = pruneTeamStates(nextStates, targetSize);
+  }
+
+  return (
+    states
+      .filter((state) => state.team.length > 0)
+      .sort(compareCandidateTeams)[0] || {
+      team: [],
+      megaUsed: null,
+    }
+  );
+}
+
+function orderLinesForSelection(lines) {
+  return [...lines].sort((a, b) => {
+    const aBest = getLineChoiceOptions(a)[0];
+    const bBest = getLineChoiceOptions(b)[0];
+
+    return compareChoices(aBest, bBest);
+  });
+}
+
+function getLineChoiceOptions(line) {
+  const choices = line.choiceOptions?.length
+    ? line.choiceOptions
+    : [line.best, line.bestNonMega].filter(Boolean);
+  const unique = new Map();
+
+  for (const choice of choices.sort(compareChoices)) {
+    if (!choice || unique.has(choice.pokemonId)) continue;
+    unique.set(choice.pokemonId, choice);
+  }
+
+  return [...unique.values()].slice(0, 6);
+}
+
+function pruneTeamStates(states, targetSize) {
+  const seen = new Set();
+  const unique = [];
+
+  for (const state of states) {
+    const key = state.team
+      .map((choice) => `${choice.inputPokemonId}:${choice.pokemonId}`)
+      .sort()
+      .join("|");
+    const megaKey = state.megaUsed?.pokemonId || "none";
+    const stateKey = `${key}:${megaKey}`;
+
+    if (seen.has(stateKey)) continue;
+    seen.add(stateKey);
+    unique.push(state);
+  }
+
+  return unique
+    .sort((a, b) => compareCandidateTeams(a, b, targetSize))
+    .slice(0, 120);
 }
 
 function compareChoices(a, b) {
@@ -65,11 +185,17 @@ function compareChoices(a, b) {
   );
 }
 
-function compareCandidateTeams(a, b) {
+function compareCandidateTeams(a, b, targetSize = 6) {
   return (
+    getTeamSizePriority(b.team, targetSize) -
+      getTeamSizePriority(a.team, targetSize) ||
     countMeaningfulChoices(b.team) - countMeaningfulChoices(a.team) ||
     getTeamScore(b.team) - getTeamScore(a.team)
   );
+}
+
+function getTeamSizePriority(team, targetSize) {
+  return Math.min(team.length, targetSize);
 }
 
 function countMeaningfulChoices(team) {
