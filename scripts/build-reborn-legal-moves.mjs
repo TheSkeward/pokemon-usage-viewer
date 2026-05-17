@@ -23,6 +23,7 @@ const promotedTmMoveIds = new Set(REBORN_PROMOTED_TM_MOVES.map(toId));
 const rebornTmMoveIds = new Set(REBORN_TM_OPTIONS.map((option) => toId(option.move)));
 const rebornTmxMoveIds = new Set(REBORN_TMX_OPTIONS.map((option) => toId(option.move)));
 const rebornTutorMoveIds = new Set(REBORN_TUTOR_OPTIONS.map((option) => toId(option.move)));
+const speciesSourcesCache = new Map();
 
 await fs.rm(outputDir, { recursive: true, force: true });
 await fs.mkdir(outputDir, { recursive: true });
@@ -32,9 +33,64 @@ let written = 0;
 
 for (const pokemon of pokemonIndex) {
   const species = dex.species.get(pokemon.id);
-  const learnsetContext = await getLearnsetContext(species);
+  const sourceContext = await getSpeciesSourceContext(species, pokemon.id);
+  if (!sourceContext) continue;
 
-  if (!learnsetContext) continue;
+  const moves = [];
+
+  for (const [moveId, sources] of sourceContext.sourcesByMoveId.entries()) {
+    const move = dex.moves.get(moveId);
+    if (!move?.exists || !hasAnySource(sources)) continue;
+    const preEvolutionLevelUp = await getPreEvolutionLevelUpLevels(
+      species,
+      move.id,
+    );
+
+    moves.push({
+      id: move.id,
+      name: move.name,
+      type: move.type,
+      category: move.category,
+      basePower: move.basePower || 0,
+      priority: move.priority || 0,
+      sources: normalizeSources({
+        ...sources,
+        preEvolutionLevelUp,
+      }),
+    });
+  }
+
+  moves.sort((a, b) => a.name.localeCompare(b.name));
+
+  await fs.writeFile(
+    path.join(outputDir, `${pokemon.id}.json`),
+    JSON.stringify({
+      pokemonId: pokemon.id,
+      pokemonName: pokemon.name,
+      types: species.types,
+      learnsetPokemonId: sourceContext.learnsetSpecies.id,
+      learnsetPokemonName: sourceContext.learnsetSpecies.name,
+      moves,
+    }) + "\n",
+  );
+
+  written += 1;
+}
+
+console.log(`[reborn-legal-moves] wrote ${written} Pokémon files`);
+
+async function getSpeciesSourceContext(species, overridePokemonId = species.id) {
+  if (!species?.exists) return null;
+  const cacheKey = `${species.id}:${overridePokemonId}`;
+  if (speciesSourcesCache.has(cacheKey)) {
+    return speciesSourcesCache.get(cacheKey);
+  }
+
+  const learnsetContext = await getLearnsetContext(species);
+  if (!learnsetContext) {
+    speciesSourcesCache.set(cacheKey, null);
+    return null;
+  }
 
   const sourcesByMoveId = new Map();
 
@@ -48,43 +104,37 @@ for (const pokemon of pokemonIndex) {
     sourcesByMoveId.set(move.id, sources);
   }
 
-  applyRebornOverrides(pokemon.id, sourcesByMoveId);
+  applyRebornOverrides(overridePokemonId, sourcesByMoveId);
 
-  const moves = [];
-
-  for (const [moveId, sources] of sourcesByMoveId.entries()) {
-    const move = dex.moves.get(moveId);
-    if (!move?.exists || !hasAnySource(sources)) continue;
-
-    moves.push({
-      id: move.id,
-      name: move.name,
-      type: move.type,
-      category: move.category,
-      basePower: move.basePower || 0,
-      priority: move.priority || 0,
-      sources: normalizeSources(sources),
-    });
-  }
-
-  moves.sort((a, b) => a.name.localeCompare(b.name));
-
-  await fs.writeFile(
-    path.join(outputDir, `${pokemon.id}.json`),
-    JSON.stringify({
-      pokemonId: pokemon.id,
-      pokemonName: pokemon.name,
-      types: species.types,
-      learnsetPokemonId: learnsetContext.species.id,
-      learnsetPokemonName: learnsetContext.species.name,
-      moves,
-    }) + "\n",
-  );
-
-  written += 1;
+  const context = {
+    learnsetSpecies: learnsetContext.species,
+    sourcesByMoveId,
+  };
+  speciesSourcesCache.set(cacheKey, context);
+  return context;
 }
 
-console.log(`[reborn-legal-moves] wrote ${written} Pokémon files`);
+async function getPreEvolutionLevelUpLevels(species, moveId) {
+  const levels = [];
+  let current = species;
+  const seen = new Set();
+
+  while (current?.prevo && !seen.has(current.id)) {
+    seen.add(current.id);
+    const prevo = dex.species.get(current.prevo);
+    const prevoContext = await getSpeciesSourceContext(prevo);
+    const prevoLevels =
+      prevoContext?.sourcesByMoveId.get(moveId)?.levelUp || [];
+    const evolutionLevel = Number.isFinite(current.evoLevel)
+      ? current.evoLevel
+      : Infinity;
+
+    levels.push(...prevoLevels.filter((level) => level <= evolutionLevel));
+    current = prevo;
+  }
+
+  return [...new Set(levels)].sort((a, b) => a - b);
+}
 
 async function getLearnsetContext(species, seen = new Set()) {
   if (!species?.exists || seen.has(species.id)) return null;
@@ -194,10 +244,21 @@ function getOrCreateSources(sourcesByMoveId, moveId) {
 }
 
 function normalizeSources(sources) {
-  return {
-    ...sources,
+  const { preEvolutionLevelUp: rawPreEvolutionLevelUp, ...baseSources } =
+    sources;
+  const normalized = {
+    ...baseSources,
     levelUp: [...new Set(sources.levelUp)].sort((a, b) => a - b),
   };
+  const preEvolutionLevelUp = [
+    ...new Set(rawPreEvolutionLevelUp || []),
+  ].sort((a, b) => a - b);
+
+  if (preEvolutionLevelUp.length) {
+    normalized.preEvolutionLevelUp = preEvolutionLevelUp;
+  }
+
+  return normalized;
 }
 
 function parseSourceCode(code) {

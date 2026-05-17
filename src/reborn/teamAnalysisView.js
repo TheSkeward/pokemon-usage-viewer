@@ -377,7 +377,7 @@ function formatPower(value) {
 
 function formatSourceCounts(sourceCounts = {}) {
   const labels = [
-    ["level-up", "Level"],
+    ["level-up", "Level-up"],
     ["relearner", "Relearner"],
     ["tm", "TM"],
     ["tmx", "TMX"],

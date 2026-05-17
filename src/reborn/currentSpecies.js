@@ -51,10 +51,9 @@ function getBestLevelReachableSpecies({ inputId, levelCap, representativeId }) {
   const reachable = collectLevelReachableSpecies(input.id, levelCap);
   if (!reachable.length) return input;
 
-  const representativeLine =
-    representativeId && representativeId !== inputId
-      ? new Set(getAncestorIds(representativeId))
-      : null;
+  const representativeLine = representativeId
+    ? new Set(getAncestorIds(representativeId))
+    : null;
   const sameLineReachable = representativeLine
     ? reachable.filter((species) => representativeLine.has(species.id))
     : [];

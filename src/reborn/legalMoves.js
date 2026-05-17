@@ -2,7 +2,8 @@ import {
   REBORN_TM_OPTIONS,
   REBORN_TMX_OPTIONS,
   REBORN_TUTOR_OPTIONS,
-} from "./progressionOptions";
+} from "./progressionOptions.js";
+import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
 
 const legalMoveCache = new Map();
 const tmByMoveId = mapOptionsByMoveId(REBORN_TM_OPTIONS);
@@ -46,12 +47,26 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     {};
   const moveRelearnerUnlocked = Boolean(progression.moveRelearnerUnlocked);
   const daycareUnlocked = Boolean(progression.daycareUnlocked);
+  const pokemonId = legalMoveData?.pokemonId;
+  const evolvedSpecies = Boolean(GEN7_PROGRESSION_SPECIES[pokemonId]?.prevoId);
   const moves = [];
 
   for (const move of legalMoveData?.moves || []) {
     const sources = [];
-    const levels = (move.sources?.levelUp || []).filter(
+    const allLevelUpLevels = move.sources?.levelUp || [];
+    const preEvolutionLevels = move.sources?.preEvolutionLevelUp || [];
+    const playableLevelUpLevels = [
+      ...allLevelUpLevels.filter(
+        (level) =>
+          !isEvolvedLevelOneMove(level, evolvedSpecies),
+      ),
+      ...preEvolutionLevels,
+    ];
+    const levels = playableLevelUpLevels.filter(
       (level) => level <= levelCap,
+    );
+    const hasRelearnerOnlyLevelOne = allLevelUpLevels.some((level) =>
+      isRelearnerOnlyLevelOneMove(level, evolvedSpecies, preEvolutionLevels),
     );
 
     if (levels.length > 0) {
@@ -66,6 +81,17 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
           label: "Move relearner",
         });
       }
+    }
+
+    if (
+      levels.length === 0 &&
+      hasRelearnerOnlyLevelOne &&
+      moveRelearnerUnlocked
+    ) {
+      sources.push({
+        kind: "relearner",
+        label: "Move relearner",
+      });
     }
 
     const tmOption = tmByMoveId.get(move.id);
@@ -115,6 +141,17 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
   }
 
   return moves.sort(compareAvailableMoves);
+}
+
+function isEvolvedLevelOneMove(level, evolvedSpecies) {
+  return evolvedSpecies && level === 1;
+}
+
+function isRelearnerOnlyLevelOneMove(level, evolvedSpecies, preEvolutionLevels) {
+  return (
+    isEvolvedLevelOneMove(level, evolvedSpecies) &&
+    preEvolutionLevels.length === 0
+  );
 }
 
 export function getAvailableMoveMap(legalMoveData, progression) {

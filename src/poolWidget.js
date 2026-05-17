@@ -43,6 +43,7 @@ export function mountPoolOptimizer(container, options = {}) {
     teamSort: getParam("teamSort") || loadSavedTeamSort() || "lead",
     teamSortDir: getParam("teamSortDir") || loadSavedTeamSortDir() || "desc",
     result: null,
+    resultProgressionKey: "",
     loading: false,
     statusMessage: "",
   };
@@ -100,6 +101,7 @@ export function mountPoolOptimizer(container, options = {}) {
         query: state.query,
         selection: state.selection,
       });
+      state.resultProgressionKey = getProgressionKey(state.progression);
 
       setDetails.cancel();
 
@@ -123,6 +125,8 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 
   function render() {
+    state.resultProgressionStale = markResultProgressionStale();
+
     renderTeamBuilderPage({
       app,
       baseUrl: baseUrl(),
@@ -198,15 +202,17 @@ export function mountPoolOptimizer(container, options = {}) {
         }
 
         const saved = saveRebornProgression(state.progression);
+        const stale = markResultProgressionStale();
 
         updateProgressionStatusMessage(
           saved
-            ? "Progression saved locally. Re-optimize to update team picks."
+            ? getProgressionSavedMessage(stale)
             : "Progression could not be saved locally; browser storage is full.",
         );
 
         refreshSelectedLegalMovesPanel();
         refreshTeamAnalysisPanel();
+        refreshOptimizedTeamProgressionState(stale);
       });
     });
 
@@ -220,10 +226,11 @@ export function mountPoolOptimizer(container, options = {}) {
         );
 
         const saved = saveRebornProgression(state.progression);
+        const stale = markResultProgressionStale();
 
         updateProgressionStatusMessage(
           saved
-            ? "Progression saved locally. Re-optimize to update team picks."
+            ? getProgressionSavedMessage(stale)
             : "Progression could not be saved locally; browser storage is full.",
         );
 
@@ -249,10 +256,11 @@ export function mountPoolOptimizer(container, options = {}) {
         );
 
         const saved = saveRebornProgression(state.progression);
+        const stale = markResultProgressionStale();
 
         updateProgressionStatusMessage(
           saved
-            ? "Progression saved locally. Re-optimize to update team picks."
+            ? getProgressionSavedMessage(stale)
             : "Progression could not be saved locally; browser storage is full.",
         );
 
@@ -268,6 +276,7 @@ export function mountPoolOptimizer(container, options = {}) {
         const saved = savePool(state.query);
 
         state.result = null;
+        state.resultProgressionKey = "";
         setDetails.cancel();
 
         state.statusMessage = saved
@@ -298,6 +307,7 @@ export function mountPoolOptimizer(container, options = {}) {
 
       state.query = "";
       state.result = null;
+      state.resultProgressionKey = "";
       state.statusMessage = "Saved pool cleared";
 
       setDetails.cancel();
@@ -375,6 +385,32 @@ export function mountPoolOptimizer(container, options = {}) {
     });
   }
 
+  function refreshOptimizedTeamProgressionState(stale) {
+    state.resultProgressionStale = stale;
+
+    const warning = app.querySelector("[data-progression-stale-warning]");
+    if (warning) warning.hidden = !stale;
+
+    app.querySelectorAll("[data-team-note]").forEach((noteNode) => {
+      const row = getTeamChoiceForRow(noteNode.closest("[data-team-pokemon-id]"));
+      noteNode.textContent = stale
+        ? "Progression changed; re-optimize for current scores and legal move notes."
+        : row?.note || "";
+    });
+
+    app.querySelectorAll("[data-team-pokemon-id]").forEach((rowNode) => {
+      const row = getTeamChoiceForRow(rowNode);
+      const noteNode = rowNode.querySelector("[data-current-species-note]");
+      if (!row || !noteNode) return;
+
+      const currentSpecies = getCurrentRebornSpeciesForChoice(row, state.progression);
+      const showCurrent = Boolean(currentSpecies?.differsFromRepresentative);
+
+      noteNode.hidden = !showCurrent;
+      noteNode.textContent = showCurrent ? `Current: ${currentSpecies.name}` : "";
+    });
+  }
+
   function getSelectedTeamChoice() {
     const selectedPokemonId = setDetails.getSelectedPokemonId();
 
@@ -383,6 +419,21 @@ export function mountPoolOptimizer(container, options = {}) {
     return (
       state.result.team.find((row) => row.pokemonId === selectedPokemonId) ||
       null
+    );
+  }
+
+  function getTeamChoiceForRow(rowNode) {
+    if (!rowNode) return null;
+
+    const inputId = rowNode.dataset.teamInputId;
+    const pokemonId = rowNode.dataset.teamPokemonId;
+
+    if (!inputId || !pokemonId || !state.result?.team?.length) return null;
+
+    return (
+      state.result.team.find(
+        (row) => row.inputPokemonId === inputId && row.pokemonId === pokemonId,
+      ) || null
     );
   }
 
@@ -396,6 +447,20 @@ export function mountPoolOptimizer(container, options = {}) {
     if (!result) return "";
 
     return `Optimized ${result.team.length} picks from ${result.linesConsidered} resolved inputs.`;
+  }
+
+  function markResultProgressionStale() {
+    return Boolean(
+      state.result &&
+        state.resultProgressionKey &&
+        state.resultProgressionKey !== getProgressionKey(state.progression),
+    );
+  }
+
+  function getProgressionSavedMessage(stale) {
+    return stale
+      ? "Progression saved locally. Re-optimize to update team picks."
+      : "Progression saved locally";
   }
 
   function writeUrl() {
@@ -458,6 +523,10 @@ function waitForPaint() {
       }),
     );
   });
+}
+
+function getProgressionKey(progression) {
+  return JSON.stringify(progression || {});
 }
 
 function escapeHtml(value) {

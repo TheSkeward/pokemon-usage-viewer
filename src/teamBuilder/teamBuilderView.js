@@ -144,6 +144,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
     state.teamSort,
     state.teamSortDir,
   );
+  const progressionStale = Boolean(state.resultProgressionStale);
 
   return `
     <section class="panel">
@@ -152,6 +153,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
           <h2>Recommended ${escapeHtml(familyLabel)} Team</h2>
           <p>${result.team.length} picks from ${result.linesConsidered} resolved input lines. ${megaText}.</p>
           <p>v0 rules: at most one Mega, one long-term representative per input line, selected by usage prior plus current legal STAB, coverage, and defensive fit. Displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its set.</p>
+          <p class="muted" data-progression-stale-warning ${progressionStale ? "" : "hidden"}>Progression changed after this team was optimized. Re-optimize before trusting row scores or legal move notes.</p>
         </div>
       </div>
 
@@ -170,7 +172,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
             </tr>
           </thead>
           <tbody>
-            ${sortedTeam.map((row, index) => renderTeamRow({ formatsIndex, index, progression: state.progression, row, setDetails })).join("")}
+            ${sortedTeam.map((row, index) => renderTeamRow({ formatsIndex, index, progression: state.progression, progressionStale, row, setDetails })).join("")}
           </tbody>
         </table>
       </div>
@@ -195,14 +197,26 @@ function renderSortHeader(sortBy, label, state) {
   `;
 }
 
-function renderTeamRow({ formatsIndex, index, progression, row, setDetails }) {
+function renderTeamRow({
+  formatsIndex,
+  index,
+  progression,
+  progressionStale,
+  row,
+  setDetails,
+}) {
   const selected = setDetails.isSelected(row.pokemonId);
   const currentSpecies = getCurrentRebornSpeciesForChoice(row, progression);
+  const note = progressionStale
+    ? "Progression changed; re-optimize for current scores and legal move notes."
+    : row.note || "";
 
   return `
     <tr
       class="team-pick-row ${selected ? "selected-row" : ""}"
       data-pool-set-id="${escapeHtml(row.pokemonId)}"
+      data-team-input-id="${escapeHtml(row.inputPokemonId)}"
+      data-team-pokemon-id="${escapeHtml(row.pokemonId)}"
       title="Inspect ${escapeHtml(row.name)} set"
     >
       <td>${index + 1}</td>
@@ -212,15 +226,15 @@ function renderTeamRow({ formatsIndex, index, progression, row, setDetails }) {
         ${row.isMega ? `<div class="representative-note">Mega slot</div>` : ""}
         ${
           currentSpecies?.differsFromRepresentative
-            ? `<div class="representative-note">Current: ${escapeHtml(currentSpecies.name)}</div>`
-            : ""
+            ? `<div class="representative-note" data-current-species-note>Current: ${escapeHtml(currentSpecies.name)}</div>`
+            : `<div class="representative-note" data-current-species-note hidden></div>`
         }
       </td>
       <td>${formatPercent(row.bundle?.usage?.value)}</td>
       <td>${formatPercent(row.bundle?.leads?.value)}</td>
       <td>${Number.isFinite(row.score) ? Math.round(row.score).toLocaleString() : ""}</td>
       <td>${renderSource(row.bundle?.usage, formatsIndex)}</td>
-      <td>${escapeHtml(row.note || "")}</td>
+      <td data-team-note>${escapeHtml(note)}</td>
     </tr>
 
     ${
