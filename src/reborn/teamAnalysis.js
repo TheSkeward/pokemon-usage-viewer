@@ -56,17 +56,28 @@ export async function buildRebornTeamAnalysis(
         member,
         moves,
         profile,
+        row,
       };
     }),
   );
   const members = legalMoveEntries.map((entry) => entry.member);
+  const defensive = analyzeDefensiveProfile(members);
+  const offensive = analyzeOffensiveCoverage(legalMoveEntries);
+  const profiles = legalMoveEntries.map((entry) => entry.profile);
 
   return {
     members,
     breeding: breedingContext,
-    defensive: analyzeDefensiveProfile(members),
-    offensive: analyzeOffensiveCoverage(legalMoveEntries),
-    profiles: legalMoveEntries.map((entry) => entry.profile),
+    defensive,
+    explanation: buildTeamExplanation({
+      defensive,
+      legalMoveEntries,
+      lines: breedingOptions.lines || [],
+      offensive,
+      profiles,
+    }),
+    offensive,
+    profiles,
   };
 }
 
@@ -252,6 +263,223 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
     missingStabMembers,
     memberStab,
   };
+}
+
+function buildTeamExplanation({
+  defensive,
+  legalMoveEntries,
+  lines,
+  offensive,
+  profiles,
+}) {
+  const selectedKeys = new Set(
+    legalMoveEntries.map(
+      ({ row }) => `${row.inputPokemonId || row.inputName}:${row.pokemonId}`,
+    ),
+  );
+  const attackTypeCounts = countRecommendedAttackTypes(profiles);
+  const defensiveHoles = getDefensiveHoles(defensive);
+  const offensiveHoles = getOffensiveHoles(offensive);
+
+  return {
+    pickReasons: legalMoveEntries
+      .map(({ profile }) =>
+        formatPickReason(profile, {
+          attackTypeCounts,
+          defensiveHoles,
+        }),
+      )
+      .filter(Boolean)
+      .slice(0, 6),
+    holes: [...defensiveHoles.map(formatDefensiveHole), ...offensiveHoles]
+      .filter(Boolean)
+      .slice(0, 6),
+    fixSuggestions: buildFixSuggestions({
+      defensiveHoles,
+      lines,
+      offensive,
+      selectedKeys,
+    }).slice(0, 5),
+  };
+}
+
+function formatPickReason(profile, { attackTypeCounts, defensiveHoles }) {
+  const reasons = [];
+  const uniqueAttackTypes = (profile.attackTypes || []).filter(
+    (type) => attackTypeCounts.get(type) === 1,
+  );
+  const coveredWeaknesses = defensiveHoles
+    .filter((hole) =>
+      resistsOrImmune(profile.currentTypes, hole.type),
+    )
+    .map((hole) => hole.type);
+
+  if (profile.bestStabMove) {
+    reasons.push(`${profile.bestStabMove.name} STAB`);
+  }
+
+  if (uniqueAttackTypes.length) {
+    reasons.push(`${uniqueAttackTypes.slice(0, 2).join("/")} coverage`);
+  } else if (profile.bestCoverageMoves.length) {
+    reasons.push(
+      `${profile.bestCoverageMoves
+        .slice(0, 2)
+        .map((entry) => entry.type)
+        .join("/")} coverage`,
+    );
+  }
+
+  if (coveredWeaknesses.length) {
+    reasons.push(`covers ${coveredWeaknesses.slice(0, 2).join("/")}`);
+  }
+
+  if (!reasons.length) return "";
+
+  return `${profile.inputName}: ${profile.currentName} contributes ${reasons.join(", ")}.`;
+}
+
+function getDefensiveHoles(defensive) {
+  return defensive
+    .filter((entry) => entry.weak.length >= 2)
+    .map((entry) => ({
+      ...entry,
+      coverCount: entry.resist.length + entry.immune.length,
+    }))
+    .sort(
+      (a, b) =>
+        b.weak.length - a.weak.length ||
+        a.coverCount - b.coverCount ||
+        a.type.localeCompare(b.type),
+    )
+    .slice(0, 6);
+}
+
+function formatDefensiveHole(hole) {
+  const weakNames = hole.weak
+    .slice(0, 3)
+    .map(({ member }) => member.name)
+    .join(", ");
+
+  if (hole.coverCount === 0) {
+    return `${hole.type}: ${hole.weak.length} picks are weak and there is no current resist or immunity (${weakNames}).`;
+  }
+
+  return `${hole.type}: ${hole.weak.length} picks are weak; ${hole.coverCount} teammate${hole.coverCount === 1 ? "" : "s"} can switch in.`;
+}
+
+function getOffensiveHoles(offensive) {
+  const holes = [];
+
+  if (offensive.missingStabMembers.length) {
+    holes.push(
+      `No recommended STAB for ${offensive.missingStabMembers
+        .slice(0, 3)
+        .map((entry) => entry.member.name)
+        .join(", ")}.`,
+    );
+  }
+
+  if (offensive.missingSuperEffectiveTargets.length) {
+    holes.push(
+      `No recommended super-effective hit into ${offensive.missingSuperEffectiveTargets
+        .slice(0, 5)
+        .join(", ")}.`,
+    );
+  }
+
+  const weakestHits = offensive.bestCoverageByTarget
+    .filter((entry) => entry.best)
+    .slice(0, 3);
+
+  for (const entry of weakestHits) {
+    holes.push(
+      `Weak ${entry.type} answer: best current hit is ${entry.best.moveName} from ${entry.best.memberName}.`,
+    );
+  }
+
+  return holes;
+}
+
+function buildFixSuggestions({ defensiveHoles, lines, offensive, selectedKeys }) {
+  const suggestions = [];
+  const missingTargets = new Set(offensive.missingSuperEffectiveTargets || []);
+
+  for (const line of lines || []) {
+    const lineOptions = [
+      line.best,
+      line.bestNonMega,
+      ...(line.choiceOptions || []),
+    ].filter(Boolean);
+    const selectedChoice = lineOptions.find((choice) =>
+      selectedKeys.has(getChoiceKey(choice)),
+    );
+
+    for (const option of line.choiceOptions || []) {
+      if (!option?.legalityProfile || selectedKeys.has(getChoiceKey(option))) {
+        continue;
+      }
+
+      const fixes = getOptionFixes(option.legalityProfile, {
+        defensiveHoles,
+        missingTargets,
+      });
+
+      if (!fixes.length) continue;
+
+      suggestions.push({
+        score: fixes.length * 100 + Math.max(0, option.legalityScore || 0) / 100,
+        text: `Consider ${option.name} over ${selectedChoice?.name || option.inputName} for ${fixes.slice(0, 2).join(" and ")}.`,
+      });
+    }
+  }
+
+  return suggestions
+    .sort((a, b) => b.score - a.score || a.text.localeCompare(b.text))
+    .map((entry) => entry.text)
+    .filter((text, index, all) => all.indexOf(text) === index);
+}
+
+function getChoiceKey(choice) {
+  return `${choice.inputPokemonId || choice.inputName}:${choice.pokemonId}`;
+}
+
+function getOptionFixes(profile, { defensiveHoles, missingTargets }) {
+  const fixes = [];
+  const coveredWeaknesses = defensiveHoles
+    .filter((hole) => resistsOrImmune(profile.currentTypes, hole.type))
+    .map((hole) => hole.type);
+  const coverageFixes = [...missingTargets].filter((targetType) =>
+    (profile.attackTypes || []).some(
+      (attackType) => getTypeMultiplier(attackType, [targetType]) > 1,
+    ),
+  );
+
+  if (coveredWeaknesses.length) {
+    fixes.push(`${coveredWeaknesses.slice(0, 2).join("/")} defensive cover`);
+  }
+
+  if (coverageFixes.length) {
+    fixes.push(`${coverageFixes.slice(0, 2).join("/")} offensive coverage`);
+  }
+
+  return fixes;
+}
+
+function countRecommendedAttackTypes(profiles) {
+  const counts = new Map();
+
+  for (const profile of profiles) {
+    for (const attackType of profile.attackTypes || []) {
+      counts.set(attackType, (counts.get(attackType) || 0) + 1);
+    }
+  }
+
+  return counts;
+}
+
+function resistsOrImmune(defenseTypes, attackType) {
+  const multiplier = getTypeMultiplier(attackType, defenseTypes || []);
+  return multiplier === 0 || (multiplier > 0 && multiplier < 1);
 }
 
 function isDamagingMove(move) {

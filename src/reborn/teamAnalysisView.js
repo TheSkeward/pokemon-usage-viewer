@@ -5,6 +5,7 @@ import {
 } from "./teamAnalysis";
 
 export function renderRebornTeamAnalysisPanel(root, {
+  lines = [],
   pokemonIndex = [],
   poolQuery = "",
   progression,
@@ -29,6 +30,7 @@ export function renderRebornTeamAnalysisPanel(root, {
   `;
 
   buildRebornTeamAnalysis(team, progression, {
+    lines,
     pokemonIndex,
     query: poolQuery,
   })
@@ -121,10 +123,12 @@ function renderAnalysis(analysis) {
           label: "Missing Coverage",
           value: analysis.offensive.missingSuperEffectiveTargets.length,
           detail: analysis.offensive.missingSuperEffectiveTargets.length
-            ? `No super-effective legal hit for ${analysis.offensive.missingSuperEffectiveTargets.slice(0, 4).join(", ")}.`
-            : "Current legal attacks can hit every type super effectively.",
+            ? `No recommended super-effective hit for ${analysis.offensive.missingSuperEffectiveTargets.slice(0, 4).join(", ")}.`
+            : "Current recommended attacks can hit every type super effectively.",
         })}
       </div>
+
+      ${renderExplanation(analysis.explanation)}
 
       <h3>Current Legal Contributions</h3>
       ${renderProfileRows(analysis.profiles)}
@@ -140,6 +144,39 @@ function renderAnalysis(analysis) {
         </div>
       </div>
     </section>
+  `;
+}
+
+function renderExplanation(explanation) {
+  if (!explanation) return "";
+
+  return `
+    <section class="team-analysis-explanation">
+      <div>
+        <h3>Why This Team?</h3>
+        ${renderExplanationList(explanation.pickReasons)}
+      </div>
+      <div>
+        <h3>Team Holes</h3>
+        ${renderExplanationList(explanation.holes)}
+      </div>
+      <div>
+        <h3>Possible Fixes</h3>
+        ${renderExplanationList(explanation.fixSuggestions)}
+      </div>
+    </section>
+  `;
+}
+
+function renderExplanationList(items = []) {
+  if (!items.length) {
+    return `<p class="muted">No major issues found in this slice of the analysis.</p>`;
+  }
+
+  return `
+    <ul class="team-analysis-explanation-list">
+      ${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+    </ul>
   `;
 }
 

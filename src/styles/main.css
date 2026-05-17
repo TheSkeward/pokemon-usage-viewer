@@ -793,6 +793,33 @@ input {
   margin-bottom: 1rem;
 }
 
+.team-analysis-explanation {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+  border: 1px solid #2b3645;
+  border-radius: 8px;
+  padding: 0.85rem;
+  background: #0f1620;
+}
+
+.team-analysis-explanation > div {
+  min-width: 0;
+}
+
+.team-analysis-explanation-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.55rem 0 0;
+  padding-left: 1.1rem;
+  color: #c4ccd8;
+}
+
+.team-analysis-explanation-list li {
+  padding-left: 0.1rem;
+}
+
 .team-analysis-summary-card {
   border: 1px solid #2b3645;
   border-radius: 8px;
@@ -970,6 +997,10 @@ input {
   }
 
   .team-analysis-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .team-analysis-explanation {
     grid-template-columns: 1fr;
   }
 

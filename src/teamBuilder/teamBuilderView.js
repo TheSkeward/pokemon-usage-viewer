@@ -29,6 +29,7 @@ export function renderTeamBuilderPage({
 
   renderSelectedSetDetails({ app, pokemonIndex, setDetails, state });
   renderRebornTeamAnalysisPanel(app.querySelector("#reborn-team-analysis-root"), {
+    lines: state.result?.lines || [],
     pokemonIndex,
     poolQuery: state.query,
     progression: state.progression,
