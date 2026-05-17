@@ -11,8 +11,9 @@
     "build:resolver-index": "node scripts/build-resolver-index.mjs",
     "build:set-index": "node scripts/build-set-index.mjs",
     "build:reborn-legal-moves": "node scripts/build-reborn-legal-moves.mjs",
+    "build:progression-species": "node scripts/build-progression-species.mjs",
     "build:site": "npm run build && node scripts/copy-data.mjs",
-    "refresh:data": "npm run build:data -- --refresh-current && npm run build:resolver-index && npm run build:set-index && npm run build:reborn-legal-moves",
+    "refresh:data": "npm run build:data -- --refresh-current && npm run build:resolver-index && npm run build:set-index && npm run build:reborn-legal-moves && npm run build:progression-species",
     "dev:bg": "nohup npm run dev > /tmp/pokemon-vite.log 2>&1 &",
     "dev:log": "tail -50 /tmp/pokemon-vite.log",
     "dev:stop": "pkill -f 'vite --port 5173' || true"

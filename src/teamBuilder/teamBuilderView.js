@@ -2,6 +2,7 @@ import { renderMovesetPanel } from "../views/movesetView";
 import { renderRebornLegalMovesPanel } from "../reborn/legalMovesView";
 import { renderRebornProgressionPanel } from "../reborn/progressionView";
 import { renderRebornTeamAnalysisPanel } from "../reborn/teamAnalysisView";
+import { getCurrentRebornSpeciesForChoice } from "../reborn/currentSpecies.js";
 
 export function renderTeamBuilderPage({
   app,
@@ -147,7 +148,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
         <div>
           <h2>Recommended ${escapeHtml(familyLabel)} Team</h2>
           <p>${result.team.length} picks from ${result.linesConsidered} resolved input lines. ${megaText}.</p>
-          <p>v0 rules: at most one Mega, one representative per input line, selected by optimizer score; displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its set.</p>
+          <p>v0 rules: at most one Mega, one long-term representative per input line, selected by optimizer score; current-form legality follows Reborn progression. Displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its set.</p>
         </div>
       </div>
 
@@ -166,7 +167,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
             </tr>
           </thead>
           <tbody>
-            ${sortedTeam.map((row, index) => renderTeamRow({ formatsIndex, index, row, setDetails })).join("")}
+            ${sortedTeam.map((row, index) => renderTeamRow({ formatsIndex, index, progression: state.progression, row, setDetails })).join("")}
           </tbody>
         </table>
       </div>
@@ -191,8 +192,9 @@ function renderSortHeader(sortBy, label, state) {
   `;
 }
 
-function renderTeamRow({ formatsIndex, index, row, setDetails }) {
+function renderTeamRow({ formatsIndex, index, progression, row, setDetails }) {
   const selected = setDetails.isSelected(row.pokemonId);
+  const currentSpecies = getCurrentRebornSpeciesForChoice(row, progression);
 
   return `
     <tr
@@ -205,6 +207,11 @@ function renderTeamRow({ formatsIndex, index, row, setDetails }) {
       <td>
         <strong>${escapeHtml(row.name)}</strong>
         ${row.isMega ? `<div class="representative-note">Mega slot</div>` : ""}
+        ${
+          currentSpecies?.differsFromRepresentative
+            ? `<div class="representative-note">Current: ${escapeHtml(currentSpecies.name)}</div>`
+            : ""
+        }
       </td>
       <td>${formatPercent(row.bundle?.usage?.value)}</td>
       <td>${formatPercent(row.bundle?.leads?.value)}</td>
@@ -233,6 +240,10 @@ function renderSelectedSetDetails({ app, setDetails, state }) {
   }
 
   const detail = setDetails.getDetail();
+  const currentSpecies = getCurrentRebornSpeciesForChoice(
+    selected,
+    state.progression,
+  );
 
   renderMovesetPanel(detailsRoot, {
     selectedPokemonName: selected.name,
@@ -247,6 +258,7 @@ function renderSelectedSetDetails({ app, setDetails, state }) {
   legalMovesRoot.dataset.rebornLegalMovesRoot = "true";
   detailsRoot.appendChild(legalMovesRoot);
   renderRebornLegalMovesPanel(legalMovesRoot, {
+    currentSpecies,
     movesetEntry: detail,
     pokemonId: selected.pokemonId,
     pokemonName: selected.name,

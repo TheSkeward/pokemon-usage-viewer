@@ -50,7 +50,8 @@ export function renderRebornProgressionPanel(progression) {
             type="checkbox"
             ${progression.daycareUnlocked ? "checked" : ""}
           />
-          <span>Daycare / breeding unlocked</span>
+          <span>Daycare unlocked</span>
+          <small>Egg moves need breeding-chain checks before they count as legal.</small>
         </label>
 
         ${renderOptionGroup({

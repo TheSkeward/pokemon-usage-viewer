@@ -16,7 +16,9 @@ const SOURCE_TONE = {
 };
 
 export function renderRebornLegalMovesPanel(container, options) {
-  const { movesetEntry, pokemonId, pokemonName, progression } = options;
+  const { currentSpecies, movesetEntry, pokemonId, pokemonName, progression } = options;
+  const legalityPokemonId = currentSpecies?.id || pokemonId;
+  const legalityPokemonName = currentSpecies?.name || pokemonName;
   const renderKey = JSON.stringify({ pokemonId, progression });
   container.dataset.legalMovesKey = renderKey;
   container.innerHTML = `
@@ -26,11 +28,13 @@ export function renderRebornLegalMovesPanel(container, options) {
     </section>
   `;
 
-  loadRebornLegalMoveData(pokemonId)
+  loadRebornLegalMoveData(legalityPokemonId)
     .then((legalMoveData) => {
       if (container.dataset.legalMovesKey !== renderKey) return;
       container.innerHTML = renderLoadedPanel({
+        currentSpecies,
         legalMoveData,
+        legalityPokemonName,
         movesetEntry,
         pokemonName,
         progression,
@@ -48,7 +52,9 @@ export function renderRebornLegalMovesPanel(container, options) {
 }
 
 function renderLoadedPanel({
+  currentSpecies,
   legalMoveData,
+  legalityPokemonName,
   movesetEntry,
   pokemonName,
   progression,
@@ -76,7 +82,12 @@ function renderLoadedPanel({
       <div class="panel-header">
         <div>
           <h3>Reborn Legal Moves</h3>
-          <p>${availableMoves.length} currently legal move options from ${escapeHtml(legalMoveData.learnsetPokemonName)} learnset data.</p>
+          <p>${availableMoves.length} currently legal move options for ${escapeHtml(legalityPokemonName)} from ${escapeHtml(legalMoveData.learnsetPokemonName)} learnset data.</p>
+          ${
+            currentSpecies?.differsFromRepresentative
+              ? `<p class="muted">Long-term representative: ${escapeHtml(currentSpecies.representativeName)}. Current progression is checked against ${escapeHtml(currentSpecies.name)}.</p>`
+              : ""
+          }
           ${
             observedMoves.length
               ? `<p>${observedAvailableCount}/${observedMoves.length} observed Smogon moves are available under this progression.</p>`

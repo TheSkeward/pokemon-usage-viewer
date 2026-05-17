@@ -46,6 +46,8 @@ for (const pokemon of pokemonIndex) {
       name: move.name,
       type: move.type,
       category: move.category,
+      basePower: move.basePower || 0,
+      priority: move.priority || 0,
       sources,
     });
   }

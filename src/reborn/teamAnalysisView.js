@@ -89,8 +89,18 @@ function renderAnalysis(analysis) {
           label: "Legal Attack Types",
           value: analysis.offensive.attackingTypes.length,
           detail: analysis.offensive.attackingTypes.length
-            ? "Available through current level, TM, TMX, tutor, and breeding settings."
+            ? "Damaging move types available through current progression."
             : "No legal attacking moves found yet.",
+        })}
+        ${renderSummaryCard({
+          label: "Legal STAB",
+          value: `${analysis.members.length - analysis.offensive.missingStabMembers.length}/${analysis.members.length}`,
+          detail: analysis.offensive.missingStabMembers.length
+            ? `No current STAB for ${analysis.offensive.missingStabMembers
+                .slice(0, 3)
+                .map((entry) => entry.member.name)
+                .join(", ")}.`
+            : "Every pick has at least one legal damaging STAB move.",
         })}
         ${renderSummaryCard({
           label: "Missing Coverage",
@@ -180,6 +190,15 @@ function renderDefenseTypeRow(entry, { primary, secondary }) {
 function renderOffensiveRows(offensive) {
   return `
     <div class="team-analysis-block">
+      <h4>Best current STAB</h4>
+      ${
+        offensive.memberStab.length
+          ? offensive.memberStab.map(renderStabRow).join("")
+          : `<p class="muted">No legal STAB moves are available under current progression settings.</p>`
+      }
+    </div>
+
+    <div class="team-analysis-block">
       <h4>Available attacking types</h4>
       ${
         offensive.attackingTypes.length
@@ -189,13 +208,25 @@ function renderOffensiveRows(offensive) {
                   <div class="team-analysis-row">
                     ${renderTypeBadge(entry.type)}
                     <strong>${entry.moveCount} moves</strong>
-                    <span>${entry.members.length} picks</span>
-                    <small>${escapeHtml(entry.members.join(", "))}</small>
+                    <span>${entry.stabMembers.length} STAB</span>
+                    <small>${escapeHtml(formatAttackTypeDetail(entry))}</small>
                   </div>
                 `,
               )
               .join("")
           : `<p class="muted">No legal attacking moves are available under current progression settings.</p>`
+      }
+    </div>
+
+    <div class="team-analysis-block">
+      <h4>Weakest super-effective hits</h4>
+      ${
+        offensive.bestCoverageByTarget.length
+          ? offensive.bestCoverageByTarget
+              .slice(0, 8)
+              .map(renderCoverageTargetRow)
+              .join("")
+          : `<p class="muted">No super-effective legal hits are available yet.</p>`
       }
     </div>
 
@@ -208,6 +239,56 @@ function renderOffensiveRows(offensive) {
       }
     </div>
   `;
+}
+
+function renderStabRow(entry) {
+  const bestMove = entry.bestMove;
+
+  return `
+    <div class="team-analysis-move-row ${bestMove ? "" : "warning"}">
+      <strong>${escapeHtml(entry.member.name)}</strong>
+      ${
+        bestMove
+          ? `${renderTypeBadge(bestMove.type)}<span>${escapeHtml(bestMove.name)}</span><small>${formatPower(bestMove.basePower)} base power</small>`
+          : `<span class="team-analysis-empty-cell">No legal damaging STAB</span>`
+      }
+    </div>
+  `;
+}
+
+function renderCoverageTargetRow(entry) {
+  const best = entry.best;
+
+  return `
+    <div class="team-analysis-row ${best ? "" : "warning"}">
+      ${renderTypeBadge(entry.type)}
+      <strong>${best ? formatPower(best.adjustedPower) : "none"}</strong>
+      <span>${best ? escapeHtml(best.attackType) : "missing"}</span>
+      <small>${
+        best
+          ? escapeHtml(`${best.moveName} from ${best.memberName}`)
+          : "No legal super-effective hit"
+      }</small>
+    </div>
+  `;
+}
+
+function formatAttackTypeDetail(entry) {
+  const best = entry.bestMove;
+  const memberText = entry.members.length
+    ? entry.members.slice(0, 3).join(", ")
+    : "No picks";
+  const overflow = entry.members.length > 3 ? ` +${entry.members.length - 3}` : "";
+
+  if (!best) return `${memberText}${overflow}`;
+
+  return `${best.name} from ${best.memberName}; ${memberText}${overflow}`;
+}
+
+function formatPower(value) {
+  if (!Number.isFinite(value)) return "";
+
+  return Math.round(value).toLocaleString();
 }
 
 function formatDefenseNames(entry) {

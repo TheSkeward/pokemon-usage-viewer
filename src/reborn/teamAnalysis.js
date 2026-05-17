@@ -2,6 +2,7 @@ import {
   getAvailableRebornMoves,
   loadRebornLegalMoveData,
 } from "./legalMoves";
+import { getCurrentRebornSpeciesForChoice } from "./currentSpecies.js";
 
 export const REBORN_ANALYSIS_TYPES = [
   "Normal",
@@ -27,10 +28,16 @@ export const REBORN_ANALYSIS_TYPES = [
 export async function buildRebornTeamAnalysis(team = [], progression = {}) {
   const legalMoveEntries = await Promise.all(
     team.map(async (row) => {
-      const legalMoveData = await loadRebornLegalMoveData(row.pokemonId);
+      const currentSpecies = getCurrentRebornSpeciesForChoice(row, progression);
+      const legalMoveData = await loadRebornLegalMoveData(
+        currentSpecies?.id || row.pokemonId,
+      );
       const member = {
-        id: row.pokemonId,
-        name: row.name,
+        id: currentSpecies?.id || row.pokemonId,
+        name: currentSpecies?.name || row.name,
+        representativeName: currentSpecies?.differsFromRepresentative
+          ? currentSpecies.representativeName
+          : "",
         types: legalMoveData?.types || [],
       };
 
@@ -69,22 +76,68 @@ function analyzeDefensiveProfile(members) {
 
 function analyzeOffensiveCoverage(legalMoveEntries) {
   const attackTypes = new Map();
+  const memberStab = [];
+  const superEffectiveTargets = new Map(
+    REBORN_ANALYSIS_TYPES.map((type) => [type, []]),
+  );
 
   for (const { member, moves } of legalMoveEntries) {
-    for (const move of moves) {
-      if (move.category === "Status") continue;
+    const damagingMoves = moves.filter(isDamagingMove);
+    const stabMoves = damagingMoves
+      .filter((move) => member.types.includes(move.type))
+      .sort(compareMoveQuality);
+
+    memberStab.push({
+      member,
+      moves: stabMoves,
+      bestMove: stabMoves[0] || null,
+    });
+
+    for (const move of damagingMoves) {
+      const adjustedPower = getAdjustedPower(move, member);
 
       const entry = attackTypes.get(move.type) || {
         type: move.type,
         moves: [],
         members: new Map(),
+        stabMembers: new Map(),
+        bestMove: null,
       };
 
       entry.moves.push(move);
       if (!entry.members.has(member.id)) {
         entry.members.set(member.id, member.name);
       }
+      if (member.types.includes(move.type)) {
+        entry.stabMembers.set(member.id, member.name);
+      }
+      if (
+        !entry.bestMove ||
+        adjustedPower > entry.bestMove.adjustedPower ||
+        (adjustedPower === entry.bestMove.adjustedPower &&
+          move.name.localeCompare(entry.bestMove.name) < 0)
+      ) {
+        entry.bestMove = {
+          adjustedPower,
+          basePower: move.basePower || 0,
+          memberName: member.name,
+          name: move.name,
+        };
+      }
       attackTypes.set(move.type, entry);
+
+      for (const defenseType of REBORN_ANALYSIS_TYPES) {
+        const multiplier = getTypeMultiplier(move.type, [defenseType]);
+        if (multiplier <= 1) continue;
+
+        superEffectiveTargets.get(defenseType).push({
+          adjustedPower: adjustedPower * multiplier,
+          attackType: move.type,
+          basePower: move.basePower || 0,
+          memberName: member.name,
+          moveName: move.name,
+        });
+      }
     }
   }
 
@@ -92,6 +145,9 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
     .map((entry) => ({
       ...entry,
       members: [...entry.members.values()].sort((a, b) => a.localeCompare(b)),
+      stabMembers: [...entry.stabMembers.values()].sort((a, b) =>
+        a.localeCompare(b),
+      ),
       moveCount: entry.moves.length,
     }))
     .sort((a, b) => a.type.localeCompare(b.type));
@@ -105,11 +161,55 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
         (attackType) => getTypeMultiplier(attackType, [defenseType]) > 1,
       ),
   );
+  const missingStabMembers = memberStab.filter((entry) => !entry.bestMove);
+  const bestCoverageByTarget = [...superEffectiveTargets.entries()]
+    .map(([type, options]) => ({
+      type,
+      best: options.sort(compareCoverageOption)[0] || null,
+      optionCount: options.length,
+    }))
+    .sort((a, b) => {
+      if (a.best && !b.best) return 1;
+      if (!a.best && b.best) return -1;
+      return (
+        (a.best?.adjustedPower || 0) - (b.best?.adjustedPower || 0) ||
+        a.type.localeCompare(b.type)
+      );
+    });
 
   return {
     attackingTypes,
+    bestCoverageByTarget,
     missingSuperEffectiveTargets,
+    missingStabMembers,
+    memberStab,
   };
+}
+
+function isDamagingMove(move) {
+  return move.category !== "Status" && (move.basePower || 0) > 0;
+}
+
+function compareMoveQuality(a, b) {
+  return (
+    (b.basePower || 0) - (a.basePower || 0) ||
+    (b.priority || 0) - (a.priority || 0) ||
+    a.name.localeCompare(b.name)
+  );
+}
+
+function compareCoverageOption(a, b) {
+  return (
+    b.adjustedPower - a.adjustedPower ||
+    b.basePower - a.basePower ||
+    a.moveName.localeCompare(b.moveName)
+  );
+}
+
+function getAdjustedPower(move, member) {
+  const basePower = move.basePower || 0;
+  const stabMultiplier = member.types.includes(move.type) ? 1.5 : 1;
+  return basePower * stabMultiplier;
 }
 
 function getTypeMultiplier(attackType, defenseTypes = []) {

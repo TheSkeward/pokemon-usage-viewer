@@ -89,7 +89,11 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       });
     }
 
-    if (move.sources?.egg && daycareUnlocked) {
+    if (
+      move.sources?.egg &&
+      daycareUnlocked &&
+      progression.availableEggMoveIds?.includes(move.id)
+    ) {
       sources.push({
         kind: "egg",
         label: "Egg",
@@ -142,7 +146,7 @@ function getBestSourcePriority(move) {
   );
 }
 
-function normalizeLevelCap(value) {
+export function normalizeLevelCap(value) {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed)) return 100;
   if (parsed < 1) return 1;
