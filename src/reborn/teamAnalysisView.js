@@ -126,6 +126,9 @@ function renderAnalysis(analysis) {
         })}
       </div>
 
+      <h3>Current Legal Contributions</h3>
+      ${renderProfileRows(analysis.profiles)}
+
       <div class="team-analysis-columns">
         <div>
           <h3>Defensive Profile</h3>
@@ -137,6 +140,65 @@ function renderAnalysis(analysis) {
         </div>
       </div>
     </section>
+  `;
+}
+
+function renderProfileRows(profiles = []) {
+  if (!profiles.length) {
+    return `<p class="muted">No current legal contribution profiles are available.</p>`;
+  }
+
+  return `
+    <div class="team-analysis-profile-list">
+      ${profiles.map(renderProfileRow).join("")}
+    </div>
+  `;
+}
+
+function renderProfileRow(profile) {
+  const bestStab = profile.bestStabMove
+    ? `${profile.bestStabMove.name} (${formatPower(profile.bestStabMove.adjustedPower)} effective)`
+    : "No legal damaging STAB";
+  const bestCoverage = profile.bestCoverageMoves.length
+    ? profile.bestCoverageMoves
+        .map(
+          (entry) =>
+            `${entry.bestMove.name} ${entry.type} (${formatPower(entry.bestMove.adjustedPower)})`,
+        )
+        .join(", ")
+    : "No off-type damaging coverage";
+  const currentLine =
+    profile.currentName === profile.representativeName
+      ? profile.currentName
+      : `${profile.currentName} now; ${profile.representativeName} later`;
+
+  return `
+    <div class="team-analysis-profile-row ${profile.bestStabMove ? "" : "warning"}">
+      <div>
+        <strong>${escapeHtml(profile.inputName)}</strong>
+        <small>${escapeHtml(currentLine)}</small>
+      </div>
+      <div>
+        <span>Best STAB</span>
+        <small>${escapeHtml(bestStab)}</small>
+      </div>
+      <div>
+        <span>Coverage</span>
+        <small>${escapeHtml(bestCoverage)}</small>
+      </div>
+      <div>
+        <span>Legal moves</span>
+        <small>${profile.legalDamagingMoveCount}/${profile.legalMoveCount} damaging; ${profile.attackTypes.length} types</small>
+      </div>
+      <div>
+        <span>SE targets</span>
+        <small>${profile.superEffectiveTargetCount}/${REBORN_ANALYSIS_TYPES.length}</small>
+      </div>
+      <div>
+        <span>Sources</span>
+        <small>${escapeHtml(formatSourceCounts(profile.sourceCounts))}</small>
+      </div>
+    </div>
   `;
 }
 
@@ -311,6 +373,23 @@ function formatPower(value) {
   if (!Number.isFinite(value)) return "";
 
   return Math.round(value).toLocaleString();
+}
+
+function formatSourceCounts(sourceCounts = {}) {
+  const labels = [
+    ["level-up", "Level"],
+    ["relearner", "Relearner"],
+    ["tm", "TM"],
+    ["tmx", "TMX"],
+    ["tutor", "Tutor"],
+    ["egg", "Egg"],
+  ];
+  const text = labels
+    .filter(([kind]) => sourceCounts[kind])
+    .map(([kind, label]) => `${label} ${sourceCounts[kind]}`)
+    .join(", ");
+
+  return text || "None";
 }
 
 function formatDefenseNames(entry) {

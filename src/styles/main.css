@@ -831,6 +831,56 @@ input {
   margin-top: 0.75rem;
 }
 
+.team-analysis-profile-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.team-analysis-profile-row {
+  display: grid;
+  grid-template-columns:
+    minmax(8rem, 1fr)
+    minmax(9rem, 1.1fr)
+    minmax(11rem, 1.4fr)
+    minmax(7rem, 0.8fr)
+    minmax(5rem, 0.6fr)
+    minmax(8rem, 1fr);
+  gap: 0.6rem;
+  align-items: start;
+  border: 1px solid #2b3645;
+  border-radius: 8px;
+  padding: 0.6rem;
+  background: #0f1620;
+}
+
+.team-analysis-profile-row.warning {
+  border-color: #5a3340;
+}
+
+.team-analysis-profile-row > div {
+  min-width: 0;
+}
+
+.team-analysis-profile-row span,
+.team-analysis-profile-row small {
+  display: block;
+}
+
+.team-analysis-profile-row span {
+  color: #aab5c3;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.team-analysis-profile-row small {
+  color: #c4ccd8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .team-analysis-row {
   display: grid;
   grid-template-columns: 5.75rem 4.5rem 4.5rem minmax(0, 1fr);
@@ -900,6 +950,14 @@ input {
 
   .team-analysis-columns {
     grid-template-columns: 1fr;
+  }
+
+  .team-analysis-profile-row {
+    grid-template-columns: 1fr;
+  }
+
+  .team-analysis-profile-row small {
+    white-space: normal;
   }
 
   .team-analysis-row {

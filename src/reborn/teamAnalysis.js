@@ -52,15 +52,23 @@ export async function buildRebornTeamAnalysis(
       const member = {
         id: currentSpecies?.id || row.pokemonId,
         name: currentSpecies?.name || row.name,
+        inputName: row.inputName || row.name,
+        representativeId: row.pokemonId,
         representativeName: currentSpecies?.differsFromRepresentative
           ? currentSpecies.representativeName
           : "",
         types: legalMoveData?.types || [],
       };
+      const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
 
       return {
         member,
-        moves: getAvailableRebornMoves(legalMoveData, memberProgression),
+        moves,
+        profile: buildCandidateLegalityProfile({
+          member,
+          moves,
+          representativeName: row.name,
+        }),
       };
     }),
   );
@@ -71,6 +79,49 @@ export async function buildRebornTeamAnalysis(
     breeding: breedingContext,
     defensive: analyzeDefensiveProfile(members),
     offensive: analyzeOffensiveCoverage(legalMoveEntries),
+    profiles: legalMoveEntries.map((entry) => entry.profile),
+  };
+}
+
+export function buildCandidateLegalityProfile({
+  member,
+  moves = [],
+  representativeName = "",
+}) {
+  const damagingMoves = moves.filter(isDamagingMove);
+  const stabMoves = damagingMoves
+    .filter((move) => member.types.includes(move.type))
+    .sort(compareMoveQuality);
+  const attackingTypes = summarizeAttackTypes(member, damagingMoves);
+  const superEffectiveTargetTypes = new Set();
+
+  for (const move of damagingMoves) {
+    for (const defenseType of REBORN_ANALYSIS_TYPES) {
+      if (getTypeMultiplier(move.type, [defenseType]) > 1) {
+        superEffectiveTargetTypes.add(defenseType);
+      }
+    }
+  }
+
+  return {
+    attackTypes: attackingTypes.map((entry) => entry.type),
+    bestCoverageMoves: attackingTypes
+      .filter((entry) => !member.types.includes(entry.type))
+      .slice(0, 3),
+    bestDamagingMove: damagingMoves
+      .map((move) => formatProfileMove(move, member))
+      .sort(compareProfileMove)[0] || null,
+    bestStabMove: stabMoves[0] ? formatProfileMove(stabMoves[0], member) : null,
+    currentId: member.id,
+    currentName: member.name,
+    currentTypes: member.types,
+    inputName: member.inputName || member.name,
+    legalDamagingMoveCount: damagingMoves.length,
+    legalMoveCount: moves.length,
+    representativeId: member.representativeId || member.id,
+    representativeName,
+    sourceCounts: countMoveSources(moves),
+    superEffectiveTargetCount: superEffectiveTargetTypes.size,
   };
 }
 
@@ -206,6 +257,72 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
 
 function isDamagingMove(move) {
   return move.category !== "Status" && (move.basePower || 0) > 0;
+}
+
+function summarizeAttackTypes(member, damagingMoves) {
+  const byType = new Map();
+
+  for (const move of damagingMoves) {
+    const option = formatProfileMove(move, member);
+    const entry = byType.get(move.type) || {
+      type: move.type,
+      bestMove: option,
+      moveCount: 0,
+      superEffectiveTargetCount: 0,
+    };
+
+    entry.moveCount += 1;
+    if (compareProfileMove(option, entry.bestMove) < 0) {
+      entry.bestMove = option;
+    }
+    byType.set(move.type, entry);
+  }
+
+  for (const entry of byType.values()) {
+    entry.superEffectiveTargetCount = REBORN_ANALYSIS_TYPES.filter(
+      (defenseType) => getTypeMultiplier(entry.type, [defenseType]) > 1,
+    ).length;
+  }
+
+  return [...byType.values()].sort(
+    (a, b) =>
+      compareProfileMove(a.bestMove, b.bestMove) ||
+      b.superEffectiveTargetCount - a.superEffectiveTargetCount ||
+      a.type.localeCompare(b.type),
+  );
+}
+
+function formatProfileMove(move, member) {
+  return {
+    adjustedPower: getAdjustedPower(move, member),
+    basePower: move.basePower || 0,
+    name: move.name,
+    type: move.type,
+  };
+}
+
+function compareProfileMove(a, b) {
+  return (
+    b.adjustedPower - a.adjustedPower ||
+    b.basePower - a.basePower ||
+    a.name.localeCompare(b.name)
+  );
+}
+
+function countMoveSources(moves) {
+  const counts = {};
+
+  for (const move of moves) {
+    const kinds = new Set(
+      (move.availableSources || []).map((source) => source.kind),
+    );
+
+    for (const kind of kinds) {
+      counts[kind] = (counts[kind] || 0) + 1;
+    }
+  }
+
+  return counts;
 }
 
 function compareMoveQuality(a, b) {
