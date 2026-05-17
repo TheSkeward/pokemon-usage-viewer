@@ -67,6 +67,8 @@ function scoreLegalityProfile(profile) {
     (sum, entry) => sum + Math.min(120, entry.bestMove?.adjustedPower || 0),
     0,
   );
+  const selectedMoveCount = profile.recommendedMoves?.length || 0;
+  const selectedDamagingCount = profile.recommendedDamagingMoveCount || 0;
 
   return (
     Math.min(180, bestStabPower) * 8 +
@@ -74,7 +76,9 @@ function scoreLegalityProfile(profile) {
     coveragePower * 2 +
     Math.min(8, profile.attackTypes.length) * 55 +
     profile.superEffectiveTargetCount * 45 +
-    Math.min(12, profile.legalDamagingMoveCount) * 18 +
+    Math.min(4, selectedMoveCount) * 25 +
+    Math.min(4, selectedDamagingCount) * 25 +
+    Math.min(8, profile.legalDamagingMoveCount) * 8 +
     (profile.bestStabMove ? 0 : -350) +
     (profile.legalDamagingMoveCount ? 0 : -900)
   );

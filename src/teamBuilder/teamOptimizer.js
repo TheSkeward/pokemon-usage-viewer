@@ -193,7 +193,7 @@ function formatLegalityNote(profile) {
     ? `best legal STAB: ${profile.bestStabMove.name}`
     : "no current legal STAB";
 
-  return `${bestStab}; ${profile.attackTypes.length} legal attack types`;
+  return `${bestStab}; ${profile.attackTypes.length} recommended attack types`;
 }
 
 async function resolveCandidateLegalityProfile({

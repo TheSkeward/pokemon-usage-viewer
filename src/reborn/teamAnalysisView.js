@@ -101,21 +101,21 @@ function renderAnalysis(analysis) {
             : "Every shared weakness has at least one resist or immunity.",
         })}
         ${renderSummaryCard({
-          label: "Legal Attack Types",
+          label: "Recommended Attack Types",
           value: analysis.offensive.attackingTypes.length,
           detail: analysis.offensive.attackingTypes.length
-            ? "Damaging move types available through current progression."
-            : "No legal attacking moves found yet.",
+            ? "Damaging move types in the current recommended movesets."
+            : "No recommended attacking moves found yet.",
         })}
         ${renderSummaryCard({
-          label: "Legal STAB",
+          label: "Recommended STAB",
           value: `${analysis.members.length - analysis.offensive.missingStabMembers.length}/${analysis.members.length}`,
           detail: analysis.offensive.missingStabMembers.length
             ? `No current STAB for ${analysis.offensive.missingStabMembers
                 .slice(0, 3)
                 .map((entry) => entry.member.name)
                 .join(", ")}.`
-            : "Every pick has at least one legal damaging STAB move.",
+            : "Every pick has at least one recommended damaging STAB move.",
         })}
         ${renderSummaryCard({
           label: "Missing Coverage",
@@ -135,7 +135,7 @@ function renderAnalysis(analysis) {
           ${renderDefensiveRows(sharedWeaknesses, sturdySwitchTypes)}
         </div>
         <div>
-          <h3>Legal Coverage</h3>
+          <h3>Recommended Coverage</h3>
           ${renderOffensiveRows(analysis.offensive)}
         </div>
       </div>
@@ -159,6 +159,9 @@ function renderProfileRow(profile) {
   const bestStab = profile.bestStabMove
     ? `${profile.bestStabMove.name} (${formatPower(profile.bestStabMove.adjustedPower)} effective)`
     : "No legal damaging STAB";
+  const recommendedMoves = profile.recommendedMoves?.length
+    ? profile.recommendedMoves
+    : [];
   const bestCoverage = profile.bestCoverageMoves.length
     ? profile.bestCoverageMoves
         .map(
@@ -183,21 +186,43 @@ function renderProfileRow(profile) {
         <small>${escapeHtml(bestStab)}</small>
       </div>
       <div>
-        <span>Coverage</span>
-        <small>${escapeHtml(bestCoverage)}</small>
+        <span>Current moves</span>
+        ${renderRecommendedMoves(recommendedMoves)}
       </div>
       <div>
         <span>Legal moves</span>
-        <small>${profile.legalDamagingMoveCount}/${profile.legalMoveCount} damaging; ${profile.attackTypes.length} types</small>
+        <small>${profile.recommendedDamagingMoveCount}/${profile.legalDamagingMoveCount} selected attacks; ${profile.attackTypes.length} types</small>
       </div>
       <div>
         <span>SE targets</span>
         <small>${profile.superEffectiveTargetCount}/${REBORN_ANALYSIS_TYPES.length}</small>
       </div>
       <div>
-        <span>Sources</span>
-        <small>${escapeHtml(formatSourceCounts(profile.sourceCounts))}</small>
+        <span>Coverage</span>
+        <small>${escapeHtml(bestCoverage)}</small>
       </div>
+    </div>
+  `;
+}
+
+function renderRecommendedMoves(moves) {
+  if (!moves.length) {
+    return `<small>No current legal moves</small>`;
+  }
+
+  return `
+    <div class="team-analysis-moveset">
+      ${moves
+        .map(
+          (move) => `
+            <div class="team-analysis-moveset-move">
+              ${renderTypeBadge(move.type)}
+              <span>${escapeHtml(move.name)}</span>
+              <small>${escapeHtml(move.sourceLabel || "Legal")}</small>
+            </div>
+          `,
+        )
+        .join("")}
     </div>
   `;
 }
@@ -278,12 +303,12 @@ function renderOffensiveRows(offensive) {
       ${
         offensive.memberStab.length
           ? offensive.memberStab.map(renderStabRow).join("")
-          : `<p class="muted">No legal STAB moves are available under current progression settings.</p>`
+          : `<p class="muted">No recommended STAB moves are available under current progression settings.</p>`
       }
     </div>
 
     <div class="team-analysis-block">
-      <h4>Available attacking types</h4>
+      <h4>Recommended attacking types</h4>
       ${
         offensive.attackingTypes.length
           ? offensive.attackingTypes
@@ -298,7 +323,7 @@ function renderOffensiveRows(offensive) {
                 `,
               )
               .join("")
-          : `<p class="muted">No legal attacking moves are available under current progression settings.</p>`
+          : `<p class="muted">No recommended attacking moves are available under current progression settings.</p>`
       }
     </div>
 
@@ -310,7 +335,7 @@ function renderOffensiveRows(offensive) {
               .slice(0, 8)
               .map(renderCoverageTargetRow)
               .join("")
-          : `<p class="muted">No super-effective legal hits are available yet.</p>`
+          : `<p class="muted">No super-effective recommended hits are available yet.</p>`
       }
     </div>
 
@@ -319,7 +344,7 @@ function renderOffensiveRows(offensive) {
       ${
         offensive.missingSuperEffectiveTargets.length
           ? `<div class="team-analysis-chip-list">${offensive.missingSuperEffectiveTargets.map(renderTypeBadge).join("")}</div>`
-          : `<p class="muted">Current legal attacks include at least one super-effective option into every type.</p>`
+          : `<p class="muted">Current recommended attacks include at least one super-effective option into every type.</p>`
       }
     </div>
   `;
@@ -333,8 +358,8 @@ function renderStabRow(entry) {
       <strong>${escapeHtml(entry.member.name)}</strong>
       ${
         bestMove
-          ? `${renderTypeBadge(bestMove.type)}<span>${escapeHtml(bestMove.name)}</span><small>${formatPower(bestMove.basePower)} base power</small>`
-          : `<span class="team-analysis-empty-cell">No legal damaging STAB</span>`
+          ? `${renderTypeBadge(bestMove.type)}<span>${escapeHtml(bestMove.name)}</span><small>${formatPower(bestMove.basePower)} effective base</small>`
+          : `<span class="team-analysis-empty-cell">No recommended damaging STAB</span>`
       }
     </div>
   `;
@@ -351,7 +376,7 @@ function renderCoverageTargetRow(entry) {
       <small>${
         best
           ? escapeHtml(`${best.moveName} from ${best.memberName}`)
-          : "No legal super-effective hit"
+          : "No recommended super-effective hit"
       }</small>
     </div>
   `;

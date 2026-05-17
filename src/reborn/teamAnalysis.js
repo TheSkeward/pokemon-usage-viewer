@@ -46,14 +46,16 @@ export async function buildRebornTeamAnalysis(
       };
       const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
 
+      const profile = buildCandidateLegalityProfile({
+        member,
+        moves,
+        representativeName: row.name,
+      });
+
       return {
         member,
         moves,
-        profile: buildCandidateLegalityProfile({
-          member,
-          moves,
-          representativeName: row.name,
-        }),
+        profile,
       };
     }),
   );
@@ -74,13 +76,15 @@ export function buildCandidateLegalityProfile({
   representativeName = "",
 }) {
   const damagingMoves = moves.filter(isDamagingMove);
+  const recommendedMoves = recommendCurrentMoves(member, moves);
+  const recommendedDamagingMoves = recommendedMoves.filter(isDamagingMove);
   const stabMoves = damagingMoves
     .filter((move) => member.types.includes(move.type))
     .sort(compareMoveQuality);
-  const attackingTypes = summarizeAttackTypes(member, damagingMoves);
+  const attackingTypes = summarizeAttackTypes(member, recommendedDamagingMoves);
   const superEffectiveTargetTypes = new Set();
 
-  for (const move of damagingMoves) {
+  for (const move of recommendedDamagingMoves) {
     for (const defenseType of REBORN_ANALYSIS_TYPES) {
       if (getTypeMultiplier(move.type, [defenseType]) > 1) {
         superEffectiveTargetTypes.add(defenseType);
@@ -103,6 +107,10 @@ export function buildCandidateLegalityProfile({
     inputName: member.inputName || member.name,
     legalDamagingMoveCount: damagingMoves.length,
     legalMoveCount: moves.length,
+    recommendedDamagingMoveCount: recommendedDamagingMoves.length,
+    recommendedMoves: recommendedMoves.map((move) =>
+      formatRecommendedMove(move, member),
+    ),
     representativeId: member.representativeId || member.id,
     representativeName,
     sourceCounts: countMoveSources(moves),
@@ -135,8 +143,14 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
     REBORN_ANALYSIS_TYPES.map((type) => [type, []]),
   );
 
-  for (const { member, moves } of legalMoveEntries) {
-    const damagingMoves = moves.filter(isDamagingMove);
+  for (const { member, profile } of legalMoveEntries) {
+    const damagingMoves = (profile?.recommendedMoves || [])
+      .filter(isDamagingMove)
+      .map((move) => ({
+        ...move,
+        basePower: getMovePower(move),
+        priority: move.priority || 0,
+      }));
     const stabMoves = damagingMoves
       .filter((move) => member.types.includes(move.type))
       .sort(compareMoveQuality);
@@ -173,7 +187,7 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
       ) {
         entry.bestMove = {
           adjustedPower,
-          basePower: move.basePower || 0,
+          basePower: getMovePower(move),
           memberName: member.name,
           name: move.name,
         };
@@ -187,7 +201,7 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
         superEffectiveTargets.get(defenseType).push({
           adjustedPower: adjustedPower * multiplier,
           attackType: move.type,
-          basePower: move.basePower || 0,
+          basePower: getMovePower(move),
           memberName: member.name,
           moveName: move.name,
         });
@@ -241,7 +255,7 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
 }
 
 function isDamagingMove(move) {
-  return move.category !== "Status" && (move.basePower || 0) > 0;
+  return move.category !== "Status" && getMovePower(move) > 0;
 }
 
 function summarizeAttackTypes(member, damagingMoves) {
@@ -280,9 +294,21 @@ function summarizeAttackTypes(member, damagingMoves) {
 function formatProfileMove(move, member) {
   return {
     adjustedPower: getAdjustedPower(move, member),
-    basePower: move.basePower || 0,
+    basePower: getMovePower(move),
+    id: move.id,
     name: move.name,
+    priority: move.priority || 0,
     type: move.type,
+  };
+}
+
+function formatRecommendedMove(move, member) {
+  return {
+    ...formatProfileMove(move, member),
+    availableSources: move.availableSources || [],
+    category: move.category,
+    sourceLabel: formatBestSource(move),
+    superEffectiveTargetCount: countSuperEffectiveTargets(move.type),
   };
 }
 
@@ -327,8 +353,197 @@ function compareCoverageOption(a, b) {
 }
 
 function getAdjustedPower(move, member) {
-  const basePower = move.basePower || 0;
+  const basePower = getMovePower(move);
   const stabMultiplier = member.types.includes(move.type) ? 1.5 : 1;
   return basePower * stabMultiplier;
 }
+
+function getMovePower(move) {
+  return move.basePower || FIXED_DAMAGE_EFFECTIVE_POWER[move.id] || 0;
+}
+
+function recommendCurrentMoves(member, moves) {
+  const selected = [];
+  const damagingMoves = moves
+    .filter(isDamagingMove)
+    .map((move) => decorateMove(move, member));
+  const utilityMoves = moves
+    .filter((move) => !isDamagingMove(move) && UTILITY_MOVE_WEIGHTS[move.id])
+    .map((move) => decorateMove(move, member));
+
+  const bestStabByType = member.types
+    .map((type) =>
+      damagingMoves
+        .filter((move) => move.type === type)
+        .sort(compareRecommendedDamagingMoves)[0],
+    )
+    .filter(Boolean);
+
+  for (const move of bestStabByType) {
+    addRecommendedMove(selected, move);
+  }
+
+  const bestCoverageByType = getBestDamagingMoveByType(damagingMoves)
+    .filter((move) => !member.types.includes(move.type))
+    .sort(compareRecommendedDamagingMoves);
+
+  for (const move of bestCoverageByType) {
+    if (selected.length >= 4) break;
+    addRecommendedMove(selected, move);
+  }
+
+  const bestUtilityMoves = utilityMoves.sort(compareUtilityMoves);
+  for (const move of bestUtilityMoves) {
+    if (selected.length >= 4) break;
+    addRecommendedMove(selected, move);
+  }
+
+  const bestRemainingDamage = damagingMoves.sort(compareRecommendedDamagingMoves);
+  for (const move of bestRemainingDamage) {
+    if (selected.length >= 4) break;
+    addRecommendedMove(selected, move);
+  }
+
+  return selected.slice(0, 4);
+}
+
+function addRecommendedMove(selected, move) {
+  if (!move || selected.some((entry) => entry.id === move.id)) return;
+  selected.push(move);
+}
+
+function decorateMove(move, member) {
+  return {
+    ...move,
+    basePower: getMovePower(move),
+    adjustedPower: getAdjustedPower(move, member),
+    sourcePriority: getBestSourcePriority(move),
+    superEffectiveTargetCount: countSuperEffectiveTargets(move.type),
+    utilityWeight: UTILITY_MOVE_WEIGHTS[move.id] || 0,
+  };
+}
+
+function getBestDamagingMoveByType(damagingMoves) {
+  const byType = new Map();
+
+  for (const move of damagingMoves) {
+    const current = byType.get(move.type);
+    if (!current || compareRecommendedDamagingMoves(move, current) < 0) {
+      byType.set(move.type, move);
+    }
+  }
+
+  return [...byType.values()];
+}
+
+function compareRecommendedDamagingMoves(a, b) {
+  return (
+    Number(memberHasStab(b)) - Number(memberHasStab(a)) ||
+    b.superEffectiveTargetCount - a.superEffectiveTargetCount ||
+    b.adjustedPower - a.adjustedPower ||
+    (b.priority || 0) - (a.priority || 0) ||
+    a.sourcePriority - b.sourcePriority ||
+    a.name.localeCompare(b.name)
+  );
+}
+
+function memberHasStab(move) {
+  return move.adjustedPower > (move.basePower || 0);
+}
+
+function compareUtilityMoves(a, b) {
+  return (
+    b.utilityWeight - a.utilityWeight ||
+    a.sourcePriority - b.sourcePriority ||
+    a.name.localeCompare(b.name)
+  );
+}
+
+function countSuperEffectiveTargets(attackType) {
+  return REBORN_ANALYSIS_TYPES.filter(
+    (defenseType) => getTypeMultiplier(attackType, [defenseType]) > 1,
+  ).length;
+}
+
+function getBestSourcePriority(move) {
+  const priorities = {
+    "level-up": 0,
+    relearner: 1,
+    tm: 2,
+    tmx: 3,
+    tutor: 4,
+    egg: 5,
+  };
+
+  return Math.min(
+    ...(move.availableSources || []).map((source) => priorities[source.kind] ?? 9),
+    9,
+  );
+}
+
+function formatBestSource(move) {
+  const source = [...(move.availableSources || [])].sort(
+    (a, b) => getSourcePriority(a) - getSourcePriority(b),
+  )[0];
+
+  if (!source) return "Legal";
+  return source.detail ? `${source.label}: ${source.detail}` : source.label;
+}
+
+function getSourcePriority(source) {
+  const priorities = {
+    "level-up": 0,
+    relearner: 1,
+    tm: 2,
+    tmx: 3,
+    tutor: 4,
+    egg: 5,
+  };
+
+  return priorities[source.kind] ?? 9;
+}
+
+const UTILITY_MOVE_WEIGHTS = {
+  recover: 100,
+  roost: 100,
+  moonlight: 95,
+  morningsun: 95,
+  synthesis: 95,
+  softboiled: 100,
+  slackoff: 100,
+  swordsdance: 90,
+  nastyplot: 90,
+  dragondance: 95,
+  quiverdance: 100,
+  calmmind: 85,
+  bulkup: 85,
+  coil: 85,
+  curse: 75,
+  honeclaws: 70,
+  workup: 65,
+  willowisp: 85,
+  thunderwave: 85,
+  toxic: 80,
+  sleeppowder: 85,
+  spore: 100,
+  stunspore: 70,
+  glare: 85,
+  leechseed: 80,
+  substitute: 75,
+  protect: 55,
+  reflect: 65,
+  lightscreen: 65,
+};
+
+const FIXED_DAMAGE_EFFECTIVE_POWER = {
+  dragonrage: 80,
+  finalgambit: 80,
+  guardianofalola: 80,
+  naturemadness: 80,
+  nightshade: 60,
+  psywave: 60,
+  seismictoss: 60,
+  sonicboom: 40,
+  superfang: 90,
+};
 

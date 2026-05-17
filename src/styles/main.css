@@ -842,7 +842,7 @@ input {
   grid-template-columns:
     minmax(8rem, 1fr)
     minmax(9rem, 1.1fr)
-    minmax(11rem, 1.4fr)
+    minmax(14rem, 1.8fr)
     minmax(7rem, 0.8fr)
     minmax(5rem, 0.6fr)
     minmax(8rem, 1fr);
@@ -876,6 +876,27 @@ input {
 
 .team-analysis-profile-row small {
   color: #c4ccd8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-analysis-moveset {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.team-analysis-moveset-move {
+  display: grid;
+  grid-template-columns: 5.25rem minmax(5rem, 1fr) minmax(7rem, 1fr);
+  gap: 0.4rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.team-analysis-moveset-move span:not(.move-badge),
+.team-analysis-moveset-move small {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -957,6 +978,15 @@ input {
   }
 
   .team-analysis-profile-row small {
+    white-space: normal;
+  }
+
+  .team-analysis-moveset-move {
+    grid-template-columns: 5.25rem minmax(0, 1fr);
+  }
+
+  .team-analysis-moveset-move small {
+    grid-column: 1 / -1;
     white-space: normal;
   }
 
