@@ -2,7 +2,11 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { Dex } from "@pkmn/dex";
 import {
+  REBORN_LEVEL_ONE_MOVE_OVERRIDES,
   REBORN_PROMOTED_TM_MOVES,
+  REBORN_TM_MOVE_OVERRIDES,
+  REBORN_TMX_MOVE_OVERRIDES,
+  REBORN_TUTOR_MOVE_OVERRIDES,
 } from "../src/reborn/rules.js";
 import {
   REBORN_TM_OPTIONS,
@@ -32,7 +36,7 @@ for (const pokemon of pokemonIndex) {
 
   if (!learnsetContext) continue;
 
-  const moves = [];
+  const sourcesByMoveId = new Map();
 
   for (const [moveId, rawSources] of Object.entries(learnsetContext.learnset.learnset || {})) {
     const move = dex.moves.get(moveId);
@@ -41,6 +45,17 @@ for (const pokemon of pokemonIndex) {
     const sources = summarizeSources(move.id, rawSources);
     if (!hasAnySource(sources)) continue;
 
+    sourcesByMoveId.set(move.id, sources);
+  }
+
+  applyRebornOverrides(pokemon.id, sourcesByMoveId);
+
+  const moves = [];
+
+  for (const [moveId, sources] of sourcesByMoveId.entries()) {
+    const move = dex.moves.get(moveId);
+    if (!move?.exists || !hasAnySource(sources)) continue;
+
     moves.push({
       id: move.id,
       name: move.name,
@@ -48,7 +63,7 @@ for (const pokemon of pokemonIndex) {
       category: move.category,
       basePower: move.basePower || 0,
       priority: move.priority || 0,
-      sources,
+      sources: normalizeSources(sources),
     });
   }
 
@@ -136,6 +151,53 @@ function summarizeSources(moveId, rawSources = []) {
   }
 
   return sources;
+}
+
+function applyRebornOverrides(pokemonId, sourcesByMoveId) {
+  for (const moveName of REBORN_LEVEL_ONE_MOVE_OVERRIDES[pokemonId] || []) {
+    const moveId = toId(moveName);
+    const sources = getOrCreateSources(sourcesByMoveId, moveId);
+    sources.levelUp.push(1);
+  }
+
+  for (const moveName of REBORN_TUTOR_MOVE_OVERRIDES[pokemonId] || []) {
+    const moveId = toId(moveName);
+    const sources = getOrCreateSources(sourcesByMoveId, moveId);
+    sources.tutor = true;
+  }
+
+  for (const moveName of REBORN_TM_MOVE_OVERRIDES[pokemonId] || []) {
+    const moveId = toId(moveName);
+    const sources = getOrCreateSources(sourcesByMoveId, moveId);
+    sources.tm = true;
+  }
+
+  for (const moveName of REBORN_TMX_MOVE_OVERRIDES[pokemonId] || []) {
+    const moveId = toId(moveName);
+    const sources = getOrCreateSources(sourcesByMoveId, moveId);
+    sources.tmx = true;
+  }
+}
+
+function getOrCreateSources(sourcesByMoveId, moveId) {
+  if (!sourcesByMoveId.has(moveId)) {
+    sourcesByMoveId.set(moveId, {
+      levelUp: [],
+      tm: false,
+      tmx: false,
+      tutor: false,
+      egg: false,
+    });
+  }
+
+  return sourcesByMoveId.get(moveId);
+}
+
+function normalizeSources(sources) {
+  return {
+    ...sources,
+    levelUp: [...new Set(sources.levelUp)].sort((a, b) => a - b),
+  };
 }
 
 function parseSourceCode(code) {
