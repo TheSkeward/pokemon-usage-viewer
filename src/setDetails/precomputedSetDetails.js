@@ -1,3 +1,5 @@
+import { dataUrl } from "../utils/dataUrl.js";
+
 export function createPrecomputedSetDetailsLoader({
   getFamily,
   getSelection,
@@ -175,9 +177,4 @@ async function fetchSetDetail({ family, pokemonId, selection }) {
   }
 
   return response.json();
-}
-
-function dataUrl(path) {
-  const base = import.meta.env.BASE_URL || "/";
-  return `${base.replace(/\/$/, "")}/data/${path.replace(/^\//, "")}`;
 }

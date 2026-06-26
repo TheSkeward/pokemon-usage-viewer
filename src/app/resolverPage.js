@@ -1,3 +1,4 @@
+import { escapeHtml } from "../utils/html.js";
 import { getAvailabilitySelectionLabel } from "../data";
 import { describePrecomputedSetSource } from "../setDetails/precomputedSetDetails";
 import { renderMovesetPanel } from "../views/movesetView";
@@ -68,11 +69,3 @@ export function renderResolverPage(pageRoot, context) {
   }
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}

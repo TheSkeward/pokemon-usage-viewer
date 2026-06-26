@@ -1,4 +1,5 @@
 import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
+import { toId } from "../utils/ids.js";
 
 export function getCurrentRebornSpeciesForChoice(choice, progression = {}) {
   const inputId = toId(choice?.inputPokemonId || choice?.pokemonId);
@@ -124,12 +125,6 @@ function getDepth(speciesId) {
   }
 
   return depth;
-}
-
-function toId(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
 }
 
 function normalizeLevelCap(value) {

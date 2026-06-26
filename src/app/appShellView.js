@@ -1,3 +1,5 @@
+import { escapeHtml } from "../utils/html.js";
+
 export function renderAppShell(app, state) {
   app.innerHTML = `
     <div class="app-shell">
@@ -31,11 +33,3 @@ export function renderFatalAppError(app, error) {
   `;
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}

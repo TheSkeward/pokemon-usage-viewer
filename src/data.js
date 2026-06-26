@@ -1,13 +1,7 @@
 import { LINE_REPRESENTATIVE_CANDIDATES } from './generated/gen7LineRepresentativeCandidates.generated.js';
+import { dataUrl } from './utils/dataUrl.js';
 
 const LEAD_SMOOTHING_K = 200;
-
-function dataUrl(path) {
-  const base = import.meta.env.BASE_URL || '/';
-  const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
-  const cleanPath = String(path).replace(/^\/+/, '');
-  return `${cleanBase}/data/${cleanPath}`;
-}
 
 const HIDDEN_MOVESET_ENTRY_KEYS = new Set(['other', 'nothing']);
 const SOURCE_FETCH_CONCURRENCY = 16;

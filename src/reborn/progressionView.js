@@ -1,3 +1,4 @@
+import { escapeHtml, escapeAttr } from "../utils/html.js";
 import {
   REBORN_MOVE_LEGALITY_BASE,
   REBORN_PROGRESSION_NOTES,
@@ -204,15 +205,4 @@ function getUniqueGroupOptions(groups) {
   return options;
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
 
-function escapeAttr(value) {
-  return escapeHtml(value);
-}

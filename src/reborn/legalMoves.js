@@ -4,6 +4,8 @@ import {
   REBORN_TUTOR_OPTIONS,
 } from "./progressionOptions.js";
 import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
+import { dataUrl } from "../utils/dataUrl.js";
+import { toId as normalizeId } from "../utils/ids.js";
 
 const legalMoveCache = new Map();
 const tmByMoveId = mapOptionsByMoveId(REBORN_TM_OPTIONS);
@@ -206,19 +208,9 @@ function mapOptionsByMoveId(options) {
   return new Map(options.map((option) => [toId(option.move), option]));
 }
 
-function dataUrl(path) {
-  const base = import.meta.env.BASE_URL || "/";
-  const cleanBase = base.endsWith("/") ? base.slice(0, -1) : base;
-  const cleanPath = String(path).replace(/^\/+/, "");
-  return `${cleanBase}/data/${cleanPath}`;
-}
-
+// Reborn legal-move data stores every Hidden Power variant under the single
+// "hiddenpower" id, so collapse them here when resolving move ids.
 function toId(value) {
-  const id = String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
-
-  if (id.startsWith("hiddenpower")) return "hiddenpower";
-
-  return id;
+  const id = normalizeId(value);
+  return id.startsWith("hiddenpower") ? "hiddenpower" : id;
 }
