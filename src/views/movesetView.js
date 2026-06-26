@@ -154,10 +154,11 @@ function renderSection(title, entries = [], alreadyExpanded = false) {
   }
 
   let additionalStarted = false;
+  let legalUnusedStarted = false;
   const rows = [];
 
   for (const [index, entry] of entries.entries()) {
-    const moveMeta = title === "Moves" ? getMoveMeta(entry.name) : null;
+    const moveMeta = title === "Moves" ? resolveMoveMeta(entry) : null;
     const moveAttrs = moveMeta
       ? `data-move-type="${escapeAttr(moveMeta.type)}" data-move-category="${escapeAttr(moveMeta.category)}"`
       : "";
@@ -165,6 +166,13 @@ function renderSection(title, entries = [], alreadyExpanded = false) {
     if (isAdditionalEntry(entry) && !additionalStarted) {
       additionalStarted = true;
       rows.push('<li class="section-divider">Additional set options</li>');
+    }
+
+    if (isLegalUnusedEntry(entry) && !legalUnusedStarted) {
+      legalUnusedStarted = true;
+      rows.push(
+        '<li class="section-divider">Other legal moves (no recorded usage)</li>',
+      );
     }
 
     rows.push(
@@ -197,7 +205,7 @@ function renderSection(title, entries = [], alreadyExpanded = false) {
 
 function renderMoveRow(entry, index, moveMeta, moveAttrs) {
   return `
-    <li class="moveset-row move-row ${isAdditionalEntry(entry) ? "tail-entry" : ""} ${moveMeta ? "move-entry" : ""}" ${moveAttrs}>
+    <li class="moveset-row move-row ${isTailEntry(entry) ? "tail-entry" : ""} ${moveMeta ? "move-entry" : ""}" ${moveAttrs}>
       <span class="move-row-main">
         <span class="move-row-name" title="${escapeAttr(entry.name)}">
           <span class="entry-rank">${index + 1}.</span>
@@ -222,7 +230,7 @@ function renderMoveRow(entry, index, moveMeta, moveAttrs) {
 
 function renderStandardRow(entry, index, sectionTitle) {
   return `
-    <li class="moveset-row ${isAdditionalEntry(entry) ? "tail-entry" : ""}">
+    <li class="moveset-row ${isTailEntry(entry) ? "tail-entry" : ""}">
       <span class="entry-left">
         <span class="entry-rank">${index + 1}.</span>
         <span>${renderPlainEntryName(entry.name, sectionTitle)}</span>
@@ -262,6 +270,27 @@ function compactSourceText(value) {
 
 function isAdditionalEntry(entry) {
   return entry.kind === "fallback" || entry.kind === "additional";
+}
+
+function isLegalUnusedEntry(entry) {
+  return entry.kind === "legal-unused";
+}
+
+// Entries shown below a divider (lower-confidence tail) get muted styling.
+function isTailEntry(entry) {
+  return isAdditionalEntry(entry) || isLegalUnusedEntry(entry);
+}
+
+// Prefer the generated move table, but fall back to the type/category the entry
+// carries itself (legal-move entries always have them) so the badges still
+// render for moves missing from the table.
+function resolveMoveMeta(entry) {
+  return (
+    getMoveMeta(entry.name) ||
+    (entry.type
+      ? { name: entry.name, type: entry.type, category: entry.category || "Status" }
+      : null)
+  );
 }
 
 function renderPlainEntryName(name, sectionTitle) {

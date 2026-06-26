@@ -1,4 +1,5 @@
 import { dataUrl } from "../utils/dataUrl.js";
+import { getRebornMoveId } from "../reborn/legalMoves.js";
 
 export function createPrecomputedSetDetailsLoader({
   getFamily,
@@ -57,15 +58,36 @@ export function createPrecomputedSetDetailsLoader({
   async function loadPrecomputedSetDetail(pokemonId, requestGeneration) {
     try {
       const requestedSelection = getSelection();
-      const result = await fetchSetDetailWithAllFallback({
-        family: getFamily(),
-        pokemonId,
-        selection: requestedSelection,
-      });
+      // Smogon set details and the Reborn legal moveset are independent files;
+      // fetch both so the panel can list every legal move (with the unused ones
+      // appended to the tail) even when one source is missing.
+      const [result, legalMoves] = await Promise.all([
+        fetchSetDetailWithAllFallback({
+          family: getFamily(),
+          pokemonId,
+          selection: requestedSelection,
+        }),
+        fetchLegalMoves(pokemonId),
+      ]);
 
       if (requestGeneration !== generation) return;
 
-      if (!result.detail) {
+      let merged = result.detail;
+
+      if (merged && result.usedFallback) {
+        merged = {
+          ...merged,
+          requestedSelection,
+          selectionFallback: {
+            requested: requestedSelection,
+            used: result.usedSelection,
+          },
+        };
+      }
+
+      merged = appendUnusedLegalMoves(merged, legalMoves, pokemonId);
+
+      if (!merged) {
         detail = null;
         status = {
           phase: "empty",
@@ -78,18 +100,7 @@ export function createPrecomputedSetDetailsLoader({
         return;
       }
 
-      detail = result.detail;
-
-      if (result.usedFallback) {
-        detail = {
-          ...detail,
-          requestedSelection,
-          selectionFallback: {
-            requested: requestedSelection,
-            used: result.usedSelection,
-          },
-        };
-      }
+      detail = merged;
 
       status = {
         phase: "ready",
@@ -177,4 +188,67 @@ async function fetchSetDetail({ family, pokemonId, selection }) {
   }
 
   return response.json();
+}
+
+async function fetchLegalMoves(pokemonId) {
+  const response = await fetch(
+    dataUrl(`reborn-legal-moves/all/${pokemonId}.json`),
+  );
+
+  if (response.status === 404) return null;
+  if (!response.ok) return null;
+
+  return response.json();
+}
+
+// Appends every Reborn-legal move that has no observed Smogon usage to the end
+// of the moves tail, so Set Lookup shows the full legal movepool. If there is no
+// Smogon detail at all, a minimal detail is synthesized so the legal list still
+// renders.
+function appendUnusedLegalMoves(detail, legalMoves, pokemonId) {
+  const legal = legalMoves?.moves;
+  if (!legal?.length) return detail;
+
+  const base =
+    detail ||
+    {
+      pokemonId,
+      name: legalMoves.pokemonName,
+      sourceText: "Reborn legal moves (no competitive usage data)",
+      moves: [],
+      items: [],
+      abilities: [],
+      spreads: [],
+    };
+
+  const usedMoveIds = new Set(
+    (base.moves || []).map((move) => getRebornMoveId(move.name)),
+  );
+
+  const unusedMoves = legal
+    .filter((move) => !usedMoveIds.has(move.id))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((move) => ({
+      name: move.name,
+      kind: "legal-unused",
+      type: move.type,
+      category: move.category,
+      sourceText: describeLegalSources(move.sources),
+    }));
+
+  if (!unusedMoves.length) return base;
+
+  return { ...base, moves: [...(base.moves || []), ...unusedMoves] };
+}
+
+function describeLegalSources(sources = {}) {
+  const parts = [];
+  if (sources.levelUp?.length) parts.push("Level-up");
+  if (sources.preEvolutionLevelUp?.length) parts.push("Pre-evo level-up");
+  if (sources.tm) parts.push("TM");
+  if (sources.tmx) parts.push("TMX");
+  if (sources.tutor) parts.push("Tutor");
+  if (sources.egg) parts.push("Egg");
+
+  return parts.length ? `Legal in Reborn · ${parts.join(" · ")}` : "Legal in Reborn";
 }
