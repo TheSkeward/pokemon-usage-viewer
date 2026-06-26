@@ -1,3 +1,4 @@
+import { escapeHtml, escapeAttr } from "../utils/html.js";
 import {
   getAvailableMoveMap,
   getAvailableRebornMoves,
@@ -214,15 +215,4 @@ function cleanObservedMoves(entries = []) {
   );
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
 
-function escapeAttr(value) {
-  return escapeHtml(value);
-}

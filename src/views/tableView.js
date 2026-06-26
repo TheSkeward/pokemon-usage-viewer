@@ -1,3 +1,4 @@
+import { escapeHtml } from "../utils/html.js";
 const SORTERS = {
   rank: (a, b) => a.rank - b.rank,
   name: (a, b) => a.name.localeCompare(b.name),
@@ -31,12 +32,4 @@ function renderHeaderCell(field, label, state) {
   const isActive = state.sortBy === field;
   const arrow = !isActive ? "" : state.sortDir === "asc" ? " ↑" : " ↓";
   return `<th><button class="sort-button ${isActive ? "active" : ""}" data-sort-by="${field}">${label}${arrow}</button></th>`;
-}
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 }

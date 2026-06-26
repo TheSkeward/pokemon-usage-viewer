@@ -1,3 +1,4 @@
+import { escapeHtml } from "./utils/html.js";
 import { loadAvailability, loadFormatsIndex, loadPokemonIndex } from "./data";
 import { renderTeamBuilderPage } from "./teamBuilder/teamBuilderView";
 import { createTeamBuilderSetDetailsLoader } from "./teamBuilder/setDetailsLoader";
@@ -529,11 +530,3 @@ function getProgressionKey(progression) {
   return JSON.stringify(progression || {});
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}

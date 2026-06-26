@@ -1,3 +1,4 @@
+import { escapeHtml, escapeAttr } from "../utils/html.js";
 import { getMoveMeta, getTypeColor, getCategoryColor } from "../moveMeta";
 
 const HIDDEN_MOVESET_ENTRY_KEYS = new Set(["other", "nothing"]);
@@ -398,15 +399,4 @@ function normalizeKey(value) {
     .replace(/[^a-z0-9]+/g, "");
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
 
-function escapeAttr(value) {
-  return escapeHtml(value);
-}

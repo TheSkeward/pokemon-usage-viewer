@@ -1,3 +1,5 @@
+import { escapeHtml } from "../utils/html.js";
+
 export function renderControls(container, state, dataset, formatsIndex) {
   const familyFormats = formatsIndex.filter((format) => format.family === state.family && (!format.synthetic || state.family === 'singles'));
   container.innerHTML = `
@@ -14,4 +16,3 @@ export function renderControls(container, state, dataset, formatsIndex) {
       </div>
     </section>`;
 }
-function escapeHtml(value) { return value.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }

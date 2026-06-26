@@ -1,3 +1,4 @@
+import { escapeHtml } from "../utils/html.js";
 export function renderResolverControls(container, state, availability) {
   const months = Object.keys(availability?.months || {})
     .sort()
@@ -12,12 +13,4 @@ export function renderResolverControls(container, state, availability) {
         <label class="wide-control"><span>Pokémon</span><input id="resolver-query-input" type="search" value="${escapeHtml(state.resolverQuery)}" placeholder="Charizard, Butterfree, Purrloin" /></label>
       </div>
     </section>`;
-}
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 }

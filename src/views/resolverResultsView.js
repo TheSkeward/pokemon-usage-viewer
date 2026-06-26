@@ -1,3 +1,4 @@
+import { escapeHtml } from "../utils/html.js";
 export function renderResolverResults(
   container,
   rows,
@@ -103,12 +104,4 @@ function formatSource(source, formatsIndex) {
   if (source.selection === "all")
     return `${label} @ ${source.cutoff} (all, ${source.monthsPresent}/${source.monthsAvailable} mo)`;
   return `${label} @ ${source.cutoff} (${source.month})`;
-}
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 }

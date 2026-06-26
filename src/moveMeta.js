@@ -1,4 +1,5 @@
 import { MOVE_META } from './generated/gen7MoveMeta.generated.js';
+import { toId as moveId } from './utils/ids.js';
 
 const TYPE_COLORS = {
   Normal: '#A8A77A',
@@ -27,16 +28,33 @@ const CATEGORY_COLORS = {
   Status: '#9AA5B1',
 };
 
+const VALID_TYPES = new Set(Object.keys(TYPE_COLORS));
+
 const cache = new Map();
 
 export function getMoveMeta(name) {
-  const id = moveId(name);
+  const rawName = String(name || '').trim();
+  const id = moveId(rawName);
   if (!id) return null;
   if (cache.has(id)) return cache.get(id);
 
-  const meta = MOVE_META[id] || null;
+  // Hidden Power's elemental type lives in the move name ("Hidden Power Ice"),
+  // not in the base dex entry, so the generated table only has a single
+  // "hiddenpower" key. Resolve the variant type from the name suffix; in Gen 7
+  // Hidden Power is always Special regardless of type.
+  const meta = resolveHiddenPower(rawName) || MOVE_META[id] || null;
   cache.set(id, meta);
   return meta;
+}
+
+function resolveHiddenPower(name) {
+  const match = /^hidden\s*power\s+([a-z]+)$/i.exec(name);
+  if (!match) return null;
+
+  const type = match[1][0].toUpperCase() + match[1].slice(1).toLowerCase();
+  if (!VALID_TYPES.has(type)) return null;
+
+  return { name: `Hidden Power ${type}`, type, category: 'Special' };
 }
 
 export function getTypeColor(type) {
@@ -45,8 +63,4 @@ export function getTypeColor(type) {
 
 export function getCategoryColor(category) {
   return CATEGORY_COLORS[category] || '#AAB5C3';
-}
-
-function moveId(name) {
-  return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
 }
