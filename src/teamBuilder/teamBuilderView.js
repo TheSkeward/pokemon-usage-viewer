@@ -178,12 +178,65 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
           </tbody>
         </table>
       </div>
+
+      ${renderBenchLine(result)}
     </section>
 
     <div id="reborn-team-analysis-root"></div>
 
     ${renderUnresolved(result.unresolved)}
   `;
+}
+
+// One compact line under the team table listing the resolved input lines that
+// did NOT make the team, in usage order, so it's easy to see which picks were
+// close and which are negligible — without spending much vertical space.
+function renderBenchLine(result) {
+  const selectedInputIds = new Set(
+    result.team.map((choice) => choice.inputPokemonId),
+  );
+  const seenInputIds = new Set();
+  const bench = [];
+
+  for (const line of result.lines || []) {
+    const representative = line.best || line.bestNonMega;
+    if (!representative) continue;
+    if (selectedInputIds.has(representative.inputPokemonId)) continue;
+    if (seenInputIds.has(representative.inputPokemonId)) continue;
+
+    seenInputIds.add(representative.inputPokemonId);
+    bench.push(representative);
+  }
+
+  if (!bench.length) return "";
+
+  bench.sort(
+    (a, b) =>
+      benchUsage(b) - benchUsage(a) ||
+      (b.score || 0) - (a.score || 0) ||
+      a.name.localeCompare(b.name),
+  );
+
+  const items = bench
+    .map((representative) => {
+      const usage = representative.bundle?.usage?.value;
+      const usageText = typeof usage === "number" ? `${usage.toFixed(1)}%` : "—";
+      const trace = !representative.meaningfulUsage;
+
+      return `<span class="bench-chip${trace ? " trace" : ""}" title="from input ${escapeHtml(representative.inputName)}">${escapeHtml(representative.name)} <em>${usageText}</em></span>`;
+    })
+    .join("");
+
+  return `
+    <div class="bench-line">
+      <span class="bench-label">Not selected · usage order (${bench.length}):</span>
+      <span class="bench-items">${items}</span>
+    </div>
+  `;
+}
+
+function benchUsage(representative) {
+  return Math.max(0, representative.bundle?.usage?.value || 0);
 }
 
 function renderSortHeader(sortBy, label, state) {

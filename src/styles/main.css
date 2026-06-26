@@ -366,6 +366,42 @@ input {
   font-size: 0.82rem;
 }
 
+.bench-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(170, 181, 195, 0.18);
+  font-size: 0.82rem;
+}
+
+.bench-label {
+  color: #aab5c3;
+  white-space: nowrap;
+}
+
+.bench-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.bench-chip {
+  white-space: nowrap;
+  color: #d7dee6;
+}
+
+.bench-chip em {
+  color: #aab5c3;
+  font-style: normal;
+}
+
+.bench-chip.trace {
+  opacity: 0.5;
+}
+
 .resolver-loading-banner {
   display: inline-flex;
   align-items: center;
