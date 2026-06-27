@@ -402,6 +402,90 @@ input {
   opacity: 0.5;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.item-inventory-add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.item-inventory-add input {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-inventory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item-inventory-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-inventory-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-inventory-count select {
+  padding: 2px 6px;
+}
+
+.item-inventory-remove {
+  border: none;
+  background: transparent;
+  color: #aab5c3;
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 4px 6px;
+}
+
+.item-inventory-remove:hover {
+  color: #e85d75;
+}
+
+.availability-output {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(170, 181, 195, 0.18);
+}
+
+.availability-output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.availability-output-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.availability-output textarea {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  white-space: pre;
+}
+
 .resolver-loading-banner {
   display: inline-flex;
   align-items: center;

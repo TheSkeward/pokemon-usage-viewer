@@ -11,6 +11,9 @@ import {
 
 const PROGRESSION_STORAGE_KEY = "pokemon-usage-viewer:reborn-progression:v1";
 
+// Highest tracked held-item quantity; the picker treats this as "6 or more".
+export const MAX_TRACKED_ITEM_COUNT = 6;
+
 export const DEFAULT_REBORN_PROGRESSION = {
   levelCap: "",
   moveRelearnerUnlocked: false,
@@ -18,6 +21,7 @@ export const DEFAULT_REBORN_PROGRESSION = {
   availableTmIds: [],
   availableTmxIds: [],
   availableTutorMoveIds: [],
+  ownedItems: {},
 };
 
 export function loadSavedRebornProgression() {
@@ -65,7 +69,24 @@ export function normalizeRebornProgression(progression = {}) {
       REBORN_TUTOR_OPTIONS,
       progression.availableTutorsText,
     ),
+    ownedItems: normalizeOwnedItems(progression.ownedItems),
   };
+}
+
+export function setRebornOwnedItemCount(progression, itemId, count) {
+  const id = String(itemId || "").trim();
+  if (!id) return normalizeRebornProgression(progression);
+
+  const owned = { ...(progression.ownedItems || {}) };
+  const parsed = Number.parseInt(count, 10);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    delete owned[id];
+  } else {
+    owned[id] = Math.min(MAX_TRACKED_ITEM_COUNT, parsed);
+  }
+
+  return normalizeRebornProgression({ ...progression, ownedItems: owned });
 }
 
 export function updateRebornProgressionField(progression, field, value) {
@@ -143,6 +164,24 @@ function normalizeOptionIds(value, options, legacyText = "") {
       options.findIndex((option) => option.id === a) -
       options.findIndex((option) => option.id === b),
   );
+}
+
+function normalizeOwnedItems(value) {
+  if (!value || typeof value !== "object") return {};
+
+  const owned = {};
+
+  for (const [rawId, rawCount] of Object.entries(value)) {
+    const id = String(rawId || "").trim();
+    if (!id) continue;
+
+    const count = Number.parseInt(rawCount, 10);
+    if (!Number.isFinite(count) || count <= 0) continue;
+
+    owned[id] = Math.min(MAX_TRACKED_ITEM_COUNT, count);
+  }
+
+  return owned;
 }
 
 function normalizeSearch(value) {

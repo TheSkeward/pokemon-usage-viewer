@@ -89,10 +89,30 @@ function renderPoolControls({ embedded, poolStats, state }) {
       <div class="toolbar">
         <button class="view-tab primary-action" id="optimize-button">${state.loading ? "Optimizing..." : "Normalize + optimize team"}</button>
         <button class="view-tab" id="copy-pool-button">Copy pool</button>
+        <button class="view-tab" id="generate-availability-button" ${state.result?.lines?.length ? "" : "disabled"} title="${state.result?.lines?.length ? "Generate a pasteable list of every available Pokémon, its current move pool, and your held items" : "Optimize the team first to resolve your pool"}">Generate availability list</button>
         <button class="view-tab danger-button" id="clear-pool-button">Clear saved pool</button>
         <span class="muted" data-pool-status>${escapeHtml(state.statusMessage)}</span>
       </div>
+
+      ${renderAvailabilityOutput(state.availabilityText)}
     </section>
+  `;
+}
+
+function renderAvailabilityOutput(availabilityText) {
+  if (!availabilityText) return "";
+
+  return `
+    <div class="availability-output">
+      <div class="availability-output-header">
+        <strong>Availability list</strong>
+        <span class="availability-output-actions">
+          <button type="button" class="view-tab" id="copy-availability-button">Copy</button>
+          <button type="button" class="view-tab" id="close-availability-button">Close</button>
+        </span>
+      </div>
+      <textarea id="availability-output-text" rows="12" readonly>${escapeHtml(availabilityText)}</textarea>
+    </div>
   `;
 }
 

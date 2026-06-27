@@ -10,6 +10,11 @@ import {
   REBORN_TM_OPTIONS,
   REBORN_TMX_OPTIONS,
 } from "./progressionOptions";
+import { MAX_TRACKED_ITEM_COUNT } from "./progression";
+import {
+  GEN7_HELD_ITEMS,
+  GEN7_HELD_ITEMS_BY_ID,
+} from "../generated/gen7HeldItems.generated.js";
 
 export function renderRebornProgressionPanel(progression) {
   return `
@@ -75,6 +80,8 @@ export function renderRebornProgressionPanel(progression) {
           selectedIds: progression.availableTutorMoveIds,
           summary: "Available tutors",
         })}
+
+        ${renderItemInventory(progression.ownedItems || {})}
       </div>
 
       <details class="progression-rules">
@@ -93,6 +100,75 @@ export function renderRebornProgressionPanel(progression) {
         <span class="muted" data-progression-status></span>
       </div>
     </section>
+  `;
+}
+
+function renderItemInventory(ownedItems) {
+  const ownedIds = Object.keys(ownedItems)
+    .map((id) => GEN7_HELD_ITEMS_BY_ID[id])
+    .filter(Boolean)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const datalistOptions = GEN7_HELD_ITEMS.map(
+    (item) => `<option value="${escapeAttr(item.name)}"></option>`,
+  ).join("");
+
+  const ownedRows = ownedIds.length
+    ? ownedIds
+        .map((item) => renderOwnedItemRow(item, ownedItems[item.id]))
+        .join("")
+    : '<p class="muted">No held items added yet. Search above to add what you own.</p>';
+
+  return `
+    <details class="progression-option-group wide-control" open>
+      <summary>
+        <span>Held items owned</span>
+        <span class="progression-option-count">${ownedIds.length} tracked</span>
+      </summary>
+
+      <div class="item-inventory-add">
+        <input
+          type="text"
+          list="reborn-item-options"
+          data-item-add-input
+          placeholder="Search an item, e.g. Leftovers"
+          aria-label="Add a held item you own"
+        />
+        <datalist id="reborn-item-options">${datalistOptions}</datalist>
+        <button type="button" data-item-add-button>Add</button>
+      </div>
+
+      <div class="item-inventory-list">${ownedRows}</div>
+    </details>
+  `;
+}
+
+function renderOwnedItemRow(item, count) {
+  const options = Array.from({ length: MAX_TRACKED_ITEM_COUNT }, (_, index) => {
+    const value = index + 1;
+    const label = value === MAX_TRACKED_ITEM_COUNT ? `${value}+` : `${value}`;
+    return `<option value="${value}" ${value === count ? "selected" : ""}>${label}</option>`;
+  }).join("");
+
+  return `
+    <div class="item-inventory-row">
+      <span class="item-inventory-name">${escapeHtml(item.name)}</span>
+      <label class="item-inventory-count">
+        <span class="visually-hidden">Quantity of ${escapeHtml(item.name)}</span>
+        <select data-owned-item-count data-item-id="${escapeAttr(item.id)}">
+          ${options}
+        </select>
+      </label>
+      <button
+        type="button"
+        class="item-inventory-remove"
+        data-owned-item-remove
+        data-item-id="${escapeAttr(item.id)}"
+        aria-label="Remove ${escapeHtml(item.name)}"
+      >
+        ✕
+      </button>
+    </div>
   `;
 }
 

@@ -11,10 +11,14 @@ import {
   clearSavedRebornProgression,
   loadSavedRebornProgression,
   saveRebornProgression,
+  setRebornOwnedItemCount,
   setRebornProgressionOptions,
   updateRebornProgressionField,
   updateRebornProgressionOption,
 } from "./reborn/progression";
+import { toId } from "./utils/ids.js";
+import { GEN7_HELD_ITEMS_BY_ID } from "./generated/gen7HeldItems.generated.js";
+import { buildPoolAvailabilityText } from "./teamBuilder/availabilityExport";
 import {
   readLocalStorage,
   removeLocalStorage,
@@ -47,6 +51,7 @@ export function mountPoolOptimizer(container, options = {}) {
     resultProgressionKey: "",
     loading: false,
     statusMessage: "",
+    availabilityText: "",
   };
 
   const setDetails = createTeamBuilderSetDetailsLoader({
@@ -269,6 +274,58 @@ export function mountPoolOptimizer(container, options = {}) {
       });
     });
 
+    app.querySelector("[data-item-add-button]")?.addEventListener("click", () => {
+      const input = app.querySelector("[data-item-add-input]");
+      const itemId = toId(input?.value || "");
+
+      if (!itemId || !GEN7_HELD_ITEMS_BY_ID[itemId]) {
+        updateProgressionStatusMessage(
+          "Item not recognized; pick one from the suggestions.",
+        );
+        return;
+      }
+
+      const current = state.progression.ownedItems?.[itemId] || 0;
+      applyOwnedItemChange(itemId, current + 1);
+      if (input) input.value = "";
+    });
+
+    app.querySelectorAll("[data-owned-item-count]").forEach((control) => {
+      control.addEventListener("change", () => {
+        applyOwnedItemChange(control.dataset.itemId, control.value);
+      });
+    });
+
+    app.querySelectorAll("[data-owned-item-remove]").forEach((button) => {
+      button.addEventListener("click", () => {
+        applyOwnedItemChange(button.dataset.itemId, 0);
+      });
+    });
+
+    app
+      .querySelector("#generate-availability-button")
+      ?.addEventListener("click", () => {
+        void generateAvailabilityList();
+      });
+
+    app
+      .querySelector("#copy-availability-button")
+      ?.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(state.availabilityText || "");
+          updatePoolStatusMessage("Availability list copied to clipboard");
+        } catch {
+          updatePoolStatusMessage("Clipboard copy failed");
+        }
+      });
+
+    app
+      .querySelector("#close-availability-button")
+      ?.addEventListener("click", () => {
+        state.availabilityText = "";
+        render();
+      });
+
     app
       .querySelector("#pool-query-input")
       ?.addEventListener("input", (event) => {
@@ -278,6 +335,7 @@ export function mountPoolOptimizer(container, options = {}) {
 
         state.result = null;
         state.resultProgressionKey = "";
+        state.availabilityText = "";
         setDetails.cancel();
 
         state.statusMessage = saved
@@ -348,6 +406,59 @@ export function mountPoolOptimizer(container, options = {}) {
     }
 
     render();
+  }
+
+  function applyOwnedItemChange(itemId, count) {
+    state.progression = setRebornOwnedItemCount(
+      state.progression,
+      itemId,
+      count,
+    );
+
+    const saved = saveRebornProgression(state.progression);
+    state.statusMessage = saved
+      ? "Saved locally"
+      : "Held items could not be saved locally; browser storage is full.";
+
+    render();
+  }
+
+  async function generateAvailabilityList() {
+    if (!state.result?.lines?.length) {
+      state.statusMessage =
+        "Optimize the team first so your pool is resolved, then generate the list.";
+      render();
+      return;
+    }
+
+    updatePoolStatusMessage("Generating availability list…");
+
+    try {
+      const text = await buildPoolAvailabilityText({
+        lines: state.result.lines,
+        progression: state.progression,
+      });
+
+      state.availabilityText = text;
+
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+      } catch {
+        copied = false;
+      }
+
+      state.statusMessage = copied
+        ? "Availability list copied to clipboard"
+        : "Availability list ready below";
+
+      render();
+    } catch (error) {
+      updatePoolStatusMessage(
+        `Could not generate list: ${error?.message || error}`,
+      );
+    }
   }
 
   function updatePoolStatusMessage(message) {
@@ -527,6 +638,9 @@ function waitForPaint() {
 }
 
 function getProgressionKey(progression) {
-  return JSON.stringify(progression || {});
+  // Owned items drive recommendations (recomputed every render), not the team
+  // optimization itself, so they must not flag an optimized team as stale.
+  const { ownedItems, ...rest } = progression || {};
+  return JSON.stringify(rest);
 }
 
