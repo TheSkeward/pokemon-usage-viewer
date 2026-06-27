@@ -6,12 +6,21 @@ import {
   GEN7_HELD_ITEMS_BY_ID,
 } from "../generated/gen7HeldItems.generated.js";
 import { GEN7_UNBURDEN_SPECIES } from "../generated/gen7UnburdenSpecies.generated.js";
-import { REBORN_SEEDS, GEN7_TERRAIN_SEEDS } from "../reborn/rebornSeeds.js";
+import {
+  REBORN_SEEDS,
+  GEN7_TERRAIN_SEEDS,
+  REBORN_SEED_STAT_VECTORS,
+} from "../reborn/rebornSeeds.js";
+import { GEN7_BASE_STATS } from "../generated/gen7BaseStats.generated.js";
 
 const TERRAIN_SEED_IDS = GEN7_TERRAIN_SEEDS.map((name) => toId(name));
-const REBORN_SEED_IDS = REBORN_SEEDS.map((name) => toId(name));
-const REBORN_SEED_NAME_BY_ID = new Map(
-  REBORN_SEEDS.map((name) => [toId(name), name]),
+const REBORN_SEED_ID_SET = new Set(REBORN_SEEDS.map((name) => toId(name)));
+// seedId -> { name, vector } from the normalized stat profiles.
+const REBORN_SEED_BY_ID = new Map(
+  REBORN_SEEDS.map((name) => [
+    toId(name),
+    { name, vector: REBORN_SEED_STAT_VECTORS[name] },
+  ]),
 );
 
 // Map each Z-Crystal id to the gem it stands in for, so a member's Z-Crystal
@@ -209,27 +218,52 @@ async function fetchMemberItems({ family, pokemonId, selection, unburden }) {
     }
   }
 
-  // Reborn Field Seeds: proxy from the member's aggregate Gen 7 terrain-seed
-  // usage (same item category — a conditional field-triggered seed).
-  const terrainSeedTotal = TERRAIN_SEED_IDS.reduce(
+  // Reborn Field Seeds: weight = D × stat-fit. D (the member's total Gen 7
+  // terrain-seed usage) sets the magnitude — "does this Pokémon run field seeds
+  // at all" — and is honestly low for most. The stat-fit share decides *which*
+  // seed, steering each toward the archetype it amplifies.
+  const D = TERRAIN_SEED_IDS.reduce(
     (sum, id) => sum + (byId.get(id)?.usage || 0),
     0,
   );
-  if (terrainSeedTotal > 0) {
-    for (const seedId of REBORN_SEED_IDS) {
+  if (D > 0) {
+    for (const [seedId, seedWeight] of seedWeights(pokemonId, D)) {
       if (byId.has(seedId)) continue;
-      byId.set(seedId, {
+      const entry = {
         id: seedId,
-        name: REBORN_SEED_NAME_BY_ID.get(seedId),
-        usage: terrainSeedTotal,
-        weight: terrainSeedTotal,
+        name: REBORN_SEED_BY_ID.get(seedId).name,
+        usage: seedWeight,
+        weight: seedWeight,
         proxy: true,
         seed: true,
-      });
+      };
+      applyUnburden(entry, unburden);
+      byId.set(seedId, entry);
     }
   }
 
   return [...byId.values()];
+}
+
+// Distributes the seed magnitude D across the four Reborn seeds by amplify-
+// strength stat-fit: each seed scores the Pokémon's *above-average* base stats
+// weighted by what that seed boosts, normalized to shares that sum to 1.
+function seedWeights(pokemonId, D) {
+  const stats = GEN7_BASE_STATS[toId(pokemonId)];
+  if (!stats) return [];
+
+  const mean = stats.reduce((sum, value) => sum + value, 0) / stats.length;
+  const above = stats.map((value) => Math.max(0, value - mean));
+
+  const fits = [...REBORN_SEED_BY_ID].map(([seedId, { vector }]) => [
+    seedId,
+    vector.reduce((sum, weight, index) => sum + weight * above[index], 0),
+  ]);
+
+  const total = fits.reduce((sum, [, fit]) => sum + fit, 0);
+  if (total <= 0) return [];
+
+  return fits.map(([seedId, fit]) => [seedId, D * (fit / total)]);
 }
 
 function applyUnburden(entry, unburden) {
@@ -240,7 +274,11 @@ function applyUnburden(entry, unburden) {
 }
 
 function isConsumable(entry) {
-  return GEM_IDS.has(entry.id) || /berry$/i.test(entry.name.replace(/\s+/g, ""));
+  return (
+    GEM_IDS.has(entry.id) ||
+    REBORN_SEED_ID_SET.has(entry.id) ||
+    /berry$/i.test(entry.name.replace(/\s+/g, ""))
+  );
 }
 
 async function fetchGen5Items(pokemonId) {
