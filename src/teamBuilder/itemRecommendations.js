@@ -5,6 +5,7 @@ import {
   GEN7_HELD_ITEMS,
   GEN7_HELD_ITEMS_BY_ID,
 } from "../generated/gen7HeldItems.generated.js";
+import { GEN7_UNBURDEN_SPECIES } from "../generated/gen7UnburdenSpecies.generated.js";
 
 // Map each Z-Crystal id to the gem it stands in for, so a member's Z-Crystal
 // usage can be reused as a proxy for the equivalent Reborn type Gem.
@@ -14,6 +15,13 @@ const GEM_BY_Z_CRYSTAL_ID = new Map(
     { id: toId(gem.gemName), name: gem.gemName },
   ]),
 );
+
+const GEM_IDS = new Set(TYPE_GEMS.map((gem) => toId(gem.gemName)));
+
+// Unburden doubles Speed when a consumable item is used up, so for Unburden
+// species we weight consumables (gems, berries) higher — and this also corrects
+// the gem proxy, since Z-Crystals (its basis) don't trigger Unburden.
+const UNBURDEN_CONSUMABLE_MULTIPLIER = 1.75;
 
 // Generically-good-item ordering for the ultimate fallback: GEN7_HELD_ITEMS is
 // sorted by how broadly each item is used, so a lower index = better default.
@@ -44,6 +52,7 @@ export async function loadTeamItemUsage({ team, family, selection }) {
         family,
         pokemonId: choice.pokemonId,
         selection,
+        unburden: Boolean(GEN7_UNBURDEN_SPECIES[toId(choice.pokemonId)]),
       });
       usageByMember.set(teamMemberKey(choice), items);
     }),
@@ -118,7 +127,7 @@ function bestRemainingItem(remaining) {
   return best;
 }
 
-async function fetchMemberItems({ family, pokemonId, selection }) {
+async function fetchMemberItems({ family, pokemonId, selection, unburden }) {
   const data =
     (await fetchSetIndex({ family, pokemonId, selection })) ||
     (selection !== "all"
@@ -147,9 +156,10 @@ async function fetchMemberItems({ family, pokemonId, selection }) {
       usage: hasUsage ? item.usage : null,
       weight,
     };
+    applyUnburden(entry, unburden);
 
     const existing = byId.get(id);
-    if (!existing || weight > existing.weight) byId.set(id, entry);
+    if (!existing || entry.weight > existing.weight) byId.set(id, entry);
   }
 
   // Type Gems have no USUM usage; proxy each from this member's matching
@@ -157,17 +167,32 @@ async function fetchMemberItems({ family, pokemonId, selection }) {
   for (const entry of [...byId.values()]) {
     const gem = GEM_BY_Z_CRYSTAL_ID.get(entry.id);
     if (gem && !byId.has(gem.id)) {
-      byId.set(gem.id, {
+      const gemEntry = {
         id: gem.id,
         name: gem.name,
         usage: entry.usage,
-        weight: entry.weight,
+        // Use the pre-Unburden weight so the gem isn't double-counted; reapply
+        // the bonus to the gem itself (gems are consumables that trigger it).
+        weight: entry.baseWeight ?? entry.weight,
         proxy: true,
-      });
+      };
+      applyUnburden(gemEntry, unburden);
+      byId.set(gem.id, gemEntry);
     }
   }
 
   return [...byId.values()];
+}
+
+function applyUnburden(entry, unburden) {
+  if (!unburden || !isConsumable(entry)) return;
+  entry.baseWeight = entry.weight;
+  entry.weight *= UNBURDEN_CONSUMABLE_MULTIPLIER;
+  entry.unburden = true;
+}
+
+function isConsumable(entry) {
+  return GEM_IDS.has(entry.id) || /berry$/i.test(entry.name.replace(/\s+/g, ""));
 }
 
 async function fetchSetIndex({ family, pokemonId, selection }) {
