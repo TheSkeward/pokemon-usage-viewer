@@ -1,17 +1,22 @@
 // Generates per-Pokémon Gen 5 held-item usage from Smogon moveset stats, used
-// to blend real historic item data (especially type Gems, which were legal and
-// used in Gen 5 but don't exist in USUM) into the Team Builder recommendations.
+// to blend real historic item data (especially type Gems, legal and used in
+// Gen 5 but absent from USUM) into the Team Builder recommendations.
 //
-// Network-bound: this can only run where smogon.com is reachable (CI). It reuses
-// the same moveset-table parser as build-data.mjs, so the parsing is the proven
-// path; only the formats it points at are new. Output is one JSON per Pokémon
-// under site-data/data/gen5-items/, fetched on demand at runtime.
+// Aggregates across EVERY available Gen 5 month, weighted by raw count, so the
+// high-population old-gen years dominate and sparse modern ladders wash out.
+// Sample-size filters drop noise (a few meme sets on a near-dead modern ladder
+// must not become "56% Ghost Gem"). Successful fetches are cached, since
+// old-gen monthly stats are immutable — so re-runs don't re-hammer Smogon.
+//
+// Network-bound: runs only where smogon.com is reachable (CI). Reuses the same
+// moveset-table parser as build-data.mjs, so parsing is the proven path.
 
 import fs from "node:fs/promises";
 import path from "node:path";
 import { STATS_ROOT } from "./config.mjs";
 
 const OUT_DIR = path.resolve("site-data", "data", "gen5-items");
+const CACHE_DIR = path.resolve("cache", "gen5");
 
 const GEN5_FORMATS = [
   "gen5ubers",
@@ -24,82 +29,71 @@ const GEN5_FORMATS = [
 ];
 const CUTOFFS = [1500, 0];
 
+// A Pokémon needs this many total sampled sets across all of Gen 5 history for
+// its item distribution to be trustworthy; below it, drop the Pokémon entirely.
+const MIN_MON_RAW_COUNT = 500;
+// An item must appear in this many effective games (summed, weighted) to be
+// kept, so single/few-game oddities don't surface as recommendations.
+const MIN_ITEM_GAMES = 20;
+
 async function main() {
   const months = await fetchAvailableMonths();
-  const month = await findLatestGen5Month(months);
+  console.log(`Scanning ${months.length} months for Gen 5 data...`);
 
-  if (!month) {
-    throw new Error("No month with Gen 5 moveset data was found.");
-  }
-
-  console.log(`Using Gen 5 stats from ${month}`);
-
-  // Aggregate item usage per Pokémon, weighted by raw count across formats.
   const byPokemon = new Map();
+  let filesUsed = 0;
 
-  for (const formatId of GEN5_FORMATS) {
-    const text = await fetchFirstAvailable(month, formatId);
-    if (!text) {
-      console.warn(`  ${formatId}: no moveset file`);
-      continue;
-    }
+  for (const month of months) {
+    for (const formatId of GEN5_FORMATS) {
+      const text = await fetchFirstAvailable(month, formatId);
+      if (!text) continue;
+      filesUsed += 1;
 
-    const parsed = parseMovesetItems(text);
-    let count = 0;
+      for (const entry of Object.values(parseMovesetItems(text))) {
+        const agg = byPokemon.get(entry.pokemonId) || {
+          name: entry.name,
+          rawCount: 0,
+          weighted: new Map(),
+        };
 
-    for (const entry of Object.values(parsed)) {
-      count += 1;
-      const agg = byPokemon.get(entry.pokemonId) || {
-        pokemonId: entry.pokemonId,
-        name: entry.name,
-        rawCount: 0,
-        weighted: new Map(),
-      };
+        agg.name = entry.name || agg.name;
+        agg.rawCount += entry.rawCount || 0;
+        for (const item of entry.items) {
+          const games = (item.usage / 100) * (entry.rawCount || 0);
+          agg.weighted.set(item.name, (agg.weighted.get(item.name) || 0) + games);
+        }
 
-      agg.rawCount += entry.rawCount || 0;
-      for (const item of entry.items) {
-        const weight = (item.usage / 100) * (entry.rawCount || 0);
-        agg.weighted.set(item.name, (agg.weighted.get(item.name) || 0) + weight);
+        byPokemon.set(entry.pokemonId, agg);
       }
-
-      byPokemon.set(entry.pokemonId, agg);
     }
-
-    console.log(`  ${formatId}: ${count} Pokémon`);
   }
+
+  console.log(`Aggregated ${filesUsed} Gen 5 moveset files.`);
 
   await fs.rm(OUT_DIR, { recursive: true, force: true });
   await fs.mkdir(OUT_DIR, { recursive: true });
 
   let written = 0;
-  for (const agg of byPokemon.values()) {
-    if (!agg.rawCount) continue;
+  for (const [id, agg] of byPokemon) {
+    if (agg.rawCount < MIN_MON_RAW_COUNT) continue;
 
     const items = [...agg.weighted.entries()]
-      .map(([name, weight]) => ({
-        name,
-        usage: (weight / agg.rawCount) * 100,
-      }))
-      .filter((item) => item.usage > 0)
+      .filter(([, games]) => games >= MIN_ITEM_GAMES)
+      .map(([name, games]) => ({ name, usage: (games / agg.rawCount) * 100 }))
       .sort((a, b) => b.usage - a.usage);
 
     if (!items.length) continue;
 
     await fs.writeFile(
-      path.join(OUT_DIR, `${agg.pokemonId}.json`),
-      JSON.stringify({ pokemonId: agg.pokemonId, name: agg.name, month, items }),
+      path.join(OUT_DIR, `${id}.json`),
+      JSON.stringify({ pokemonId: id, name: agg.name, rawCount: agg.rawCount, items }),
     );
     written += 1;
   }
 
-  console.log(`Wrote Gen 5 item usage for ${written} Pokémon to ${OUT_DIR}`);
-}
-
-async function findLatestGen5Month(months) {
-  for (const month of [...months].reverse()) {
-    if (await fetchFirstAvailable(month, "gen5ou")) return month;
-  }
-  return null;
+  console.log(
+    `Wrote Gen 5 item usage for ${written} Pokémon (>= ${MIN_MON_RAW_COUNT} samples).`,
+  );
 }
 
 async function fetchFirstAvailable(month, formatId) {
@@ -111,11 +105,23 @@ async function fetchFirstAvailable(month, formatId) {
 }
 
 async function fetchMovesetText(month, formatId, cutoff) {
+  const cachePath = path.join(CACHE_DIR, month, `${formatId}-${cutoff}.txt`);
+
+  try {
+    return await fs.readFile(cachePath, "utf8");
+  } catch {
+    // not cached yet
+  }
+
   const url = `${STATS_ROOT}/${month}/moveset/${formatId}-${cutoff}.txt`;
   try {
     const response = await fetch(url);
     if (!response.ok) return null;
-    return await response.text();
+
+    const text = await response.text();
+    await fs.mkdir(path.dirname(cachePath), { recursive: true });
+    await fs.writeFile(cachePath, text);
+    return text;
   } catch {
     return null;
   }

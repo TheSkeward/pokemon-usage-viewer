@@ -46,8 +46,10 @@ jobs:
         if: github.event_name == 'schedule' || github.event.inputs.refresh_data == 'true'
         uses: actions/cache@v4
         with:
-          path: cache/stats
-          key: smogon-stats-${{ runner.os }}-${{ hashFiles('scripts/config.mjs', 'scripts/build-data.mjs') }}
+          # Covers cache/stats (USUM) and cache/gen5 (immutable old-gen moveset
+          # files), so Gen 5 history isn't re-fetched on every refresh.
+          path: cache
+          key: smogon-stats-${{ runner.os }}-${{ hashFiles('scripts/config.mjs', 'scripts/build-data.mjs', 'scripts/build-gen5-items.mjs') }}
           restore-keys: |
             smogon-stats-${{ runner.os }}-
 
