@@ -20,6 +20,10 @@ import { toId } from "./utils/ids.js";
 import { GEN7_HELD_ITEMS_BY_ID } from "./generated/gen7HeldItems.generated.js";
 import { buildPoolAvailabilityText } from "./teamBuilder/availabilityExport";
 import {
+  assignTeamItems,
+  loadTeamItemUsage,
+} from "./teamBuilder/itemRecommendations";
+import {
   readLocalStorage,
   removeLocalStorage,
   writeLocalStorage,
@@ -52,6 +56,8 @@ export function mountPoolOptimizer(container, options = {}) {
     loading: false,
     statusMessage: "",
     availabilityText: "",
+    teamItemUsage: null,
+    itemRecommendations: {},
   };
 
   const setDetails = createTeamBuilderSetDetailsLoader({
@@ -108,6 +114,13 @@ export function mountPoolOptimizer(container, options = {}) {
         selection: state.selection,
       });
       state.resultProgressionKey = getProgressionKey(state.progression);
+
+      state.teamItemUsage = await loadTeamItemUsage({
+        team: state.result.team,
+        family: state.family,
+        selection: state.selection,
+      });
+      recomputeItemRecommendations();
 
       setDetails.cancel();
 
@@ -336,6 +349,8 @@ export function mountPoolOptimizer(container, options = {}) {
         state.result = null;
         state.resultProgressionKey = "";
         state.availabilityText = "";
+        state.teamItemUsage = null;
+        state.itemRecommendations = {};
         setDetails.cancel();
 
         state.statusMessage = saved
@@ -420,7 +435,21 @@ export function mountPoolOptimizer(container, options = {}) {
       ? "Saved locally"
       : "Held items could not be saved locally; browser storage is full.";
 
+    recomputeItemRecommendations();
     render();
+  }
+
+  function recomputeItemRecommendations() {
+    if (!state.teamItemUsage || !state.result?.team?.length) {
+      state.itemRecommendations = {};
+      return;
+    }
+
+    state.itemRecommendations = assignTeamItems({
+      team: state.result.team,
+      usageByMember: state.teamItemUsage,
+      ownedItems: state.progression.ownedItems,
+    });
   }
 
   async function generateAvailabilityList() {

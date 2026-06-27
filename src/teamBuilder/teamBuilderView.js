@@ -4,6 +4,7 @@ import { renderRebornLegalMovesPanel } from "../reborn/legalMovesView";
 import { renderRebornProgressionPanel } from "../reborn/progressionView";
 import { renderRebornTeamAnalysisPanel } from "../reborn/teamAnalysisView";
 import { getCurrentRebornSpeciesForChoice } from "../reborn/currentSpecies.js";
+import { teamMemberKey } from "./itemRecommendations";
 
 export function renderTeamBuilderPage({
   app,
@@ -194,7 +195,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
             </tr>
           </thead>
           <tbody>
-            ${sortedTeam.map((row, index) => renderTeamRow({ formatsIndex, index, progression: state.progression, progressionStale, row, setDetails })).join("")}
+            ${sortedTeam.map((row, index) => renderTeamRow({ formatsIndex, index, itemRecommendations: state.itemRecommendations, progression: state.progression, progressionStale, row, setDetails })).join("")}
           </tbody>
         </table>
       </div>
@@ -275,6 +276,7 @@ function renderSortHeader(sortBy, label, state) {
 function renderTeamRow({
   formatsIndex,
   index,
+  itemRecommendations,
   progression,
   progressionStale,
   row,
@@ -285,6 +287,7 @@ function renderTeamRow({
   const note = progressionStale
     ? "Progression changed; re-optimize for current scores and legal move notes."
     : row.note || "";
+  const recommendedItem = itemRecommendations?.[teamMemberKey(row)];
 
   return `
     <tr
@@ -303,6 +306,11 @@ function renderTeamRow({
           currentSpecies?.differsFromRepresentative
             ? `<div class="representative-note" data-current-species-note>Current: ${escapeHtml(currentSpecies.name)}</div>`
             : `<div class="representative-note" data-current-species-note hidden></div>`
+        }
+        ${
+          recommendedItem
+            ? `<div class="representative-note item-rec-note">Item: ${escapeHtml(recommendedItem.name)}${typeof recommendedItem.usage === "number" ? ` (${Math.round(recommendedItem.usage)}%)` : ""}</div>`
+            : ""
         }
       </td>
       <td>${formatPercent(row.bundle?.usage?.value)}</td>
