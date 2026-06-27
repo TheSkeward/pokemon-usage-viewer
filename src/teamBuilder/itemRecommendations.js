@@ -1,4 +1,5 @@
 import { dataUrl } from "../utils/dataUrl.js";
+import { fetchJsonCached } from "../utils/fetchJsonCached.js";
 import { toId } from "../utils/ids.js";
 import { TYPE_GEMS } from "../reborn/typeGems.js";
 import {
@@ -283,9 +284,9 @@ function isConsumable(entry) {
 
 async function fetchGen5Items(pokemonId) {
   try {
-    const response = await fetch(dataUrl(`gen5-items/${toId(pokemonId)}.json`));
-    if (!response.ok) return [];
-    const data = await response.json();
+    const data = await fetchJsonCached(
+      dataUrl(`gen5-items/${toId(pokemonId)}.json`),
+    );
     return data?.items || [];
   } catch {
     return [];
@@ -294,11 +295,9 @@ async function fetchGen5Items(pokemonId) {
 
 async function fetchSetIndex({ family, pokemonId, selection }) {
   try {
-    const response = await fetch(
+    return await fetchJsonCached(
       dataUrl(`set-index/${family}/${selection}/${pokemonId}.json`),
     );
-    if (!response.ok) return null;
-    return await response.json();
   } catch {
     return null;
   }
