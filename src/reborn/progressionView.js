@@ -11,6 +11,7 @@ import {
   REBORN_TMX_OPTIONS,
 } from "./progressionOptions";
 import { MAX_TRACKED_ITEM_COUNT } from "./progression";
+import { HIDDEN_INVENTORY_ITEM_IDS } from "./rebornSeeds";
 import {
   GEN7_HELD_ITEMS,
   GEN7_HELD_ITEMS_BY_ID,
@@ -109,7 +110,9 @@ function renderItemInventory(ownedItems) {
     .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const datalistOptions = [...GEN7_HELD_ITEMS]
+  const datalistOptions = GEN7_HELD_ITEMS.filter(
+    (item) => !HIDDEN_INVENTORY_ITEM_IDS.has(item.id),
+  )
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((item) => `<option value="${escapeAttr(item.name)}"></option>`)
     .join("");

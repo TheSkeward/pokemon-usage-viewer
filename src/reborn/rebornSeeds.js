@@ -23,6 +23,32 @@ export const GEN7_TERRAIN_SEEDS = [
   "Psychic Seed",
 ];
 
+// In Reborn the terrain seeds are replaced by the field seeds, so they're hidden
+// from the inventory picker. The mapping follows the wiki: each terrain's seed
+// in Reborn is Elemental (Electric/Grassy/Misty Terrain) or Magical (Psychic
+// Terrain). An already-owned terrain seed migrates to its replacement.
+export const TERRAIN_SEED_REPLACEMENTS = {
+  "Electric Seed": "Elemental Seed",
+  "Grassy Seed": "Elemental Seed",
+  "Misty Seed": "Elemental Seed",
+  "Psychic Seed": "Magical Seed",
+};
+
+const seedId = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "");
+
+// id -> replacement id, for migrating saved inventory off the hidden seeds.
+export const TERRAIN_SEED_MIGRATION = Object.fromEntries(
+  Object.entries(TERRAIN_SEED_REPLACEMENTS).map(([from, to]) => [
+    seedId(from),
+    seedId(to),
+  ]),
+);
+
+// Item ids that must not be selectable in the inventory picker.
+export const HIDDEN_INVENTORY_ITEM_IDS = new Set(
+  Object.keys(TERRAIN_SEED_MIGRATION),
+);
+
 // Each seed's stat-boost profile, summed over every field it activates on (from
 // the wiki Seed Interaction table) as [Atk, Def, SpA, SpD, Spe]. The stat-fit
 // model weights these against a Pokémon's above-average base stats, so each seed
