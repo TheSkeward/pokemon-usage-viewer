@@ -1461,6 +1461,22 @@ export const GEN7_HELD_ITEMS = [
   {
     "id": "fairygem",
     "name": "Fairy Gem"
+  },
+  {
+    "id": "elementalseed",
+    "name": "Elemental Seed"
+  },
+  {
+    "id": "telluricseed",
+    "name": "Telluric Seed"
+  },
+  {
+    "id": "syntheticseed",
+    "name": "Synthetic Seed"
+  },
+  {
+    "id": "magicalseed",
+    "name": "Magical Seed"
   }
 ];
 

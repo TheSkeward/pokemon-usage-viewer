@@ -14,8 +14,9 @@
     "build:progression-species": "node scripts/build-progression-species.mjs",
     "build:held-items": "node scripts/build-held-items.mjs",
     "build:unburden-species": "node scripts/build-unburden-species.mjs",
+    "build:gen5-items": "node scripts/build-gen5-items.mjs",
     "build:site": "npm run build && node scripts/copy-data.mjs",
-    "refresh:data": "npm run build:data -- --refresh-current && npm run build:resolver-index && npm run build:set-index && npm run build:reborn-legal-moves && npm run build:progression-species && npm run build:held-items && npm run build:unburden-species",
+    "refresh:data": "npm run build:data -- --refresh-current && npm run build:resolver-index && npm run build:set-index && npm run build:reborn-legal-moves && npm run build:progression-species && npm run build:held-items && npm run build:unburden-species && npm run build:gen5-items",
     "dev:bg": "nohup npm run dev > /tmp/pokemon-vite.log 2>&1 &",
     "dev:log": "tail -50 /tmp/pokemon-vite.log",
     "dev:stop": "pkill -f 'vite --port 5173' || true"
