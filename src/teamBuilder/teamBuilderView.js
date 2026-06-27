@@ -4,6 +4,7 @@ import { renderRebornLegalMovesPanel } from "../reborn/legalMovesView";
 import { renderRebornProgressionPanel } from "../reborn/progressionView";
 import { renderRebornTeamAnalysisPanel } from "../reborn/teamAnalysisView";
 import { getCurrentRebornSpeciesForChoice } from "../reborn/currentSpecies.js";
+import { teamMemberKey } from "./itemRecommendations";
 
 export function renderTeamBuilderPage({
   app,
@@ -89,10 +90,30 @@ function renderPoolControls({ embedded, poolStats, state }) {
       <div class="toolbar">
         <button class="view-tab primary-action" id="optimize-button">${state.loading ? "Optimizing..." : "Normalize + optimize team"}</button>
         <button class="view-tab" id="copy-pool-button">Copy pool</button>
+        <button class="view-tab" id="generate-availability-button" ${state.result?.lines?.length ? "" : "disabled"} title="${state.result?.lines?.length ? "Generate a pasteable list of every available Pokémon, its current move pool, and your held items" : "Optimize the team first to resolve your pool"}">Generate availability list</button>
         <button class="view-tab danger-button" id="clear-pool-button">Clear saved pool</button>
         <span class="muted" data-pool-status>${escapeHtml(state.statusMessage)}</span>
       </div>
+
+      ${renderAvailabilityOutput(state.availabilityText)}
     </section>
+  `;
+}
+
+function renderAvailabilityOutput(availabilityText) {
+  if (!availabilityText) return "";
+
+  return `
+    <div class="availability-output">
+      <div class="availability-output-header">
+        <strong>Availability list</strong>
+        <span class="availability-output-actions">
+          <button type="button" class="view-tab" id="copy-availability-button">Copy</button>
+          <button type="button" class="view-tab" id="close-availability-button">Close</button>
+        </span>
+      </div>
+      <textarea id="availability-output-text" rows="12" readonly>${escapeHtml(availabilityText)}</textarea>
+    </div>
   `;
 }
 
@@ -174,7 +195,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
             </tr>
           </thead>
           <tbody>
-            ${sortedTeam.map((row, index) => renderTeamRow({ formatsIndex, index, progression: state.progression, progressionStale, row, setDetails })).join("")}
+            ${sortedTeam.map((row, index) => renderTeamRow({ formatsIndex, index, itemRecommendations: state.itemRecommendations, progression: state.progression, progressionStale, row, setDetails })).join("")}
           </tbody>
         </table>
       </div>
@@ -255,6 +276,7 @@ function renderSortHeader(sortBy, label, state) {
 function renderTeamRow({
   formatsIndex,
   index,
+  itemRecommendations,
   progression,
   progressionStale,
   row,
@@ -265,6 +287,7 @@ function renderTeamRow({
   const note = progressionStale
     ? "Progression changed; re-optimize for current scores and legal move notes."
     : row.note || "";
+  const recommendedItem = itemRecommendations?.[teamMemberKey(row)];
 
   return `
     <tr
@@ -283,6 +306,11 @@ function renderTeamRow({
           currentSpecies?.differsFromRepresentative
             ? `<div class="representative-note" data-current-species-note>Current: ${escapeHtml(currentSpecies.name)}</div>`
             : `<div class="representative-note" data-current-species-note hidden></div>`
+        }
+        ${
+          recommendedItem
+            ? `<div class="representative-note item-rec-note">Item: ${escapeHtml(recommendedItem.name)}${typeof recommendedItem.usage === "number" ? ` (${Math.round(recommendedItem.usage)}%)` : ""}</div>`
+            : ""
         }
       </td>
       <td>${formatPercent(row.bundle?.usage?.value)}</td>
