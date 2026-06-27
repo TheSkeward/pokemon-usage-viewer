@@ -109,9 +109,10 @@ function renderItemInventory(ownedItems) {
     .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const datalistOptions = GEN7_HELD_ITEMS.map(
-    (item) => `<option value="${escapeAttr(item.name)}"></option>`,
-  ).join("");
+  const datalistOptions = [...GEN7_HELD_ITEMS]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((item) => `<option value="${escapeAttr(item.name)}"></option>`)
+    .join("");
 
   const ownedRows = ownedIds.length
     ? ownedIds

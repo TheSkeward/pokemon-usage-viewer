@@ -1,4 +1,4 @@
-import { escapeHtml } from "../utils/html.js";
+import { escapeHtml, escapeAttr } from "../utils/html.js";
 import { renderMovesetPanel } from "../views/movesetView";
 import { renderRebornLegalMovesPanel } from "../reborn/legalMovesView";
 import { renderRebornProgressionPanel } from "../reborn/progressionView";
@@ -260,6 +260,32 @@ function benchUsage(representative) {
   return Math.max(0, representative.bundle?.usage?.value || 0);
 }
 
+function renderItemRec(item) {
+  if (!item) return "";
+
+  let qualifier = "";
+  let title = "";
+
+  if (item.fallback) {
+    qualifier = "fallback";
+    title = "No commonly-run item owned; filled from your spare inventory.";
+  } else if (item.proxy) {
+    qualifier =
+      typeof item.usage === "number"
+        ? `~${Math.round(item.usage)}% proxy`
+        : "proxy";
+    title =
+      "Reborn type Gem; competitive demand proxied from the matching Z-Crystal.";
+  } else if (typeof item.usage === "number") {
+    qualifier = `${Math.round(item.usage)}%`;
+  } else {
+    qualifier = "situational";
+    title = "Observed on lower-usage or related sets, not headline usage.";
+  }
+
+  return `<div class="representative-note item-rec-note"${title ? ` title="${escapeAttr(title)}"` : ""}>Item: ${escapeHtml(item.name)}${qualifier ? ` (${escapeHtml(qualifier)})` : ""}</div>`;
+}
+
 function renderSortHeader(sortBy, label, state) {
   const active = state.teamSort === sortBy;
   const arrow = active ? (state.teamSortDir === "asc" ? " ▲" : " ▼") : "";
@@ -307,11 +333,7 @@ function renderTeamRow({
             ? `<div class="representative-note" data-current-species-note>Current: ${escapeHtml(currentSpecies.name)}</div>`
             : `<div class="representative-note" data-current-species-note hidden></div>`
         }
-        ${
-          recommendedItem
-            ? `<div class="representative-note item-rec-note"${recommendedItem.proxy ? ' title="Reborn type Gem; competitive usage proxied from the matching Z-Crystal"' : ""}>Item: ${escapeHtml(recommendedItem.name)}${typeof recommendedItem.usage === "number" ? ` (${recommendedItem.proxy ? "~" : ""}${Math.round(recommendedItem.usage)}%${recommendedItem.proxy ? " proxy" : ""})` : ""}</div>`
-            : ""
-        }
+        ${renderItemRec(recommendedItem)}
       </td>
       <td>${formatPercent(row.bundle?.usage?.value)}</td>
       <td>${formatPercent(row.bundle?.leads?.value)}</td>
