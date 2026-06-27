@@ -283,6 +283,12 @@ function renderItemRec(item) {
     title = "Observed on lower-usage or related sets, not headline usage.";
   }
 
+  if (item.unburden) {
+    qualifier = qualifier ? `${qualifier}, Unburden` : "Unburden";
+    title =
+      "Consumable item weighted up because this Pokémon can have Unburden.";
+  }
+
   return `<div class="representative-note item-rec-note"${title ? ` title="${escapeAttr(title)}"` : ""}>Item: ${escapeHtml(item.name)}${qualifier ? ` (${escapeHtml(qualifier)})` : ""}</div>`;
 }
 
