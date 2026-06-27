@@ -274,8 +274,9 @@ function renderItemRec(item) {
       typeof item.usage === "number"
         ? `~${Math.round(item.usage)}% proxy`
         : "proxy";
-    title =
-      "Reborn type Gem; competitive demand proxied from the matching Z-Crystal.";
+    title = item.seed
+      ? "Reborn Field Seed; demand proxied from this Pokémon's terrain-seed usage."
+      : "Reborn type Gem; competitive demand proxied from the matching Z-Crystal.";
   } else if (typeof item.usage === "number") {
     qualifier = `${Math.round(item.usage)}%`;
   } else {

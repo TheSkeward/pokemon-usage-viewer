@@ -6,6 +6,13 @@ import {
   GEN7_HELD_ITEMS_BY_ID,
 } from "../generated/gen7HeldItems.generated.js";
 import { GEN7_UNBURDEN_SPECIES } from "../generated/gen7UnburdenSpecies.generated.js";
+import { REBORN_SEEDS, GEN7_TERRAIN_SEEDS } from "../reborn/rebornSeeds.js";
+
+const TERRAIN_SEED_IDS = GEN7_TERRAIN_SEEDS.map((name) => toId(name));
+const REBORN_SEED_IDS = REBORN_SEEDS.map((name) => toId(name));
+const REBORN_SEED_NAME_BY_ID = new Map(
+  REBORN_SEEDS.map((name) => [toId(name), name]),
+);
 
 // Map each Z-Crystal id to the gem it stands in for, so a member's Z-Crystal
 // usage can be reused as a proxy for the equivalent Reborn type Gem.
@@ -128,19 +135,24 @@ function bestRemainingItem(remaining) {
 }
 
 async function fetchMemberItems({ family, pokemonId, selection, unburden }) {
-  const data =
-    (await fetchSetIndex({ family, pokemonId, selection })) ||
-    (selection !== "all"
-      ? await fetchSetIndex({ family, pokemonId, selection: "all" })
-      : null);
+  const [data, gen5Items] = await Promise.all([
+    fetchSetIndex({ family, pokemonId, selection }).then(
+      (primary) =>
+        primary ||
+        (selection !== "all"
+          ? fetchSetIndex({ family, pokemonId, selection: "all" })
+          : null),
+    ),
+    fetchGen5Items(pokemonId),
+  ]);
 
-  if (!data?.items) return [];
+  if (!data?.items && !gen5Items.length) return [];
 
   // Keep the best (highest-weight) entry per item id across primary + tail.
   const byId = new Map();
   let tailRank = 0;
 
-  for (const item of data.items) {
+  for (const item of data?.items || []) {
     const id = toId(item.name);
     if (!id) continue;
 
@@ -162,8 +174,24 @@ async function fetchMemberItems({ family, pokemonId, selection, unburden }) {
     if (!existing || entry.weight > existing.weight) byId.set(id, entry);
   }
 
+  // Blend in real Gen 5 item usage. Gen 5 had the type Gems as legal, used
+  // items, so for Pokémon that existed then this provides real gem data that
+  // pre-empts the Z-Crystal proxy below (real-data-first). Merged by best
+  // weight so it also enriches non-gem items.
+  for (const item of gen5Items) {
+    const id = toId(item.name);
+    if (!id || typeof item.usage !== "number") continue;
+
+    const entry = { id, name: item.name, usage: item.usage, weight: item.usage, gen5: true };
+    applyUnburden(entry, unburden);
+
+    const existing = byId.get(id);
+    if (!existing || entry.weight > existing.weight) byId.set(id, entry);
+  }
+
   // Type Gems have no USUM usage; proxy each from this member's matching
   // Z-Crystal (primary or tail) — both are one-use, type-keyed damage boosts.
+  // Skipped for any gem already supplied with real Gen 5 usage above.
   for (const entry of [...byId.values()]) {
     const gem = GEM_BY_Z_CRYSTAL_ID.get(entry.id);
     if (gem && !byId.has(gem.id)) {
@@ -181,6 +209,26 @@ async function fetchMemberItems({ family, pokemonId, selection, unburden }) {
     }
   }
 
+  // Reborn Field Seeds: proxy from the member's aggregate Gen 7 terrain-seed
+  // usage (same item category — a conditional field-triggered seed).
+  const terrainSeedTotal = TERRAIN_SEED_IDS.reduce(
+    (sum, id) => sum + (byId.get(id)?.usage || 0),
+    0,
+  );
+  if (terrainSeedTotal > 0) {
+    for (const seedId of REBORN_SEED_IDS) {
+      if (byId.has(seedId)) continue;
+      byId.set(seedId, {
+        id: seedId,
+        name: REBORN_SEED_NAME_BY_ID.get(seedId),
+        usage: terrainSeedTotal,
+        weight: terrainSeedTotal,
+        proxy: true,
+        seed: true,
+      });
+    }
+  }
+
   return [...byId.values()];
 }
 
@@ -193,6 +241,17 @@ function applyUnburden(entry, unburden) {
 
 function isConsumable(entry) {
   return GEM_IDS.has(entry.id) || /berry$/i.test(entry.name.replace(/\s+/g, ""));
+}
+
+async function fetchGen5Items(pokemonId) {
+  try {
+    const response = await fetch(dataUrl(`gen5-items/${toId(pokemonId)}.json`));
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data?.items || [];
+  } catch {
+    return [];
+  }
 }
 
 async function fetchSetIndex({ family, pokemonId, selection }) {
