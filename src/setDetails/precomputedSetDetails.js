@@ -1,4 +1,5 @@
 import { dataUrl } from "../utils/dataUrl.js";
+import { fetchJsonCached } from "../utils/fetchJsonCached.js";
 import { getRebornMoveId } from "../reborn/legalMoves.js";
 
 export function createPrecomputedSetDetailsLoader({
@@ -177,28 +178,17 @@ async function fetchSetDetailWithAllFallback({ family, pokemonId, selection }) {
 }
 
 async function fetchSetDetail({ family, pokemonId, selection }) {
-  const response = await fetch(
+  return fetchJsonCached(
     dataUrl(`set-index/${family}/${selection}/${pokemonId}.json`),
   );
-
-  if (response.status === 404) return null;
-
-  if (!response.ok) {
-    throw new Error(`Failed to load set details (${response.status})`);
-  }
-
-  return response.json();
 }
 
 async function fetchLegalMoves(pokemonId) {
-  const response = await fetch(
-    dataUrl(`reborn-legal-moves/all/${pokemonId}.json`),
-  );
-
-  if (response.status === 404) return null;
-  if (!response.ok) return null;
-
-  return response.json();
+  try {
+    return await fetchJsonCached(dataUrl(`reborn-legal-moves/all/${pokemonId}.json`));
+  } catch {
+    return null;
+  }
 }
 
 // Appends every Reborn-legal move that has no observed Smogon usage to the end
