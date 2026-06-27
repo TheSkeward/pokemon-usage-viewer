@@ -1393,6 +1393,74 @@ export const GEN7_HELD_ITEMS = [
   {
     "id": "prettyfeather",
     "name": "Pretty Feather"
+  },
+  {
+    "id": "firegem",
+    "name": "Fire Gem"
+  },
+  {
+    "id": "watergem",
+    "name": "Water Gem"
+  },
+  {
+    "id": "electricgem",
+    "name": "Electric Gem"
+  },
+  {
+    "id": "grassgem",
+    "name": "Grass Gem"
+  },
+  {
+    "id": "icegem",
+    "name": "Ice Gem"
+  },
+  {
+    "id": "fightinggem",
+    "name": "Fighting Gem"
+  },
+  {
+    "id": "poisongem",
+    "name": "Poison Gem"
+  },
+  {
+    "id": "groundgem",
+    "name": "Ground Gem"
+  },
+  {
+    "id": "flyinggem",
+    "name": "Flying Gem"
+  },
+  {
+    "id": "psychicgem",
+    "name": "Psychic Gem"
+  },
+  {
+    "id": "buggem",
+    "name": "Bug Gem"
+  },
+  {
+    "id": "rockgem",
+    "name": "Rock Gem"
+  },
+  {
+    "id": "ghostgem",
+    "name": "Ghost Gem"
+  },
+  {
+    "id": "dragongem",
+    "name": "Dragon Gem"
+  },
+  {
+    "id": "darkgem",
+    "name": "Dark Gem"
+  },
+  {
+    "id": "steelgem",
+    "name": "Steel Gem"
+  },
+  {
+    "id": "fairygem",
+    "name": "Fairy Gem"
   }
 ];
 

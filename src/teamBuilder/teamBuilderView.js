@@ -309,7 +309,7 @@ function renderTeamRow({
         }
         ${
           recommendedItem
-            ? `<div class="representative-note item-rec-note">Item: ${escapeHtml(recommendedItem.name)}${typeof recommendedItem.usage === "number" ? ` (${Math.round(recommendedItem.usage)}%)` : ""}</div>`
+            ? `<div class="representative-note item-rec-note"${recommendedItem.proxy ? ' title="Reborn type Gem; competitive usage proxied from the matching Z-Crystal"' : ""}>Item: ${escapeHtml(recommendedItem.name)}${typeof recommendedItem.usage === "number" ? ` (${recommendedItem.proxy ? "~" : ""}${Math.round(recommendedItem.usage)}%${recommendedItem.proxy ? " proxy" : ""})` : ""}</div>`
             : ""
         }
       </td>

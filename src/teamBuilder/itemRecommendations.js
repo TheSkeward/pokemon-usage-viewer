@@ -1,5 +1,15 @@
 import { dataUrl } from "../utils/dataUrl.js";
 import { toId } from "../utils/ids.js";
+import { TYPE_GEMS } from "../reborn/typeGems.js";
+
+// Map each Z-Crystal id to the gem it stands in for, so a member's Z-Crystal
+// usage can be reused as a proxy for the equivalent Reborn type Gem.
+const GEM_BY_Z_CRYSTAL_ID = new Map(
+  TYPE_GEMS.map((gem) => [
+    toId(gem.zCrystalName),
+    { id: toId(gem.gemName), name: gem.gemName },
+  ]),
+);
 
 export function teamMemberKey(choice) {
   return `${choice.inputPokemonId}|${choice.pokemonId}`;
@@ -65,13 +75,30 @@ async function fetchMemberItems({ family, pokemonId, selection }) {
 
   if (!data?.items) return [];
 
-  return data.items
+  const realItems = data.items
     .filter((item) => typeof item.usage === "number")
     .map((item) => ({
       id: toId(item.name),
       name: item.name,
       usage: item.usage,
     }));
+
+  // Type Gems have no USUM usage; proxy each from this member's matching
+  // Z-Crystal usage (both are one-use, type-keyed damage boosts).
+  const gemProxies = [];
+  for (const item of realItems) {
+    const gem = GEM_BY_Z_CRYSTAL_ID.get(item.id);
+    if (gem) {
+      gemProxies.push({
+        id: gem.id,
+        name: gem.name,
+        usage: item.usage,
+        proxy: true,
+      });
+    }
+  }
+
+  return [...realItems, ...gemProxies];
 }
 
 async function fetchSetIndex({ family, pokemonId, selection }) {
