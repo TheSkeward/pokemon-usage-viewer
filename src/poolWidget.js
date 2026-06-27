@@ -18,6 +18,7 @@ import {
 } from "./reborn/progression";
 import { toId } from "./utils/ids.js";
 import { GEN7_HELD_ITEMS_BY_ID } from "./generated/gen7HeldItems.generated.js";
+import { HIDDEN_INVENTORY_ITEM_IDS } from "./reborn/rebornSeeds";
 import { buildPoolAvailabilityText } from "./teamBuilder/availabilityExport";
 import {
   assignTeamItems,
@@ -294,6 +295,13 @@ export function mountPoolOptimizer(container, options = {}) {
       if (!itemId || !GEN7_HELD_ITEMS_BY_ID[itemId]) {
         updateProgressionStatusMessage(
           "Item not recognized; pick one from the suggestions.",
+        );
+        return;
+      }
+
+      if (HIDDEN_INVENTORY_ITEM_IDS.has(itemId)) {
+        updateProgressionStatusMessage(
+          "That terrain seed is replaced in Reborn — use the matching field seed instead.",
         );
         return;
       }

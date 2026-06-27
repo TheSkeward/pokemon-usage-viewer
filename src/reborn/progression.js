@@ -8,6 +8,7 @@ import {
   REBORN_TMX_OPTIONS,
   REBORN_TUTOR_OPTIONS,
 } from "./progressionOptions";
+import { TERRAIN_SEED_MIGRATION } from "./rebornSeeds";
 
 const PROGRESSION_STORAGE_KEY = "pokemon-usage-viewer:reborn-progression:v1";
 
@@ -172,13 +173,16 @@ function normalizeOwnedItems(value) {
   const owned = {};
 
   for (const [rawId, rawCount] of Object.entries(value)) {
-    const id = String(rawId || "").trim();
-    if (!id) continue;
+    const trimmed = String(rawId || "").trim();
+    if (!trimmed) continue;
 
     const count = Number.parseInt(rawCount, 10);
     if (!Number.isFinite(count) || count <= 0) continue;
 
-    owned[id] = Math.min(MAX_TRACKED_ITEM_COUNT, count);
+    // Replaced terrain seeds migrate to their Reborn equivalent (summing counts,
+    // since several terrains map to the same field seed).
+    const id = TERRAIN_SEED_MIGRATION[trimmed] || trimmed;
+    owned[id] = Math.min(MAX_TRACKED_ITEM_COUNT, (owned[id] || 0) + count);
   }
 
   return owned;
