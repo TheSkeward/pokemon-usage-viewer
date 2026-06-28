@@ -19,6 +19,7 @@ import {
 } from "./damageModel.js";
 import { loadTopSet } from "./topSpread.js";
 import { teamMemberKey } from "../teamBuilder/itemRecommendations.js";
+import { toId } from "../utils/ids.js";
 
 export { REBORN_ANALYSIS_TYPES };
 
@@ -34,61 +35,21 @@ export async function buildRebornTeamAnalysis(
   const { family, selection, itemAssignments } = breedingOptions;
   const legalMoveEntries = await Promise.all(
     team.map(async (row) => {
-      const currentSpecies = getCurrentRebornSpeciesForChoice(row, progression);
-      const legalMoveData = await loadRebornLegalMoveData(
-        currentSpecies?.id || row.pokemonId,
-      );
-      const memberProgression = applyBreedingContextToProgression(
+      const entry = await buildMemberLegalMoveEntry({
+        row,
         progression,
-        legalMoveData?.pokemonId,
         breedingContext,
-      );
-      const member = {
-        id: currentSpecies?.id || row.pokemonId,
-        name: currentSpecies?.name || row.name,
-        inputName: row.inputName || row.name,
-        representativeId: row.pokemonId,
-        representativeName: currentSpecies?.differsFromRepresentative
-          ? currentSpecies.representativeName
-          : "",
-        types: legalMoveData?.types || [],
-      };
-      const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
-
-      // Pull the member's most-used competitive set (top spread / ability /
-      // item) so damage uses the real EVs + nature and we can show a full set.
-      const topSet = await loadTopSet({
         family,
-        pokemonId: member.id,
         selection,
       });
-      const attackerStats = getAttackingStats({
-        pokemonId: member.id,
-        levelCap: progression.levelCap,
-        spread: topSet.spread,
-      });
-
-      const profile = buildCandidateLegalityProfile({
-        member,
-        moves,
-        representativeName: row.name,
-        attackerStats,
-        levelCap: progression.levelCap,
-      });
-      profile.recommendedSet = buildRecommendedSet({
-        member,
-        profile,
-        topSet,
+      entry.profile.recommendedSet = buildRecommendedSet({
+        member: entry.member,
+        profile: entry.profile,
+        topSet: entry.topSet,
         assignedItem: itemAssignments?.[teamMemberKey(row)],
         levelCap: progression.levelCap,
       });
-
-      return {
-        member,
-        moves,
-        profile,
-        row,
-      };
+      return entry;
     }),
   );
   const members = legalMoveEntries.map((entry) => entry.member);
@@ -110,6 +71,102 @@ export async function buildRebornTeamAnalysis(
     offensive,
     profiles,
   };
+}
+
+// Loads one team member's current species, its progression-legal moves, and the
+// derived legality profile (including the recommended set of moves). Shared by
+// the full analysis and the lighter move-type lookup below so both see exactly
+// the same recommended moves. Does NOT attach a recommendedSet — that needs the
+// assigned item, which is computed separately.
+async function buildMemberLegalMoveEntry({
+  row,
+  progression,
+  breedingContext,
+  family,
+  selection,
+}) {
+  const currentSpecies = getCurrentRebornSpeciesForChoice(row, progression);
+  const legalMoveData = await loadRebornLegalMoveData(
+    currentSpecies?.id || row.pokemonId,
+  );
+  const memberProgression = applyBreedingContextToProgression(
+    progression,
+    legalMoveData?.pokemonId,
+    breedingContext,
+  );
+  const member = {
+    id: currentSpecies?.id || row.pokemonId,
+    name: currentSpecies?.name || row.name,
+    inputName: row.inputName || row.name,
+    representativeId: row.pokemonId,
+    representativeName: currentSpecies?.differsFromRepresentative
+      ? currentSpecies.representativeName
+      : "",
+    types: legalMoveData?.types || [],
+  };
+  const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
+
+  // Pull the member's most-used competitive set (top spread / ability / item)
+  // so damage uses the real EVs + nature and we can show a full set.
+  const topSet = await loadTopSet({ family, pokemonId: member.id, selection });
+  const attackerStats = getAttackingStats({
+    pokemonId: member.id,
+    levelCap: progression.levelCap,
+    spread: topSet.spread,
+  });
+
+  const profile = buildCandidateLegalityProfile({
+    member,
+    moves,
+    representativeName: row.name,
+    attackerStats,
+    levelCap: progression.levelCap,
+  });
+
+  return { member, moves, profile, topSet, row };
+}
+
+// Per-member context the item recommender needs but can only get from the move
+// analysis: the types its *recommended* damaging moves cover, and whether its
+// top competitive set actually runs Unburden. Both gate gem recommendations —
+// a type Gem is useless without a move of its type, and the Unburden speed
+// payoff only applies if Unburden is the set's ability (not merely a legal one,
+// e.g. Liepard's top sets run Prankster). Uses the same pipeline as the analysis
+// panel so the gates match what the player sees.
+export async function getTeamItemContext(
+  team = [],
+  progression = {},
+  breedingOptions = {},
+) {
+  const breedingContext = await buildRebornBreedingContext({
+    ...breedingOptions,
+    progression,
+  });
+  const { family, selection } = breedingOptions;
+  const byMember = new Map();
+
+  await Promise.all(
+    team.map(async (row) => {
+      const entry = await buildMemberLegalMoveEntry({
+        row,
+        progression,
+        breedingContext,
+        family,
+        selection,
+      });
+      const damageTypes = new Set(
+        (entry.profile.recommendedMoves || [])
+          .filter(isDamagingMove)
+          .map((move) => move.type),
+      );
+      byMember.set(teamMemberKey(row), {
+        damageTypes,
+        unburden: toId(entry.topSet?.ability) === "unburden",
+      });
+    }),
+  );
+
+  return byMember;
 }
 
 export function buildCandidateLegalityProfile({

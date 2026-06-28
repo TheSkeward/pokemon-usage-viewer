@@ -6,7 +6,6 @@ import {
   GEN7_HELD_ITEMS,
   GEN7_HELD_ITEMS_BY_ID,
 } from "../generated/gen7HeldItems.generated.js";
-import { GEN7_UNBURDEN_SPECIES } from "../generated/gen7UnburdenSpecies.generated.js";
 import {
   REBORN_SEEDS,
   GEN7_TERRAIN_SEEDS,
@@ -33,6 +32,23 @@ const GEM_BY_Z_CRYSTAL_ID = new Map(
 );
 
 const GEM_IDS = new Set(TYPE_GEMS.map((gem) => toId(gem.gemName)));
+
+// gemId -> the move type it boosts, so a gem is only handed to a member whose
+// recommended moves actually include a move of that type.
+const GEM_TYPE_BY_ID = new Map(
+  TYPE_GEMS.map((gem) => [toId(gem.gemName), gem.type]),
+);
+
+// A type Gem only fires on a move of its own type — useless otherwise — so an
+// item is eligible for a member if it isn't a gem, or it is a gem whose type is
+// among that member's recommended damaging-move types. Members with no known
+// move types (allowedTypes undefined) are not gated, preserving prior behavior.
+function itemEligibleForMember(itemId, allowedTypes) {
+  const gemType = GEM_TYPE_BY_ID.get(itemId);
+  if (!gemType) return true;
+  if (!allowedTypes) return true;
+  return allowedTypes.has(gemType);
+}
 
 // Unburden doubles Speed when a consumable item is used up. We only boost type
 // Gems for Unburden species: gems are absent from the Gen 7 data (proxied from
@@ -61,19 +77,23 @@ export function teamMemberKey(choice) {
 
 // Loads each team member's observed Smogon held-item usage (id + usage%), keyed
 // by member. Cached by the caller so recommendations can recompute instantly
-// when the owned-item inventory changes without re-fetching.
-export async function loadTeamItemUsage({ team, family, selection }) {
+// when the owned-item inventory changes without re-fetching. The optional
+// itemContext (memberKey -> { unburden }) decides the Unburden gem boost from
+// the member's actual top-set ability rather than merely whether the species
+// can have Unburden.
+export async function loadTeamItemUsage({ team, family, selection, itemContext }) {
   const usageByMember = new Map();
 
   await Promise.all(
     (team || []).map(async (choice) => {
+      const key = teamMemberKey(choice);
       const items = await fetchMemberItems({
         family,
         pokemonId: choice.pokemonId,
         selection,
-        unburden: Boolean(GEN7_UNBURDEN_SPECIES[toId(choice.pokemonId)]),
+        unburden: Boolean(itemContext?.get(key)?.unburden),
       });
-      usageByMember.set(teamMemberKey(choice), items);
+      usageByMember.set(key, items);
     }),
   );
 
@@ -87,16 +107,20 @@ export async function loadTeamItemUsage({ team, family, selection }) {
 //   2. an ultimate fallback that hands any leftover owned items to still-
 //      itemless members — a held item beats none — giving the best generic
 //      item to the highest-scoring member first.
-export function assignTeamItems({ team, usageByMember, ownedItems }) {
+export function assignTeamItems({ team, usageByMember, ownedItems, itemContext }) {
   const remaining = { ...(ownedItems || {}) };
   const assignments = {};
   const members = team || [];
+  const allowedGemTypesFor = (key) => itemContext?.get(key)?.damageTypes;
 
   const pairs = [];
   for (const choice of members) {
     const key = teamMemberKey(choice);
+    const allowedGemTypes = allowedGemTypesFor(key);
     for (const item of usageByMember.get(key) || []) {
-      if ((remaining[item.id] || 0) > 0) pairs.push({ key, item });
+      if ((remaining[item.id] || 0) <= 0) continue;
+      if (!itemEligibleForMember(item.id, allowedGemTypes)) continue;
+      pairs.push({ key, item });
     }
   }
 
@@ -115,7 +139,10 @@ export function assignTeamItems({ team, usageByMember, ownedItems }) {
     .sort((a, b) => (b.score || 0) - (a.score || 0));
 
   for (const choice of itemless) {
-    const itemId = bestRemainingItem(remaining);
+    const itemId = bestRemainingItem(
+      remaining,
+      allowedGemTypesFor(teamMemberKey(choice)),
+    );
     if (!itemId) break;
 
     assignments[teamMemberKey(choice)] = {
@@ -130,12 +157,15 @@ export function assignTeamItems({ team, usageByMember, ownedItems }) {
   return assignments;
 }
 
-function bestRemainingItem(remaining) {
+function bestRemainingItem(remaining, allowedGemTypes) {
   let best = null;
   let bestRank = Infinity;
 
   for (const [itemId, count] of Object.entries(remaining)) {
     if (count <= 0) continue;
+    // Don't dump a leftover type Gem on a member that can't use it — a gem with
+    // no matching move never triggers, so it's no better than no item.
+    if (!itemEligibleForMember(itemId, allowedGemTypes)) continue;
     const rank = ITEM_QUALITY_RANK.get(itemId) ?? Number.MAX_SAFE_INTEGER;
     if (rank < bestRank) {
       bestRank = rank;

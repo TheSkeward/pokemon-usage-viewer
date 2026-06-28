@@ -28,6 +28,7 @@ import {
   assignTeamItems,
   loadTeamItemUsage,
 } from "./teamBuilder/itemRecommendations";
+import { getTeamItemContext } from "./reborn/teamAnalysis";
 import {
   readLocalStorage,
   removeLocalStorage,
@@ -62,6 +63,7 @@ export function mountPoolOptimizer(container, options = {}) {
     statusMessage: "",
     availabilityText: "",
     teamItemUsage: null,
+    teamItemContext: null,
     itemRecommendations: {},
   };
 
@@ -121,10 +123,24 @@ export function mountPoolOptimizer(container, options = {}) {
       });
       state.resultProgressionKey = getProgressionKey(state.progression);
 
+      // Resolve each member's recommended-move types + real top-set ability once,
+      // so gem item recommendations can be gated (type must match a recommended
+      // move; Unburden boost only when Unburden is actually the set's ability).
+      state.teamItemContext = await getTeamItemContext(
+        state.result.team,
+        state.progression,
+        {
+          family: state.family,
+          selection: state.selection,
+          pokemonIndex,
+          query: state.query,
+        },
+      );
       state.teamItemUsage = await loadTeamItemUsage({
         team: state.result.team,
         family: state.family,
         selection: state.selection,
+        itemContext: state.teamItemContext,
       });
       recomputeItemRecommendations();
 
@@ -400,6 +416,7 @@ export function mountPoolOptimizer(container, options = {}) {
         state.resultProgressionKey = "";
         state.availabilityText = "";
         state.teamItemUsage = null;
+        state.teamItemContext = null;
         state.itemRecommendations = {};
         setDetails.cancel();
 
@@ -521,6 +538,7 @@ export function mountPoolOptimizer(container, options = {}) {
       team: state.result.team,
       usageByMember: state.teamItemUsage,
       ownedItems: state.progression.ownedItems,
+      itemContext: state.teamItemContext,
     });
   }
 
