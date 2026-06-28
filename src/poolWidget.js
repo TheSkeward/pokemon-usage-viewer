@@ -146,6 +146,26 @@ export function mountPoolOptimizer(container, options = {}) {
     }
   }
 
+  // After a progression change that invalidates the optimized team, re-run the
+  // optimizer automatically. Debounced so rapid edits — typing a level cap,
+  // dragging a bias slider, toggling several TMs — settle into one re-optimize.
+  const AUTO_REOPTIMIZE_DELAY_MS = 600;
+  let autoReoptimizeTimer = null;
+
+  function scheduleAutoReoptimize(stale) {
+    if (!stale || !state.result || !state.query.trim()) return;
+
+    if (autoReoptimizeTimer) clearTimeout(autoReoptimizeTimer);
+    autoReoptimizeTimer = setTimeout(() => {
+      autoReoptimizeTimer = null;
+      if (state.loading) {
+        scheduleAutoReoptimize(true);
+        return;
+      }
+      void computeAndRender();
+    }, AUTO_REOPTIMIZE_DELAY_MS);
+  }
+
   function render() {
     state.resultProgressionStale = markResultProgressionStale();
 
@@ -235,6 +255,7 @@ export function mountPoolOptimizer(container, options = {}) {
         refreshSelectedLegalMovesPanel();
         refreshTeamAnalysisPanel();
         refreshOptimizedTeamProgressionState(stale);
+        scheduleAutoReoptimize(stale);
       });
     });
 
@@ -257,6 +278,7 @@ export function mountPoolOptimizer(container, options = {}) {
         );
 
         render();
+        scheduleAutoReoptimize(stale);
       });
     });
 
@@ -287,6 +309,7 @@ export function mountPoolOptimizer(container, options = {}) {
         );
 
         render();
+        scheduleAutoReoptimize(stale);
       });
     });
 
@@ -482,6 +505,7 @@ export function mountPoolOptimizer(container, options = {}) {
     // Bias only affects optimization, so flag the current team stale; no
     // re-render (keeps slider focus during a drag).
     refreshOptimizedTeamProgressionState(stale);
+    scheduleAutoReoptimize(stale);
   }
 
   function recomputeItemRecommendations() {
