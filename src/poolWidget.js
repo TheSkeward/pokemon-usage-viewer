@@ -546,9 +546,11 @@ export function mountPoolOptimizer(container, options = {}) {
 
   function refreshTeamAnalysisPanel() {
     renderRebornTeamAnalysisPanel(app.querySelector("#reborn-team-analysis-root"), {
+      family: state.family,
       pokemonIndex,
       poolQuery: state.query,
       progression: state.progression,
+      selection: state.selection,
       team: state.result?.team || [],
     });
   }

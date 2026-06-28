@@ -11,6 +11,8 @@ import {
   getTypeMultiplier,
   REBORN_ANALYSIS_TYPES,
 } from "./typeChart.js";
+import { estimateMoveDamage, getAttackingStats } from "./damageModel.js";
+import { loadTopSpread } from "./topSpread.js";
 
 export { REBORN_ANALYSIS_TYPES };
 
@@ -23,6 +25,7 @@ export async function buildRebornTeamAnalysis(
     ...breedingOptions,
     progression,
   });
+  const { family, selection } = breedingOptions;
   const legalMoveEntries = await Promise.all(
     team.map(async (row) => {
       const currentSpecies = getCurrentRebornSpeciesForChoice(row, progression);
@@ -46,10 +49,25 @@ export async function buildRebornTeamAnalysis(
       };
       const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
 
+      // Estimate damage off the member's current species using its observed top
+      // set's EVs + nature (best effort; falls back to natural investment).
+      const spread = await loadTopSpread({
+        family,
+        pokemonId: member.id,
+        selection,
+      });
+      const attackerStats = getAttackingStats({
+        pokemonId: member.id,
+        levelCap: progression.levelCap,
+        spread,
+      });
+
       const profile = buildCandidateLegalityProfile({
         member,
         moves,
         representativeName: row.name,
+        attackerStats,
+        levelCap: progression.levelCap,
       });
 
       return {
@@ -85,14 +103,19 @@ export function buildCandidateLegalityProfile({
   member,
   moves = [],
   representativeName = "",
+  attackerStats,
+  levelCap,
 }) {
+  const stats =
+    attackerStats ||
+    getAttackingStats({ pokemonId: member.id, levelCap });
   const damagingMoves = moves.filter(isDamagingMove);
-  const recommendedMoves = recommendCurrentMoves(member, moves);
+  const recommendedMoves = recommendCurrentMoves(member, moves, stats);
   const recommendedDamagingMoves = recommendedMoves.filter(isDamagingMove);
   const stabMoves = damagingMoves
     .filter((move) => member.types.includes(move.type))
     .sort(compareMoveQuality);
-  const attackingTypes = summarizeAttackTypes(member, recommendedDamagingMoves);
+  const attackingTypes = summarizeAttackTypes(member, recommendedDamagingMoves, stats);
   const superEffectiveTargetTypes = new Set();
 
   for (const move of recommendedDamagingMoves) {
@@ -109,9 +132,11 @@ export function buildCandidateLegalityProfile({
       .filter((entry) => !member.types.includes(entry.type))
       .slice(0, 3),
     bestDamagingMove: damagingMoves
-      .map((move) => formatProfileMove(move, member))
+      .map((move) => formatProfileMove(move, member, stats))
       .sort(compareProfileMove)[0] || null,
-    bestStabMove: stabMoves[0] ? formatProfileMove(stabMoves[0], member) : null,
+    bestStabMove: stabMoves[0]
+      ? formatProfileMove(stabMoves[0], member, stats)
+      : null,
     currentId: member.id,
     currentName: member.name,
     currentTypes: member.types,
@@ -155,13 +180,9 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
   );
 
   for (const { member, profile } of legalMoveEntries) {
-    const damagingMoves = (profile?.recommendedMoves || [])
-      .filter(isDamagingMove)
-      .map((move) => ({
-        ...move,
-        basePower: getMovePower(move),
-        priority: move.priority || 0,
-      }));
+    // Recommended moves already carry estimatedDamage (category/STAB-aware) and
+    // basePower from formatRecommendedMove, so reuse them rather than recompute.
+    const damagingMoves = (profile?.recommendedMoves || []).filter(isDamagingMove);
     const stabMoves = damagingMoves
       .filter((move) => member.types.includes(move.type))
       .sort(compareMoveQuality);
@@ -173,7 +194,7 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
     });
 
     for (const move of damagingMoves) {
-      const adjustedPower = getAdjustedPower(move, member);
+      const estimatedDamage = move.estimatedDamage || 0;
 
       const entry = attackTypes.get(move.type) || {
         type: move.type,
@@ -192,13 +213,14 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
       }
       if (
         !entry.bestMove ||
-        adjustedPower > entry.bestMove.adjustedPower ||
-        (adjustedPower === entry.bestMove.adjustedPower &&
+        estimatedDamage > entry.bestMove.estimatedDamage ||
+        (estimatedDamage === entry.bestMove.estimatedDamage &&
           move.name.localeCompare(entry.bestMove.name) < 0)
       ) {
         entry.bestMove = {
-          adjustedPower,
-          basePower: getMovePower(move),
+          estimatedDamage,
+          basePower: move.basePower,
+          category: move.category || null,
           memberName: member.name,
           name: move.name,
         };
@@ -210,9 +232,10 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
         if (multiplier <= 1) continue;
 
         superEffectiveTargets.get(defenseType).push({
-          adjustedPower: adjustedPower * multiplier,
+          estimatedDamage: estimatedDamage * multiplier,
           attackType: move.type,
-          basePower: getMovePower(move),
+          basePower: move.basePower,
+          category: move.category || null,
           memberName: member.name,
           moveName: move.name,
         });
@@ -251,7 +274,7 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
       if (a.best && !b.best) return 1;
       if (!a.best && b.best) return -1;
       return (
-        (a.best?.adjustedPower || 0) - (b.best?.adjustedPower || 0) ||
+        (a.best?.estimatedDamage || 0) - (b.best?.estimatedDamage || 0) ||
         a.type.localeCompare(b.type)
       );
     });
@@ -486,11 +509,11 @@ function isDamagingMove(move) {
   return move.category !== "Status" && getMovePower(move) > 0;
 }
 
-function summarizeAttackTypes(member, damagingMoves) {
+function summarizeAttackTypes(member, damagingMoves, attackerStats) {
   const byType = new Map();
 
   for (const move of damagingMoves) {
-    const option = formatProfileMove(move, member);
+    const option = formatProfileMove(move, member, attackerStats);
     const entry = byType.get(move.type) || {
       type: move.type,
       bestMove: option,
@@ -519,10 +542,12 @@ function summarizeAttackTypes(member, damagingMoves) {
   );
 }
 
-function formatProfileMove(move, member) {
+function formatProfileMove(move, member, attackerStats) {
   return {
     adjustedPower: getAdjustedPower(move, member),
+    estimatedDamage: getEstimatedDamage(move, member, attackerStats),
     basePower: getMovePower(move),
+    category: move.category || null,
     id: move.id,
     name: move.name,
     priority: move.priority || 0,
@@ -530,9 +555,9 @@ function formatProfileMove(move, member) {
   };
 }
 
-function formatRecommendedMove(move, member) {
+function formatRecommendedMove(move, member, attackerStats) {
   return {
-    ...formatProfileMove(move, member),
+    ...formatProfileMove(move, member, attackerStats),
     availableSources: move.availableSources || [],
     category: move.category,
     sourceLabel: formatBestSource(move),
@@ -542,6 +567,7 @@ function formatRecommendedMove(move, member) {
 
 function compareProfileMove(a, b) {
   return (
+    b.estimatedDamage - a.estimatedDamage ||
     b.adjustedPower - a.adjustedPower ||
     b.basePower - a.basePower ||
     a.name.localeCompare(b.name)
@@ -574,7 +600,7 @@ function compareMoveQuality(a, b) {
 
 function compareCoverageOption(a, b) {
   return (
-    b.adjustedPower - a.adjustedPower ||
+    b.estimatedDamage - a.estimatedDamage ||
     b.basePower - a.basePower ||
     a.moveName.localeCompare(b.moveName)
   );
@@ -586,18 +612,32 @@ function getAdjustedPower(move, member) {
   return basePower * stabMultiplier;
 }
 
+// Category/STAB-aware unresisted-damage estimate, used as the ranking key so a
+// physical attacker prefers its physical moves and vice versa. Fixed-damage
+// moves (handled inside estimateMoveDamage) keep their value on weak attackers.
+function getEstimatedDamage(move, member, attackerStats) {
+  return estimateMoveDamage({
+    basePower: move.basePower,
+    effectivePower: getMovePower(move),
+    category: move.category,
+    type: move.type,
+    attackerTypes: member.types,
+    attackerStats,
+  });
+}
+
 function getMovePower(move) {
   return move.basePower || FIXED_DAMAGE_EFFECTIVE_POWER[move.id] || 0;
 }
 
-function recommendCurrentMoves(member, moves) {
+function recommendCurrentMoves(member, moves, attackerStats) {
   const selected = [];
   const damagingMoves = moves
     .filter(isDamagingMove)
-    .map((move) => decorateMove(move, member));
+    .map((move) => decorateMove(move, member, attackerStats));
   const utilityMoves = moves
     .filter((move) => !isDamagingMove(move) && UTILITY_MOVE_WEIGHTS[move.id])
-    .map((move) => decorateMove(move, member));
+    .map((move) => decorateMove(move, member, attackerStats));
 
   const bestStabByType = member.types
     .map((type) =>
@@ -640,11 +680,12 @@ function addRecommendedMove(selected, move) {
   selected.push(move);
 }
 
-function decorateMove(move, member) {
+function decorateMove(move, member, attackerStats) {
   return {
     ...move,
     basePower: getMovePower(move),
     adjustedPower: getAdjustedPower(move, member),
+    estimatedDamage: getEstimatedDamage(move, member, attackerStats),
     sourcePriority: getBestSourcePriority(move),
     superEffectiveTargetCount: countSuperEffectiveTargets(move.type),
     utilityWeight: UTILITY_MOVE_WEIGHTS[move.id] || 0,
@@ -668,7 +709,7 @@ function compareRecommendedDamagingMoves(a, b) {
   return (
     Number(memberHasStab(b)) - Number(memberHasStab(a)) ||
     b.superEffectiveTargetCount - a.superEffectiveTargetCount ||
-    b.adjustedPower - a.adjustedPower ||
+    b.estimatedDamage - a.estimatedDamage ||
     (b.priority || 0) - (a.priority || 0) ||
     a.sourcePriority - b.sourcePriority ||
     a.name.localeCompare(b.name)

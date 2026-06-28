@@ -1,0 +1,141 @@
+import { GEN7_BASE_STATS } from "../generated/gen7BaseStats.generated.js";
+import { toId } from "../utils/ids.js";
+
+// A naive, defender-agnostic damage model. We can't know the real opponent's
+// stats, so every move is scored as "unresisted output" against a fixed neutral
+// wall (base-100 defense, no investment, same level). The result is a relative
+// damage number that's comparable across moves, members, and — crucially — the
+// physical/special split, since it scales by the attacker's actual Atk vs SpA.
+//
+// This feeds two things: the surfaced "X dmg" estimate, and the move
+// recommender's ranking, so a physical attacker prefers its physical moves
+// (and a fixed-damage move like Seismic Toss keeps its value on a weak
+// attacker, where it is genuinely the best option).
+
+// GEN7_BASE_STATS rows are [Atk, Def, SpA, SpD, Spe].
+const STAT_INDEX = { atk: 0, def: 1, spa: 2, spd: 3, spe: 4 };
+// Spread EV strings are HP/Atk/Def/SpA/SpD/Spe.
+const EV_INDEX = { hp: 0, atk: 1, def: 2, spa: 3, spd: 4, spe: 5 };
+
+const DEFAULT_LEVEL = 100;
+const REFERENCE_DEFENSE_BASE = 100;
+const STAB_MULTIPLIER = 1.5;
+
+// Nature -> attacking-stat multipliers (only Atk/SpA matter here). Natures that
+// touch neither Atk nor SpA (e.g. Jolly hits Spe/SpA, Sassy hits SpD/Spe) are
+// simply absent and treated as neutral (1.0 / 1.0).
+const NATURE_ATTACK_MULTIPLIERS = {
+  // +Atk
+  lonely: { atk: 1.1 }, // -Def
+  brave: { atk: 1.1 }, // -Spe
+  adamant: { atk: 1.1, spa: 0.9 }, // -SpA
+  naughty: { atk: 1.1 }, // -SpD
+  // -Atk
+  bold: { atk: 0.9 }, // +Def
+  timid: { atk: 0.9 }, // +Spe
+  calm: { atk: 0.9 }, // +SpD
+  modest: { atk: 0.9, spa: 1.1 }, // +SpA -Atk
+  // +SpA
+  mild: { spa: 1.1 }, // -Def
+  quiet: { spa: 1.1 }, // -Spe
+  rash: { spa: 1.1 }, // -SpD
+  // -SpA
+  impish: { spa: 0.9 }, // +Def
+  jolly: { spa: 0.9 }, // +Spe
+  careful: { spa: 0.9 }, // +SpD
+};
+
+export function normalizeLevel(levelCap) {
+  const parsed = Number.parseInt(levelCap, 10);
+  if (!Number.isFinite(parsed)) return DEFAULT_LEVEL;
+  if (parsed < 1) return 1;
+  if (parsed > 100) return 100;
+  return parsed;
+}
+
+// Parses a Smogon spread string "Nature:HP/Atk/Def/SpA/SpD/Spe" into a nature id
+// and the six EVs. Returns null when it can't be read.
+export function parseSpread(spreadName) {
+  if (typeof spreadName !== "string") return null;
+  const [naturePart, evPart] = spreadName.split(":");
+  if (!naturePart || !evPart) return null;
+
+  const evs = evPart.split("/").map((value) => Number.parseInt(value, 10));
+  if (evs.length < 6 || evs.some((value) => !Number.isFinite(value))) return null;
+
+  return { nature: toId(naturePart), evs };
+}
+
+function statValue(base, ev, level, natureMultiplier) {
+  const inner = Math.floor(((2 * base + 31 + Math.floor(ev / 4)) * level) / 100);
+  return Math.floor((inner + 5) * natureMultiplier);
+}
+
+// Computes a member's effective Atk and SpA at the given level. With a real top
+// spread we honour its EVs + nature; without one we assume the Pokémon invests
+// in its naturally stronger attacking side (252 EVs + a boosting nature), which
+// is how it would actually be built and is enough to settle the physical vs
+// special question for the recommender.
+export function getAttackingStats({ pokemonId, levelCap, spread }) {
+  const stats = GEN7_BASE_STATS[toId(pokemonId)];
+  if (!stats) return null;
+
+  const level = normalizeLevel(levelCap);
+  const baseAtk = stats[STAT_INDEX.atk];
+  const baseSpa = stats[STAT_INDEX.spa];
+
+  const parsed = spread ? parseSpread(spread) : null;
+
+  if (parsed) {
+    const nature = NATURE_ATTACK_MULTIPLIERS[parsed.nature] || {};
+    return {
+      level,
+      atk: statValue(baseAtk, parsed.evs[EV_INDEX.atk], level, nature.atk ?? 1),
+      spa: statValue(baseSpa, parsed.evs[EV_INDEX.spa], level, nature.spa ?? 1),
+    };
+  }
+
+  // Fallback: invest in the stronger attacking side, leave the other bare.
+  const physicalIsStronger = baseAtk >= baseSpa;
+  return {
+    level,
+    atk: statValue(baseAtk, physicalIsStronger ? 252 : 0, level, physicalIsStronger ? 1.1 : 1),
+    spa: statValue(baseSpa, physicalIsStronger ? 0 : 252, level, physicalIsStronger ? 1 : 1.1),
+  };
+}
+
+// Estimated unresisted damage for one move. Fixed-damage moves (Seismic Toss,
+// Night Shade, ...) deliberately skip stat scaling — they ignore the user's
+// offensive stat, so a weak attacker still gets full value from them.
+export function estimateMoveDamage({
+  basePower,
+  effectivePower,
+  category,
+  type,
+  attackerTypes = [],
+  attackerStats,
+  level,
+}) {
+  const stab = attackerTypes.includes(type) ? STAB_MULTIPLIER : 1;
+  const lvl = normalizeLevel(level ?? attackerStats?.level);
+
+  // No real base power -> fixed-damage move: treat its effective power as a flat
+  // damage proxy (stat-independent) so it stays comparable without being tanked
+  // by a low offensive stat.
+  if (!basePower) {
+    return Math.round((effectivePower || 0) * stab);
+  }
+
+  if (!attackerStats) return Math.round(basePower * stab);
+
+  const attack =
+    category === "Physical" ? attackerStats.atk : attackerStats.spa;
+  const defense = statValue(REFERENCE_DEFENSE_BASE, 0, lvl, 1);
+
+  const baseDamage =
+    Math.floor(
+      (Math.floor(((2 * lvl) / 5 + 2) * basePower * attack) / defense) / 50,
+    ) + 2;
+
+  return Math.round(baseDamage * stab);
+}
