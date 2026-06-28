@@ -2,11 +2,13 @@ import { escapeHtml } from "../utils/html.js";
 import { getTypeColor } from "../moveMeta";
 import {
   buildRebornTeamAnalysis,
+  formatTeamPokepaste,
   REBORN_ANALYSIS_TYPES,
 } from "./teamAnalysis";
 
 export function renderRebornTeamAnalysisPanel(root, {
   family,
+  itemAssignments,
   lines = [],
   pokemonIndex = [],
   poolQuery = "",
@@ -34,6 +36,7 @@ export function renderRebornTeamAnalysisPanel(root, {
 
   buildRebornTeamAnalysis(team, progression, {
     family,
+    itemAssignments,
     lines,
     pokemonIndex,
     query: poolQuery,
@@ -41,6 +44,7 @@ export function renderRebornTeamAnalysisPanel(root, {
   })
     .then((analysis) => {
       root.innerHTML = renderAnalysis(analysis);
+      wirePokepasteCopy(root, analysis);
     })
     .catch((error) => {
       console.error("Failed to build Reborn team analysis", error);
@@ -51,6 +55,27 @@ export function renderRebornTeamAnalysisPanel(root, {
         </section>
       `;
     });
+}
+
+function wirePokepasteCopy(root, analysis) {
+  const button = root.querySelector("[data-copy-pokepaste]");
+  if (!button) return;
+
+  const pokepaste = formatTeamPokepaste(
+    analysis.profiles.map((profile) => profile.recommendedSet),
+  );
+
+  button.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(pokepaste);
+      button.textContent = "Copied!";
+    } catch {
+      button.textContent = "Copy failed";
+    }
+    setTimeout(() => {
+      button.textContent = "Copy team as poképaste";
+    }, 2000);
+  });
 }
 
 function renderAnalysis(analysis) {
@@ -78,65 +103,52 @@ function renderAnalysis(analysis) {
 
   return `
     <section class="panel reborn-team-analysis-panel">
-      <div class="panel-header">
+      <div class="panel-header team-analysis-header">
         <div>
           <h2>Team Analysis</h2>
-          <p>${analysis.members.length} picks checked against current Reborn progression settings.</p>
+          <p>${analysis.members.length} picks at the current Reborn progression. Damage shown is naive unresisted output at your level cap.</p>
         </div>
+        <button type="button" class="view-tab" data-copy-pokepaste>Copy team as poképaste</button>
       </div>
 
       <div class="team-analysis-grid">
-        ${renderSummaryCard({
-          label: "Pool Egg Moves",
-          value: getBreedingMoveCount(analysis.breeding),
-          detail: analysis.breeding?.ownedSpecies?.length
-            ? "Egg moves proven through current pool breeding chains."
-            : "Daycare is locked, or no pool breeding chains are available.",
-        })}
         ${renderSummaryCard({
           label: "Shared Weaknesses",
           value: sharedWeaknesses.length,
           detail: sharedWeaknesses.length
             ? sharedWeaknesses.slice(0, 3).map((entry) => entry.type).join(", ")
-            : "No attack type hits multiple picks super effectively.",
+            : "No type hits 2+ picks super effectively.",
         })}
         ${renderSummaryCard({
-          label: "No Defensive Cover",
+          label: "Weaknesses with no switch-in",
           value: uncoveredWeaknesses.length,
           detail: uncoveredWeaknesses.length
             ? uncoveredWeaknesses.slice(0, 3).map((entry) => entry.type).join(", ")
-            : "Every shared weakness has at least one resist or immunity.",
+            : "Every shared weakness has a resist or immunity.",
         })}
         ${renderSummaryCard({
-          label: "Recommended Attack Types",
-          value: analysis.offensive.attackingTypes.length,
-          detail: analysis.offensive.attackingTypes.length
-            ? "Damaging move types in the current recommended movesets."
-            : "No recommended attacking moves found yet.",
-        })}
-        ${renderSummaryCard({
-          label: "Recommended STAB",
+          label: "Picks with a STAB attack",
           value: `${analysis.members.length - analysis.offensive.missingStabMembers.length}/${analysis.members.length}`,
           detail: analysis.offensive.missingStabMembers.length
-            ? `No current STAB for ${analysis.offensive.missingStabMembers
+            ? `No STAB yet: ${analysis.offensive.missingStabMembers
                 .slice(0, 3)
                 .map((entry) => entry.member.name)
                 .join(", ")}.`
-            : "Every pick has at least one recommended damaging STAB move.",
+            : "Every pick has a recommended damaging STAB move.",
         })}
         ${renderSummaryCard({
-          label: "Missing Coverage",
+          label: "Types with no SE answer",
           value: analysis.offensive.missingSuperEffectiveTargets.length,
           detail: analysis.offensive.missingSuperEffectiveTargets.length
-            ? `No recommended super-effective hit for ${analysis.offensive.missingSuperEffectiveTargets.slice(0, 4).join(", ")}.`
-            : "Current recommended attacks can hit every type super effectively.",
+            ? analysis.offensive.missingSuperEffectiveTargets.slice(0, 4).join(", ")
+            : "The team can hit every type super effectively.",
         })}
       </div>
 
-      ${renderExplanation(analysis.explanation)}
+      <h3>Recommended Sets</h3>
+      ${renderSetCards(analysis.profiles)}
 
-      <h3>Current Legal Contributions</h3>
-      ${renderProfileRows(analysis.profiles)}
+      ${renderExplanation(analysis.explanation)}
 
       <div class="team-analysis-columns">
         <div>
@@ -144,8 +156,8 @@ function renderAnalysis(analysis) {
           ${renderDefensiveRows(sharedWeaknesses, sturdySwitchTypes)}
         </div>
         <div>
-          <h3>Recommended Coverage</h3>
-          ${renderOffensiveRows(analysis.offensive)}
+          <h3>Team Coverage</h3>
+          ${renderCoverageSummary(analysis.offensive)}
         </div>
       </div>
     </section>
@@ -185,95 +197,75 @@ function renderExplanationList(items = []) {
   `;
 }
 
-function renderProfileRows(profiles = []) {
+function renderSetCards(profiles = []) {
   if (!profiles.length) {
-    return `<p class="muted">No current legal contribution profiles are available.</p>`;
+    return `<p class="muted">No recommended sets are available yet.</p>`;
   }
 
   return `
-    <div class="team-analysis-profile-list">
-      ${profiles.map(renderProfileRow).join("")}
+    <div class="team-set-cards">
+      ${profiles.map(renderSetCard).join("")}
     </div>
   `;
 }
 
-function renderProfileRow(profile) {
-  const bestStab = profile.bestStabMove
-    ? `${profile.bestStabMove.name} (${formatDamage(profile.bestStabMove)})`
-    : "No legal damaging STAB";
-  const recommendedMoves = profile.recommendedMoves?.length
-    ? profile.recommendedMoves
-    : [];
-  const bestCoverage = profile.bestCoverageMoves.length
-    ? profile.bestCoverageMoves
-        .map(
-          (entry) =>
-            `${entry.bestMove.name} ${entry.type} (${formatDamage(entry.bestMove)})`,
-        )
-        .join(", ")
-    : "No off-type damaging coverage";
+function renderSetCard(profile) {
+  const set = profile.recommendedSet || {};
   const currentLine =
     profile.currentName === profile.representativeName
       ? profile.currentName
-      : `${profile.currentName} now; ${profile.representativeName} later`;
+      : `${profile.currentName} now → ${profile.representativeName} later`;
+  const meta = [
+    set.item || "No item recommended",
+    set.ability,
+    set.level ? `Lv ${set.level}` : null,
+    set.nature ? `${set.nature} nature` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const evs = formatEvs(set.evs);
+  const moves = profile.recommendedMoves?.length ? profile.recommendedMoves : [];
 
   return `
-    <div class="team-analysis-profile-row ${profile.bestStabMove ? "" : "warning"}">
-      <div>
+    <div class="team-set-card ${profile.bestStabMove ? "" : "warning"}">
+      <div class="team-set-head">
         <strong>${escapeHtml(profile.inputName)}</strong>
         <small>${escapeHtml(currentLine)}</small>
       </div>
-      <div>
-        <span>Best STAB</span>
-        <small>${escapeHtml(bestStab)}</small>
+      <div class="team-set-meta">${escapeHtml(meta)}</div>
+      ${evs ? `<div class="team-set-evs">${escapeHtml(evs)}</div>` : ""}
+      <div class="team-set-moves">
+        ${
+          moves.length
+            ? moves.map(renderSetMove).join("")
+            : `<small class="muted">No legal damaging moves available yet.</small>`
+        }
       </div>
-      <div>
-        <span>Current moves</span>
-        ${renderRecommendedMoves(recommendedMoves)}
-      </div>
-      <div>
-        <span>Legal moves</span>
-        <small>${profile.recommendedDamagingMoveCount}/${profile.legalDamagingMoveCount} selected attacks; ${profile.attackTypes.length} types</small>
-      </div>
-      <div>
-        <span>SE targets</span>
-        <small>${profile.superEffectiveTargetCount}/${REBORN_ANALYSIS_TYPES.length}</small>
-      </div>
-      <div>
-        <span>Coverage</span>
-        <small>${escapeHtml(bestCoverage)}</small>
+      <div class="team-set-foot">
+        <small>${profile.superEffectiveTargetCount}/${REBORN_ANALYSIS_TYPES.length} types hit super effectively</small>
       </div>
     </div>
   `;
 }
 
-function renderRecommendedMoves(moves) {
-  if (!moves.length) {
-    return `<small>No current legal moves</small>`;
-  }
-
+function renderSetMove(move) {
   return `
-    <div class="team-analysis-moveset">
-      ${moves
-        .map(
-          (move) => `
-            <div class="team-analysis-moveset-move">
-              ${renderTypeBadge(move.type)}
-              <span>${escapeHtml(move.name)}</span>
-              <small>${escapeHtml(formatRecommendedMoveDetail(move))}</small>
-            </div>
-          `,
-        )
-        .join("")}
+    <div class="team-set-move">
+      ${renderTypeBadge(move.type)}
+      <span class="team-set-move-name">${escapeHtml(move.name)}</span>
+      <span class="team-set-move-dmg">${escapeHtml(formatDamage(move))}</span>
+      <span class="team-set-move-src">${escapeHtml(move.sourceLabel || "Legal")}</span>
     </div>
   `;
 }
 
-function getBreedingMoveCount(breeding) {
-  return Object.values(breeding?.byPokemonId || {}).reduce(
-    (sum, entry) => sum + (entry.moveIds?.length || 0),
-    0,
-  );
+function formatEvs(evs) {
+  if (!Array.isArray(evs)) return "";
+  const labels = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"];
+  const parts = evs
+    .map((value, index) => (value > 0 ? `${value} ${labels[index]}` : null))
+    .filter(Boolean);
+  return parts.length ? `EVs: ${parts.join(" / ")}` : "";
 }
 
 function renderSummaryCard({ detail, label, value }) {
@@ -338,70 +330,28 @@ function renderDefenseTypeRow(entry, { primary, secondary }) {
   `;
 }
 
-function renderOffensiveRows(offensive) {
+function renderCoverageSummary(offensive) {
+  const weakestHits = offensive.bestCoverageByTarget
+    .filter((entry) => entry.best)
+    .slice(0, 6);
+
   return `
     <div class="team-analysis-block">
-      <h4>Best current STAB</h4>
-      ${
-        offensive.memberStab.length
-          ? offensive.memberStab.map(renderStabRow).join("")
-          : `<p class="muted">No recommended STAB moves are available under current progression settings.</p>`
-      }
-    </div>
-
-    <div class="team-analysis-block">
-      <h4>Recommended attacking types</h4>
-      ${
-        offensive.attackingTypes.length
-          ? offensive.attackingTypes
-              .map(
-                (entry) => `
-                  <div class="team-analysis-row">
-                    ${renderTypeBadge(entry.type)}
-                    <strong>${entry.moveCount} moves</strong>
-                    <span>${entry.stabMembers.length} STAB</span>
-                    <small>${escapeHtml(formatAttackTypeDetail(entry))}</small>
-                  </div>
-                `,
-              )
-              .join("")
-          : `<p class="muted">No recommended attacking moves are available under current progression settings.</p>`
-      }
-    </div>
-
-    <div class="team-analysis-block">
-      <h4>Weakest super-effective hits</h4>
-      ${
-        offensive.bestCoverageByTarget.length
-          ? offensive.bestCoverageByTarget
-              .slice(0, 8)
-              .map(renderCoverageTargetRow)
-              .join("")
-          : `<p class="muted">No super-effective recommended hits are available yet.</p>`
-      }
-    </div>
-
-    <div class="team-analysis-block">
-      <h4>Missing super-effective coverage</h4>
+      <h4>No super-effective answer</h4>
       ${
         offensive.missingSuperEffectiveTargets.length
           ? `<div class="team-analysis-chip-list">${offensive.missingSuperEffectiveTargets.map(renderTypeBadge).join("")}</div>`
-          : `<p class="muted">Current recommended attacks include at least one super-effective option into every type.</p>`
+          : `<p class="muted">The recommended attacks hit every type super effectively.</p>`
       }
     </div>
-  `;
-}
 
-function renderStabRow(entry) {
-  const bestMove = entry.bestMove;
-
-  return `
-    <div class="team-analysis-move-row ${bestMove ? "" : "warning"}">
-      <strong>${escapeHtml(entry.member.name)}</strong>
+    <div class="team-analysis-block">
+      <h4>Thinnest super-effective answers</h4>
+      <p class="muted team-analysis-hint">Types you can only hit super effectively with a weak move.</p>
       ${
-        bestMove
-          ? `${renderTypeBadge(bestMove.type)}<span>${escapeHtml(bestMove.name)}</span><small>${escapeHtml(formatDamage(bestMove))}</small>`
-          : `<span class="team-analysis-empty-cell">No recommended damaging STAB</span>`
+        weakestHits.length
+          ? weakestHits.map(renderCoverageTargetRow).join("")
+          : `<p class="muted">No super-effective recommended hits are available yet.</p>`
       }
     </div>
   `;
@@ -422,18 +372,6 @@ function renderCoverageTargetRow(entry) {
       }</small>
     </div>
   `;
-}
-
-function formatAttackTypeDetail(entry) {
-  const best = entry.bestMove;
-  const memberText = entry.members.length
-    ? entry.members.slice(0, 3).join(", ")
-    : "No picks";
-  const overflow = entry.members.length > 3 ? ` +${entry.members.length - 3}` : "";
-
-  if (!best) return `${memberText}${overflow}`;
-
-  return `${best.name} from ${best.memberName}; ${memberText}${overflow}`;
 }
 
 function formatPower(value) {
@@ -459,31 +397,6 @@ function formatCategory(category) {
   if (category === "Physical") return "Phys";
   if (category === "Special") return "Spec";
   return "";
-}
-
-// Combines the damage/category estimate with the move's source for the
-// recommended-moveset list, e.g. "142 dmg · Phys · Level-up: 31".
-function formatRecommendedMoveDetail(move) {
-  const damage = formatDamage(move);
-  const source = move.sourceLabel || "Legal";
-  return damage ? `${damage} · ${source}` : source;
-}
-
-function formatSourceCounts(sourceCounts = {}) {
-  const labels = [
-    ["level-up", "Level-up"],
-    ["relearner", "Relearner"],
-    ["tm", "TM"],
-    ["tmx", "TMX"],
-    ["tutor", "Tutor"],
-    ["egg", "Egg"],
-  ];
-  const text = labels
-    .filter(([kind]) => sourceCounts[kind])
-    .map(([kind, label]) => `${label} ${sourceCounts[kind]}`)
-    .join(", ");
-
-  return text || "None";
 }
 
 function formatDefenseNames(entry) {

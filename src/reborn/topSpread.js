@@ -1,27 +1,39 @@
 import { dataUrl } from "../utils/dataUrl.js";
 import { fetchJsonCached } from "../utils/fetchJsonCached.js";
 
-// Loads the most-used EV spread + nature string ("Nature:HP/Atk/Def/SpA/SpD/Spe")
-// for a team member from its stitched set index, so the damage model can use the
-// real top set's investment. Shares the URL-keyed fetch cache with the item
-// recommender, which already loads the same set-index files. Falls back through
-// the "all" selection and returns null when nothing is available.
-export async function loadTopSpread({ family, pokemonId, selection }) {
+// Loads a team member's most-used competitive set details from its stitched set
+// index — top EV spread + nature ("Nature:HP/Atk/Def/SpA/SpD/Spe"), ability, and
+// item — so the damage model can use the real investment and the analysis can
+// show a complete Showdown set. Shares the URL-keyed fetch cache with the item
+// recommender. Falls back through the "all" selection.
+export async function loadTopSet({ family, pokemonId, selection }) {
   const data =
     (await fetchSetIndex({ family, pokemonId, selection })) ||
     (selection !== "all"
       ? await fetchSetIndex({ family, pokemonId, selection: "all" })
       : null);
 
-  const spreads = data?.spreads;
-  if (!Array.isArray(spreads) || !spreads.length) return null;
+  return {
+    spread: topUsageName(data?.spreads),
+    ability: topUsageName(data?.abilities),
+    item: topUsageName(data?.items),
+  };
+}
 
-  // Prefer the highest real-usage spread; the stitched tail has usage: null.
+// Backwards-compatible helper: just the top spread string.
+export async function loadTopSpread(options) {
+  return (await loadTopSet(options)).spread;
+}
+
+// Highest real-usage entry's name; the stitched tail carries usage: null.
+function topUsageName(entries) {
+  if (!Array.isArray(entries) || !entries.length) return null;
+
   let best = null;
-  for (const spread of spreads) {
-    if (typeof spread?.name !== "string") continue;
-    const usage = typeof spread.usage === "number" ? spread.usage : -1;
-    if (!best || usage > best.usage) best = { name: spread.name, usage };
+  for (const entry of entries) {
+    if (typeof entry?.name !== "string") continue;
+    const usage = typeof entry.usage === "number" ? entry.usage : -1;
+    if (!best || usage > best.usage) best = { name: entry.name, usage };
   }
 
   return best?.name || null;

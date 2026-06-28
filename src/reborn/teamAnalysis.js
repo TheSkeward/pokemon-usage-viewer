@@ -11,8 +11,14 @@ import {
   getTypeMultiplier,
   REBORN_ANALYSIS_TYPES,
 } from "./typeChart.js";
-import { estimateMoveDamage, getAttackingStats } from "./damageModel.js";
-import { loadTopSpread } from "./topSpread.js";
+import {
+  estimateMoveDamage,
+  getAttackingStats,
+  normalizeLevel,
+  parseSpread,
+} from "./damageModel.js";
+import { loadTopSet } from "./topSpread.js";
+import { teamMemberKey } from "../teamBuilder/itemRecommendations.js";
 
 export { REBORN_ANALYSIS_TYPES };
 
@@ -25,7 +31,7 @@ export async function buildRebornTeamAnalysis(
     ...breedingOptions,
     progression,
   });
-  const { family, selection } = breedingOptions;
+  const { family, selection, itemAssignments } = breedingOptions;
   const legalMoveEntries = await Promise.all(
     team.map(async (row) => {
       const currentSpecies = getCurrentRebornSpeciesForChoice(row, progression);
@@ -49,9 +55,9 @@ export async function buildRebornTeamAnalysis(
       };
       const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
 
-      // Estimate damage off the member's current species using its observed top
-      // set's EVs + nature (best effort; falls back to natural investment).
-      const spread = await loadTopSpread({
+      // Pull the member's most-used competitive set (top spread / ability /
+      // item) so damage uses the real EVs + nature and we can show a full set.
+      const topSet = await loadTopSet({
         family,
         pokemonId: member.id,
         selection,
@@ -59,7 +65,7 @@ export async function buildRebornTeamAnalysis(
       const attackerStats = getAttackingStats({
         pokemonId: member.id,
         levelCap: progression.levelCap,
-        spread,
+        spread: topSet.spread,
       });
 
       const profile = buildCandidateLegalityProfile({
@@ -67,6 +73,13 @@ export async function buildRebornTeamAnalysis(
         moves,
         representativeName: row.name,
         attackerStats,
+        levelCap: progression.levelCap,
+      });
+      profile.recommendedSet = buildRecommendedSet({
+        member,
+        profile,
+        topSet,
+        assignedItem: itemAssignments?.[teamMemberKey(row)],
         levelCap: progression.levelCap,
       });
 
@@ -145,13 +158,68 @@ export function buildCandidateLegalityProfile({
     legalMoveCount: moves.length,
     recommendedDamagingMoveCount: recommendedDamagingMoves.length,
     recommendedMoves: recommendedMoves.map((move) =>
-      formatRecommendedMove(move, member),
+      formatRecommendedMove(move, member, stats),
     ),
     representativeId: member.representativeId || member.id,
     representativeName,
     sourceCounts: countMoveSources(moves),
     superEffectiveTargetCount: superEffectiveTargetTypes.size,
   };
+}
+
+// Assembles a complete recommended set for a pick: its current species, the
+// owned-item recommendation (falling back to the top competitive item), the most-
+// used ability and EV spread + nature, the level cap, and the recommended moves.
+function buildRecommendedSet({ member, profile, topSet, assignedItem, levelCap }) {
+  const parsed = topSet.spread ? parseSpread(topSet.spread) : null;
+
+  return {
+    species: member.name,
+    representativeName: member.representativeName || "",
+    item: assignedItem?.name || topSet.item || null,
+    ability: topSet.ability || null,
+    nature: parsed?.nature ? capitalize(parsed.nature) : null,
+    evs: parsed?.evs || null,
+    level: normalizeLevel(levelCap),
+    moves: (profile.recommendedMoves || []).map((entry) => entry.name),
+  };
+}
+
+const EV_LABELS = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"];
+
+// Renders the team's recommended sets as Showdown/poképaste text.
+export function formatTeamPokepaste(sets = []) {
+  return sets.filter(Boolean).map(formatShowdownSet).join("\n\n");
+}
+
+export function formatShowdownSet(set) {
+  if (!set) return "";
+
+  const lines = [set.item ? `${set.species} @ ${set.item}` : set.species];
+  if (set.ability) lines.push(`Ability: ${set.ability}`);
+  if (set.level && set.level !== 100) lines.push(`Level: ${set.level}`);
+
+  const evLine = formatEvLine(set.evs);
+  if (evLine) lines.push(`EVs: ${evLine}`);
+  if (set.nature) lines.push(`${set.nature} Nature`);
+
+  for (const move of set.moves || []) lines.push(`- ${move}`);
+
+  return lines.join("\n");
+}
+
+function formatEvLine(evs) {
+  if (!Array.isArray(evs)) return "";
+
+  return evs
+    .map((value, index) => (value > 0 ? `${value} ${EV_LABELS[index]}` : null))
+    .filter(Boolean)
+    .join(" / ");
+}
+
+function capitalize(value) {
+  const text = String(value || "");
+  return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
 }
 
 function analyzeDefensiveProfile(members) {
@@ -423,69 +491,85 @@ function getOffensiveHoles(offensive) {
   return holes;
 }
 
+// Suggests bench (unselected pool) Pokémon that patch a named team hole — a
+// shared weakness with no switch-in, or a type nothing hits super-effectively.
+// Only ever references picks NOT on the team, spoken as the form you'd field, so
+// it can't degenerate into "swap a pick for itself" or another of its evolutions.
 function buildFixSuggestions({ defensiveHoles, lines, offensive, selectedKeys }) {
+  const bench = collectBenchOptions(lines, selectedKeys);
+  if (!bench.length) return [];
+
   const suggestions = [];
-  const missingTargets = new Set(offensive.missingSuperEffectiveTargets || []);
+
+  // Defensive holes first, the uncovered ones (no resist/immunity) most urgent.
+  const holes = [...defensiveHoles].sort(
+    (a, b) => a.coverCount - b.coverCount || b.weak.length - a.weak.length,
+  );
+  for (const hole of holes) {
+    const pick = bench
+      .filter((option) => resistsOrImmune(option.profile.currentTypes, hole.type))
+      .sort((a, b) => b.score - a.score)[0];
+    if (!pick) continue;
+
+    suggestions.push({
+      priority: (hole.coverCount === 0 ? 200 : 100) + hole.weak.length,
+      text: `Weak to ${hole.type} (${hole.weak.length} picks): ${pick.name} resists it.`,
+    });
+  }
+
+  // Then types the team can't hit super effectively at all.
+  for (const targetType of offensive.missingSuperEffectiveTargets || []) {
+    const pick = bench
+      .filter((option) =>
+        (option.profile.attackTypes || []).some(
+          (attackType) => getTypeMultiplier(attackType, [targetType]) > 1,
+        ),
+      )
+      .sort((a, b) => b.score - a.score)[0];
+    if (!pick) continue;
+
+    suggestions.push({
+      priority: 90,
+      text: `No super-effective hit on ${targetType}: ${pick.name} covers it.`,
+    });
+  }
+
+  return suggestions
+    .sort((a, b) => b.priority - a.priority || a.text.localeCompare(b.text))
+    .map((entry) => entry.text)
+    .filter((text, index, all) => all.indexOf(text) === index)
+    .slice(0, 5);
+}
+
+// Best fielded option from each pool line that isn't on the team.
+function collectBenchOptions(lines, selectedKeys) {
+  const bench = [];
 
   for (const line of lines || []) {
-    const lineOptions = [
+    const options = [
       line.best,
       line.bestNonMega,
       ...(line.choiceOptions || []),
     ].filter(Boolean);
-    const selectedChoice = lineOptions.find((choice) =>
-      selectedKeys.has(getChoiceKey(choice)),
-    );
-
-    for (const option of line.choiceOptions || []) {
-      if (!option?.legalityProfile || selectedKeys.has(getChoiceKey(option))) {
-        continue;
-      }
-
-      const fixes = getOptionFixes(option.legalityProfile, {
-        defensiveHoles,
-        missingTargets,
-      });
-
-      if (!fixes.length) continue;
-
-      suggestions.push({
-        score: fixes.length * 100 + Math.max(0, option.legalityScore || 0) / 100,
-        text: `Consider ${option.name} over ${selectedChoice?.name || option.inputName} for ${fixes.slice(0, 2).join(" and ")}.`,
-      });
+    if (options.some((choice) => selectedKeys.has(getChoiceKey(choice)))) {
+      continue;
     }
+
+    const choice = line.best || line.bestNonMega;
+    if (!choice?.legalityProfile) continue;
+
+    bench.push({
+      name: choice.legalityProfile.currentName || choice.name,
+      profile: choice.legalityProfile,
+      score: choice.legalityScore || 0,
+    });
   }
 
-  return suggestions
-    .sort((a, b) => b.score - a.score || a.text.localeCompare(b.text))
-    .map((entry) => entry.text)
-    .filter((text, index, all) => all.indexOf(text) === index);
+  return bench;
 }
 
 function getChoiceKey(choice) {
   return `${choice.inputPokemonId || choice.inputName}:${choice.pokemonId}`;
-}
-
-function getOptionFixes(profile, { defensiveHoles, missingTargets }) {
-  const fixes = [];
-  const coveredWeaknesses = defensiveHoles
-    .filter((hole) => resistsOrImmune(profile.currentTypes, hole.type))
-    .map((hole) => hole.type);
-  const coverageFixes = [...missingTargets].filter((targetType) =>
-    (profile.attackTypes || []).some(
-      (attackType) => getTypeMultiplier(attackType, [targetType]) > 1,
-    ),
-  );
-
-  if (coveredWeaknesses.length) {
-    fixes.push(`${coveredWeaknesses.slice(0, 2).join("/")} defensive cover`);
-  }
-
-  if (coverageFixes.length) {
-    fixes.push(`${coverageFixes.slice(0, 2).join("/")} offensive coverage`);
-  }
-
-  return fixes;
 }
 
 function countRecommendedAttackTypes(profiles) {

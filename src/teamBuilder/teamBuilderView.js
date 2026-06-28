@@ -31,10 +31,13 @@ export function renderTeamBuilderPage({
 
   renderSelectedSetDetails({ app, pokemonIndex, setDetails, state });
   renderRebornTeamAnalysisPanel(app.querySelector("#reborn-team-analysis-root"), {
+    family: state.family,
+    itemAssignments: state.itemRecommendations,
     lines: state.result?.lines || [],
     pokemonIndex,
     poolQuery: state.query,
     progression: state.progression,
+    selection: state.selection,
     team: state.result?.team || [],
   });
 }
