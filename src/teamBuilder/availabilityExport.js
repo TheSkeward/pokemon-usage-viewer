@@ -19,16 +19,24 @@ export async function buildPoolAvailabilityText({ lines, progression }) {
   );
 
   const seenIds = new Set();
-  const monLines = [];
+  const dedupedEntries = [];
 
   for (const entry of entries) {
     if (!entry) continue;
     if (seenIds.has(entry.id)) continue;
     seenIds.add(entry.id);
-
-    const moves = entry.moves.length ? entry.moves.join(", ") : "(none available yet)";
-    monLines.push(`${entry.name} - available move pool: ${moves}`);
+    dedupedEntries.push(entry);
   }
+
+  // Sort by the Pokémon's current display name so the printed list reads
+  // alphabetically — input order follows the pool/line order otherwise, which
+  // looks scrambled once evolutions rename a line (e.g. Steenee under "Bounsweet").
+  dedupedEntries.sort((a, b) => a.name.localeCompare(b.name));
+
+  const monLines = dedupedEntries.map((entry) => {
+    const moves = entry.moves.length ? entry.moves.join(", ") : "(none available yet)";
+    return `${entry.name} - available move pool: ${moves}`;
+  });
 
   const sections = ["Here are my available Pokémon.", ...monLines];
 
