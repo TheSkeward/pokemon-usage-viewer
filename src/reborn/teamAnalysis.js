@@ -426,7 +426,12 @@ function formatPickReason(profile, { attackTypeCounts, defensiveHoles }) {
 
   if (!reasons.length) return "";
 
-  return `${profile.inputName}: ${profile.currentName} contributes ${reasons.join(", ")}.`;
+  const fromInput =
+    profile.inputName && profile.inputName !== profile.currentName
+      ? ` (from ${profile.inputName})`
+      : "";
+
+  return `${profile.currentName}${fromInput} contributes ${reasons.join(", ")}.`;
 }
 
 function getDefensiveHoles(defensive) {

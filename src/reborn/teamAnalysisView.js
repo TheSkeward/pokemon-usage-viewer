@@ -211,10 +211,17 @@ function renderSetCards(profiles = []) {
 
 function renderSetCard(profile) {
   const set = profile.recommendedSet || {};
-  const currentLine =
-    profile.currentName === profile.representativeName
-      ? profile.currentName
-      : `${profile.currentName} now → ${profile.representativeName} later`;
+  const eventual =
+    profile.representativeName &&
+    profile.representativeName !== profile.currentName
+      ? profile.representativeName
+      : null;
+  const subParts = [
+    profile.inputName && profile.inputName !== profile.currentName
+      ? `from ${profile.inputName}`
+      : null,
+    eventual ? `→ ${eventual} later` : null,
+  ].filter(Boolean);
   const meta = [
     set.item || "No item recommended",
     set.ability,
@@ -229,8 +236,8 @@ function renderSetCard(profile) {
   return `
     <div class="team-set-card ${profile.bestStabMove ? "" : "warning"}">
       <div class="team-set-head">
-        <strong>${escapeHtml(profile.inputName)}</strong>
-        <small>${escapeHtml(currentLine)}</small>
+        <strong>${escapeHtml(profile.currentName)}</strong>
+        ${subParts.length ? `<small>${escapeHtml(subParts.join(" · "))}</small>` : ""}
       </div>
       <div class="team-set-meta">${escapeHtml(meta)}</div>
       ${evs ? `<div class="team-set-evs">${escapeHtml(evs)}</div>` : ""}
