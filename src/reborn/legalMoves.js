@@ -5,6 +5,7 @@ import {
 } from "./progressionOptions.js";
 import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
 import { dataUrl } from "../utils/dataUrl.js";
+import { hydrateLegalMove } from "../moveMeta.js";
 import { toId as normalizeId } from "../utils/ids.js";
 
 const legalMoveCache = new Map();
@@ -28,8 +29,15 @@ export async function loadRebornLegalMoveData(pokemonId) {
   }
 
   const data = await response.json();
-  legalMoveCache.set(id, data);
-  return data;
+  // Per-mon files store moves as { id, sources }; rejoin each with its intrinsic
+  // metadata from the central table so downstream consumers get the full move
+  // object (name/type/category/basePower/priority) they expect.
+  const hydrated = {
+    ...data,
+    moves: (data.moves || []).map(hydrateLegalMove),
+  };
+  legalMoveCache.set(id, hydrated);
+  return hydrated;
 }
 
 export function getAvailableRebornMoves(legalMoveData, progression = {}) {

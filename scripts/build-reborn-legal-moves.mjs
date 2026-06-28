@@ -68,13 +68,13 @@ for (const pokemon of pokemonIndex) {
       ownSources,
     );
 
+    // Intrinsic move properties (name/type/category/basePower/priority) live in
+    // the central gen7MoveMeta table, keyed by move id, so they aren't
+    // duplicated into every file that lists the move. These per-mon entries
+    // carry only the move id and where this species obtains it; the runtime
+    // rejoins the two by id at load time.
     moves.push({
       id: move.id,
-      name: move.name,
-      type: move.type,
-      category: move.category,
-      basePower: move.basePower || 0,
-      priority: move.priority || 0,
       sources: normalizeSources({
         ...sources,
         preEvolutionLevelUp,
@@ -83,7 +83,9 @@ for (const pokemon of pokemonIndex) {
     });
   }
 
-  moves.sort((a, b) => a.name.localeCompare(b.name));
+  // Sort by id for stable, readable output; the runtime re-sorts the hydrated
+  // moves by type/name once it has joined in the central metadata.
+  moves.sort((a, b) => a.id.localeCompare(b.id));
 
   await fs.writeFile(
     path.join(outputDir, `${pokemon.id}.json`),

@@ -57,6 +57,30 @@ function resolveHiddenPower(name) {
   return { name: `Hidden Power ${type}`, type, category: 'Special' };
 }
 
+// Looks up a move's intrinsic properties by id from the central table. This is
+// the single source of truth for name/type/category/basePower/priority, so a
+// change to a move propagates everywhere without per-file duplication.
+export function getMoveMetaById(id) {
+  return MOVE_META[id] || null;
+}
+
+// Rejoins a stripped legal-move entry ({ id, sources }) with its central
+// metadata, reproducing the fully-populated move object the rest of the app
+// consumes. Unknown ids fall back to inert defaults so a missing entry can't
+// crash a render.
+export function hydrateLegalMove(rawMove) {
+  const meta = MOVE_META[rawMove.id] || null;
+  return {
+    id: rawMove.id,
+    name: meta?.name ?? rawMove.id,
+    type: meta?.type ?? "Normal",
+    category: meta?.category ?? "Status",
+    basePower: meta?.basePower ?? 0,
+    priority: meta?.priority ?? 0,
+    sources: rawMove.sources,
+  };
+}
+
 export function getTypeColor(type) {
   return TYPE_COLORS[type] || '#AAB5C3';
 }
