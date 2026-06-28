@@ -11,6 +11,7 @@ import {
   clearSavedRebornProgression,
   loadSavedRebornProgression,
   saveRebornProgression,
+  setRebornOpponentTypeBias,
   setRebornOwnedItemCount,
   setRebornProgressionOptions,
   updateRebornProgressionField,
@@ -318,6 +319,20 @@ export function mountPoolOptimizer(container, options = {}) {
       });
     });
 
+    app.querySelectorAll("[data-bias-type]").forEach((control) => {
+      // Update the value readout live while dragging without re-rendering (which
+      // would drop slider focus), then commit on release.
+      control.addEventListener("input", () => {
+        const valueEl = app.querySelector(
+          `[data-bias-value="${control.dataset.biasType}"]`,
+        );
+        if (valueEl) valueEl.textContent = control.value;
+      });
+      control.addEventListener("change", () => {
+        applyOpponentBiasChange(control.dataset.biasType, control.value);
+      });
+    });
+
     app.querySelectorAll("[data-owned-item-remove]").forEach((button) => {
       button.addEventListener("click", () => {
         applyOwnedItemChange(button.dataset.itemId, 0);
@@ -446,6 +461,27 @@ export function mountPoolOptimizer(container, options = {}) {
 
     recomputeItemRecommendations();
     render();
+  }
+
+  function applyOpponentBiasChange(type, level) {
+    state.progression = setRebornOpponentTypeBias(
+      state.progression,
+      type,
+      level,
+    );
+
+    const saved = saveRebornProgression(state.progression);
+    const stale = markResultProgressionStale();
+
+    updateProgressionStatusMessage(
+      saved
+        ? getProgressionSavedMessage(stale)
+        : "Progression could not be saved locally; browser storage is full.",
+    );
+
+    // Bias only affects optimization, so flag the current team stale; no
+    // re-render (keeps slider focus during a drag).
+    refreshOptimizedTeamProgressionState(stale);
   }
 
   function recomputeItemRecommendations() {

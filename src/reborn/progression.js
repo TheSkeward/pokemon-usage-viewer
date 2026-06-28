@@ -9,11 +9,15 @@ import {
   REBORN_TUTOR_OPTIONS,
 } from "./progressionOptions";
 import { TERRAIN_SEED_MIGRATION } from "./rebornSeeds";
+import { REBORN_ANALYSIS_TYPES } from "./typeChart.js";
 
 const PROGRESSION_STORAGE_KEY = "pokemon-usage-viewer:reborn-progression:v1";
 
 // Highest tracked held-item quantity; the picker treats this as "6 or more".
 export const MAX_TRACKED_ITEM_COUNT = 6;
+
+// Strongest opponent-type bias the team builder will weight toward (0 = off).
+export const MAX_OPPONENT_TYPE_BIAS = 6;
 
 export const DEFAULT_REBORN_PROGRESSION = {
   levelCap: "",
@@ -23,6 +27,7 @@ export const DEFAULT_REBORN_PROGRESSION = {
   availableTmxIds: [],
   availableTutorMoveIds: [],
   ownedItems: {},
+  opponentTypeBias: {},
 };
 
 export function loadSavedRebornProgression() {
@@ -71,7 +76,25 @@ export function normalizeRebornProgression(progression = {}) {
       progression.availableTutorsText,
     ),
     ownedItems: normalizeOwnedItems(progression.ownedItems),
+    opponentTypeBias: normalizeOpponentTypeBias(progression.opponentTypeBias),
   };
+}
+
+export function setRebornOpponentTypeBias(progression, type, level) {
+  const bias = { ...(progression.opponentTypeBias || {}) };
+  const parsed = Number.parseInt(level, 10);
+
+  if (!REBORN_ANALYSIS_TYPES.includes(type)) {
+    return normalizeRebornProgression(progression);
+  }
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    delete bias[type];
+  } else {
+    bias[type] = Math.min(MAX_OPPONENT_TYPE_BIAS, parsed);
+  }
+
+  return normalizeRebornProgression({ ...progression, opponentTypeBias: bias });
 }
 
 export function setRebornOwnedItemCount(progression, itemId, count) {
@@ -165,6 +188,20 @@ function normalizeOptionIds(value, options, legacyText = "") {
       options.findIndex((option) => option.id === a) -
       options.findIndex((option) => option.id === b),
   );
+}
+
+function normalizeOpponentTypeBias(value) {
+  if (!value || typeof value !== "object") return {};
+
+  const bias = {};
+
+  for (const type of REBORN_ANALYSIS_TYPES) {
+    const level = Number.parseInt(value[type], 10);
+    if (!Number.isFinite(level) || level <= 0) continue;
+    bias[type] = Math.min(MAX_OPPONENT_TYPE_BIAS, level);
+  }
+
+  return bias;
 }
 
 function normalizeOwnedItems(value) {

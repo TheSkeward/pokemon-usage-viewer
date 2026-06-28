@@ -111,6 +111,7 @@ async function resolvePoolLine({
             candidate,
             family,
             legalityProfile,
+            opponentTypeBias: progression.opponentTypeBias,
           }),
         };
       } catch (error) {

@@ -10,8 +10,10 @@ import {
   REBORN_TM_OPTIONS,
   REBORN_TMX_OPTIONS,
 } from "./progressionOptions";
-import { MAX_TRACKED_ITEM_COUNT } from "./progression";
+import { MAX_TRACKED_ITEM_COUNT, MAX_OPPONENT_TYPE_BIAS } from "./progression";
 import { HIDDEN_INVENTORY_ITEM_IDS } from "./rebornSeeds";
+import { REBORN_ANALYSIS_TYPES } from "./typeChart.js";
+import { getTypeColor } from "../moveMeta";
 import {
   GEN7_HELD_ITEMS,
   GEN7_HELD_ITEMS_BY_ID,
@@ -83,6 +85,8 @@ export function renderRebornProgressionPanel(progression) {
         })}
 
         ${renderItemInventory(progression.ownedItems || {})}
+
+        ${renderOpponentTypeBias(progression.opponentTypeBias || {})}
       </div>
 
       <details class="progression-rules">
@@ -101,6 +105,48 @@ export function renderRebornProgressionPanel(progression) {
         <span class="muted" data-progression-status></span>
       </div>
     </section>
+  `;
+}
+
+function renderOpponentTypeBias(bias) {
+  const activeCount = REBORN_ANALYSIS_TYPES.filter(
+    (type) => (bias[type] || 0) > 0,
+  ).length;
+
+  return `
+    <details class="progression-option-group wide-control opponent-bias-group">
+      <summary>
+        <span>Opponent type bias</span>
+        <span class="progression-option-count">${activeCount} active</span>
+      </summary>
+      <p class="muted opponent-bias-hint">
+        Crank a type up (1–${MAX_OPPONENT_TYPE_BIAS}) before a heavily-typed gym
+        fight to prefer picks that resist it and hit it super-effectively.
+      </p>
+      <div class="opponent-bias-grid">
+        ${REBORN_ANALYSIS_TYPES.map((type) =>
+          renderBiasRow(type, bias[type] || 0),
+        ).join("")}
+      </div>
+    </details>
+  `;
+}
+
+function renderBiasRow(type, level) {
+  return `
+    <label class="opponent-bias-row">
+      <span class="move-badge opponent-bias-type" style="background:${getTypeColor(type)}">${escapeHtml(type)}</span>
+      <input
+        type="range"
+        min="0"
+        max="${MAX_OPPONENT_TYPE_BIAS}"
+        step="1"
+        value="${escapeAttr(String(level))}"
+        data-bias-type="${escapeAttr(type)}"
+        aria-label="${escapeHtml(type)} opponent bias level"
+      />
+      <span class="opponent-bias-value" data-bias-value="${escapeAttr(type)}">${level}</span>
+    </label>
   `;
 }
 
