@@ -969,6 +969,112 @@ input {
   margin-bottom: 1rem;
 }
 
+.team-analysis-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.team-analysis-hint {
+  margin: 0.15rem 0 0.5rem;
+  font-size: 0.8rem;
+}
+
+.team-set-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.team-set-card {
+  border: 1px solid #2b3645;
+  border-radius: 8px;
+  background: #0f1620;
+  padding: 0.7rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.team-set-card.warning {
+  border-color: #5a3a2a;
+}
+
+.team-set-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.team-set-head strong {
+  font-size: 1rem;
+}
+
+.team-set-head small {
+  color: #aab5c3;
+  text-align: right;
+}
+
+.team-set-meta {
+  font-size: 0.85rem;
+  color: #d6deea;
+}
+
+.team-set-evs {
+  font-size: 0.78rem;
+  color: #aab5c3;
+  font-variant-numeric: tabular-nums;
+}
+
+.team-set-moves {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.15rem;
+}
+
+.team-set-move {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr auto;
+  grid-template-areas: "badge name dmg" "badge src src";
+  align-items: center;
+  column-gap: 0.5rem;
+  row-gap: 0.05rem;
+  padding: 0.2rem 0;
+  border-top: 1px solid #1c2530;
+}
+
+.team-set-move .team-analysis-type-badge {
+  grid-area: badge;
+}
+
+.team-set-move-name {
+  grid-area: name;
+  font-size: 0.9rem;
+}
+
+.team-set-move-dmg {
+  grid-area: dmg;
+  font-size: 0.82rem;
+  color: #d6deea;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.team-set-move-src {
+  grid-area: src;
+  font-size: 0.75rem;
+  color: #8d99a8;
+}
+
+.team-set-foot {
+  color: #8d99a8;
+  font-size: 0.75rem;
+  margin-top: 0.1rem;
+}
+
 .team-analysis-explanation {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
