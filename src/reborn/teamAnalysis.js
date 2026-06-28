@@ -944,8 +944,8 @@ function decorateMove(
     estimatedDamage,
     // The damage used purely to *rank* attacks while filling slots. When the
     // opponent type-bias is set, a move that hits a biased type super-effectively
-    // is scored as though the attacker's Atk/SpA were raised by `bias` stages
-    // (×1.5 per level), so anti-bias coverage is preferred. This never leaves the
+    // is scored with a gentle boost (the accuracy-stage curve: bias 1 = 1.33×,
+    // 3 = 2×, 6 = 3×), so anti-bias coverage is preferred. This never leaves the
     // ranker — the displayed "X dmg" stays the unboosted estimatedDamage.
     rankingDamage: biasAdjustedDamage(
       move,
@@ -961,10 +961,11 @@ function decorateMove(
   };
 }
 
-// The stat-stage multiplier (×1.5 per level, matching Pokémon's boost table) for
-// a move that hits any biased opponent type super-effectively; 1 otherwise. The
-// strongest applicable bias wins — a move answering a level-6 threat isn't
-// diluted by also chipping a level-1 one.
+// The bias multiplier for a move that hits any biased opponent type super-
+// effectively; 1 otherwise. Uses Pokémon's accuracy/evasion stage curve
+// ((3 + level) / 3) rather than the steeper Atk/SpA one, so the nudge stays
+// gentle: bias 1 = 1.33×, 3 = 2×, 6 = 3×. The strongest applicable bias wins —
+// a move answering a level-6 threat isn't diluted by also chipping a level-1 one.
 function biasMoveMultiplier(move, opponentTypeBias = {}) {
   let level = 0;
   for (const [type, rawLevel] of Object.entries(opponentTypeBias || {})) {
@@ -972,7 +973,7 @@ function biasMoveMultiplier(move, opponentTypeBias = {}) {
     if (clamped <= level) continue;
     if (getTypeMultiplier(move.type, [type]) > 1) level = clamped;
   }
-  return level ? (2 + level) / 2 : 1;
+  return level ? (3 + level) / 3 : 1;
 }
 
 // Re-scores a move as though the attacker's offensive stat were boosted by the
