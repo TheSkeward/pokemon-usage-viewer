@@ -1,6 +1,7 @@
 import { dataUrl } from "../utils/dataUrl.js";
 import { fetchJsonCached } from "../utils/fetchJsonCached.js";
 import { getRebornMoveId } from "../reborn/legalMoves.js";
+import { hydrateLegalMove } from "../moveMeta.js";
 
 export function createPrecomputedSetDetailsLoader({
   getFamily,
@@ -217,6 +218,9 @@ function appendUnusedLegalMoves(detail, legalMoves, pokemonId) {
 
   const unusedMoves = legal
     .filter((move) => !usedMoveIds.has(move.id))
+    // Per-mon files carry only { id, sources }; rejoin each with its central
+    // metadata before reading name/type/category for display.
+    .map(hydrateLegalMove)
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((move) => ({
       name: move.name,
