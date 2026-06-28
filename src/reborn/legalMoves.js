@@ -67,12 +67,17 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     const levels = playableLevelUpLevels.filter(
       (level) => level <= levelCap,
     );
-    // A level-1 move exclusive to an evolved form (the pre-evolution never
-    // learns it) is an evolution move: the species learns it on evolving (e.g.
-    // Combusken's Double Kick, which is L1 in Gen 7), so it's directly available
-    // whenever you're fielding that form — not gated behind the move relearner.
-    const isEvolutionMove =
-      evolvedSpecies &&
+    // A genuine evolution move (flagged by the generator: level-1 on this form,
+    // and no pre-evolution learns it by level-up) is gained on evolving into this
+    // form — e.g. Combusken's Double Kick — so it's directly available whenever
+    // you're fielding that form, not gated behind the move relearner.
+    const isEvolutionMove = Boolean(move.sources?.evolutionMove);
+    // A level-1 move relisted on an evolved form that ISN'T a genuine evolution
+    // move (a pre-evolution learns it, but only above the level reachable before
+    // evolving — e.g. Blaziken's Flare Blitz, which Combusken learns at 58) is
+    // only obtainable here through the move relearner.
+    const hasRelearnerOnlyLevelOne =
+      !isEvolutionMove &&
       preEvolutionLevels.length === 0 &&
       allLevelUpLevels.some((level) =>
         isEvolvedLevelOneMove(level, evolvedSpecies),
@@ -94,6 +99,11 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       sources.push({
         kind: "level-up",
         label: "On evolution",
+      });
+    } else if (hasRelearnerOnlyLevelOne && moveRelearnerUnlocked) {
+      sources.push({
+        kind: "relearner",
+        label: "Move relearner",
       });
     }
 

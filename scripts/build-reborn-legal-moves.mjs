@@ -62,6 +62,11 @@ for (const pokemon of pokemonIndex) {
       species,
       move.id,
     );
+    const evolutionMove = await isGenuineEvolutionMove(
+      species,
+      move.id,
+      ownSources,
+    );
 
     moves.push({
       id: move.id,
@@ -73,6 +78,7 @@ for (const pokemon of pokemonIndex) {
       sources: normalizeSources({
         ...sources,
         preEvolutionLevelUp,
+        evolutionMove,
       }),
     });
   }
@@ -151,6 +157,31 @@ async function getPreEvolutionLevelUpLevels(species, moveId) {
   }
 
   return [...new Set(levels)].sort((a, b) => a - b);
+}
+
+// A move learned at level 1 by an evolved form, that NO pre-evolution learns by
+// level-up at any level, is a genuine evolution move (gained on evolving into
+// this form — e.g. Combusken's Double Kick, Blaziken's Blaze Kick). A level-1
+// move a pre-evolution does learn is just relisted on the evolved form (Ember,
+// or a high-level move like Flare Blitz) and must stay gated by its real level.
+async function isGenuineEvolutionMove(species, moveId, ownSources) {
+  if (!species?.prevo) return false;
+  if (!ownSources?.levelUp?.includes(1)) return false;
+
+  let current = species;
+  const seen = new Set();
+
+  while (current?.prevo && !seen.has(current.id)) {
+    seen.add(current.id);
+    const prevo = dex.species.get(current.prevo);
+    const prevoContext = await getSpeciesSourceContext(prevo);
+    if (prevoContext?.sourcesByMoveId.get(moveId)?.levelUp?.length) {
+      return false;
+    }
+    current = prevo;
+  }
+
+  return true;
 }
 
 async function getPreEvolutionEggMoveIds(species) {
@@ -283,8 +314,11 @@ function getOrCreateSources(sourcesByMoveId, moveId) {
 }
 
 function normalizeSources(sources) {
-  const { preEvolutionLevelUp: rawPreEvolutionLevelUp, ...baseSources } =
-    sources;
+  const {
+    preEvolutionLevelUp: rawPreEvolutionLevelUp,
+    evolutionMove,
+    ...baseSources
+  } = sources;
   const normalized = {
     ...baseSources,
     levelUp: [...new Set(sources.levelUp)].sort((a, b) => a - b),
@@ -295,6 +329,10 @@ function normalizeSources(sources) {
 
   if (preEvolutionLevelUp.length) {
     normalized.preEvolutionLevelUp = preEvolutionLevelUp;
+  }
+
+  if (evolutionMove) {
+    normalized.evolutionMove = true;
   }
 
   return normalized;
