@@ -172,6 +172,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
     result.team,
     state.teamSort,
     state.teamSortDir,
+    state.progression,
   );
   const progressionStale = Boolean(state.resultProgressionStale);
 
@@ -191,8 +192,8 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
           <thead>
             <tr>
               <th>#</th>
-              ${renderSortHeader("input", "Input", state)}
-              ${renderSortHeader("name", "Pick", state)}
+              ${renderSortHeader("current", "Current", state)}
+              ${renderSortHeader("name", "Eventual", state)}
               ${renderSortHeader("usage", "Usage %", state)}
               ${renderSortHeader("lead", "Lead %", state)}
               ${renderSortHeader("score", "Score", state)}
@@ -323,6 +324,8 @@ function renderTeamRow({
 }) {
   const selected = setDetails.isSelected(row.pokemonId);
   const currentSpecies = getCurrentRebornSpeciesForChoice(row, progression);
+  const currentName = currentSpecies?.name || row.name;
+  const eventualDiffers = Boolean(currentSpecies?.differsFromRepresentative);
   const note = progressionStale
     ? "Progression changed; re-optimize for current scores and legal move notes."
     : row.note || "";
@@ -337,16 +340,21 @@ function renderTeamRow({
       title="Inspect ${escapeHtml(row.name)} set"
     >
       <td>${index + 1}</td>
-      <td>${escapeHtml(row.inputName)}</td>
       <td>
-        <strong>${escapeHtml(row.name)}</strong>
-        ${row.isMega ? `<div class="representative-note">Mega slot</div>` : ""}
+        <strong>${escapeHtml(currentName)}</strong>
         ${
-          currentSpecies?.differsFromRepresentative
-            ? `<div class="representative-note" data-current-species-note>Current: ${escapeHtml(currentSpecies.name)}</div>`
-            : `<div class="representative-note" data-current-species-note hidden></div>`
+          row.inputName && row.inputName !== currentName
+            ? `<div class="representative-note">from ${escapeHtml(row.inputName)}</div>`
+            : ""
         }
         ${renderItemRec(recommendedItem)}
+      </td>
+      <td data-current-species-note>
+        ${
+          eventualDiffers
+            ? `<strong>${escapeHtml(row.name)}</strong>${row.isMega ? `<div class="representative-note">Mega slot</div>` : ""}`
+            : `<span class="muted">—</span>`
+        }
       </td>
       <td>${formatPercent(row.bundle?.usage?.value)}</td>
       <td>${formatPercent(row.bundle?.leads?.value)}</td>
@@ -420,9 +428,11 @@ function getSelectedTeamChoice({ setDetails, state }) {
   );
 }
 
-function getSortedTeam(team, sortBy, sortDir = "desc") {
+function getSortedTeam(team, sortBy, sortDir = "desc", progression = {}) {
   const rows = [...team];
   const direction = sortDir === "asc" ? 1 : -1;
+  const currentName = (row) =>
+    getCurrentRebornSpeciesForChoice(row, progression)?.name || row.name;
 
   rows.sort((a, b) => {
     let primary = 0;
@@ -433,8 +443,8 @@ function getSortedTeam(team, sortBy, sortDir = "desc") {
       primary = compareNumber(a.bundle?.usage?.value, b.bundle?.usage?.value);
     } else if (sortBy === "score") {
       primary = compareNumber(a.score, b.score);
-    } else if (sortBy === "input") {
-      primary = a.inputName.localeCompare(b.inputName);
+    } else if (sortBy === "current" || sortBy === "input") {
+      primary = currentName(a).localeCompare(currentName(b));
     } else {
       primary = a.name.localeCompare(b.name);
     }
@@ -464,9 +474,11 @@ function getSortLabel(sortBy, sortDir = "desc") {
   if (sortBy === "lead") return `Lead % ${direction}`;
   if (sortBy === "usage") return `Usage % ${direction}`;
   if (sortBy === "score") return `optimizer score ${direction}`;
-  if (sortBy === "input") return `input name ${direction}`;
+  if (sortBy === "current" || sortBy === "input") {
+    return `current form ${direction}`;
+  }
 
-  return `Pokémon name ${direction}`;
+  return `eventual form ${direction}`;
 }
 
 function renderUnresolved(unresolved = []) {
