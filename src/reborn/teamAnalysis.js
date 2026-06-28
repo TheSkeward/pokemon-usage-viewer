@@ -11,6 +11,8 @@ import {
   getTypeMultiplier,
   REBORN_ANALYSIS_TYPES,
 } from "./typeChart.js";
+import { estimateMoveDamage, getAttackingStats } from "./damageModel.js";
+import { loadTopSpread } from "./topSpread.js";
 
 export { REBORN_ANALYSIS_TYPES };
 
@@ -23,6 +25,7 @@ export async function buildRebornTeamAnalysis(
     ...breedingOptions,
     progression,
   });
+  const { family, selection } = breedingOptions;
   const legalMoveEntries = await Promise.all(
     team.map(async (row) => {
       const currentSpecies = getCurrentRebornSpeciesForChoice(row, progression);
@@ -46,10 +49,25 @@ export async function buildRebornTeamAnalysis(
       };
       const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
 
+      // Estimate damage off the member's current species using its observed top
+      // set's EVs + nature (best effort; falls back to natural investment).
+      const spread = await loadTopSpread({
+        family,
+        pokemonId: member.id,
+        selection,
+      });
+      const attackerStats = getAttackingStats({
+        pokemonId: member.id,
+        levelCap: progression.levelCap,
+        spread,
+      });
+
       const profile = buildCandidateLegalityProfile({
         member,
         moves,
         representativeName: row.name,
+        attackerStats,
+        levelCap: progression.levelCap,
       });
 
       return {
@@ -85,14 +103,19 @@ export function buildCandidateLegalityProfile({
   member,
   moves = [],
   representativeName = "",
+  attackerStats,
+  levelCap,
 }) {
+  const stats =
+    attackerStats ||
+    getAttackingStats({ pokemonId: member.id, levelCap });
   const damagingMoves = moves.filter(isDamagingMove);
-  const recommendedMoves = recommendCurrentMoves(member, moves);
+  const recommendedMoves = recommendCurrentMoves(member, moves, stats);
   const recommendedDamagingMoves = recommendedMoves.filter(isDamagingMove);
   const stabMoves = damagingMoves
     .filter((move) => member.types.includes(move.type))
     .sort(compareMoveQuality);
-  const attackingTypes = summarizeAttackTypes(member, recommendedDamagingMoves);
+  const attackingTypes = summarizeAttackTypes(member, recommendedDamagingMoves, stats);
   const superEffectiveTargetTypes = new Set();
 
   for (const move of recommendedDamagingMoves) {
@@ -109,9 +132,11 @@ export function buildCandidateLegalityProfile({
       .filter((entry) => !member.types.includes(entry.type))
       .slice(0, 3),
     bestDamagingMove: damagingMoves
-      .map((move) => formatProfileMove(move, member))
+      .map((move) => formatProfileMove(move, member, stats))
       .sort(compareProfileMove)[0] || null,
-    bestStabMove: stabMoves[0] ? formatProfileMove(stabMoves[0], member) : null,
+    bestStabMove: stabMoves[0]
+      ? formatProfileMove(stabMoves[0], member, stats)
+      : null,
     currentId: member.id,
     currentName: member.name,
     currentTypes: member.types,
@@ -519,10 +544,12 @@ function summarizeAttackTypes(member, damagingMoves) {
   );
 }
 
-function formatProfileMove(move, member) {
+function formatProfileMove(move, member, attackerStats) {
   return {
     adjustedPower: getAdjustedPower(move, member),
+    estimatedDamage: getEstimatedDamage(move, member, attackerStats),
     basePower: getMovePower(move),
+    category: move.category || null,
     id: move.id,
     name: move.name,
     priority: move.priority || 0,
@@ -530,9 +557,9 @@ function formatProfileMove(move, member) {
   };
 }
 
-function formatRecommendedMove(move, member) {
+function formatRecommendedMove(move, member, attackerStats) {
   return {
-    ...formatProfileMove(move, member),
+    ...formatProfileMove(move, member, attackerStats),
     availableSources: move.availableSources || [],
     category: move.category,
     sourceLabel: formatBestSource(move),
@@ -542,6 +569,7 @@ function formatRecommendedMove(move, member) {
 
 function compareProfileMove(a, b) {
   return (
+    b.estimatedDamage - a.estimatedDamage ||
     b.adjustedPower - a.adjustedPower ||
     b.basePower - a.basePower ||
     a.name.localeCompare(b.name)
