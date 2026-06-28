@@ -290,6 +290,7 @@ async function resolveCandidateLegalityProfile({
     moves,
     representativeName: candidate.name,
     levelCap: progression.levelCap,
+    opponentTypeBias: progression.opponentTypeBias,
   });
 }
 
