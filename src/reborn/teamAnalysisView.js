@@ -6,10 +6,12 @@ import {
 } from "./teamAnalysis";
 
 export function renderRebornTeamAnalysisPanel(root, {
+  family,
   lines = [],
   pokemonIndex = [],
   poolQuery = "",
   progression,
+  selection,
   team,
 }) {
   if (!root) return;
@@ -31,9 +33,11 @@ export function renderRebornTeamAnalysisPanel(root, {
   `;
 
   buildRebornTeamAnalysis(team, progression, {
+    family,
     lines,
     pokemonIndex,
     query: poolQuery,
+    selection,
   })
     .then((analysis) => {
       root.innerHTML = renderAnalysis(analysis);
@@ -195,7 +199,7 @@ function renderProfileRows(profiles = []) {
 
 function renderProfileRow(profile) {
   const bestStab = profile.bestStabMove
-    ? `${profile.bestStabMove.name} (${formatPower(profile.bestStabMove.adjustedPower)} effective)`
+    ? `${profile.bestStabMove.name} (${formatDamage(profile.bestStabMove)})`
     : "No legal damaging STAB";
   const recommendedMoves = profile.recommendedMoves?.length
     ? profile.recommendedMoves
@@ -204,7 +208,7 @@ function renderProfileRow(profile) {
     ? profile.bestCoverageMoves
         .map(
           (entry) =>
-            `${entry.bestMove.name} ${entry.type} (${formatPower(entry.bestMove.adjustedPower)})`,
+            `${entry.bestMove.name} ${entry.type} (${formatDamage(entry.bestMove)})`,
         )
         .join(", ")
     : "No off-type damaging coverage";
@@ -256,7 +260,7 @@ function renderRecommendedMoves(moves) {
             <div class="team-analysis-moveset-move">
               ${renderTypeBadge(move.type)}
               <span>${escapeHtml(move.name)}</span>
-              <small>${escapeHtml(move.sourceLabel || "Legal")}</small>
+              <small>${escapeHtml(formatRecommendedMoveDetail(move))}</small>
             </div>
           `,
         )
@@ -396,7 +400,7 @@ function renderStabRow(entry) {
       <strong>${escapeHtml(entry.member.name)}</strong>
       ${
         bestMove
-          ? `${renderTypeBadge(bestMove.type)}<span>${escapeHtml(bestMove.name)}</span><small>${formatPower(bestMove.basePower)} effective base</small>`
+          ? `${renderTypeBadge(bestMove.type)}<span>${escapeHtml(bestMove.name)}</span><small>${escapeHtml(formatDamage(bestMove))}</small>`
           : `<span class="team-analysis-empty-cell">No recommended damaging STAB</span>`
       }
     </div>
@@ -409,7 +413,7 @@ function renderCoverageTargetRow(entry) {
   return `
     <div class="team-analysis-row ${best ? "" : "warning"}">
       ${renderTypeBadge(entry.type)}
-      <strong>${best ? formatPower(best.adjustedPower) : "none"}</strong>
+      <strong>${best ? formatPower(best.estimatedDamage) : "none"}</strong>
       <span>${best ? escapeHtml(best.attackType) : "missing"}</span>
       <small>${
         best
@@ -436,6 +440,33 @@ function formatPower(value) {
   if (!Number.isFinite(value)) return "";
 
   return Math.round(value).toLocaleString();
+}
+
+// "142 dmg · Phys" style label from a formatted move (estimatedDamage + category).
+function formatDamage(move) {
+  if (!move) return "";
+
+  const damage = Number.isFinite(move.estimatedDamage)
+    ? `${formatPower(move.estimatedDamage)} dmg`
+    : "";
+  const category = formatCategory(move.category);
+
+  if (damage && category) return `${damage} · ${category}`;
+  return damage || category;
+}
+
+function formatCategory(category) {
+  if (category === "Physical") return "Phys";
+  if (category === "Special") return "Spec";
+  return "";
+}
+
+// Combines the damage/category estimate with the move's source for the
+// recommended-moveset list, e.g. "142 dmg · Phys · Level-up: 31".
+function formatRecommendedMoveDetail(move) {
+  const damage = formatDamage(move);
+  const source = move.sourceLabel || "Legal";
+  return damage ? `${damage} · ${source}` : source;
 }
 
 function formatSourceCounts(sourceCounts = {}) {

@@ -61,10 +61,13 @@ export function scoreCandidate({
 function scoreLegalityProfile(profile) {
   if (!profile) return 0;
 
-  const bestStabPower = profile.bestStabMove?.adjustedPower || 0;
-  const bestDamagePower = profile.bestDamagingMove?.adjustedPower || 0;
+  // Damage estimates are category/stat-aware, so move quality here reflects how
+  // hard the mon actually hits at the current progression — coupling mon
+  // selection to whether its good moves match its offensive stats.
+  const bestStabPower = profile.bestStabMove?.estimatedDamage || 0;
+  const bestDamagePower = profile.bestDamagingMove?.estimatedDamage || 0;
   const coveragePower = profile.bestCoverageMoves.reduce(
-    (sum, entry) => sum + Math.min(120, entry.bestMove?.adjustedPower || 0),
+    (sum, entry) => sum + Math.min(120, entry.bestMove?.estimatedDamage || 0),
     0,
   );
   const selectedMoveCount = profile.recommendedMoves?.length || 0;

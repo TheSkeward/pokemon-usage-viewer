@@ -288,6 +288,7 @@ async function resolveCandidateLegalityProfile({
     member,
     moves,
     representativeName: candidate.name,
+    levelCap: progression.levelCap,
   });
 }
 
