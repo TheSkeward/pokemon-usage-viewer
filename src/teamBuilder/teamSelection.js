@@ -2,11 +2,12 @@ import {
   getTypeMultiplier,
   REBORN_ANALYSIS_TYPES,
 } from "../reborn/typeChart.js";
+import { MAX_OPPONENT_TYPE_BIAS } from "../reborn/progression";
 
-export function choosePoolTeam(lines) {
+export function choosePoolTeam(lines, opponentTypeBias = {}) {
   const resolvedLines = lines.filter((line) => line.best || line.bestNonMega);
   const unresolved = lines.filter((line) => line.unresolved);
-  const bestTeam = selectTeamByFit(resolvedLines);
+  const bestTeam = selectTeamByFit(resolvedLines, opponentTypeBias);
   const team = addTeamFitNotes(bestTeam.team);
   const megaUsed = bestTeam.megaUsed
     ? team.find(
@@ -85,7 +86,7 @@ function getDefensiveCoverTypes(profile, team) {
   });
 }
 
-function selectTeamByFit(lines) {
+function selectTeamByFit(lines, opponentTypeBias = {}) {
   const targetSize = Math.min(6, lines.length);
   let states = [
     {
@@ -114,13 +115,15 @@ function selectTeamByFit(lines) {
       }
     }
 
-    states = pruneTeamStates(nextStates, targetSize);
+    states = pruneTeamStates(nextStates, targetSize, opponentTypeBias);
   }
 
   return (
     states
       .filter((state) => state.team.length > 0)
-      .sort(compareCandidateTeams)[0] || {
+      .sort((a, b) =>
+        compareCandidateTeams(a, b, targetSize, opponentTypeBias),
+      )[0] || {
       team: [],
       megaUsed: null,
     }
@@ -150,7 +153,7 @@ function getLineChoiceOptions(line) {
   return [...unique.values()].slice(0, 6);
 }
 
-function pruneTeamStates(states, targetSize) {
+function pruneTeamStates(states, targetSize, opponentTypeBias = {}) {
   const seen = new Set();
   const unique = [];
 
@@ -168,7 +171,7 @@ function pruneTeamStates(states, targetSize) {
   }
 
   return unique
-    .sort((a, b) => compareCandidateTeams(a, b, targetSize))
+    .sort((a, b) => compareCandidateTeams(a, b, targetSize, opponentTypeBias))
     .slice(0, 120);
 }
 
@@ -185,12 +188,13 @@ function compareChoices(a, b) {
   );
 }
 
-function compareCandidateTeams(a, b, targetSize = 6) {
+function compareCandidateTeams(a, b, targetSize = 6, opponentTypeBias = {}) {
   return (
     getTeamSizePriority(b.team, targetSize) -
       getTeamSizePriority(a.team, targetSize) ||
     countMeaningfulChoices(b.team) - countMeaningfulChoices(a.team) ||
-    getTeamScore(b.team) - getTeamScore(a.team)
+    getTeamScore(b.team, opponentTypeBias) -
+      getTeamScore(a.team, opponentTypeBias)
   );
 }
 
@@ -206,15 +210,15 @@ function sumTeamScore(team) {
   return team.reduce((sum, row) => sum + (row.score || 0), 0);
 }
 
-function getTeamScore(team) {
-  return sumTeamScore(team) + scoreTeamFit(team);
+function getTeamScore(team, opponentTypeBias = {}) {
+  return sumTeamScore(team) + scoreTeamFit(team, opponentTypeBias);
 }
 
 function getUsagePercent(choice) {
   return Math.max(0, choice.bundle?.usage?.value || 0);
 }
 
-function scoreTeamFit(team) {
+function scoreTeamFit(team, opponentTypeBias = {}) {
   const profiles = team
     .map((choice) => choice.legalityProfile)
     .filter(Boolean);
@@ -234,21 +238,30 @@ function scoreTeamFit(team) {
     }
   }
 
+  // Per-member fit-penalty weight: a pick that counters a biased opponent type
+  // (resists/is immune to it, or hits it super-effectively) is shielded from
+  // shared-weakness penalties in proportion to that type's bias level, so
+  // stacking dedicated counters isn't punished. Non-counters keep full weight.
+  const fitWeights = profiles.map(
+    (profile) => 1 - biasCounterExemption(profile, opponentTypeBias),
+  );
+
   score += attackTypes.size * 70;
   score += coveredDefenseTypes.size * 90;
   score -= (REBORN_ANALYSIS_TYPES.length - coveredDefenseTypes.size) * 80;
 
   for (const attackType of REBORN_ANALYSIS_TYPES) {
-    const matchups = profiles.map((profile) =>
-      getTypeMultiplier(attackType, profile.currentTypes || []),
-    );
-    const weakCount = matchups.filter((multiplier) => multiplier > 1).length;
-    const coverCount = matchups.filter(
-      (multiplier) => multiplier === 0 || (multiplier > 0 && multiplier < 1),
-    ).length;
+    let weakWeight = 0;
+    let coverCount = 0;
 
-    if (weakCount >= 2) {
-      score -= (weakCount - 1) * 180;
+    profiles.forEach((profile, index) => {
+      const multiplier = getTypeMultiplier(attackType, profile.currentTypes || []);
+      if (multiplier > 1) weakWeight += fitWeights[index];
+      else if (multiplier < 1) coverCount += 1;
+    });
+
+    if (weakWeight >= 2) {
+      score -= (weakWeight - 1) * 180;
       if (!coverCount) score -= 260;
     }
 
@@ -256,4 +269,28 @@ function scoreTeamFit(team) {
   }
 
   return score;
+}
+
+// How strongly a pick counters any biased opponent type, as a 0..1 fraction:
+// the highest bias level (over types it resists/is immune to, or hits super-
+// effectively) divided by the max bias. Used to cap that pick's shared-weakness
+// fit penalties — it's a dedicated counter, so its own typing holes are accepted.
+function biasCounterExemption(profile, opponentTypeBias = {}) {
+  let exemption = 0;
+
+  for (const [type, rawLevel] of Object.entries(opponentTypeBias)) {
+    const level = Math.max(0, Math.min(MAX_OPPONENT_TYPE_BIAS, rawLevel || 0));
+    if (!level) continue;
+
+    const resists = getTypeMultiplier(type, profile.currentTypes || []) < 1;
+    const hitsSuperEffectively = (profile.attackTypes || []).some(
+      (attackType) => getTypeMultiplier(attackType, [type]) > 1,
+    );
+
+    if (resists || hitsSuperEffectively) {
+      exemption = Math.max(exemption, level / MAX_OPPONENT_TYPE_BIAS);
+    }
+  }
+
+  return exemption;
 }

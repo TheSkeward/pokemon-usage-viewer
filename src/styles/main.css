@@ -750,6 +750,42 @@ input {
   padding-top: 0.75rem;
 }
 
+.opponent-bias-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+}
+
+.opponent-bias-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.3rem 1rem;
+  padding-top: 0.6rem;
+}
+
+.opponent-bias-row {
+  display: grid;
+  grid-template-columns: 5rem 1fr 1.2rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.opponent-bias-type {
+  justify-self: start;
+  text-align: center;
+  min-width: 4.5rem;
+}
+
+.opponent-bias-row input[type="range"] {
+  width: 100%;
+  min-width: 0;
+}
+
+.opponent-bias-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: #aab5c3;
+}
+
 .progression-checklist.compact {
   max-height: none;
   overflow: visible;

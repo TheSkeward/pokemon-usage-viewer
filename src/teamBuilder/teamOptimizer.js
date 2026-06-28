@@ -57,7 +57,7 @@ export async function optimizeTeamFromPool({
     )
   ).filter(Boolean);
 
-  return choosePoolTeam(lines);
+  return choosePoolTeam(lines, progression.opponentTypeBias);
 }
 
 async function resolvePoolLine({
@@ -111,6 +111,7 @@ async function resolvePoolLine({
             candidate,
             family,
             legalityProfile,
+            opponentTypeBias: progression.opponentTypeBias,
           }),
         };
       } catch (error) {
