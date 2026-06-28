@@ -128,6 +128,13 @@ export function buildCandidateLegalityProfile({
   const stabMoves = damagingMoves
     .filter((move) => member.types.includes(move.type))
     .sort(compareMoveQuality);
+  // The recommended moves, ordered hardest- to softest-hitting click. The damage
+  // estimate already factors STAB and the attacker's level/nature/EVs but is
+  // computed vs a neutral defender, so the ranking knows the user's own typing
+  // without "knowing" whether a move is super effective against any target.
+  const formattedRecommendedMoves = recommendedMoves
+    .map((move) => formatRecommendedMove(move, member, stats))
+    .sort(compareProfileMove);
   const attackingTypes = summarizeAttackTypes(member, recommendedDamagingMoves, stats);
   const superEffectiveTargetTypes = new Set();
 
@@ -157,9 +164,7 @@ export function buildCandidateLegalityProfile({
     legalDamagingMoveCount: damagingMoves.length,
     legalMoveCount: moves.length,
     recommendedDamagingMoveCount: recommendedDamagingMoves.length,
-    recommendedMoves: recommendedMoves.map((move) =>
-      formatRecommendedMove(move, member, stats),
-    ),
+    recommendedMoves: formattedRecommendedMoves,
     representativeId: member.representativeId || member.id,
     representativeName,
     sourceCounts: countMoveSources(moves),

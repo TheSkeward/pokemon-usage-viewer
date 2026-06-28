@@ -1,6 +1,9 @@
 import { escapeHtml } from "./utils/html.js";
 import { loadAvailability, loadFormatsIndex, loadPokemonIndex } from "./data";
-import { renderTeamBuilderPage } from "./teamBuilder/teamBuilderView";
+import {
+  getSortedTeam,
+  renderTeamBuilderPage,
+} from "./teamBuilder/teamBuilderView";
 import { createTeamBuilderSetDetailsLoader } from "./teamBuilder/setDetailsLoader";
 import { getPoolStats, normalizePoolText } from "./teamBuilder/poolParsing";
 import { optimizeTeamFromPool } from "./teamBuilder/teamOptimizer";
@@ -612,7 +615,12 @@ export function mountPoolOptimizer(container, options = {}) {
       poolQuery: state.query,
       progression: state.progression,
       selection: state.selection,
-      team: state.result?.team || [],
+      team: getSortedTeam(
+        state.result?.team || [],
+        state.teamSort,
+        state.teamSortDir,
+        state.progression,
+      ),
     });
   }
 
