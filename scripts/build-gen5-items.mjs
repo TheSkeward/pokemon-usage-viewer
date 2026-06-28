@@ -36,35 +36,45 @@ const MIN_MON_RAW_COUNT = 500;
 // kept, so single/few-game oddities don't surface as recommendations.
 const MIN_ITEM_GAMES = 20;
 
+// How many Smogon files to fetch at once. Bounded so a few hundred months ×
+// formats complete in a reasonable time without hammering the server.
+const FETCH_CONCURRENCY = 10;
+
 async function main() {
   const months = await fetchAvailableMonths();
   console.log(`Scanning ${months.length} months for Gen 5 data...`);
 
+  const jobs = [];
+  for (const month of months) {
+    for (const formatId of GEN5_FORMATS) jobs.push({ month, formatId });
+  }
+
+  const texts = await mapLimit(jobs, FETCH_CONCURRENCY, (job) =>
+    fetchFirstAvailable(job.month, job.formatId),
+  );
+
   const byPokemon = new Map();
   let filesUsed = 0;
 
-  for (const month of months) {
-    for (const formatId of GEN5_FORMATS) {
-      const text = await fetchFirstAvailable(month, formatId);
-      if (!text) continue;
-      filesUsed += 1;
+  for (const text of texts) {
+    if (!text) continue;
+    filesUsed += 1;
 
-      for (const entry of Object.values(parseMovesetItems(text))) {
-        const agg = byPokemon.get(entry.pokemonId) || {
-          name: entry.name,
-          rawCount: 0,
-          weighted: new Map(),
-        };
+    for (const entry of Object.values(parseMovesetItems(text))) {
+      const agg = byPokemon.get(entry.pokemonId) || {
+        name: entry.name,
+        rawCount: 0,
+        weighted: new Map(),
+      };
 
-        agg.name = entry.name || agg.name;
-        agg.rawCount += entry.rawCount || 0;
-        for (const item of entry.items) {
-          const games = (item.usage / 100) * (entry.rawCount || 0);
-          agg.weighted.set(item.name, (agg.weighted.get(item.name) || 0) + games);
-        }
-
-        byPokemon.set(entry.pokemonId, agg);
+      agg.name = entry.name || agg.name;
+      agg.rawCount += entry.rawCount || 0;
+      for (const item of entry.items) {
+        const games = (item.usage / 100) * (entry.rawCount || 0);
+        agg.weighted.set(item.name, (agg.weighted.get(item.name) || 0) + games);
       }
+
+      byPokemon.set(entry.pokemonId, agg);
     }
   }
 
@@ -94,6 +104,25 @@ async function main() {
   console.log(
     `Wrote Gen 5 item usage for ${written} Pokémon (>= ${MIN_MON_RAW_COUNT} samples).`,
   );
+}
+
+// Runs fn over items with at most `limit` in flight at once, preserving order.
+async function mapLimit(items, limit, fn) {
+  const results = new Array(items.length);
+  let next = 0;
+
+  async function worker() {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await fn(items[index]);
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, worker),
+  );
+
+  return results;
 }
 
 async function fetchFirstAvailable(month, formatId) {
