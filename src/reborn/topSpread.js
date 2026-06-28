@@ -1,5 +1,6 @@
 import { dataUrl } from "../utils/dataUrl.js";
 import { fetchJsonCached } from "../utils/fetchJsonCached.js";
+import { toId } from "../utils/ids.js";
 
 // Loads a team member's most-used competitive set details from its stitched set
 // index — top EV spread + nature ("Nature:HP/Atk/Def/SpA/SpD/Spe"), ability, and
@@ -17,7 +18,30 @@ export async function loadTopSet({ family, pokemonId, selection }) {
     spread: topUsageName(data?.spreads),
     ability: topUsageName(data?.abilities),
     item: topUsageName(data?.items),
+    // Per-move Smogon usage (id -> usage%), so the recommender can anchor on the
+    // mon's canonical moves and rank utility moves by how much they're actually
+    // run. Entries with no real usage (the stitched tail) are dropped.
+    moveUsage: moveUsageMap(data?.moves),
   };
+}
+
+function moveUsageMap(entries) {
+  const map = new Map();
+  if (!Array.isArray(entries)) return map;
+  for (const entry of entries) {
+    if (typeof entry?.name !== "string" || typeof entry.usage !== "number") continue;
+    const id = toMoveId(entry.name);
+    // Keep the highest usage if a name collapses to the same id (Hidden Power).
+    if (!map.has(id) || entry.usage > map.get(id)) map.set(id, entry.usage);
+  }
+  return map;
+}
+
+// Reborn legal-move data keys every Hidden Power variant under "hiddenpower";
+// collapse usage names the same way so they join by id.
+function toMoveId(name) {
+  const id = toId(name);
+  return id.startsWith("hiddenpower") ? "hiddenpower" : id;
 }
 
 // Backwards-compatible helper: just the top spread string.
