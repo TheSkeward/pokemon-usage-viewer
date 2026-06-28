@@ -121,6 +121,7 @@ async function buildMemberLegalMoveEntry({
     representativeName: row.name,
     attackerStats,
     levelCap: progression.levelCap,
+    moveUsage: topSet.moveUsage,
   });
 
   return { member, moves, profile, topSet, row };
@@ -175,12 +176,13 @@ export function buildCandidateLegalityProfile({
   representativeName = "",
   attackerStats,
   levelCap,
+  moveUsage = new Map(),
 }) {
   const stats =
     attackerStats ||
     getAttackingStats({ pokemonId: member.id, levelCap });
   const damagingMoves = moves.filter((move) => isUsableDamagingMove(move, moves));
-  const recommendedMoves = recommendCurrentMoves(member, moves, stats);
+  const recommendedMoves = recommendCurrentMoves(member, moves, stats, moveUsage);
   const recommendedDamagingMoves = recommendedMoves.filter(isDamagingMove);
   const stabMoves = damagingMoves
     .filter((move) => member.types.includes(move.type))
@@ -803,57 +805,104 @@ function getMovePower(move) {
   return move.basePower || FIXED_DAMAGE_EFFECTIVE_POWER[move.id] || 0;
 }
 
-function recommendCurrentMoves(member, moves, attackerStats) {
+// Builds the recommended 4-move set for the mon as currently fielded. The order
+// of operations encodes the agreed heuristic:
+//   1. Canonical moves — the mon's top-4 by raw Smogon usage, ignoring
+//      progression — are locked in absolutely whenever they're legally available
+//      right now. A locked canonical move is skipped, not substituted; a weaker
+//      same-type stand-in only enters later, on damage.
+//   2. Guarantee the single hardest-hitting available attack.
+//   3. Guarantee one utility move — but a damaging move that ALSO has utility (a
+//      burn/flinch attack) satisfies this, so a pure attacker isn't handed a
+//      junk status move; utility is ranked by usage.
+//   4. Fill the rest by damage, skipping attacking types already covered (a
+//      second same-type attack adds nothing); fall back to more utility, then to
+//      a duplicate-type attack only as a last resort.
+// With no usage data (obscure NFEs) step 1 is empty and the static utility-
+// quality table stands in for usage ranking, so the mon still gets a sensible
+// damage-led set. There is deliberately no "must have an attack" guarantee: a mon
+// whose pros run four status moves keeps four status moves.
+function recommendCurrentMoves(member, moves, attackerStats, moveUsage = new Map()) {
+  const decorated = moves.map((move) =>
+    decorateMove(move, member, attackerStats, moveUsage),
+  );
+  const byId = new Map(decorated.map((move) => [move.id, move]));
+  const usableDamaging = decorated.filter((move) =>
+    isUsableDamagingMove(move, moves),
+  );
+  const usableUtility = decorated.filter(
+    (move) => move.utility && isSelectableMove(move, moves),
+  );
+
   const selected = [];
-  const damagingMoves = moves
-    .filter((move) => isUsableDamagingMove(move, moves))
-    .map((move) => decorateMove(move, member, attackerStats));
-  const utilityMoves = moves
-    .filter((move) => !isDamagingMove(move) && UTILITY_MOVE_WEIGHTS[move.id])
-    .map((move) => decorateMove(move, member, attackerStats));
+  const coveredTypes = new Set();
+  const add = (move) => {
+    if (!move || selected.length >= 4) return false;
+    if (selected.some((entry) => entry.id === move.id)) return false;
+    selected.push(move);
+    if (isUsableDamagingMove(move, moves)) coveredTypes.add(move.type);
+    return true;
+  };
 
-  const bestStabByType = member.types
-    .map((type) =>
-      damagingMoves
-        .filter((move) => move.type === type)
-        .sort(compareRecommendedDamagingMoves)[0],
-    )
-    .filter(Boolean);
-
-  for (const move of bestStabByType) {
-    addRecommendedMove(selected, move);
+  // 1. Canonical (top-4 by usage), in usage order, each kept if available now.
+  const canonicalIds = [...moveUsage.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([id]) => id);
+  for (const id of canonicalIds) {
+    const move = byId.get(id);
+    if (move && isSelectableMove(move, moves)) add(move);
   }
 
-  const bestCoverageByType = getBestDamagingMoveByType(damagingMoves)
-    .filter((move) => !member.types.includes(move.type))
-    .sort(compareRecommendedDamagingMoves);
-
-  for (const move of bestCoverageByType) {
-    if (selected.length >= 4) break;
-    addRecommendedMove(selected, move);
+  // 2. The single hardest-hitting available attack.
+  if (selected.length < 4) {
+    add([...usableDamaging].sort(compareByDamage)[0]);
   }
 
-  const bestUtilityMoves = utilityMoves.sort(compareUtilityMoves);
-  for (const move of bestUtilityMoves) {
-    if (selected.length >= 4) break;
-    addRecommendedMove(selected, move);
+  // 3. One utility move, if none is present yet (a damage+utility move counts).
+  if (selected.length < 4 && !selected.some((move) => move.utility)) {
+    add(bestUtility(usableUtility, selected));
   }
 
-  const bestRemainingDamage = damagingMoves.sort(compareRecommendedDamagingMoves);
-  for (const move of bestRemainingDamage) {
-    if (selected.length >= 4) break;
-    addRecommendedMove(selected, move);
+  // 4. Fill by damage with type diversity, then bonus utility, then any attack.
+  while (selected.length < 4) {
+    const freshType = usableDamaging
+      .filter((move) => !coveredTypes.has(move.type) && !isSelected(move, selected))
+      .sort(compareByDamage)[0];
+    if (add(freshType)) continue;
+    if (add(bestUtility(usableUtility, selected))) continue;
+    const anyAttack = usableDamaging
+      .filter((move) => !isSelected(move, selected))
+      .sort(compareByDamage)[0];
+    if (add(anyAttack)) continue;
+    break;
   }
 
   return selected.slice(0, 4);
 }
 
-function addRecommendedMove(selected, move) {
-  if (!move || selected.some((entry) => entry.id === move.id)) return;
-  selected.push(move);
+function isSelected(move, selected) {
+  return selected.some((entry) => entry.id === move.id);
 }
 
-function decorateMove(move, member, attackerStats) {
+// A move is selectable if it's a usable damaging move, or any non-damaging
+// (status/utility) move — the sleep-gating only restricts attacks like Snore
+// that need the user asleep.
+function isSelectableMove(move, moves) {
+  return isDamagingMove(move) ? isUsableDamagingMove(move, moves) : true;
+}
+
+// Highest-usage utility move not already chosen. Falls back to the static
+// utility-quality table when there's no usage data, and never returns a move
+// that is neither used nor notable, so a pure attacker isn't handed filler.
+function bestUtility(utilityMoves, selected) {
+  return utilityMoves
+    .filter((move) => !isSelected(move, selected))
+    .filter((move) => move.usage > 0 || move.utilityWeight > 0)
+    .sort(compareUtilityByUsage)[0];
+}
+
+function decorateMove(move, member, attackerStats, moveUsage = new Map()) {
   return {
     ...move,
     basePower: getMovePower(move),
@@ -862,26 +911,16 @@ function decorateMove(move, member, attackerStats) {
     sourcePriority: getBestSourcePriority(move),
     superEffectiveTargetCount: countSuperEffectiveTargets(move.type),
     utilityWeight: UTILITY_MOVE_WEIGHTS[move.id] || 0,
+    usage: moveUsage.get(move.id) || 0,
   };
 }
 
-function getBestDamagingMoveByType(damagingMoves) {
-  const byType = new Map();
-
-  for (const move of damagingMoves) {
-    const current = byType.get(move.type);
-    if (!current || compareRecommendedDamagingMoves(move, current) < 0) {
-      byType.set(move.type, move);
-    }
-  }
-
-  return [...byType.values()];
-}
-
-function compareRecommendedDamagingMoves(a, b) {
+// Pure estimated-damage ranking. The damage figure already folds in STAB and the
+// attacker's level/nature/EVs, so a strong neutral move correctly beats a weak
+// STAB one; it deliberately does NOT consider type-effectiveness against any
+// hypothetical target.
+function compareByDamage(a, b) {
   return (
-    Number(memberHasStab(b)) - Number(memberHasStab(a)) ||
-    b.superEffectiveTargetCount - a.superEffectiveTargetCount ||
     b.estimatedDamage - a.estimatedDamage ||
     (b.priority || 0) - (a.priority || 0) ||
     a.sourcePriority - b.sourcePriority ||
@@ -889,12 +928,9 @@ function compareRecommendedDamagingMoves(a, b) {
   );
 }
 
-function memberHasStab(move) {
-  return move.adjustedPower > (move.basePower || 0);
-}
-
-function compareUtilityMoves(a, b) {
+function compareUtilityByUsage(a, b) {
   return (
+    b.usage - a.usage ||
     b.utilityWeight - a.utilityWeight ||
     a.sourcePriority - b.sourcePriority ||
     a.name.localeCompare(b.name)

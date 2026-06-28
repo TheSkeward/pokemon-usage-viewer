@@ -77,6 +77,7 @@ export function hydrateLegalMove(rawMove) {
     category: meta?.category ?? "Status",
     basePower: meta?.basePower ?? 0,
     priority: meta?.priority ?? 0,
+    utility: meta?.utility ?? false,
     sources: rawMove.sources,
   };
 }
