@@ -25,8 +25,13 @@ export async function optimizeTeamFromPool({
   progression = {},
   query,
   selection,
+  onProgress,
 }) {
   const groups = buildInputGroups(query, pokemonIndex);
+  const total = groups.length;
+  let completed = 0;
+  onProgress?.({ completed, total });
+
   const breedingContext = await buildRebornBreedingContext({
     pokemonIndex,
     progression,
@@ -43,6 +48,10 @@ export async function optimizeTeamFromPool({
           pokemonIndex,
           progression,
           selection,
+        }).then((line) => {
+          completed += 1;
+          onProgress?.({ completed, total });
+          return line;
         }),
       ),
     )
