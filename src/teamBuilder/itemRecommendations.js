@@ -15,7 +15,6 @@ import {
 import { GEN7_BASE_STATS } from "../generated/gen7BaseStats.generated.js";
 
 const TERRAIN_SEED_IDS = GEN7_TERRAIN_SEEDS.map((name) => toId(name));
-const REBORN_SEED_ID_SET = new Set(REBORN_SEEDS.map((name) => toId(name)));
 // seedId -> { name, vector } from the normalized stat profiles.
 const REBORN_SEED_BY_ID = new Map(
   REBORN_SEEDS.map((name) => [
@@ -35,10 +34,13 @@ const GEM_BY_Z_CRYSTAL_ID = new Map(
 
 const GEM_IDS = new Set(TYPE_GEMS.map((gem) => toId(gem.gemName)));
 
-// Unburden doubles Speed when a consumable item is used up, so for Unburden
-// species we weight consumables (gems, berries) higher — and this also corrects
-// the gem proxy, since Z-Crystals (its basis) don't trigger Unburden.
-const UNBURDEN_CONSUMABLE_MULTIPLIER = 1.75;
+// Unburden doubles Speed when a consumable item is used up. We only boost type
+// Gems for Unburden species: gems are absent from the Gen 7 data (proxied from
+// non-triggering Z-Crystals), so their Unburden synergy isn't captured anywhere
+// else. Berries and field seeds are NOT boosted — if Unburden + berry/seed is a
+// good strat it already shows up in the Gen 7 usage we blend in, and boosting it
+// again would double-count.
+const UNBURDEN_GEM_MULTIPLIER = 1.75;
 
 // Generically-good-item ordering for the ultimate fallback: GEN7_HELD_ITEMS is
 // sorted by how broadly each item is used, so a lower index = better default.
@@ -268,18 +270,10 @@ function seedWeights(pokemonId, D) {
 }
 
 function applyUnburden(entry, unburden) {
-  if (!unburden || !isConsumable(entry)) return;
+  if (!unburden || !GEM_IDS.has(entry.id)) return;
   entry.baseWeight = entry.weight;
-  entry.weight *= UNBURDEN_CONSUMABLE_MULTIPLIER;
+  entry.weight *= UNBURDEN_GEM_MULTIPLIER;
   entry.unburden = true;
-}
-
-function isConsumable(entry) {
-  return (
-    GEM_IDS.has(entry.id) ||
-    REBORN_SEED_ID_SET.has(entry.id) ||
-    /berry$/i.test(entry.name.replace(/\s+/g, ""))
-  );
 }
 
 async function fetchGen5Items(pokemonId) {
