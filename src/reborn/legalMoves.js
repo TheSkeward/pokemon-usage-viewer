@@ -107,6 +107,19 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       });
     }
 
+    // Reborn-only relearner moves (its expanded move-relearner pool) are
+    // available solely through the relearner.
+    if (
+      move.sources?.rebornRelearner &&
+      moveRelearnerUnlocked &&
+      !sources.some((source) => source.kind === "relearner")
+    ) {
+      sources.push({
+        kind: "relearner",
+        label: "Move relearner",
+      });
+    }
+
     const tmOption = tmByMoveId.get(move.id);
     if (move.sources?.tm && tmOption && selectedTmIds.has(tmOption.id)) {
       sources.push({

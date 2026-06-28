@@ -277,7 +277,10 @@ function applyRebornOverrides(pokemonId, sourcesByMoveId) {
   for (const moveName of REBORN_LEVEL_ONE_MOVE_OVERRIDES[pokemonId] || []) {
     const moveId = toId(moveName);
     const sources = getOrCreateSources(sourcesByMoveId, moveId);
-    sources.levelUp.push(1);
+    // Reborn grants these through the move relearner, not by level-up or on
+    // evolution — so flag them as relearner moves rather than faking an L1
+    // level-up entry (which would also misread them as evolution moves).
+    sources.rebornRelearner = true;
   }
 
   for (const moveName of REBORN_TUTOR_MOVE_OVERRIDES[pokemonId] || []) {
@@ -317,6 +320,7 @@ function normalizeSources(sources) {
   const {
     preEvolutionLevelUp: rawPreEvolutionLevelUp,
     evolutionMove,
+    rebornRelearner,
     ...baseSources
   } = sources;
   const normalized = {
@@ -333,6 +337,10 @@ function normalizeSources(sources) {
 
   if (evolutionMove) {
     normalized.evolutionMove = true;
+  }
+
+  if (rebornRelearner) {
+    normalized.rebornRelearner = true;
   }
 
   return normalized;
@@ -366,7 +374,8 @@ function hasAnySource(sources) {
     sources.tm ||
     sources.tmx ||
     sources.tutor ||
-    sources.egg
+    sources.egg ||
+    sources.rebornRelearner
   );
 }
 
