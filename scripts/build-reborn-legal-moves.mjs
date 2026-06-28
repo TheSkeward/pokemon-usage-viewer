@@ -38,12 +38,34 @@ for (const pokemon of pokemonIndex) {
 
   const moves = [];
 
-  for (const [moveId, sources] of sourceContext.sourcesByMoveId.entries()) {
+  // Egg moves are bred onto the base form and kept through evolution, but a
+  // species' own learnset only lists its own egg moves — so an evolved form
+  // must inherit its pre-evolutions' egg moves explicitly.
+  const inheritedEggMoveIds = await getPreEvolutionEggMoveIds(species);
+  const moveIds = new Set([
+    ...sourceContext.sourcesByMoveId.keys(),
+    ...inheritedEggMoveIds,
+  ]);
+
+  for (const moveId of moveIds) {
     const move = dex.moves.get(moveId);
-    if (!move?.exists || !hasAnySource(sources)) continue;
+    if (!move?.exists) continue;
+
+    const ownSources = sourceContext.sourcesByMoveId.get(moveId);
+    const sources = ownSources
+      ? { ...ownSources, levelUp: [...ownSources.levelUp] }
+      : { levelUp: [], tm: false, tmx: false, tutor: false, egg: false };
+    if (inheritedEggMoveIds.has(moveId)) sources.egg = true;
+    if (!hasAnySource(sources)) continue;
+
     const preEvolutionLevelUp = await getPreEvolutionLevelUpLevels(
       species,
       move.id,
+    );
+    const evolutionMove = await isGenuineEvolutionMove(
+      species,
+      move.id,
+      ownSources,
     );
 
     moves.push({
@@ -56,6 +78,7 @@ for (const pokemon of pokemonIndex) {
       sources: normalizeSources({
         ...sources,
         preEvolutionLevelUp,
+        evolutionMove,
       }),
     });
   }
@@ -136,6 +159,53 @@ async function getPreEvolutionLevelUpLevels(species, moveId) {
   return [...new Set(levels)].sort((a, b) => a - b);
 }
 
+// A move learned at level 1 by an evolved form, that NO pre-evolution learns by
+// level-up at any level, is a genuine evolution move (gained on evolving into
+// this form — e.g. Combusken's Double Kick, Blaziken's Blaze Kick). A level-1
+// move a pre-evolution does learn is just relisted on the evolved form (Ember,
+// or a high-level move like Flare Blitz) and must stay gated by its real level.
+async function isGenuineEvolutionMove(species, moveId, ownSources) {
+  if (!species?.prevo) return false;
+  if (!ownSources?.levelUp?.includes(1)) return false;
+
+  let current = species;
+  const seen = new Set();
+
+  while (current?.prevo && !seen.has(current.id)) {
+    seen.add(current.id);
+    const prevo = dex.species.get(current.prevo);
+    const prevoContext = await getSpeciesSourceContext(prevo);
+    if (prevoContext?.sourcesByMoveId.get(moveId)?.levelUp?.length) {
+      return false;
+    }
+    current = prevo;
+  }
+
+  return true;
+}
+
+async function getPreEvolutionEggMoveIds(species) {
+  const eggMoveIds = new Set();
+  let current = species;
+  const seen = new Set();
+
+  while (current?.prevo && !seen.has(current.id)) {
+    seen.add(current.id);
+    const prevo = dex.species.get(current.prevo);
+    const prevoContext = await getSpeciesSourceContext(prevo);
+
+    if (prevoContext) {
+      for (const [moveId, sources] of prevoContext.sourcesByMoveId.entries()) {
+        if (sources.egg) eggMoveIds.add(moveId);
+      }
+    }
+
+    current = prevo;
+  }
+
+  return eggMoveIds;
+}
+
 async function getLearnsetContext(species, seen = new Set()) {
   if (!species?.exists || seen.has(species.id)) return null;
   seen.add(species.id);
@@ -207,7 +277,10 @@ function applyRebornOverrides(pokemonId, sourcesByMoveId) {
   for (const moveName of REBORN_LEVEL_ONE_MOVE_OVERRIDES[pokemonId] || []) {
     const moveId = toId(moveName);
     const sources = getOrCreateSources(sourcesByMoveId, moveId);
-    sources.levelUp.push(1);
+    // Reborn grants these through the move relearner, not by level-up or on
+    // evolution — so flag them as relearner moves rather than faking an L1
+    // level-up entry (which would also misread them as evolution moves).
+    sources.rebornRelearner = true;
   }
 
   for (const moveName of REBORN_TUTOR_MOVE_OVERRIDES[pokemonId] || []) {
@@ -244,8 +317,12 @@ function getOrCreateSources(sourcesByMoveId, moveId) {
 }
 
 function normalizeSources(sources) {
-  const { preEvolutionLevelUp: rawPreEvolutionLevelUp, ...baseSources } =
-    sources;
+  const {
+    preEvolutionLevelUp: rawPreEvolutionLevelUp,
+    evolutionMove,
+    rebornRelearner,
+    ...baseSources
+  } = sources;
   const normalized = {
     ...baseSources,
     levelUp: [...new Set(sources.levelUp)].sort((a, b) => a - b),
@@ -256,6 +333,14 @@ function normalizeSources(sources) {
 
   if (preEvolutionLevelUp.length) {
     normalized.preEvolutionLevelUp = preEvolutionLevelUp;
+  }
+
+  if (evolutionMove) {
+    normalized.evolutionMove = true;
+  }
+
+  if (rebornRelearner) {
+    normalized.rebornRelearner = true;
   }
 
   return normalized;
@@ -289,7 +374,8 @@ function hasAnySource(sources) {
     sources.tm ||
     sources.tmx ||
     sources.tutor ||
-    sources.egg
+    sources.egg ||
+    sources.rebornRelearner
   );
 }
 

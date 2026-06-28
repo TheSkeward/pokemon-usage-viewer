@@ -67,9 +67,21 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     const levels = playableLevelUpLevels.filter(
       (level) => level <= levelCap,
     );
-    const hasRelearnerOnlyLevelOne = allLevelUpLevels.some((level) =>
-      isRelearnerOnlyLevelOneMove(level, evolvedSpecies, preEvolutionLevels),
-    );
+    // A genuine evolution move (flagged by the generator: level-1 on this form,
+    // and no pre-evolution learns it by level-up) is gained on evolving into this
+    // form — e.g. Combusken's Double Kick — so it's directly available whenever
+    // you're fielding that form, not gated behind the move relearner.
+    const isEvolutionMove = Boolean(move.sources?.evolutionMove);
+    // A level-1 move relisted on an evolved form that ISN'T a genuine evolution
+    // move (a pre-evolution learns it, but only above the level reachable before
+    // evolving — e.g. Blaziken's Flare Blitz, which Combusken learns at 58) is
+    // only obtainable here through the move relearner.
+    const hasRelearnerOnlyLevelOne =
+      !isEvolutionMove &&
+      preEvolutionLevels.length === 0 &&
+      allLevelUpLevels.some((level) =>
+        isEvolvedLevelOneMove(level, evolvedSpecies),
+      );
 
     if (levels.length > 0) {
       sources.push({
@@ -83,12 +95,24 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
           label: "Move relearner",
         });
       }
+    } else if (isEvolutionMove) {
+      sources.push({
+        kind: "level-up",
+        label: "On evolution",
+      });
+    } else if (hasRelearnerOnlyLevelOne && moveRelearnerUnlocked) {
+      sources.push({
+        kind: "relearner",
+        label: "Move relearner",
+      });
     }
 
+    // Reborn-only relearner moves (its expanded move-relearner pool) are
+    // available solely through the relearner.
     if (
-      levels.length === 0 &&
-      hasRelearnerOnlyLevelOne &&
-      moveRelearnerUnlocked
+      move.sources?.rebornRelearner &&
+      moveRelearnerUnlocked &&
+      !sources.some((source) => source.kind === "relearner")
     ) {
       sources.push({
         kind: "relearner",
@@ -147,13 +171,6 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
 
 function isEvolvedLevelOneMove(level, evolvedSpecies) {
   return evolvedSpecies && level === 1;
-}
-
-function isRelearnerOnlyLevelOneMove(level, evolvedSpecies, preEvolutionLevels) {
-  return (
-    isEvolvedLevelOneMove(level, evolvedSpecies) &&
-    preEvolutionLevels.length === 0
-  );
 }
 
 export function getAvailableMoveMap(legalMoveData, progression) {
