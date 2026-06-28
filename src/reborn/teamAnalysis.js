@@ -109,7 +109,7 @@ export function buildCandidateLegalityProfile({
   const stats =
     attackerStats ||
     getAttackingStats({ pokemonId: member.id, levelCap });
-  const damagingMoves = moves.filter(isDamagingMove);
+  const damagingMoves = moves.filter((move) => isUsableDamagingMove(move, moves));
   const recommendedMoves = recommendCurrentMoves(member, moves, stats);
   const recommendedDamagingMoves = recommendedMoves.filter(isDamagingMove);
   const stabMoves = damagingMoves
@@ -509,6 +509,28 @@ function isDamagingMove(move) {
   return move.category !== "Status" && getMovePower(move) > 0;
 }
 
+// Snore only deals damage while the user is asleep, so it's a dead move unless
+// the set can also put the user to sleep. Rest is the only reliable self-sleep
+// move, so gate Snore on having it available.
+const SLEEP_GATED_DAMAGING_MOVE_IDS = new Set(["snore"]);
+const SELF_SLEEP_MOVE_IDS = new Set(["rest"]);
+
+function hasSelfSleepMove(moves) {
+  return moves.some((move) => SELF_SLEEP_MOVE_IDS.has(move.id));
+}
+
+// Like isDamagingMove, but accounts for moveset-conditional attacks (Snore).
+function isUsableDamagingMove(move, moves) {
+  if (!isDamagingMove(move)) return false;
+  if (
+    SLEEP_GATED_DAMAGING_MOVE_IDS.has(move.id) &&
+    !hasSelfSleepMove(moves)
+  ) {
+    return false;
+  }
+  return true;
+}
+
 function summarizeAttackTypes(member, damagingMoves, attackerStats) {
   const byType = new Map();
 
@@ -633,7 +655,7 @@ function getMovePower(move) {
 function recommendCurrentMoves(member, moves, attackerStats) {
   const selected = [];
   const damagingMoves = moves
-    .filter(isDamagingMove)
+    .filter((move) => isUsableDamagingMove(move, moves))
     .map((move) => decorateMove(move, member, attackerStats));
   const utilityMoves = moves
     .filter((move) => !isDamagingMove(move) && UTILITY_MOVE_WEIGHTS[move.id])
