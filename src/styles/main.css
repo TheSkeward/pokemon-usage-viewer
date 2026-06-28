@@ -1037,7 +1037,7 @@ input {
 
 .team-set-move {
   display: grid;
-  grid-template-columns: 4.5rem 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas: "badge name dmg" "badge src src";
   align-items: center;
   column-gap: 0.5rem;

@@ -44,13 +44,31 @@ export async function loadMovesetData(formatId, month) {
 
 export async function loadSourceData(month, formatId, cutoff, dataKind) {
   const key = `${month}:${formatId}:${cutoff}:${dataKind}`;
+  // Cache the in-flight promise (not just the resolved data) so the many
+  // concurrent optimizer lines that scan the same source files share one fetch
+  // instead of each firing its own and saturating the connection pool.
   if (sourceCache.has(key)) return sourceCache.get(key);
-  const response = await fetch(dataUrl(`sources/${month}/${formatId}/${cutoff}/${dataKind}.json`));
-  if (response.status === 404) { sourceCache.set(key, null); return null; }
-  if (!response.ok) throw new Error(`Failed to load source data for ${month} ${formatId} ${cutoff} ${dataKind}`);
-  const data = await response.json();
-  sourceCache.set(key, data);
-  return data;
+
+  const promise = (async () => {
+    const response = await fetch(
+      dataUrl(`sources/${month}/${formatId}/${cutoff}/${dataKind}.json`),
+    );
+    if (response.status === 404) return null;
+    if (!response.ok) {
+      throw new Error(
+        `Failed to load source data for ${month} ${formatId} ${cutoff} ${dataKind}`,
+      );
+    }
+    return response.json();
+  })();
+
+  sourceCache.set(key, promise);
+  try {
+    return await promise;
+  } catch (error) {
+    sourceCache.delete(key);
+    throw error;
+  }
 }
 
 async function loadJson(url) {
@@ -240,11 +258,20 @@ export async function resolveBestAvailableLightBundle({ availability, family, se
   if (resolverSummaryCache.has(cacheKey)) return resolverSummaryCache.get(cacheKey);
 
   const resolverIndex = await loadResolverIndex(family, selection);
-  const indexedBundle = resolverIndex?.pokemon?.[pokemonId];
 
-  if (indexedBundle) {
-    resolverSummaryCache.set(cacheKey, indexedBundle);
-    return indexedBundle;
+  // The resolver index is precomputed from the exact same source files the live
+  // scan would read, aggregating every Pokémon present in any of them — so for
+  // "all" it's authoritative and already cached as a single static file. A hit
+  // returns the precomputed bundle (including trace-usage obscure NFEs); a miss
+  // means the Pokémon is absent everywhere, so there's nothing to rescan. This
+  // keeps every Pokémon's data while avoiding the slow per-mon source scan.
+  if (resolverIndex) {
+    const bundle = resolverIndex.pokemon?.[pokemonId] || {
+      usage: null,
+      leads: null,
+    };
+    resolverSummaryCache.set(cacheKey, bundle);
+    return bundle;
   }
 
   const usage = await resolveBestAvailableUsage({ availability, family, selection, pokemonId });

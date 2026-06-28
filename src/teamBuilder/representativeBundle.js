@@ -13,6 +13,11 @@ export async function resolveRepresentativeLightBundle({
   selection,
 }) {
   if (selection === "all") {
+    // The resolver index and its parallelized best-available scan already cover
+    // every month/format/cutoff for "all", so they're authoritative: a null
+    // usage here means the mon is genuinely absent everywhere. Returning that
+    // directly avoids a second, fully sequential full scan — which is what made
+    // obscure (usage-less) picks take ~20s each on the optimize progress tail.
     const indexedBundle = await resolveIndexedBestAvailableLightBundle({
       availability,
       family,
@@ -20,9 +25,7 @@ export async function resolveRepresentativeLightBundle({
       selection,
     });
 
-    if (indexedBundle?.usage) {
-      return indexedBundle;
-    }
+    return indexedBundle || { usage: null, leads: null };
   }
 
   let bestTrace = null;
