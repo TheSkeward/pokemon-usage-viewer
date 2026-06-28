@@ -38,9 +38,26 @@ for (const pokemon of pokemonIndex) {
 
   const moves = [];
 
-  for (const [moveId, sources] of sourceContext.sourcesByMoveId.entries()) {
+  // Egg moves are bred onto the base form and kept through evolution, but a
+  // species' own learnset only lists its own egg moves — so an evolved form
+  // must inherit its pre-evolutions' egg moves explicitly.
+  const inheritedEggMoveIds = await getPreEvolutionEggMoveIds(species);
+  const moveIds = new Set([
+    ...sourceContext.sourcesByMoveId.keys(),
+    ...inheritedEggMoveIds,
+  ]);
+
+  for (const moveId of moveIds) {
     const move = dex.moves.get(moveId);
-    if (!move?.exists || !hasAnySource(sources)) continue;
+    if (!move?.exists) continue;
+
+    const ownSources = sourceContext.sourcesByMoveId.get(moveId);
+    const sources = ownSources
+      ? { ...ownSources, levelUp: [...ownSources.levelUp] }
+      : { levelUp: [], tm: false, tmx: false, tutor: false, egg: false };
+    if (inheritedEggMoveIds.has(moveId)) sources.egg = true;
+    if (!hasAnySource(sources)) continue;
+
     const preEvolutionLevelUp = await getPreEvolutionLevelUpLevels(
       species,
       move.id,
@@ -134,6 +151,28 @@ async function getPreEvolutionLevelUpLevels(species, moveId) {
   }
 
   return [...new Set(levels)].sort((a, b) => a - b);
+}
+
+async function getPreEvolutionEggMoveIds(species) {
+  const eggMoveIds = new Set();
+  let current = species;
+  const seen = new Set();
+
+  while (current?.prevo && !seen.has(current.id)) {
+    seen.add(current.id);
+    const prevo = dex.species.get(current.prevo);
+    const prevoContext = await getSpeciesSourceContext(prevo);
+
+    if (prevoContext) {
+      for (const [moveId, sources] of prevoContext.sourcesByMoveId.entries()) {
+        if (sources.egg) eggMoveIds.add(moveId);
+      }
+    }
+
+    current = prevo;
+  }
+
+  return eggMoveIds;
 }
 
 async function getLearnsetContext(species, seen = new Set()) {
