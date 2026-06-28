@@ -187,13 +187,20 @@ export function buildCandidateLegalityProfile({
   const stabMoves = damagingMoves
     .filter((move) => member.types.includes(move.type))
     .sort(compareMoveQuality);
-  // The recommended moves, ordered hardest- to softest-hitting click. The damage
-  // estimate already factors STAB and the attacker's level/nature/EVs but is
-  // computed vs a neutral defender, so the ranking knows the user's own typing
-  // without "knowing" whether a move is super effective against any target.
+  // Display order: the mon's canonical moves (its top-4 by usage) lead, in
+  // descending-usage order, mirroring how its competitive set reads; the
+  // remaining picks follow in descending estimated damage. (Damage already
+  // factors STAB and the attacker's level/nature/EVs vs a neutral defender, so
+  // it ranks the user's own clicks without "knowing" super-effectiveness.)
+  const canonicalRankById = new Map(
+    [...moveUsage.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([id], index) => [id, index]),
+  );
   const formattedRecommendedMoves = recommendedMoves
     .map((move) => formatRecommendedMove(move, member, stats))
-    .sort(compareProfileMove);
+    .sort((a, b) => compareDisplayOrder(a, b, canonicalRankById));
   const attackingTypes = summarizeAttackTypes(member, recommendedDamagingMoves, stats);
   const superEffectiveTargetTypes = new Set();
 
@@ -854,8 +861,13 @@ function recommendCurrentMoves(member, moves, attackerStats, moveUsage = new Map
     if (move && isSelectableMove(move, moves)) add(move);
   }
 
-  // 2. The single hardest-hitting available attack.
-  if (selected.length < 4) {
+  // 2. Guarantee at least one attack — but only if none was picked yet. A mon
+  // that already has a damaging move (even a weak one like Rapid Spin, kept for
+  // its utility) is left as-is; we don't shove its hardest hitter on top.
+  if (
+    selected.length < 4 &&
+    !selected.some((move) => isUsableDamagingMove(move, moves))
+  ) {
     add([...usableDamaging].sort(compareByDamage)[0]);
   }
 
@@ -935,6 +947,16 @@ function compareUtilityByUsage(a, b) {
     a.sourcePriority - b.sourcePriority ||
     a.name.localeCompare(b.name)
   );
+}
+
+// Card/export ordering: canonical moves (in the mon's top-4 usage) first, in
+// descending-usage order (their rank), then every other move by damage.
+function compareDisplayOrder(a, b, canonicalRankById) {
+  const rankA = canonicalRankById.has(a.id) ? canonicalRankById.get(a.id) : Infinity;
+  const rankB = canonicalRankById.has(b.id) ? canonicalRankById.get(b.id) : Infinity;
+  if (rankA !== rankB) return rankA - rankB;
+  if (rankA !== Infinity) return 0; // both canonical: already in usage-rank order
+  return compareProfileMove(a, b); // both non-canonical: by damage
 }
 
 function countSuperEffectiveTargets(attackType) {
