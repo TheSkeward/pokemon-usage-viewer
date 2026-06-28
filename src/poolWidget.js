@@ -113,6 +113,7 @@ export function mountPoolOptimizer(container, options = {}) {
         progression: state.progression,
         query: state.query,
         selection: state.selection,
+        onProgress: updateOptimizeProgress,
       });
       state.resultProgressionKey = getProgressionKey(state.progression);
 
@@ -495,6 +496,24 @@ export function mountPoolOptimizer(container, options = {}) {
       updatePoolStatusMessage(
         `Could not generate list: ${error?.message || error}`,
       );
+    }
+  }
+
+  // Updates the loading panel's progress bar in place during optimization,
+  // without re-rendering (which would only ever show completed results).
+  function updateOptimizeProgress({ completed, total }) {
+    const label = app.querySelector("[data-optimize-progress-label]");
+    const bar = app.querySelector("[data-optimize-progress-bar]");
+
+    if (label) {
+      label.textContent = total
+        ? `Resolving ${completed}/${total} Pokémon...`
+        : "Optimizing pool...";
+    }
+    if (bar) {
+      bar.style.width = total
+        ? `${Math.round((completed / total) * 100)}%`
+        : "0%";
     }
   }
 

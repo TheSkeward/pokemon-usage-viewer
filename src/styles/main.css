@@ -370,6 +370,22 @@ input {
   color: #7ac74c;
 }
 
+.optimize-progress {
+  margin-top: 10px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(170, 181, 195, 0.18);
+  overflow: hidden;
+}
+
+.optimize-progress-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 3px;
+  background: #7ac74c;
+  transition: width 0.15s ease;
+}
+
 .bench-line {
   display: flex;
   flex-wrap: wrap;

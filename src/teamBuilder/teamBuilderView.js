@@ -122,7 +122,10 @@ function renderLoading(state) {
     <section class="panel">
       <div class="resolver-loading-banner">
         <span class="spinner-dot"></span>
-        <span>Optimizing pool against precomputed ${escapeHtml(state.family)} set data...</span>
+        <span data-optimize-progress-label>Optimizing pool against precomputed ${escapeHtml(state.family)} set data...</span>
+      </div>
+      <div class="optimize-progress">
+        <div class="optimize-progress-bar" data-optimize-progress-bar style="width:0%"></div>
       </div>
     </section>
   `;
