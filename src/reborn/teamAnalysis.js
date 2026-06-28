@@ -20,6 +20,7 @@ import {
 import { loadTopSet } from "./topSpread.js";
 import { teamMemberKey } from "../teamBuilder/itemRecommendations.js";
 import { toId } from "../utils/ids.js";
+import { MAX_OPPONENT_TYPE_BIAS } from "./progression.js";
 
 export { REBORN_ANALYSIS_TYPES };
 
@@ -122,6 +123,7 @@ async function buildMemberLegalMoveEntry({
     attackerStats,
     levelCap: progression.levelCap,
     moveUsage: topSet.moveUsage,
+    opponentTypeBias: progression.opponentTypeBias,
   });
 
   return { member, moves, profile, topSet, row };
@@ -177,12 +179,19 @@ export function buildCandidateLegalityProfile({
   attackerStats,
   levelCap,
   moveUsage = new Map(),
+  opponentTypeBias = {},
 }) {
   const stats =
     attackerStats ||
     getAttackingStats({ pokemonId: member.id, levelCap });
   const damagingMoves = moves.filter((move) => isUsableDamagingMove(move, moves));
-  const recommendedMoves = recommendCurrentMoves(member, moves, stats, moveUsage);
+  const recommendedMoves = recommendCurrentMoves(
+    member,
+    moves,
+    stats,
+    moveUsage,
+    opponentTypeBias,
+  );
   const recommendedDamagingMoves = recommendedMoves.filter(isDamagingMove);
   const stabMoves = damagingMoves
     .filter((move) => member.types.includes(move.type))
@@ -829,9 +838,15 @@ function getMovePower(move) {
 // quality table stands in for usage ranking, so the mon still gets a sensible
 // damage-led set. There is deliberately no "must have an attack" guarantee: a mon
 // whose pros run four status moves keeps four status moves.
-function recommendCurrentMoves(member, moves, attackerStats, moveUsage = new Map()) {
+function recommendCurrentMoves(
+  member,
+  moves,
+  attackerStats,
+  moveUsage = new Map(),
+  opponentTypeBias = {},
+) {
   const decorated = moves.map((move) =>
-    decorateMove(move, member, attackerStats, moveUsage),
+    decorateMove(move, member, attackerStats, moveUsage, opponentTypeBias),
   );
   const byId = new Map(decorated.map((move) => [move.id, move]));
   const usableDamaging = decorated.filter((move) =>
@@ -914,12 +929,31 @@ function bestUtility(utilityMoves, selected) {
     .sort(compareUtilityByUsage)[0];
 }
 
-function decorateMove(move, member, attackerStats, moveUsage = new Map()) {
+function decorateMove(
+  move,
+  member,
+  attackerStats,
+  moveUsage = new Map(),
+  opponentTypeBias = {},
+) {
+  const estimatedDamage = getEstimatedDamage(move, member, attackerStats);
   return {
     ...move,
     basePower: getMovePower(move),
     adjustedPower: getAdjustedPower(move, member),
-    estimatedDamage: getEstimatedDamage(move, member, attackerStats),
+    estimatedDamage,
+    // The damage used purely to *rank* attacks while filling slots. When the
+    // opponent type-bias is set, a move that hits a biased type super-effectively
+    // is scored as though the attacker's Atk/SpA were raised by `bias` stages
+    // (×1.5 per level), so anti-bias coverage is preferred. This never leaves the
+    // ranker — the displayed "X dmg" stays the unboosted estimatedDamage.
+    rankingDamage: biasAdjustedDamage(
+      move,
+      member,
+      attackerStats,
+      estimatedDamage,
+      opponentTypeBias,
+    ),
     sourcePriority: getBestSourcePriority(move),
     superEffectiveTargetCount: countSuperEffectiveTargets(move.type),
     utilityWeight: UTILITY_MOVE_WEIGHTS[move.id] || 0,
@@ -927,13 +961,40 @@ function decorateMove(move, member, attackerStats, moveUsage = new Map()) {
   };
 }
 
-// Pure estimated-damage ranking. The damage figure already folds in STAB and the
-// attacker's level/nature/EVs, so a strong neutral move correctly beats a weak
-// STAB one; it deliberately does NOT consider type-effectiveness against any
-// hypothetical target.
+// The stat-stage multiplier (×1.5 per level, matching Pokémon's boost table) for
+// a move that hits any biased opponent type super-effectively; 1 otherwise. The
+// strongest applicable bias wins — a move answering a level-6 threat isn't
+// diluted by also chipping a level-1 one.
+function biasMoveMultiplier(move, opponentTypeBias = {}) {
+  let level = 0;
+  for (const [type, rawLevel] of Object.entries(opponentTypeBias || {})) {
+    const clamped = Math.max(0, Math.min(MAX_OPPONENT_TYPE_BIAS, rawLevel || 0));
+    if (clamped <= level) continue;
+    if (getTypeMultiplier(move.type, [type]) > 1) level = clamped;
+  }
+  return level ? (2 + level) / 2 : 1;
+}
+
+// Re-scores a move as though the attacker's offensive stat were boosted by the
+// bias level's worth of stages, by recomputing damage with the scaled stat.
+function biasAdjustedDamage(move, member, attackerStats, estimatedDamage, opponentTypeBias) {
+  const multiplier = biasMoveMultiplier(move, opponentTypeBias);
+  if (multiplier === 1 || !attackerStats) return estimatedDamage;
+  return getEstimatedDamage(move, member, {
+    ...attackerStats,
+    atk: attackerStats.atk * multiplier,
+    spa: attackerStats.spa * multiplier,
+  });
+}
+
+// Attack ranking used while filling damaging slots. Ranks by rankingDamage —
+// estimated damage, already folding in STAB and the attacker's level/nature/EVs,
+// plus any opponent-bias boost. It deliberately does NOT consider raw type-
+// effectiveness against a hypothetical neutral target; the bias is the only way
+// matchup enters the ranking, and only for types you've explicitly biased.
 function compareByDamage(a, b) {
   return (
-    b.estimatedDamage - a.estimatedDamage ||
+    b.rankingDamage - a.rankingDamage ||
     (b.priority || 0) - (a.priority || 0) ||
     a.sourcePriority - b.sourcePriority ||
     a.name.localeCompare(b.name)
