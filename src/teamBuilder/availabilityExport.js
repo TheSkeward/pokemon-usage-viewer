@@ -51,9 +51,9 @@ async function describeLine(line, progression) {
   try {
     const legalMoveData = await loadRebornLegalMoveData(speciesId);
     if (legalMoveData) {
-      moves = getAvailableRebornMoves(legalMoveData, progression).map(
-        (move) => move.name,
-      );
+      moves = getAvailableRebornMoves(legalMoveData, progression)
+        .map((move) => move.name)
+        .sort((a, b) => a.localeCompare(b));
     }
   } catch {
     moves = [];
