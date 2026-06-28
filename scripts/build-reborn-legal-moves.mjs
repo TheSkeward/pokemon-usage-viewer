@@ -19,6 +19,11 @@ const pokemonIndexPath = path.join(projectRoot, "site-data", "data", "pokemon-in
 const outputDir = path.join(projectRoot, "site-data", "data", "reborn-legal-moves", "all");
 const dex = Dex.forGen(7);
 
+// Happiness-scaled moves report base power 0 in the dex, which would drop them
+// from the damage model entirely. Assume max happiness (the sensible playthrough
+// default): Return is then 102 BP, and Frustration is 0 (so it stays out).
+const ASSUMED_BASE_POWER = { return: 102 };
+
 const promotedTmMoveIds = new Set(REBORN_PROMOTED_TM_MOVES.map(toId));
 const rebornTmMoveIds = new Set(REBORN_TM_OPTIONS.map((option) => toId(option.move)));
 const rebornTmxMoveIds = new Set(REBORN_TMX_OPTIONS.map((option) => toId(option.move)));
@@ -73,7 +78,7 @@ for (const pokemon of pokemonIndex) {
       name: move.name,
       type: move.type,
       category: move.category,
-      basePower: move.basePower || 0,
+      basePower: ASSUMED_BASE_POWER[move.id] ?? (move.basePower || 0),
       priority: move.priority || 0,
       sources: normalizeSources({
         ...sources,
