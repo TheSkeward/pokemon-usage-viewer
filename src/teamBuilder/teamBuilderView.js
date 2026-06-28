@@ -38,7 +38,12 @@ export function renderTeamBuilderPage({
     poolQuery: state.query,
     progression: state.progression,
     selection: state.selection,
-    team: state.result?.team || [],
+    team: getSortedTeam(
+      state.result?.team || [],
+      state.teamSort,
+      state.teamSortDir,
+      state.progression,
+    ),
   });
 }
 
@@ -428,7 +433,7 @@ function getSelectedTeamChoice({ setDetails, state }) {
   );
 }
 
-function getSortedTeam(team, sortBy, sortDir = "desc", progression = {}) {
+export function getSortedTeam(team, sortBy, sortDir = "desc", progression = {}) {
   const rows = [...team];
   const direction = sortDir === "asc" ? 1 : -1;
   const currentName = (row) =>
