@@ -3,7 +3,7 @@ import { toId } from "../utils/ids.js";
 
 // A naive, defender-agnostic damage model. We can't know the real opponent's
 // stats, so every move is scored as "unresisted output" against a fixed neutral
-// wall (base-100 defense, no investment, same level). The result is a relative
+// wall (base-70 defense, no investment, same level). The result is a relative
 // damage number that's comparable across moves, members, and — crucially — the
 // physical/special split, since it scales by the attacker's actual Atk vs SpA.
 //
@@ -18,7 +18,9 @@ const STAT_INDEX = { atk: 0, def: 1, spa: 2, spd: 3, spe: 4 };
 const EV_INDEX = { hp: 0, atk: 1, def: 2, spa: 3, spd: 4, spe: 5 };
 
 const DEFAULT_LEVEL = 100;
-const REFERENCE_DEFENSE_BASE = 100;
+// The median base Def and SpD across the dex are both 70, so a base-70 neutral
+// wall makes the figures read close to real damage dealt against an average mon.
+const REFERENCE_DEFENSE_BASE = 70;
 const STAB_MULTIPLIER = 1.5;
 
 // Nature -> attacking-stat multipliers (only Atk/SpA matter here). Natures that
