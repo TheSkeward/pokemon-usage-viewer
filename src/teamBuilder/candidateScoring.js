@@ -1,4 +1,17 @@
+import { GEN7_BASE_STAT_TOTALS } from "../generated/gen7BaseStats.generated.js";
+
 export const MIN_MEANINGFUL_USAGE_PERCENT = 0.1;
+
+// A candidate borrows its usage prior from the competitively-played form it
+// represents, but at the current progression you may be stuck fielding a much
+// weaker pre-evolution (Happiny valued via Chansey, but Chansey needs an Oval
+// Stone the level cap can't grant). Discount the borrowed prior by the squared
+// base-stat-total ratio of the form you actually field vs the one it's valued
+// as — squared so a genuinely weak shell (Happiny ~0.24) is punished hard while
+// a near-peer pre-evo about to evolve (Combusken ~0.58) keeps most of its value.
+// Below this readiness the pick also stops counting as "meaningful usage", so
+// team selection no longer prefers including it for its borrowed popularity.
+const FORM_READINESS_MEANINGFUL_FLOOR = 0.4;
 
 export function scoreCandidate({
   availability,
@@ -29,7 +42,6 @@ export function scoreCandidate({
   const usagePercent = Math.max(0, usage.value || 0);
   const rawCount = Math.max(0, usage.entry?.rawCount || 0);
   const leadPercent = Math.max(0, bundle.leads?.value || 0);
-  const meaningfulUsage = usagePercent >= MIN_MEANINGFUL_USAGE_PERCENT;
 
   const usageScore = Math.log1p(usagePercent) * 2000 + usagePercent * 250;
   const rawScore = Math.log1p(rawCount) * 35;
@@ -41,21 +53,42 @@ export function scoreCandidate({
   const megaBonus = candidate.isMega ? 300 : 0;
   const legalityScore = scoreLegalityProfile(legalityProfile);
 
+  // The prior (usage/popularity-derived terms) is what's borrowed from the
+  // evolved form; the legality score already reflects the form you actually
+  // field, so only the prior is discounted by form-readiness.
+  const formReadiness = getFormReadiness(legalityProfile);
+  const prior =
+    usageScore + rawScore + leadScore + formatQuality + cutoffQuality + megaBonus;
+  const meaningfulUsage =
+    usagePercent >= MIN_MEANINGFUL_USAGE_PERCENT &&
+    formReadiness >= FORM_READINESS_MEANINGFUL_FLOOR;
+
   return {
-    score:
-      usageScore +
-      rawScore +
-      leadScore +
-      formatQuality +
-      cutoffQuality +
-      megaBonus +
-      legalityScore,
+    score: prior * formReadiness + legalityScore,
     legalityScore,
+    formReadiness,
     meaningfulUsage,
     usagePercent,
     rawCount,
     leadPercent,
   };
+}
+
+// Squared base-stat-total ratio of the currently-fielded form vs the form whose
+// usage prior it borrows. 1 when they're the same form (the usual case).
+function getFormReadiness(profile) {
+  const currentId = profile?.currentId;
+  const representativeId = profile?.representativeId;
+  if (!currentId || !representativeId || currentId === representativeId) {
+    return 1;
+  }
+
+  const current = GEN7_BASE_STAT_TOTALS[currentId];
+  const representative = GEN7_BASE_STAT_TOTALS[representativeId];
+  if (!current || !representative) return 1;
+
+  const ratio = Math.min(1, current / representative);
+  return ratio * ratio;
 }
 
 function scoreLegalityProfile(profile) {
