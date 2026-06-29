@@ -422,6 +422,16 @@ input {
   opacity: 0.5;
 }
 
+/* The weakest line(s) in the pool — judged by the best form's usage. */
+.bench-chip.worst {
+  color: #ffb4a8;
+  border-bottom: 1px dashed #c1554a;
+}
+
+.bench-chip.worst em {
+  color: #ffb4a8;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
