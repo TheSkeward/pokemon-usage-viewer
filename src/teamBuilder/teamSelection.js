@@ -4,16 +4,24 @@ import {
 } from "../reborn/typeChart.js";
 import { MAX_OPPONENT_TYPE_BIAS } from "../reborn/progression";
 
-export function choosePoolTeam(lines, opponentTypeBias = {}, { exhaustive = true } = {}) {
+export function choosePoolTeam(
+  lines,
+  opponentTypeBias = {},
+  { exhaustive = true, incremental = null } = {},
+) {
   const resolvedLines = lines.filter((line) => line.best || line.bestNonMega);
   const unresolved = lines.filter((line) => line.unresolved);
-  const bestTeam = selectTeamByFit(resolvedLines, opponentTypeBias, { exhaustive });
-  const team = addTeamFitNotes(bestTeam.team);
-  const megaUsed = bestTeam.megaUsed
+  const bestTeam = selectTeamByFit(resolvedLines, opponentTypeBias, {
+    exhaustive,
+    incremental,
+  });
+  const evaluated = bestTeam.evaluated;
+  const team = addTeamFitNotes(evaluated.team);
+  const megaUsed = evaluated.megaUsed
     ? team.find(
         (choice) =>
-          choice.inputPokemonId === bestTeam.megaUsed.inputPokemonId &&
-          choice.pokemonId === bestTeam.megaUsed.pokemonId,
+          choice.inputPokemonId === evaluated.megaUsed.inputPokemonId &&
+          choice.pokemonId === evaluated.megaUsed.pokemonId,
       )
     : null;
 
@@ -24,6 +32,9 @@ export function choosePoolTeam(lines, opponentTypeBias = {}, { exhaustive = true
     unresolved,
     linesConsidered: resolvedLines.length,
     searchExact: bestTeam.searchExact !== false,
+    // The raw (pre-note) winning team, so the optimizer can cache it and grow
+    // the search incrementally next time. Only exact results are safe to seed.
+    bestEvaluated: bestTeam.searchExact ? evaluated : null,
   };
 }
 
@@ -102,29 +113,96 @@ const AUTO_EXHAUSTIVE_BUDGET = 150_000;
 const HARD_EXHAUSTIVE_CAP = 1_000_000;
 const BEAM_WIDTH = 2000;
 
-function selectTeamByFit(lines, opponentTypeBias = {}, { exhaustive = true } = {}) {
+function selectTeamByFit(
+  lines,
+  opponentTypeBias = {},
+  { exhaustive = true, incremental = null } = {},
+) {
   const targetSize = Math.min(6, lines.length);
-  if (targetSize === 0) return { team: [], megaUsed: null, searchExact: true };
+  if (targetSize === 0) {
+    return { evaluated: { team: [], megaUsed: null }, searchExact: true };
+  }
 
   prepareFitScoring(lines, opponentTypeBias);
   try {
+    // Incremental: reuse a cached exact optimum and only enumerate teams that
+    // include a newly-added line. Always exact, and cheap (≈ C(N, targetSize-1)),
+    // so it runs regardless of the budget.
+    if (incrementalApplicable(incremental, lines, targetSize)) {
+      return {
+        evaluated: selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental),
+        searchExact: true,
+      };
+    }
+
     const combinations = countCombinations(lines.length, targetSize);
     const budget = exhaustive ? HARD_EXHAUSTIVE_CAP : AUTO_EXHAUSTIVE_BUDGET;
 
     if (combinations <= budget) {
-      return { ...selectTeamExhaustive(lines, targetSize, opponentTypeBias), searchExact: true };
+      return {
+        evaluated: selectTeamExhaustive(lines, targetSize, opponentTypeBias, null),
+        searchExact: true,
+      };
     }
-    return { ...selectTeamByBeam(lines, targetSize, opponentTypeBias), searchExact: false };
+    return {
+      evaluated: selectTeamByBeam(lines, targetSize, opponentTypeBias),
+      searchExact: false,
+    };
   } finally {
     fitReady = false;
   }
 }
 
+// Incremental is valid only when the cached optimum is a full team of the same
+// target size and all its lines are still present — i.e. the pool only grew. The
+// optimizer additionally guarantees the score context (progression/breeding) is
+// unchanged before passing this.
+function incrementalApplicable(incremental, lines, targetSize) {
+  if (!incremental?.previousBest?.team?.length) return false;
+  if (incremental.previousBest.team.length !== targetSize) return false;
+  const present = new Set(lines.map((line) => line.lineKey));
+  for (const key of incremental.baseLineKeys) {
+    if (!present.has(key)) return false;
+  }
+  return true;
+}
+
 // Streams every team of the target size, keeping the single best — O(1) memory
 // regardless of pool size, and provably invariant to unused mons (they only add
 // combinations that can't beat the best, and the tie-break is identity-based).
-function selectTeamExhaustive(lines, targetSize, opponentTypeBias) {
+// With `incremental`, it seeds the best from the cached optimum and only
+// enumerates teams containing at least one newly-added line.
+function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental) {
   let best = null;
+
+  if (incremental) {
+    best = evaluateTeam(
+      incremental.previousBest.team,
+      incremental.previousBest.megaUsed,
+      targetSize,
+      opponentTypeBias,
+    );
+    const baseKeys = incremental.baseLineKeys;
+    const added = lines.filter((line) => !baseKeys.has(line.lineKey));
+    const old = lines.filter((line) => baseKeys.has(line.lineKey));
+
+    // Teams with exactly `a` added lines and `targetSize - a` old lines, for
+    // a = 1..; this enumerates every team with >=1 added line, once each.
+    const maxAdded = Math.min(targetSize, added.length);
+    for (let a = 1; a <= maxAdded; a++) {
+      const fromOld = targetSize - a;
+      if (fromOld < 0 || fromOld > old.length) continue;
+      forEachCombination(added.length, a, (addedIdx) => {
+        const addedLines = addedIdx.map((i) => added[i]);
+        forEachCombination(old.length, fromOld, (oldIdx) => {
+          const comboLines = addedLines.concat(oldIdx.map((i) => old[i]));
+          const candidate = bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
+          if (candidate && (!best || betterEvaluated(candidate, best))) best = candidate;
+        });
+      });
+    }
+    return best || { team: [], megaUsed: null };
+  }
 
   forEachCombination(lines.length, targetSize, (comboIndices) => {
     const comboLines = comboIndices.map((index) => lines[index]);

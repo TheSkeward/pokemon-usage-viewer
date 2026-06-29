@@ -18,6 +18,18 @@ import {
 import { resolveRepresentativeLightBundle } from "./representativeBundle";
 import { choosePoolTeam } from "./teamSelection";
 
+// --- Incremental caches ----------------------------------------------------
+// In a playthrough you mostly grow the pool one mon at a time at a fixed game
+// state, so we cache work keyed on everything that affects a line's score.
+//   Layer 1: resolved lines, so adding a mon re-resolves only that mon.
+//   Layer 2: the exact optimum + its pool, so a pure addition only has to search
+//            teams that include the new mon (seeded from the cached best).
+// Both invalidate the moment the score context (family/selection/progression, or
+// a line's reachable egg moves) changes.
+const lineCache = new Map();
+const MAX_LINE_CACHE = 4000;
+let searchCache = null; // { searchKey, team, megaUsed, baseLineKeys: Set }
+
 export async function optimizeTeamFromPool({
   availability,
   family,
@@ -38,17 +50,36 @@ export async function optimizeTeamFromPool({
     progression,
     query,
   });
+
+  const progressionSig = stableStringify(progression);
+  // A line's egg moves can come from any current owned species via breeding, and
+  // the current species can be a pre-evolution of the line's representative — so
+  // rather than risk under-keying per line, all lines share one breeding
+  // signature. It's trivial when the daycare is locked (full caching) and only
+  // changes the whole pool's cache when reachable egg moves actually change.
+  const breedingSig =
+    breedingContext?.byPokemonId &&
+    Object.keys(breedingContext.byPokemonId).length
+      ? stableStringify(breedingContext.byPokemonId)
+      : "none";
+  const contextSig = `${family}|${selection}|${progressionSig}|${breedingSig}`;
+  const hitLineKeys = new Set();
+
   const lines = (
     await Promise.all(
       groups.map((group) =>
-        resolvePoolLine({
-          availability,
-          breedingContext,
-          family,
-          group,
-          pokemonIndex,
-          progression,
-          selection,
+        resolvePoolLineCached({
+          args: {
+            availability,
+            breedingContext,
+            family,
+            group,
+            pokemonIndex,
+            progression,
+            selection,
+          },
+          contextSig,
+          hitLineKeys,
         }).then((line) => {
           completed += 1;
           onProgress?.({ completed, total });
@@ -58,7 +89,74 @@ export async function optimizeTeamFromPool({
     )
   ).filter(Boolean);
 
-  return choosePoolTeam(lines, progression.opponentTypeBias, { exhaustive });
+  // Layer 2: if nothing about the score context changed and every line behind
+  // the cached optimum is unchanged (a cache hit), only new lines were added, so
+  // we can grow the previous search instead of redoing it.
+  const searchKey = contextSig;
+  const incremental =
+    searchCache &&
+    searchCache.searchKey === searchKey &&
+    [...searchCache.baseLineKeys].every((key) => hitLineKeys.has(key))
+      ? {
+          previousBest: { team: searchCache.team, megaUsed: searchCache.megaUsed },
+          baseLineKeys: searchCache.baseLineKeys,
+        }
+      : null;
+
+  const result = choosePoolTeam(lines, progression.opponentTypeBias, {
+    exhaustive,
+    incremental,
+  });
+
+  // Only seed future incremental searches from exact results.
+  if (result.searchExact && result.bestEvaluated) {
+    searchCache = {
+      searchKey,
+      team: result.bestEvaluated.team,
+      megaUsed: result.bestEvaluated.megaUsed,
+      baseLineKeys: new Set(
+        lines
+          .filter((line) => line.best || line.bestNonMega)
+          .map((line) => line.lineKey),
+      ),
+    };
+  } else {
+    searchCache = null;
+  }
+
+  return result;
+}
+
+async function resolvePoolLineCached({ args, contextSig, hitLineKeys }) {
+  const { group } = args;
+  const inputId = group.input?.id ?? group.token;
+  const cacheKey = `${inputId}|${contextSig}`;
+
+  const cached = lineCache.get(cacheKey);
+  if (cached) {
+    if (cached.lineKey) hitLineKeys.add(cached.lineKey);
+    return cached;
+  }
+
+  const line = await resolvePoolLine(args);
+  if (lineCache.size >= MAX_LINE_CACHE) lineCache.clear();
+  lineCache.set(cacheKey, line);
+  return line;
+}
+
+// Stable, order-independent stringify for cache keys: object keys are sorted and
+// array elements (which here are set-like — owned items, TM ids, bias) too.
+function stableStringify(value) {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableStringify).sort().join(",")}]`;
+  }
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${key}:${stableStringify(value[key])}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
 }
 
 async function resolvePoolLine({
