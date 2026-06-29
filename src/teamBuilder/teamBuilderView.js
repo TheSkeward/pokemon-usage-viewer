@@ -238,25 +238,43 @@ function renderBenchLine(result) {
     if (seenInputIds.has(representative.inputPokemonId)) continue;
 
     seenInputIds.add(representative.inputPokemonId);
-    bench.push(representative);
+    bench.push({ representative, ceiling: lineCeilingUsage(line) });
   }
 
   if (!bench.length) return "";
 
+  // Keep the existing order (current-form usage, then score): it answers "which
+  // line is next-closest to contributing".
   bench.sort(
     (a, b) =>
-      benchUsage(b) - benchUsage(a) ||
-      (b.score || 0) - (a.score || 0) ||
-      a.name.localeCompare(b.name),
+      benchUsage(b.representative) - benchUsage(a.representative) ||
+      (b.representative.score || 0) - (a.representative.score || 0) ||
+      a.representative.name.localeCompare(b.representative.name),
+  );
+
+  // The "worst in pool" is the line whose *best* form (regardless of level cap —
+  // Gyarados, not Magikarp) is least used. Ranked by usage then raw sample count
+  // so the very granular data rarely ties; genuine ties at the floor (all of an
+  // all-trash pool) are all flagged, which is the intended answer.
+  const worst = bench.reduce(
+    (acc, entry) => (isLowerCeiling(entry.ceiling, acc) ? entry.ceiling : acc),
+    bench[0].ceiling,
   );
 
   const items = bench
-    .map((representative) => {
-      const usage = representative.bundle?.usage?.value;
-      const usageText = typeof usage === "number" ? `${usage.toFixed(1)}%` : "—";
+    .map(({ representative, ceiling }) => {
+      const usageText =
+        typeof ceiling.value === "number" ? `${ceiling.value.toFixed(1)}%` : "—";
       const trace = !representative.meaningfulUsage;
+      const isWorst = sameCeiling(ceiling, worst);
+      const bestForm =
+        ceiling.name && ceiling.name !== representative.name
+          ? ` · best form ${ceiling.name}`
+          : "";
+      const title = `from input ${representative.inputName}${bestForm}`;
+      const classes = `bench-chip${trace ? " trace" : ""}${isWorst ? " worst" : ""}`;
 
-      return `<span class="bench-chip${trace ? " trace" : ""}" title="from input ${escapeHtml(representative.inputName)}">${escapeHtml(representative.name)} <em>${usageText}</em></span>`;
+      return `<span class="${classes}" title="${escapeHtml(title)}">${escapeHtml(representative.name)} <em>${usageText}</em></span>`;
     })
     .join("");
 
@@ -270,6 +288,34 @@ function renderBenchLine(result) {
 
 function benchUsage(representative) {
   return Math.max(0, representative.bundle?.usage?.value || 0);
+}
+
+// The line's ceiling: the form with the highest usage across every candidate,
+// ignoring the level-cap form-readiness discount, so a stuck pre-evolution is
+// judged by what it becomes. rawCount is kept to break otherwise-equal usages.
+function lineCeilingUsage(line) {
+  let best = { value: 0, rawCount: 0, name: null };
+  let found = false;
+  for (const candidate of line.candidates || []) {
+    const value = candidate.bundle?.usage?.value || 0;
+    const rawCount =
+      candidate.rawCount ?? candidate.bundle?.usage?.entry?.rawCount ?? 0;
+    const next = { value, rawCount, name: candidate.candidate?.name };
+    if (!found || isLowerCeiling(best, next)) {
+      best = next;
+      found = true;
+    }
+  }
+  return best;
+}
+
+function isLowerCeiling(a, b) {
+  if (a.value !== b.value) return a.value < b.value;
+  return a.rawCount < b.rawCount;
+}
+
+function sameCeiling(a, b) {
+  return a.value === b.value && a.rawCount === b.rawCount;
 }
 
 function renderItemRec(item) {
