@@ -99,7 +99,7 @@ export function mountPoolOptimizer(container, options = {}) {
     }
   }
 
-  async function computeAndRender() {
+  async function computeAndRender({ exhaustive = true } = {}) {
     setDetails.cancel();
 
     state.loading = true;
@@ -120,6 +120,10 @@ export function mountPoolOptimizer(container, options = {}) {
         query: state.query,
         selection: state.selection,
         onProgress: updateOptimizeProgress,
+        // The explicit Optimize button (and other direct triggers) run an exact
+        // search; only background auto-reoptimize accepts the fast approximation
+        // when the pool is too large to enumerate exactly.
+        exhaustive,
       });
       state.resultProgressionKey = getProgressionKey(state.progression);
 
@@ -147,9 +151,12 @@ export function mountPoolOptimizer(container, options = {}) {
       setDetails.cancel();
 
       state.loading = false;
+      const approxNote = state.result.searchExact
+        ? ""
+        : " Pool too large for an exact search — used a fast approximate one.";
       state.statusMessage = saved
-        ? getOptimizationSummary(state.result)
-        : `${getOptimizationSummary(state.result)} Pool could not be saved locally; browser storage is full.`;
+        ? `${getOptimizationSummary(state.result)}${approxNote}`
+        : `${getOptimizationSummary(state.result)}${approxNote} Pool could not be saved locally; browser storage is full.`;
 
       writeUrl();
       render();
@@ -181,7 +188,7 @@ export function mountPoolOptimizer(container, options = {}) {
         scheduleAutoReoptimize(true);
         return;
       }
-      void computeAndRender();
+      void computeAndRender({ exhaustive: false });
     }, AUTO_REOPTIMIZE_DELAY_MS);
   }
 

@@ -26,6 +26,7 @@ export async function optimizeTeamFromPool({
   query,
   selection,
   onProgress,
+  exhaustive = true,
 }) {
   const groups = buildInputGroups(query, pokemonIndex);
   const total = groups.length;
@@ -57,7 +58,7 @@ export async function optimizeTeamFromPool({
     )
   ).filter(Boolean);
 
-  return choosePoolTeam(lines, progression.opponentTypeBias);
+  return choosePoolTeam(lines, progression.opponentTypeBias, { exhaustive });
 }
 
 async function resolvePoolLine({
