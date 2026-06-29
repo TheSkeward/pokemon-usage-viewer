@@ -117,18 +117,20 @@ export function estimateMoveDamage({
   attackerTypes = [],
   attackerStats,
   level,
+  itemMultiplier = 1,
 }) {
   const stab = attackerTypes.includes(type) ? STAB_MULTIPLIER : 1;
   const lvl = normalizeLevel(level ?? attackerStats?.level);
 
   // No real base power -> fixed-damage move: treat its effective power as a flat
   // damage proxy (stat-independent) so it stays comparable without being tanked
-  // by a low offensive stat.
+  // by a low offensive stat. Item boosts (Life Orb, type items, ...) don't apply
+  // to fixed-damage moves like Seismic Toss in-game, so they're skipped here too.
   if (!basePower) {
     return Math.round((effectivePower || 0) * stab);
   }
 
-  if (!attackerStats) return Math.round(basePower * stab);
+  if (!attackerStats) return Math.round(basePower * stab * itemMultiplier);
 
   const attack =
     category === "Physical" ? attackerStats.atk : attackerStats.spa;
@@ -139,5 +141,5 @@ export function estimateMoveDamage({
       (Math.floor(((2 * lvl) / 5 + 2) * basePower * attack) / defense) / 50,
     ) + 2;
 
-  return Math.round(baseDamage * stab);
+  return Math.round(baseDamage * stab * itemMultiplier);
 }

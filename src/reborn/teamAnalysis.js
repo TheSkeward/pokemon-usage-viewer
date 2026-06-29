@@ -21,6 +21,7 @@ import { loadTopSet } from "./topSpread.js";
 import { teamMemberKey } from "../teamBuilder/itemRecommendations.js";
 import { toId } from "../utils/ids.js";
 import { MAX_OPPONENT_TYPE_BIAS } from "./progression.js";
+import { getItemDamageMultiplier } from "./itemDamage.js";
 
 export { REBORN_ANALYSIS_TYPES };
 
@@ -36,18 +37,21 @@ export async function buildRebornTeamAnalysis(
   const { family, selection, itemAssignments } = breedingOptions;
   const legalMoveEntries = await Promise.all(
     team.map(async (row) => {
+      const assignedItem = itemAssignments?.[teamMemberKey(row)];
       const entry = await buildMemberLegalMoveEntry({
         row,
         progression,
         breedingContext,
         family,
         selection,
+        assignedItem,
+        itemAware: true,
       });
       entry.profile.recommendedSet = buildRecommendedSet({
         member: entry.member,
         profile: entry.profile,
         topSet: entry.topSet,
-        assignedItem: itemAssignments?.[teamMemberKey(row)],
+        assignedItem,
         levelCap: progression.levelCap,
       });
       return entry;
@@ -85,6 +89,8 @@ async function buildMemberLegalMoveEntry({
   breedingContext,
   family,
   selection,
+  assignedItem = null,
+  itemAware = false,
 }) {
   const currentSpecies = getCurrentRebornSpeciesForChoice(row, progression);
   const legalMoveData = await loadRebornLegalMoveData(
@@ -116,6 +122,13 @@ async function buildMemberLegalMoveEntry({
     spread: topSet.spread,
   });
 
+  // The item the mon is recommended to hold (owned-item assignment, else its top
+  // competitive item) factors into its damage. Only when this entry feeds the
+  // displayed analysis — the gem-gating prepass stays item-blind.
+  const heldItem = itemAware
+    ? (assignedItem?.name ?? topSet.item)
+    : null;
+
   const profile = buildCandidateLegalityProfile({
     member,
     moves,
@@ -123,6 +136,7 @@ async function buildMemberLegalMoveEntry({
     attackerStats,
     levelCap: progression.levelCap,
     moveUsage: topSet.moveUsage,
+    heldItem,
     opponentTypeBias: progression.opponentTypeBias,
   });
 
@@ -173,14 +187,18 @@ export async function getTeamItemContext(
 }
 
 export function buildCandidateLegalityProfile({
-  member,
+  member: rawMember,
   moves = [],
   representativeName = "",
   attackerStats,
   levelCap,
   moveUsage = new Map(),
   opponentTypeBias = {},
+  heldItem = null,
 }) {
+  // Carry the recommended held item on the member so every damage estimate it
+  // flows into (display, ranking, bias) reflects it.
+  const member = heldItem ? { ...rawMember, heldItem } : rawMember;
   const stats =
     attackerStats ||
     getAttackingStats({ pokemonId: member.id, levelCap });
@@ -814,6 +832,14 @@ function getEstimatedDamage(move, member, attackerStats) {
     type: move.type,
     attackerTypes: member.types,
     attackerStats,
+    // The held item the mon is recommended to carry boosts the damage it deals
+    // (Life Orb, Choice Band, type items/Gems, ...). Applied to both the shown
+    // estimate and the move ranking, so they stay consistent.
+    itemMultiplier: getItemDamageMultiplier(member.heldItem, {
+      type: move.type,
+      category: move.category,
+      pokemonId: member.id,
+    }),
   });
 }
 
