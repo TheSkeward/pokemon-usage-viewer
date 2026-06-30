@@ -826,7 +826,10 @@ function getAdjustedPower(move, member) {
 // moves (handled inside estimateMoveDamage) keep their value on weak attackers.
 function getEstimatedDamage(move, member, attackerStats) {
   return estimateMoveDamage({
-    basePower: move.basePower,
+    // Scale base power by the move's effective-hit factor (multi-hit average,
+    // recharge amortization, escalating-move weighting), so ranking and the
+    // shown estimate reflect a turn's real output, not a single hit.
+    basePower: move.basePower * getEffectiveHitMultiplier(move),
     effectivePower: getMovePower(move),
     category: move.category,
     type: move.type,
@@ -845,6 +848,40 @@ function getEstimatedDamage(move, member, attackerStats) {
 
 function getMovePower(move) {
   return move.basePower || FIXED_DAMAGE_EFFECTIVE_POWER[move.id] || 0;
+}
+
+// Escalating multi-turn moves whose effective power isn't a simple multi-hit or
+// recharge. Rollout/Ice Ball double their power each consecutive turn (up to 5)
+// but rarely complete the sequence, so we weight each turn at half the previous:
+// with power doubling and weight halving, every turn contributes its base power,
+// so the weighted-average power is 5·BP / (1 + 1/2 + 1/4 + 1/8 + 1/16) ≈ 2.58·BP.
+const ESCALATING_HIT_MULTIPLIER = {
+  rollout: 2.58,
+  iceball: 2.58,
+};
+
+// How many "hits' worth" of base power a move lands per commitment, used to scale
+// the damage estimate so multi-hit and multi-turn moves are ranked by real output:
+//   - multi-hit: a fixed count (Double Kick → 2) or the average of its [min,max]
+//     range (Fury Swipes [2,5] → 3.5);
+//   - recharge: the hit lands then a turn is lost, and we double-weight the hit
+//     turn, so the amortized output is 2/3 of a single hit (Hyper Beam);
+//   - escalating: a curated weighting (Rollout/Ice Ball).
+// Single-hit moves (and semi-invulnerable charge moves like Fly/Dig, whose charge
+// turn is offset by being untargetable) keep their full single-hit power.
+function getEffectiveHitMultiplier(move) {
+  const escalating = ESCALATING_HIT_MULTIPLIER[move.id];
+  if (escalating) return escalating;
+
+  const multihit = move.multihit;
+  if (typeof multihit === "number") return multihit;
+  if (Array.isArray(multihit) && multihit.length === 2) {
+    return (multihit[0] + multihit[1]) / 2;
+  }
+
+  if (move.recharge) return 2 / 3;
+
+  return 1;
 }
 
 // Builds the recommended 4-move set for the mon as currently fielded. The order

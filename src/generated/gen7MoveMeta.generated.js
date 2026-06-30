@@ -50,7 +50,11 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 15,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "barrier": {
     "name": "Barrier",
@@ -202,7 +206,11 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 18,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "constrict": {
     "name": "Constrict",
@@ -282,7 +290,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 60,
     "priority": 0,
-    "utility": true
+    "utility": true,
+    "multihit": 2
   },
   "doubleslap": {
     "name": "Double Slap",
@@ -290,7 +299,11 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 15,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "dragonhammer": {
     "name": "Dragon Hammer",
@@ -1218,7 +1231,11 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 20,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "splinteredstormshards": {
     "name": "Splintered Stormshards",
@@ -1370,7 +1387,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 25,
     "priority": 0,
-    "utility": true
+    "utility": true,
+    "multihit": 2
   },
   "twinkletackle": {
     "name": "Twinkle Tackle",
@@ -1858,7 +1876,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 50,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": 2
   },
   "burnup": {
     "name": "Burn Up",
@@ -1914,7 +1933,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 40,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": 2
   },
   "electrify": {
     "name": "Electrify",
@@ -1930,7 +1950,8 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 160,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "recharge": true
   },
   "fishiousrend": {
     "name": "Fishious Rend",
@@ -1962,7 +1983,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 50,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": 2
   },
   "gearup": {
     "name": "Gear Up",
@@ -2258,7 +2280,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 150,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "recharge": true
   },
   "milkdrink": {
     "name": "Milk Drink",
@@ -2554,7 +2577,11 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 15,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "behemothbash": {
     "name": "Behemoth Bash",
@@ -2578,7 +2605,11 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 25,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "bulletseed": {
     "name": "Bullet Seed",
@@ -2586,7 +2617,11 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 25,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "dynamaxcannon": {
     "name": "Dynamax Cannon",
@@ -2602,7 +2637,11 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 15,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "furyswipes": {
     "name": "Fury Swipes",
@@ -2610,7 +2649,11 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 18,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "iciclespear": {
     "name": "Icicle Spear",
@@ -2618,7 +2661,11 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 25,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "leechseed": {
     "name": "Leech Seed",
@@ -2650,7 +2697,11 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 25,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "reflecttype": {
     "name": "Reflect Type",
@@ -2666,7 +2717,11 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 25,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "soak": {
     "name": "Soak",
@@ -2706,7 +2761,11 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 25,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "thundercage": {
     "name": "Thunder Cage",
@@ -2730,7 +2789,11 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 15,
     "priority": 1,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "weatherball": {
     "name": "Weather Ball",
@@ -3074,7 +3137,8 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 150,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "recharge": true
   },
   "blazekick": {
     "name": "Blaze Kick",
@@ -3666,7 +3730,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 35,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": 2
   },
   "doublekick": {
     "name": "Double Kick",
@@ -3674,7 +3739,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 30,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": 2
   },
   "doubleshock": {
     "name": "Double Shock",
@@ -3746,7 +3812,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 50,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": 2
   },
   "dragonenergy": {
     "name": "Dragon Energy",
@@ -3834,7 +3901,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 40,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": 2
   },
   "dynamicpunch": {
     "name": "Dynamic Punch",
@@ -4346,7 +4414,8 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 150,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "recharge": true
   },
   "frostbreath": {
     "name": "Frost Breath",
@@ -4394,7 +4463,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 150,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "recharge": true
   },
   "gigatonhammer": {
     "name": "Gigaton Hammer",
@@ -4906,7 +4976,8 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 150,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "recharge": true
   },
   "hydropump": {
     "name": "Hydro Pump",
@@ -4930,7 +5001,8 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 150,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "recharge": true
   },
   "hyperdrill": {
     "name": "Hyper Drill",
@@ -5794,7 +5866,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 20,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": 10
   },
   "pounce": {
     "name": "Pounce",
@@ -5890,7 +5963,8 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 160,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "recharge": true
   },
   "psybeam": {
     "name": "Psybeam",
@@ -6106,7 +6180,8 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 150,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "recharge": true
   },
   "rockpolish": {
     "name": "Rock Polish",
@@ -6154,7 +6229,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 150,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "recharge": true
   },
   "round": {
     "name": "Round",
@@ -6242,7 +6318,11 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 25,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": [
+      2,
+      5
+    ]
   },
   "scaryface": {
     "name": "Scary Face",
@@ -6850,7 +6930,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 25,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": 3
   },
   "swagger": {
     "name": "Swagger",
@@ -6906,7 +6987,8 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 50,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": 2
   },
   "tackle": {
     "name": "Tackle",
@@ -7178,7 +7260,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 20,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": 3
   },
   "tripledive": {
     "name": "Triple Dive",
@@ -7186,7 +7269,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 30,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": 3
   },
   "triplekick": {
     "name": "Triple Kick",
@@ -7194,7 +7278,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 10,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": 3
   },
   "tropkick": {
     "name": "Trop Kick",
@@ -7210,7 +7295,8 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 40,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "multihit": 2
   },
   "twister": {
     "name": "Twister",
