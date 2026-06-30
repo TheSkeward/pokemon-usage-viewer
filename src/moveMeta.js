@@ -78,6 +78,8 @@ export function hydrateLegalMove(rawMove) {
     basePower: meta?.basePower ?? 0,
     priority: meta?.priority ?? 0,
     utility: meta?.utility ?? false,
+    // Hit rate (0–100) so the damage estimate can weight by expected accuracy.
+    accuracy: meta?.accuracy ?? 100,
     // Multi-hit / recharge / charge flags feed the effective-power damage model.
     multihit: meta?.multihit,
     recharge: meta?.recharge ?? false,

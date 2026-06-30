@@ -825,7 +825,7 @@ function getAdjustedPower(move, member) {
 // physical attacker prefers its physical moves and vice versa. Fixed-damage
 // moves (handled inside estimateMoveDamage) keep their value on weak attackers.
 function getEstimatedDamage(move, member, attackerStats) {
-  return estimateMoveDamage({
+  const perHit = estimateMoveDamage({
     // Scale base power by the move's effective-hit factor (multi-hit average,
     // recharge amortization, escalating-move weighting), so ranking and the
     // shown estimate reflect a turn's real output, not a single hit.
@@ -844,6 +844,19 @@ function getEstimatedDamage(move, member, attackerStats) {
       pokemonId: member.id,
     }),
   });
+  // Expected damage weights a hit by how often it lands, so an inaccurate nuke
+  // (Focus Blast: 120 BP @ 70%) ranks below a reliable lower-power move (e.g. a
+  // 90 BP @ 100% move: 84 vs 90 expected). Applied after the per-hit estimate so
+  // it also scales fixed-damage/OHKO moves (Fissure @ 30%).
+  return Math.round(perHit * getAccuracyFactor(move));
+}
+
+// A move's hit rate as a 0–1 factor. Never-miss and perfect-accuracy moves
+// (normalized to 100 in the meta) and any move without numeric accuracy return 1.
+function getAccuracyFactor(move) {
+  const accuracy = move.accuracy;
+  if (!accuracy || accuracy >= 100) return 1;
+  return accuracy / 100;
 }
 
 function getMovePower(move) {
