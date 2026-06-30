@@ -7,13 +7,14 @@ import { MAX_OPPONENT_TYPE_BIAS } from "../reborn/progression";
 export function choosePoolTeam(
   lines,
   opponentTypeBias = {},
-  { exhaustive = true, incremental = null } = {},
+  { exhaustive = true, incremental = null, searchKey = null } = {},
 ) {
   const resolvedLines = lines.filter((line) => line.best || line.bestNonMega);
   const unresolved = lines.filter((line) => line.unresolved);
   const bestTeam = selectTeamByFit(resolvedLines, opponentTypeBias, {
     exhaustive,
     incremental,
+    searchKey,
   });
   const evaluated = bestTeam.evaluated;
   const team = addTeamFitNotes(evaluated.team);
@@ -119,10 +120,103 @@ const AUTO_EXHAUSTIVE_BUDGET = 300_000;
 const HARD_EXHAUSTIVE_CAP = 2_000_000;
 const BEAM_WIDTH = 2000;
 
+// --- Full-enumeration team store -------------------------------------------
+// When an exact search enumerates every C(N, size) team, we keep them all — each
+// team's line positions + score + meaningful-pick count — keyed by the score
+// context. The optimum of ANY sub-pool is then just the best stored team that
+// uses only surviving lines, so a deletion to a never-visited subset (e.g.
+// dropping a mon that was on the optimal team) is answered by a fast scan instead
+// of a full re-search. Packed typed arrays hold ~2M teams in ~20MB (the 36-line
+// ceiling); a normal pool is a few KB. Replaced on each full search, queried for
+// any subset of the pool it was built from.
+let teamStore = null;
+
+function createTeamStore(searchKey, lines, targetSize, capacity) {
+  const posToLineKey = lines.map((line) => line.lineKey);
+  return {
+    searchKey,
+    targetSize,
+    posToLineKey,
+    lineKeyToPos: new Map(posToLineKey.map((key, i) => [key, i])),
+    count: 0,
+    positions: new Uint8Array(capacity * targetSize),
+    scores: new Float32Array(capacity),
+    meaningful: new Uint8Array(capacity),
+  };
+}
+
+function recordStoreTeam(store, comboPositions, evaluated) {
+  const index = store.count++;
+  const base = index * store.targetSize;
+  for (let j = 0; j < store.targetSize; j++) {
+    store.positions[base + j] = comboPositions[j];
+  }
+  store.scores[index] = evaluated.score;
+  store.meaningful[index] = evaluated.meaningful;
+}
+
+// The current pool is a subset of the stored full search — same context, same
+// target size, every current line present — so the store holds every team it can
+// form and a scan yields the exact optimum.
+function teamStoreCovers(searchKey, lines, targetSize) {
+  if (!teamStore || teamStore.searchKey !== searchKey) return false;
+  if (teamStore.targetSize !== targetSize) return false;
+  for (const line of lines) {
+    if (!teamStore.lineKeyToPos.has(line.lineKey)) return false;
+  }
+  return true;
+}
+
+function queryTeamStore(lines, targetSize, opponentTypeBias) {
+  const store = teamStore;
+  const lineByKey = new Map(lines.map((line) => [line.lineKey, line]));
+  const allowed = new Uint8Array(store.posToLineKey.length);
+  for (const line of lines) allowed[store.lineKeyToPos.get(line.lineKey)] = 1;
+
+  const size = store.targetSize;
+  let bestMeaningful = -1;
+  let bestScore = -Infinity;
+  let ties = [];
+  for (let i = 0; i < store.count; i++) {
+    const base = i * size;
+    let ok = true;
+    for (let j = 0; j < size; j++) {
+      if (!allowed[store.positions[base + j]]) {
+        ok = false;
+        break;
+      }
+    }
+    if (!ok) continue;
+    const meaningful = store.meaningful[i];
+    const score = store.scores[i];
+    if (meaningful > bestMeaningful || (meaningful === bestMeaningful && score > bestScore)) {
+      bestMeaningful = meaningful;
+      bestScore = score;
+      ties = [base];
+    } else if (meaningful === bestMeaningful && score === bestScore) {
+      ties.push(base);
+    }
+  }
+  if (!ties.length) return { team: [], megaUsed: null };
+
+  // Reconstruct the (rare) score-tied teams and pick with the full comparator, so
+  // the deterministic identity tie-break matches a live search exactly.
+  let best = null;
+  for (const base of ties) {
+    const comboLines = [];
+    for (let j = 0; j < size; j++) {
+      comboLines.push(lineByKey.get(store.posToLineKey[store.positions[base + j]]));
+    }
+    const candidate = bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
+    if (candidate && (!best || betterEvaluated(candidate, best))) best = candidate;
+  }
+  return best || { team: [], megaUsed: null };
+}
+
 function selectTeamByFit(
   lines,
   opponentTypeBias = {},
-  { exhaustive = true, incremental = null } = {},
+  { exhaustive = true, incremental = null, searchKey = null } = {},
 ) {
   const targetSize = Math.min(6, lines.length);
   if (targetSize === 0) {
@@ -138,14 +232,25 @@ function selectTeamByFit(
     // include a newly-added line. Always exact, and cheap (≈ C(N, targetSize-1)),
     // so it runs regardless of the budget.
     if (incrementalApplicable(incremental, lines, targetSize)) {
-      evaluated = selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental);
+      evaluated = selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, null);
+      searchExact = true;
+    } else if (searchKey && teamStoreCovers(searchKey, lines, targetSize)) {
+      // The pool is a subset of an earlier full search (a deletion, including of a
+      // mon that was on the team) — scan the stored teams instead of re-searching.
+      evaluated = queryTeamStore(lines, targetSize, opponentTypeBias);
       searchExact = true;
     } else {
       const combinations = countCombinations(lines.length, targetSize);
       const budget = exhaustive ? HARD_EXHAUSTIVE_CAP : AUTO_EXHAUSTIVE_BUDGET;
 
       if (combinations <= budget) {
-        evaluated = selectTeamExhaustive(lines, targetSize, opponentTypeBias, null);
+        // A full enumeration: record every team so later subsets of this pool are
+        // answered by queryTeamStore.
+        const store = searchKey
+          ? createTeamStore(searchKey, lines, targetSize, combinations)
+          : null;
+        evaluated = selectTeamExhaustive(lines, targetSize, opponentTypeBias, null, store);
+        if (store) teamStore = store;
         searchExact = true;
       } else {
         evaluated = selectTeamByBeam(lines, targetSize, opponentTypeBias);
@@ -230,7 +335,7 @@ function incrementalApplicable(incremental, lines, targetSize) {
 // combinations that can't beat the best, and the tie-break is identity-based).
 // With `incremental`, it seeds the best from the cached optimum and only
 // enumerates teams containing at least one newly-added line.
-function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental) {
+function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, recordStore) {
   let best = null;
 
   if (incremental) {
@@ -265,7 +370,9 @@ function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental) 
   forEachCombination(lines.length, targetSize, (comboIndices) => {
     const comboLines = comboIndices.map((index) => lines[index]);
     const candidate = bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
-    if (candidate && (!best || betterEvaluated(candidate, best))) best = candidate;
+    if (!candidate) return;
+    if (recordStore) recordStoreTeam(recordStore, comboIndices, candidate);
+    if (!best || betterEvaluated(candidate, best)) best = candidate;
   });
 
   return best || { team: [], megaUsed: null };
