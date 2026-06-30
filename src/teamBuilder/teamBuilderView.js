@@ -496,6 +496,12 @@ function renderSelectedSetDetails({ app, pokemonIndex, setDetails, state }) {
     selectedPokemonName: selected.name,
     movesetEntry: detail,
     lookupLabel: detail ? setDetails.describeSource(detail) : "",
+    // The set is sourced from the mon's first meaningful (>=0.1%) usage tier,
+    // which is why this evolution stage was chosen over (or instead of) another.
+    // Surface that tier's usage so the pick is legible — but only when the shown
+    // set actually came from the ranking tier (guard against the deepest-tier
+    // fallback and cross-family sourcing, where the number wouldn't match).
+    sourceUsageLabel: describeSourceUsage(selected.bundle?.ranking, detail),
     aggregate: state.selection === "all",
     stitched: Boolean(detail?.stitched),
     status: setDetails.getStatus(),
@@ -610,5 +616,16 @@ function renderSource(source, formatsIndex) {
 
 function formatPercent(value) {
   return typeof value === "number" ? value.toFixed(2) : "";
+}
+
+// The mon's usage at the tier its set was sourced from, for the detail pane —
+// only when that tier matches the meaningful-tier ranking (so the percentage
+// genuinely describes the "Movesets from …" source shown beside it).
+function describeSourceUsage(ranking, detail) {
+  if (!ranking || !detail || typeof ranking.value !== "number") return "";
+  if (ranking.formatId !== detail.formatId || ranking.cutoff !== detail.cutoff) {
+    return "";
+  }
+  return `${formatPercent(ranking.value)}% usage at this tier`;
 }
 
