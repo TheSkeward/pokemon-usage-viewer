@@ -32,6 +32,10 @@ export function choosePoolTeam(
     unresolved,
     linesConsidered: resolvedLines.length,
     searchExact: bestTeam.searchExact !== false,
+    // Per non-selected line, the best team score achievable by swapping it onto
+    // the optimal team — used by the bench view to flag the most droppable mon
+    // (coverage-aware, not just by usage tier).
+    benchSwapScores: bestTeam.benchSwapScores || null,
     // The raw (pre-note) winning team, so the optimizer can cache it and grow
     // the search incrementally next time. Only exact results are safe to seed.
     bestEvaluated: bestTeam.searchExact ? evaluated : null,
@@ -120,37 +124,87 @@ function selectTeamByFit(
 ) {
   const targetSize = Math.min(6, lines.length);
   if (targetSize === 0) {
-    return { evaluated: { team: [], megaUsed: null }, searchExact: true };
+    return { evaluated: { team: [], megaUsed: null }, searchExact: true, benchSwapScores: new Map() };
   }
 
   prepareFitScoring(lines, opponentTypeBias);
   try {
+    let evaluated;
+    let searchExact;
+
     // Incremental: reuse a cached exact optimum and only enumerate teams that
     // include a newly-added line. Always exact, and cheap (≈ C(N, targetSize-1)),
     // so it runs regardless of the budget.
     if (incrementalApplicable(incremental, lines, targetSize)) {
-      return {
-        evaluated: selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental),
-        searchExact: true,
-      };
+      evaluated = selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental);
+      searchExact = true;
+    } else {
+      const combinations = countCombinations(lines.length, targetSize);
+      const budget = exhaustive ? HARD_EXHAUSTIVE_CAP : AUTO_EXHAUSTIVE_BUDGET;
+
+      if (combinations <= budget) {
+        evaluated = selectTeamExhaustive(lines, targetSize, opponentTypeBias, null);
+        searchExact = true;
+      } else {
+        evaluated = selectTeamByBeam(lines, targetSize, opponentTypeBias);
+        searchExact = false;
+      }
     }
 
-    const combinations = countCombinations(lines.length, targetSize);
-    const budget = exhaustive ? HARD_EXHAUSTIVE_CAP : AUTO_EXHAUSTIVE_BUDGET;
+    // Rank the non-selected lines by how much the team would suffer if forced to
+    // field them: a cheap O(bench × forms × size) pass that reuses the team
+    // scorer (so coverage — offensive AND defensive — and the bounded tier trade
+    // off exactly as in selection). It's independent of which search ran above,
+    // so the bench's "worst" highlight is available even in incremental/beam
+    // mode.
+    const benchSwapScores = computeBenchSwapScores(
+      lines,
+      evaluated.team,
+      opponentTypeBias,
+    );
 
-    if (combinations <= budget) {
-      return {
-        evaluated: selectTeamExhaustive(lines, targetSize, opponentTypeBias, null),
-        searchExact: true,
-      };
-    }
-    return {
-      evaluated: selectTeamByBeam(lines, targetSize, opponentTypeBias),
-      searchExact: false,
-    };
+    return { evaluated, searchExact, benchSwapScores };
   } finally {
     fitReady = false;
   }
+}
+
+// For each line not on the optimal team, the best team score achievable by
+// swapping it in for one of the starters (best over the line's form options and
+// the slot it replaces, honouring the one-Mega limit). A high score means the
+// pool genuinely wants this mon — its coverage nearly justifies a starter slot —
+// so it should NOT read as the "worst"; a low score means even its best swap-in
+// is weak, i.e. it's the most droppable. Returns inputPokemonId -> best score.
+function computeBenchSwapScores(lines, team, opponentTypeBias) {
+  const scores = new Map();
+  if (!team.length) return scores;
+
+  const teamInputIds = new Set(team.map((choice) => choice.inputPokemonId));
+
+  for (const line of lines) {
+    const representative = line.best || line.bestNonMega;
+    if (!representative) continue;
+    if (teamInputIds.has(representative.inputPokemonId)) continue;
+
+    let best = -Infinity;
+    for (const form of getLineChoiceOptions(line)) {
+      for (let slot = 0; slot < team.length; slot += 1) {
+        const swapped = team.slice();
+        swapped[slot] = form;
+
+        let megaCount = 0;
+        for (const choice of swapped) if (choice.isMega) megaCount += 1;
+        if (megaCount > 1) continue;
+
+        const score = getTeamScore(swapped, opponentTypeBias);
+        if (score > best) best = score;
+      }
+    }
+
+    if (best > -Infinity) scores.set(representative.inputPokemonId, best);
+  }
+
+  return scores;
 }
 
 // Incremental is valid only when the cached optimum is a full team of the same
