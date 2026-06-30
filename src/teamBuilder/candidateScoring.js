@@ -1,4 +1,4 @@
-import { GEN7_BASE_STAT_TOTALS } from "../generated/gen7BaseStats.generated.js";
+import { GEN7_BASE_STAT_TOTALS, GEN7_BASE_STATS } from "../generated/gen7BaseStats.generated.js";
 import { getTypeMultiplier } from "../reborn/typeChart.js";
 
 export const MIN_MEANINGFUL_USAGE_PERCENT = 0.1;
@@ -39,10 +39,16 @@ const BIAS_MEANINGFUL_THRESHOLD = 270;
 // A candidate borrows its usage prior from the competitively-played form it
 // represents, but at the current progression you may be stuck fielding a much
 // weaker pre-evolution (Happiny valued via Chansey, but Chansey needs an Oval
-// Stone the level cap can't grant). Discount the borrowed prior by the squared
-// base-stat-total ratio of the form you actually field vs the one it's valued
-// as — squared so a genuinely weak shell (Happiny ~0.24) is punished hard while
-// a near-peer pre-evo about to evolve (Combusken ~0.58) keeps most of its value.
+// Stone the level cap can't grant). Discount the borrowed prior by how much BULK
+// the fielded form gives up versus the form it's valued as — the ratio of their
+// *non-attacking* base stats (BST minus Atk and SpA). Offense is deliberately
+// excluded because legalityScore already prices it in via the fielded form's real
+// attacking stats, so squaring the full ratio (the old approach) double-counted
+// the offensive shortfall and crushed perfectly viable mid-evolutions (a Frogadier
+// fielded for Greninja's prior dropped to 0.58 and lost to fully-evolved chaff).
+// The bulk ratio is used linearly, so a near-peer pre-evo keeps most of its value
+// (Frogadier ~0.78) while a genuine shell is still held down — and for a shell
+// that can't function (Magikarp, Happiny) legalityScore does the rest.
 // Below this readiness the pick also stops counting as "meaningful usage", so
 // team selection no longer prefers including it for its borrowed popularity.
 const FORM_READINESS_MEANINGFUL_FLOOR = 0.4;
@@ -189,8 +195,9 @@ function scoreOpponentTypeBias(opponentTypeBias, profile) {
   return score;
 }
 
-// Squared base-stat-total ratio of the currently-fielded form vs the form whose
-// usage prior it borrows. 1 when they're the same form (the usual case).
+// Non-attacking base-stat ratio of the currently-fielded form vs the form whose
+// usage prior it borrows: how much defensive bulk you keep by fielding the pre-evo
+// (offense is left to legalityScore). 1 when they're the same form (the usual case).
 function getFormReadiness(profile) {
   const currentId = profile?.currentId;
   const representativeId = profile?.representativeId;
@@ -198,12 +205,19 @@ function getFormReadiness(profile) {
     return 1;
   }
 
-  const current = GEN7_BASE_STAT_TOTALS[currentId];
-  const representative = GEN7_BASE_STAT_TOTALS[representativeId];
+  const current = nonAttackingTotal(currentId);
+  const representative = nonAttackingTotal(representativeId);
   if (!current || !representative) return 1;
 
-  const ratio = Math.min(1, current / representative);
-  return ratio * ratio;
+  return Math.min(1, current / representative);
+}
+
+// BST minus the two attacking stats (Atk, SpA): the bulk-and-speed portion.
+function nonAttackingTotal(id) {
+  const total = GEN7_BASE_STAT_TOTALS[id];
+  const stats = GEN7_BASE_STATS[id]; // [Atk, Def, SpA, SpD, Spe]
+  if (!total || !stats) return null;
+  return total - stats[0] - stats[2];
 }
 
 function scoreLegalityProfile(profile) {

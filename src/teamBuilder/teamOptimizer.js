@@ -43,7 +43,7 @@ const MAX_RESULT_CACHE = 400;
 // search, or the legality/damage model): a mismatched version retires the stored
 // results so a reload after such a deploy recomputes rather than showing stale
 // teams. UI-only deploys keep the version, so results survive them.
-const RESULT_CACHE_VERSION = "2";
+const RESULT_CACHE_VERSION = "3";
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
