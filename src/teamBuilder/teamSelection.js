@@ -112,12 +112,16 @@ function getDefensiveCoverTypes(profile, team) {
 // deterministic) beam for pools too large to enumerate.
 //
 // Budgets are in number of team combinations C(N, size). The explicit Optimize
-// button enumerates up to a high ceiling; background auto-reoptimize only
-// enumerates when it's cheap, otherwise it takes the fast beam. With the fast
-// bitmask scorer these stay responsive: 300k ≈ a 27-line pool (background,
-// runs on every edit), 2M ≈ a 36-line pool (explicit Optimize, a few seconds).
-const AUTO_EXHAUSTIVE_BUDGET = 300_000;
-const HARD_EXHAUSTIVE_CAP = 2_000_000;
+// button enumerates up to a high ceiling; background auto-reoptimize uses a
+// budget that now matches it for the pools people actually build, falling back
+// to the fast beam only beyond that. After the deferred-identity + memoized-
+// options speedup, both cover a full 36-line pool exactly: 2M ≈ a 36-line pool
+// (C(36,6) ≈ 1.95M), and the explicit ceiling adds headroom to ~38 lines
+// (C(38,6) ≈ 2.76M). Most edits never hit these anyway — the incremental path is
+// exact regardless of budget; the budget only gates a from-scratch search (a new
+// pool, or a progression/bias change).
+const AUTO_EXHAUSTIVE_BUDGET = 2_000_000;
+const HARD_EXHAUSTIVE_CAP = 3_000_000;
 const BEAM_WIDTH = 2000;
 
 // --- Full-enumeration team store -------------------------------------------
