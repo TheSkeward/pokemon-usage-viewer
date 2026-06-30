@@ -158,7 +158,7 @@ export async function optimizeTeamFromPool({
         }
       : null;
 
-  const result = choosePoolTeam(lines, progression.opponentTypeBias, {
+  const result = await choosePoolTeam(lines, progression.opponentTypeBias, {
     exhaustive,
     incremental,
     // The team store is keyed on the same context as the incremental cache, so a

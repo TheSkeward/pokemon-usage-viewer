@@ -1,17 +1,29 @@
 import {
-  getTypeMultiplier,
   REBORN_ANALYSIS_TYPES,
-} from "../reborn/typeChart.js";
-import { MAX_OPPONENT_TYPE_BIAS } from "../reborn/progression";
+  getTypeMultiplier,
+  prepareFitScoring,
+  resetFitScoring,
+  getLineChoiceOptions,
+  getTeamScore,
+  getUsagePercent,
+  compareChoices,
+  bestAssignmentForLines,
+  evaluateTeam,
+  betterEvaluated,
+  teamIdentityKey,
+  getTeamSizePriority,
+  forEachCombination,
+} from "./searchKernel.js";
+import { parallelFullSearch, PARALLEL_THRESHOLD } from "./parallelSearch.js";
 
-export function choosePoolTeam(
+export async function choosePoolTeam(
   lines,
   opponentTypeBias = {},
   { exhaustive = true, incremental = null, searchKey = null } = {},
 ) {
   const resolvedLines = lines.filter((line) => line.best || line.bestNonMega);
   const unresolved = lines.filter((line) => line.unresolved);
-  const bestTeam = selectTeamByFit(resolvedLines, opponentTypeBias, {
+  const bestTeam = await selectTeamByFit(resolvedLines, opponentTypeBias, {
     exhaustive,
     incremental,
     searchKey,
@@ -117,22 +129,21 @@ function getDefensiveCoverTypes(profile, team) {
 // to the fast beam only beyond that. After the deferred-identity + memoized-
 // options speedup, both cover a full 36-line pool exactly: 2M ≈ a 36-line pool
 // (C(36,6) ≈ 1.95M), and the explicit ceiling adds headroom to ~38 lines
-// (C(38,6) ≈ 2.76M). Most edits never hit these anyway — the incremental path is
-// exact regardless of budget; the budget only gates a from-scratch search (a new
-// pool, or a progression/bias change).
+// (C(38,6) ≈ 2.76M). Big searches run across Web Workers, so they're off the main
+// thread and core-count faster; most edits never hit them anyway — the incremental
+// path is exact regardless of budget; the budget only gates a from-scratch search.
 const AUTO_EXHAUSTIVE_BUDGET = 2_000_000;
 const HARD_EXHAUSTIVE_CAP = 3_000_000;
 const BEAM_WIDTH = 2000;
 
 // --- Full-enumeration team store -------------------------------------------
-// When an exact search enumerates every C(N, size) team, we keep them all — each
-// team's line positions + score — keyed by the score context. The optimum of ANY
-// sub-pool is then just the best stored team that
-// uses only surviving lines, so a deletion to a never-visited subset (e.g.
-// dropping a mon that was on the optimal team) is answered by a fast scan instead
-// of a full re-search. Packed typed arrays hold ~2M teams in ~20MB (the 36-line
-// ceiling); a normal pool is a few KB. Replaced on each full search, queried for
-// any subset of the pool it was built from.
+// When a SEQUENTIAL exact search enumerates every C(N, size) team, we keep them
+// all — each team's line positions + score — keyed by the score context. The
+// optimum of ANY sub-pool is then just the best stored team that uses only
+// surviving lines, so a deletion to a never-visited subset is answered by a fast
+// scan instead of a re-search. Big pools take the parallel path, which does NOT
+// build a store (so it's invalidated there) — a subset-delete of a big pool just
+// re-searches in parallel; small pools keep the instant scan.
 let teamStore = null;
 
 function createTeamStore(searchKey, lines, targetSize, capacity) {
@@ -212,7 +223,7 @@ function queryTeamStore(lines, targetSize, opponentTypeBias) {
   return best || { team: [], megaUsed: null };
 }
 
-function selectTeamByFit(
+async function selectTeamByFit(
   lines,
   opponentTypeBias = {},
   { exhaustive = true, incremental = null, searchKey = null } = {},
@@ -222,47 +233,84 @@ function selectTeamByFit(
     return { evaluated: { team: [], megaUsed: null }, searchExact: true, benchSwapScores: new Map() };
   }
 
+  // Decide the path from cheap synchronous checks.
+  const incApplies = incrementalApplicable(incremental, lines, targetSize);
+  const addedCount = incApplies
+    ? lines.filter((line) => !incremental.baseLineKeys.has(line.lineKey)).length
+    : 0;
+  const combinations = countCombinations(lines.length, targetSize);
+  const budget = exhaustive ? HARD_EXHAUSTIVE_CAP : AUTO_EXHAUSTIVE_BUDGET;
+
+  // A from-scratch / grown search big enough to be worth it runs in parallel off
+  // the main thread. A pure deletion (incremental, no added lines) and a
+  // store-covered subset stay on their instant sequential paths; an addition
+  // takes the parallel full enumeration (exact, and core-count fast).
+  const isPureDeletion = incApplies && addedCount === 0;
+  const isStoreCovered = !!searchKey && teamStoreCovers(searchKey, lines, targetSize);
+  const useParallel =
+    !isPureDeletion &&
+    !isStoreCovered &&
+    combinations <= budget &&
+    combinations >= PARALLEL_THRESHOLD;
+
+  if (useParallel) {
+    // The parallel path doesn't build a team store; drop any stale one.
+    teamStore = null;
+    const compactLines = buildCompactLines(lines);
+    const bestRefs = await parallelFullSearch(
+      compactLines,
+      targetSize,
+      opponentTypeBias,
+      combinations,
+    );
+    prepareFitScoring(lines, opponentTypeBias);
+    try {
+      const evaluated = bestRefs
+        ? evaluatedFromRefs(bestRefs, lines, targetSize, opponentTypeBias)
+        : null;
+      if (evaluated) {
+        const benchSwapScores = computeBenchSwapScores(
+          lines,
+          evaluated.team,
+          opponentTypeBias,
+        );
+        return { evaluated, searchExact: true, benchSwapScores };
+      }
+    } finally {
+      resetFitScoring(lines);
+    }
+    // Unmappable result (shouldn't happen) — fall through to a sequential search.
+  }
+
   prepareFitScoring(lines, opponentTypeBias);
   try {
     let evaluated;
     let searchExact;
 
-    // Incremental: reuse a cached exact optimum and only enumerate teams that
-    // include a newly-added line. Always exact, and cheap (≈ C(N, targetSize-1)),
-    // so it runs regardless of the budget.
-    if (incrementalApplicable(incremental, lines, targetSize)) {
+    if (incApplies) {
+      // Reuse the cached optimum: instant for a pure deletion, or enumerate the
+      // teams that include a newly-added line (small pools; big adds went parallel).
       evaluated = selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, null);
       searchExact = true;
-    } else if (searchKey && teamStoreCovers(searchKey, lines, targetSize)) {
-      // The pool is a subset of an earlier full search (a deletion, including of a
-      // mon that was on the team) — scan the stored teams instead of re-searching.
+    } else if (isStoreCovered) {
       evaluated = queryTeamStore(lines, targetSize, opponentTypeBias);
       searchExact = true;
+    } else if (combinations <= budget) {
+      // Sequential full enumeration: record every team so later subsets of this
+      // pool are answered by queryTeamStore.
+      const store = searchKey
+        ? createTeamStore(searchKey, lines, targetSize, combinations)
+        : null;
+      evaluated = selectTeamExhaustive(lines, targetSize, opponentTypeBias, null, store);
+      if (store) teamStore = store;
+      searchExact = true;
     } else {
-      const combinations = countCombinations(lines.length, targetSize);
-      const budget = exhaustive ? HARD_EXHAUSTIVE_CAP : AUTO_EXHAUSTIVE_BUDGET;
-
-      if (combinations <= budget) {
-        // A full enumeration: record every team so later subsets of this pool are
-        // answered by queryTeamStore.
-        const store = searchKey
-          ? createTeamStore(searchKey, lines, targetSize, combinations)
-          : null;
-        evaluated = selectTeamExhaustive(lines, targetSize, opponentTypeBias, null, store);
-        if (store) teamStore = store;
-        searchExact = true;
-      } else {
-        evaluated = selectTeamByBeam(lines, targetSize, opponentTypeBias);
-        searchExact = false;
-      }
+      evaluated = selectTeamByBeam(lines, targetSize, opponentTypeBias);
+      searchExact = false;
     }
 
     // Rank the non-selected lines by how much the team would suffer if forced to
-    // field them: a cheap O(bench × forms × size) pass that reuses the team
-    // scorer (so coverage — offensive AND defensive — and the bounded tier trade
-    // off exactly as in selection). It's independent of which search ran above,
-    // so the bench's "worst" highlight is available even in incremental/beam
-    // mode.
+    // field them — independent of which search ran above.
     const benchSwapScores = computeBenchSwapScores(
       lines,
       evaluated.team,
@@ -271,9 +319,52 @@ function selectTeamByFit(
 
     return { evaluated, searchExact, benchSwapScores };
   } finally {
-    fitReady = false;
-    for (const line of lines) line._choiceOptions = undefined;
+    resetFitScoring(lines);
   }
+}
+
+// Trims each line to the minimal, structured-cloneable shape a worker needs to
+// score teams: the form options (pre-deduped/ordered by getLineChoiceOptions),
+// each with its types, team-score, mega flag, and identity. No legality profile
+// internals, bundles, or move data — keeps the worker message tiny.
+function buildCompactLines(lines) {
+  return lines.map((line) => ({
+    lineKey: line.lineKey,
+    choiceOptions: getLineChoiceOptions(line).map((choice) => ({
+      inputPokemonId: choice.inputPokemonId,
+      pokemonId: choice.pokemonId,
+      isMega: !!choice.isMega,
+      teamScore: choice.teamScore ?? choice.score ?? 0,
+      legalityProfile: {
+        attackTypes: choice.legalityProfile?.attackTypes || [],
+        currentTypes: choice.legalityProfile?.currentTypes || [],
+      },
+    })),
+  }));
+}
+
+// Maps the parallel search's compact id refs back to the real choice objects and
+// re-evaluates the team on the main thread (so it carries full legality profiles
+// for display and seeding). Returns null if any ref can't be mapped.
+function evaluatedFromRefs(bestRefs, lines, targetSize, opponentTypeBias) {
+  const byKey = new Map();
+  for (const line of lines) {
+    for (const choice of getLineChoiceOptions(line)) {
+      byKey.set(`${choice.inputPokemonId}|${choice.pokemonId}`, choice);
+    }
+  }
+
+  const team = [];
+  for (const ref of bestRefs.team) {
+    const choice = byKey.get(`${ref.inputPokemonId}|${ref.pokemonId}`);
+    if (!choice) return null;
+    team.push(choice);
+  }
+  const megaUsed = bestRefs.megaUsed
+    ? byKey.get(`${bestRefs.megaUsed.inputPokemonId}|${bestRefs.megaUsed.pokemonId}`) || null
+    : null;
+
+  return evaluateTeam(team, megaUsed, targetSize, opponentTypeBias);
 }
 
 // For each line not on the optimal team, the best team score achievable by
@@ -317,9 +408,7 @@ function computeBenchSwapScores(lines, team, opponentTypeBias) {
 // Incremental is valid when the cached optimum is a full team of the same target
 // size and all of the cached TEAM's lines are still present. Non-team lines may
 // have been removed — the optimum is invariant to unused mons, so a deletion
-// that doesn't touch the team is reused as-is (no team containing a new line
-// exists to enumerate), and an addition grows the search. The optimizer
-// guarantees the score context (progression/breeding) is unchanged.
+// that doesn't touch the team is reused as-is, and an addition grows the search.
 function incrementalApplicable(incremental, lines, targetSize) {
   if (!incremental?.previousBest?.team?.length) return false;
   if (incremental.previousBest.team.length !== targetSize) return false;
@@ -330,11 +419,9 @@ function incrementalApplicable(incremental, lines, targetSize) {
   return true;
 }
 
-// Streams every team of the target size, keeping the single best — O(1) memory
-// regardless of pool size, and provably invariant to unused mons (they only add
-// combinations that can't beat the best, and the tie-break is identity-based).
-// With `incremental`, it seeds the best from the cached optimum and only
-// enumerates teams containing at least one newly-added line.
+// Streams every team of the target size, keeping the single best. With
+// `incremental`, it seeds the best from the cached optimum and only enumerates
+// teams containing at least one newly-added line.
 function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, recordStore) {
   let best = null;
 
@@ -378,77 +465,6 @@ function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, 
   return best || { team: [], megaUsed: null };
 }
 
-// The best legal form/mega assignment for a fixed set of lines: each line offers
-// a few form options, with at most one mega across the whole team.
-function bestAssignmentForLines(comboLines, targetSize, opponentTypeBias) {
-  const optionsPerLine = comboLines.map(getLineChoiceOptions);
-  const team = [];
-  let best = null;
-
-  const assign = (index, megaUsed) => {
-    if (index === comboLines.length) {
-      const evaluated = evaluateTeam([...team], megaUsed, targetSize, opponentTypeBias);
-      if (!best || betterEvaluated(evaluated, best)) best = evaluated;
-      return;
-    }
-    for (const choice of optionsPerLine[index]) {
-      if (choice.isMega && megaUsed) continue;
-      team.push(choice);
-      assign(index + 1, choice.isMega ? choice : megaUsed);
-      team.pop();
-    }
-  };
-
-  assign(0, null);
-  return best;
-}
-
-// Scores a team once and caches the sort keys, so the argmax loop never
-// recomputes a team's score. The identity key is NOT computed here: it's only
-// consulted to break an exact score tie (rare), so it's materialized lazily by
-// identityOf() and memoized onto the result — turning ~a third of the search's
-// work (a sort+join string per team) into a handful of computations per search.
-function evaluateTeam(team, megaUsed, targetSize, opponentTypeBias) {
-  return {
-    team,
-    megaUsed,
-    sizePriority: getTeamSizePriority(team, targetSize),
-    score: getTeamScore(team, opponentTypeBias),
-    _identityKey: undefined,
-  };
-}
-
-// Lazily computes a team's identity from its (snapshotted) members and caches it,
-// so the running best's key is built at most once no matter how many candidates
-// tie it.
-function identityOf(evaluated) {
-  if (evaluated._identityKey === undefined) {
-    evaluated._identityKey = teamIdentityKey(evaluated.team);
-  }
-  return evaluated._identityKey;
-}
-
-// Strictly-better test with a deterministic identity tie-break, so equal-scoring
-// teams resolve the same way no matter what order they were enumerated in. Score
-// is the sole quality key: usage tier is already folded into score (heavily, via
-// each member's usage prior), so we do NOT gate on meaningful-pick count — a
-// lower-usage mon whose coverage/legality/bias answer genuinely outscores a more
-// popular pick is allowed to earn its slot, rather than being categorically
-// outranked by usage. The identity tie-break is only reached when size and score
-// match exactly, so identityOf() runs for a vanishing fraction of comparisons.
-function betterEvaluated(a, b) {
-  if (a.sizePriority !== b.sizePriority) return a.sizePriority > b.sizePriority;
-  if (a.score !== b.score) return a.score > b.score;
-  return identityOf(a) < identityOf(b);
-}
-
-function teamIdentityKey(team) {
-  return team
-    .map((choice) => `${choice.inputPokemonId}:${choice.pokemonId}`)
-    .sort()
-    .join("|");
-}
-
 function countCombinations(n, k) {
   if (k < 0 || k > n) return 0;
   const r = Math.min(k, n - k);
@@ -458,26 +474,6 @@ function countCombinations(n, k) {
     if (result > HARD_EXHAUSTIVE_CAP * 8) return Infinity;
   }
   return Math.round(result);
-}
-
-// Yields each size-k index combination of [0..n) in order, reusing one array.
-function forEachCombination(n, k, callback) {
-  if (k === 0) {
-    callback([]);
-    return;
-  }
-  if (k > n) return;
-
-  const idx = Array.from({ length: k }, (_, i) => i);
-  while (true) {
-    callback(idx);
-
-    let i = k - 1;
-    while (i >= 0 && idx[i] === n - k + i) i -= 1;
-    if (i < 0) break;
-    idx[i] += 1;
-    for (let j = i + 1; j < k; j++) idx[j] = idx[j - 1] + 1;
-  }
 }
 
 // Fallback for pools too large to enumerate exactly: the incremental beam, just
@@ -525,27 +521,6 @@ function orderLinesForSelection(lines) {
   });
 }
 
-// A line's form options are fixed for the duration of a search but were being
-// re-sorted and re-deduped on every combination that touched the line (millions
-// of times for ~N distinct answers). Cache the result on the line; the cache is
-// populated by prepareFitScoring and cleared in selectTeamByFit's finally, so it
-// never outlives a single search (no cross-edit staleness).
-function getLineChoiceOptions(line) {
-  if (line._choiceOptions) return line._choiceOptions;
-
-  const choices = line.choiceOptions?.length
-    ? line.choiceOptions
-    : [line.best, line.bestNonMega].filter(Boolean);
-  const unique = new Map();
-
-  for (const choice of choices.sort(compareChoices)) {
-    if (!choice || unique.has(choice.pokemonId)) continue;
-    unique.set(choice.pokemonId, choice);
-  }
-
-  return (line._choiceOptions = [...unique.values()].slice(0, 6));
-}
-
 function pruneTeamStates(states, targetSize, opponentTypeBias = {}) {
   const seen = new Set();
   const unique = [];
@@ -566,19 +541,6 @@ function pruneTeamStates(states, targetSize, opponentTypeBias = {}) {
   return unique
     .sort((a, b) => compareCandidateTeams(a, b, targetSize, opponentTypeBias))
     .slice(0, BEAM_WIDTH);
-}
-
-function compareChoices(a, b) {
-  const meaningfulDiff =
-    Number(Boolean(b.meaningfulUsage)) - Number(Boolean(a.meaningfulUsage));
-
-  if (meaningfulDiff) return meaningfulDiff;
-
-  return (
-    b.score - a.score ||
-    getUsagePercent(b) - getUsagePercent(a) ||
-    a.name.localeCompare(b.name)
-  );
 }
 
 // Ranks partial/complete teams for the beam fallback (the exact path uses
@@ -602,202 +564,4 @@ function compareCandidateTeams(a, b, targetSize = 6, opponentTypeBias = {}) {
 
 function teamUsageSum(team) {
   return team.reduce((sum, choice) => sum + getUsagePercent(choice), 0);
-}
-
-function getTeamSizePriority(team, targetSize) {
-  return Math.min(team.length, targetSize);
-}
-
-// Team selection sums each member's bounded-tier `teamScore` (not the strict
-// per-mon `score`), so type coverage can pull a lower-tier mon onto the team
-// when it answers a real need. Falls back to `score` for any choice built
-// without a teamScore.
-function sumTeamScore(team) {
-  return team.reduce((sum, row) => sum + (row.teamScore ?? row.score ?? 0), 0);
-}
-
-// --- Fast team-fit scoring -------------------------------------------------
-// Exhaustive search evaluates hundreds of thousands of teams, and the readable
-// scoreTeamFit() below makes ~400 getTypeMultiplier calls per team. So before a
-// search we precompute, once per choice, the bitmasks it needs — which defense
-// types it hits super-effectively, and which it's weak to / resists — and the
-// hot loop becomes pure bit ops. fastTeamFit is asserted equal to scoreTeamFit.
-const FIT_TYPE_INDEX = new Map(REBORN_ANALYSIS_TYPES.map((type, i) => [type, i]));
-// SE_MASK[i]: defense-type bitmask that attack type i hits super-effectively.
-const SE_MASK = REBORN_ANALYSIS_TYPES.map((attackType) =>
-  REBORN_ANALYSIS_TYPES.reduce(
-    (mask, defenseType, j) =>
-      getTypeMultiplier(attackType, [defenseType]) > 1 ? mask | (1 << j) : mask,
-    0,
-  ),
-);
-let fitReady = false;
-
-function precomputeFit(choice, opponentTypeBias) {
-  const profile = choice.legalityProfile || {};
-  let attackMask = 0;
-  let coverageMask = 0;
-  for (const attackType of profile.attackTypes || []) {
-    const i = FIT_TYPE_INDEX.get(attackType);
-    if (i === undefined) continue;
-    attackMask |= 1 << i;
-    coverageMask |= SE_MASK[i];
-  }
-  let weakMask = 0;
-  let resistMask = 0;
-  const currentTypes = profile.currentTypes || [];
-  for (let j = 0; j < REBORN_ANALYSIS_TYPES.length; j++) {
-    const multiplier = getTypeMultiplier(REBORN_ANALYSIS_TYPES[j], currentTypes);
-    if (multiplier > 1) weakMask |= 1 << j;
-    else if (multiplier < 1) resistMask |= 1 << j;
-  }
-  choice._fit = {
-    attackMask,
-    coverageMask,
-    weakMask,
-    resistMask,
-    fitWeight: 1 - biasCounterExemption(profile, opponentTypeBias),
-  };
-}
-
-function prepareFitScoring(lines, opponentTypeBias) {
-  for (const line of lines) {
-    for (const choice of getLineChoiceOptions(line)) {
-      precomputeFit(choice, opponentTypeBias);
-    }
-  }
-  fitReady = true;
-}
-
-function popcount(value) {
-  let count = 0;
-  let x = value;
-  while (x) {
-    x &= x - 1;
-    count += 1;
-  }
-  return count;
-}
-
-function fastTeamFit(team) {
-  let attackUnion = 0;
-  let coverUnion = 0;
-  for (const choice of team) {
-    if (!choice._fit) return null;
-    attackUnion |= choice._fit.attackMask;
-    coverUnion |= choice._fit.coverageMask;
-  }
-
-  const coverSize = popcount(coverUnion);
-  let score =
-    popcount(attackUnion) * 70 +
-    coverSize * 90 -
-    (REBORN_ANALYSIS_TYPES.length - coverSize) * 80;
-
-  for (let j = 0; j < REBORN_ANALYSIS_TYPES.length; j++) {
-    const bit = 1 << j;
-    let weakWeight = 0;
-    let coverCount = 0;
-    for (const choice of team) {
-      const fit = choice._fit;
-      if (fit.weakMask & bit) weakWeight += fit.fitWeight;
-      else if (fit.resistMask & bit) coverCount += 1;
-    }
-    if (weakWeight >= 2) {
-      score -= (weakWeight - 1) * 180;
-      if (!coverCount) score -= 260;
-    }
-    if (coverCount >= 2) score += Math.min(3, coverCount) * 45;
-  }
-
-  return score;
-}
-
-function getTeamScore(team, opponentTypeBias = {}) {
-  const fast = fitReady ? fastTeamFit(team) : null;
-  return (
-    sumTeamScore(team) +
-    (fast != null ? fast : scoreTeamFit(team, opponentTypeBias))
-  );
-}
-
-function getUsagePercent(choice) {
-  return Math.max(0, choice.bundle?.usage?.value || 0);
-}
-
-function scoreTeamFit(team, opponentTypeBias = {}) {
-  const profiles = team
-    .map((choice) => choice.legalityProfile)
-    .filter(Boolean);
-  const attackTypes = new Set();
-  const coveredDefenseTypes = new Set();
-  let score = 0;
-
-  for (const profile of profiles) {
-    for (const attackType of profile.attackTypes || []) {
-      attackTypes.add(attackType);
-
-      for (const defenseType of REBORN_ANALYSIS_TYPES) {
-        if (getTypeMultiplier(attackType, [defenseType]) > 1) {
-          coveredDefenseTypes.add(defenseType);
-        }
-      }
-    }
-  }
-
-  // Per-member fit-penalty weight: a pick that counters a biased opponent type
-  // (resists/is immune to it, or hits it super-effectively) is shielded from
-  // shared-weakness penalties in proportion to that type's bias level, so
-  // stacking dedicated counters isn't punished. Non-counters keep full weight.
-  const fitWeights = profiles.map(
-    (profile) => 1 - biasCounterExemption(profile, opponentTypeBias),
-  );
-
-  score += attackTypes.size * 70;
-  score += coveredDefenseTypes.size * 90;
-  score -= (REBORN_ANALYSIS_TYPES.length - coveredDefenseTypes.size) * 80;
-
-  for (const attackType of REBORN_ANALYSIS_TYPES) {
-    let weakWeight = 0;
-    let coverCount = 0;
-
-    profiles.forEach((profile, index) => {
-      const multiplier = getTypeMultiplier(attackType, profile.currentTypes || []);
-      if (multiplier > 1) weakWeight += fitWeights[index];
-      else if (multiplier < 1) coverCount += 1;
-    });
-
-    if (weakWeight >= 2) {
-      score -= (weakWeight - 1) * 180;
-      if (!coverCount) score -= 260;
-    }
-
-    if (coverCount >= 2) score += Math.min(3, coverCount) * 45;
-  }
-
-  return score;
-}
-
-// How strongly a pick counters any biased opponent type, as a 0..1 fraction:
-// the highest bias level (over types it resists/is immune to, or hits super-
-// effectively) divided by the max bias. Used to cap that pick's shared-weakness
-// fit penalties — it's a dedicated counter, so its own typing holes are accepted.
-function biasCounterExemption(profile, opponentTypeBias = {}) {
-  let exemption = 0;
-
-  for (const [type, rawLevel] of Object.entries(opponentTypeBias)) {
-    const level = Math.max(0, Math.min(MAX_OPPONENT_TYPE_BIAS, rawLevel || 0));
-    if (!level) continue;
-
-    const resists = getTypeMultiplier(type, profile.currentTypes || []) < 1;
-    const hitsSuperEffectively = (profile.attackTypes || []).some(
-      (attackType) => getTypeMultiplier(attackType, [type]) > 1,
-    );
-
-    if (resists || hitsSuperEffectively) {
-      exemption = Math.max(exemption, level / MAX_OPPONENT_TYPE_BIAS);
-    }
-  }
-
-  return exemption;
 }
