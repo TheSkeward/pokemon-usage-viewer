@@ -78,9 +78,10 @@ export function hydrateLegalMove(rawMove) {
     basePower: meta?.basePower ?? 0,
     priority: meta?.priority ?? 0,
     utility: meta?.utility ?? false,
-    // Multi-hit / recharge flags feed the effective-power damage model.
+    // Multi-hit / recharge / charge flags feed the effective-power damage model.
     multihit: meta?.multihit,
     recharge: meta?.recharge ?? false,
+    charge: meta?.charge ?? false,
     sources: rawMove.sources,
   };
 }

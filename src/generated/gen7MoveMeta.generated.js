@@ -274,7 +274,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 80,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "charge": true
   },
   "dizzypunch": {
     "name": "Dizzy Punch",
@@ -391,7 +392,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 90,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "charge": true
   },
   "foresight": {
     "name": "Foresight",
@@ -999,7 +1001,8 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 80,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "charge": true
   },
   "refresh": {
     "name": "Refresh",
@@ -1167,7 +1170,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 60,
     "priority": 0,
-    "utility": true
+    "utility": true,
+    "charge": true
   },
   "skyuppercut": {
     "name": "Sky Uppercut",
@@ -1724,7 +1728,8 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 120,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "charge": true
   },
   "solarblade": {
     "name": "Solar Blade",
@@ -1732,7 +1737,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 125,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "charge": true
   },
   "spikyshield": {
     "name": "Spiky Shield",
@@ -2000,7 +2006,8 @@ export const MOVE_META = {
     "category": "Status",
     "basePower": 0,
     "priority": 0,
-    "utility": true
+    "utility": true,
+    "charge": true
   },
   "glaciallance": {
     "name": "Glacial Lance",
@@ -2457,7 +2464,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 130,
     "priority": 0,
-    "utility": true
+    "utility": true,
+    "charge": true
   },
   "slackoff": {
     "name": "Slack Off",
@@ -3218,7 +3226,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 85,
     "priority": 0,
-    "utility": true
+    "utility": true,
+    "charge": true
   },
   "branchpoke": {
     "name": "Branch Poke",
@@ -3674,7 +3683,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 80,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "charge": true
   },
   "direclaw": {
     "name": "Dire Claw",
@@ -3974,7 +3984,8 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 130,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "charge": true
   },
   "electroweb": {
     "name": "Electroweb",
@@ -4398,7 +4409,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 140,
     "priority": 0,
-    "utility": true
+    "utility": true,
+    "charge": true
   },
   "freezingglare": {
     "name": "Freezing Glare",
@@ -5042,7 +5054,8 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 140,
     "priority": 0,
-    "utility": true
+    "utility": true,
+    "charge": true
   },
   "icefang": {
     "name": "Ice Fang",
@@ -5466,7 +5479,8 @@ export const MOVE_META = {
     "category": "Special",
     "basePower": 120,
     "priority": 0,
-    "utility": false
+    "utility": false,
+    "charge": true
   },
   "meteormash": {
     "name": "Meteor Mash",
@@ -5762,7 +5776,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 90,
     "priority": 0,
-    "utility": true
+    "utility": true,
+    "charge": true
   },
   "photongeyser": {
     "name": "Photon Geyser",
@@ -6402,7 +6417,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 120,
     "priority": 0,
-    "utility": true
+    "utility": true,
+    "charge": true
   },
   "shadowpunch": {
     "name": "Shadow Punch",
@@ -6506,7 +6522,8 @@ export const MOVE_META = {
     "category": "Physical",
     "basePower": 140,
     "priority": 0,
-    "utility": true
+    "utility": true,
+    "charge": true
   },
   "slam": {
     "name": "Slam",

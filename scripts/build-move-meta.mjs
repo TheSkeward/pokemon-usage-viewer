@@ -86,6 +86,9 @@ function main() {
       entry.multihit = move.multihit;
     }
     if (move.flags?.recharge) entry.recharge = true;
+    // Two-turn charge moves (Solar Beam, Fly, ...). The damage model amortizes
+    // the wasted turn — except for the semi-invulnerable ones, handled by id.
+    if (move.flags?.charge) entry.charge = true;
     meta[move.id] = entry;
   }
 
