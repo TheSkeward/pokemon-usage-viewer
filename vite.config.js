@@ -1,6 +1,41 @@
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { defineConfig } from 'vite';
+
+// A per-deploy id so the running app can detect when a newer build is live (see
+// src/updateNotifier.js). The commit SHA changes every deploy — including the
+// daily data-refresh commit — and is stable across rebuilds of the same commit.
+// Falls back to a timestamp when git isn't available.
+function resolveBuildId() {
+  // Prefer the checked-out HEAD over GITHUB_SHA: the daily data-refresh job
+  // commits new data before building, so HEAD reflects what's actually deployed
+  // while GITHUB_SHA would still point at the pre-refresh tip.
+  try {
+    return execSync('git rev-parse --short=12 HEAD').toString().trim();
+  } catch {
+    if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA.slice(0, 12);
+    return String(Date.now());
+  }
+}
+
+const BUILD_ID = resolveBuildId();
+
+// Emits version.json alongside the build so the deployed id is fetchable without
+// parsing the bundle. Not emitted by the dev server (no build step), where the
+// notifier stays dormant.
+function emitVersionJson(buildId) {
+  return {
+    name: 'emit-version-json',
+    generateBundle() {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'version.json',
+        source: JSON.stringify({ buildId }),
+      });
+    },
+  };
+}
 
 function localDataMiddleware() {
   return {
@@ -45,7 +80,10 @@ function localDataMiddleware() {
 
 export default defineConfig({
   base: process.env.NODE_ENV === 'production' ? '/pokemon-usage-viewer/' : '/',
-  plugins: [localDataMiddleware()],
+  define: {
+    __BUILD_ID__: JSON.stringify(BUILD_ID),
+  },
+  plugins: [localDataMiddleware(), emitVersionJson(BUILD_ID)],
   build: {
     rollupOptions: {
       input: {

@@ -23,6 +23,7 @@ import { getState, replaceState, setState } from "./state";
 import { mountPoolOptimizer } from "./poolWidget";
 import { computeResolverRepresentativeResults } from "./resolver/representatives";
 import { createPrecomputedSetDetailsLoader } from "./setDetails/precomputedSetDetails";
+import { startUpdateNotifier } from "./updateNotifier";
 
 const app = document.querySelector("#app");
 const DESC_SORT_FIELDS = new Set(["usage", "rawCount", "leadTendency"]);
@@ -471,3 +472,5 @@ init().catch((error) => {
   console.error(error);
   renderFatalAppError(app, error);
 });
+
+startUpdateNotifier();
