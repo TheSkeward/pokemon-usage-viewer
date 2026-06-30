@@ -23,12 +23,19 @@ import { choosePoolTeam } from "./teamSelection";
 // state, so we cache work keyed on everything that affects a line's score.
 //   Layer 1: resolved lines, so adding a mon re-resolves only that mon.
 //   Layer 2: the exact optimum + its pool, so a pure addition only has to search
-//            teams that include the new mon (seeded from the cached best).
-// Both invalidate the moment the score context (family/selection/progression, or
-// a line's reachable egg moves) changes.
+//            teams that include the new mon (seeded from the cached best), and a
+//            non-team deletion reuses the optimum outright.
+//   Layer 3: full results memoized by (score context + mon set). The optimum is
+//            a pure function of those, so revisiting any pool state seen this
+//            session — undo, toggle a mon off/on, delete-then-re-add — returns
+//            instantly with no line resolution and no search.
+// All invalidate the moment the score context (family/selection/progression, or
+// a line's reachable egg moves) changes — it's folded into every key.
 const lineCache = new Map();
 const MAX_LINE_CACHE = 4000;
-let searchCache = null; // { searchKey, team, megaUsed, baseLineKeys: Set }
+let searchCache = null; // { searchKey, team, megaUsed, baseLineKeys, teamLineKeys }
+const resultCache = new Map();
+const MAX_RESULT_CACHE = 400;
 
 export async function optimizeTeamFromPool({
   availability,
@@ -63,6 +70,22 @@ export async function optimizeTeamFromPool({
       ? stableStringify(breedingContext.byPokemonId)
       : "none";
   const contextSig = `${family}|${selection}|${progressionSig}|${breedingSig}`;
+
+  // Layer 3: the result is a pure function of the score context and the set of
+  // input mons, so memoize by both. A hit short-circuits line resolution and the
+  // search entirely; re-seed the incremental search from it so a later addition
+  // still grows rather than re-enumerates.
+  const poolKey = `${contextSig}|${groups
+    .map((group) => group.input?.id ?? group.token)
+    .sort()
+    .join(",")}`;
+  const memoized = resultCache.get(poolKey);
+  if (memoized) {
+    onProgress?.({ completed: total, total });
+    seedSearchCache(memoized, memoized.lines, contextSig);
+    return memoized;
+  }
+
   const hitLineKeys = new Set();
 
   const lines = (
@@ -112,36 +135,48 @@ export async function optimizeTeamFromPool({
     incremental,
   });
 
-  // Only seed future incremental searches from exact results.
-  if (result.searchExact && result.bestEvaluated) {
-    const lineKeyByInput = new Map();
-    for (const line of lines) {
-      const rep = line.best || line.bestNonMega;
-      if (rep) lineKeyByInput.set(rep.inputPokemonId, line.lineKey);
-    }
-
-    searchCache = {
-      searchKey,
-      team: result.bestEvaluated.team,
-      megaUsed: result.bestEvaluated.megaUsed,
-      baseLineKeys: new Set(
-        lines
-          .filter((line) => line.best || line.bestNonMega)
-          .map((line) => line.lineKey),
-      ),
-      // The cached team's own line keys — incremental stays valid as long as
-      // these survive, regardless of which other (unused) mons come and go.
-      teamLineKeys: new Set(
-        result.bestEvaluated.team
-          .map((choice) => lineKeyByInput.get(choice.inputPokemonId))
-          .filter(Boolean),
-      ),
-    };
-  } else {
-    searchCache = null;
-  }
+  seedSearchCache(result, lines, searchKey);
+  storeResult(poolKey, result);
 
   return result;
+}
+
+// Seed the Layer-2 incremental cache from an exact result, so the next pool edit
+// can grow/reuse it instead of re-searching. Only exact optima are safe to seed.
+function seedSearchCache(result, lines, searchKey) {
+  if (!(result.searchExact && result.bestEvaluated)) {
+    searchCache = null;
+    return;
+  }
+
+  const lineKeyByInput = new Map();
+  for (const line of lines) {
+    const rep = line.best || line.bestNonMega;
+    if (rep) lineKeyByInput.set(rep.inputPokemonId, line.lineKey);
+  }
+
+  searchCache = {
+    searchKey,
+    team: result.bestEvaluated.team,
+    megaUsed: result.bestEvaluated.megaUsed,
+    baseLineKeys: new Set(
+      lines
+        .filter((line) => line.best || line.bestNonMega)
+        .map((line) => line.lineKey),
+    ),
+    // The cached team's own line keys — incremental stays valid as long as these
+    // survive, regardless of which other (unused) mons come and go.
+    teamLineKeys: new Set(
+      result.bestEvaluated.team
+        .map((choice) => lineKeyByInput.get(choice.inputPokemonId))
+        .filter(Boolean),
+    ),
+  };
+}
+
+function storeResult(poolKey, result) {
+  if (resultCache.size >= MAX_RESULT_CACHE) resultCache.clear();
+  resultCache.set(poolKey, result);
 }
 
 async function resolvePoolLineCached({ args, contextSig, hitLineKeys }) {
