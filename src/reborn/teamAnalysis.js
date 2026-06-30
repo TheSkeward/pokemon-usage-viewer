@@ -860,15 +860,25 @@ const ESCALATING_HIT_MULTIPLIER = {
   iceball: 2.58,
 };
 
+// Two-turn charge moves that spend their first turn semi-invulnerable (Fly, Dig,
+// ...). The charge turn isn't wasted — you're untargetable, so the opponent's
+// turn is blanked too — so these keep full power, unlike exposed charge moves
+// (Solar Beam, Sky Attack, ...) which charge in the open and get amortized.
+const SEMI_INVULNERABLE_CHARGE = new Set([
+  "fly", "bounce", "dig", "dive", "phantomforce", "shadowforce", "skydrop",
+]);
+
 // How many "hits' worth" of base power a move lands per commitment, used to scale
 // the damage estimate so multi-hit and multi-turn moves are ranked by real output:
 //   - multi-hit: a fixed count (Double Kick → 2) or the average of its [min,max]
 //     range (Fury Swipes [2,5] → 3.5);
-//   - recharge: the hit lands then a turn is lost, and we double-weight the hit
-//     turn, so the amortized output is 2/3 of a single hit (Hyper Beam);
+//   - recharge: hit, then a lost turn. Double-weighting the earlier (hit) turn
+//     gives (2·1 + 1·0)/3 = 2/3 of a single hit (Hyper Beam);
+//   - exposed charge: a lost turn, then hit. Same double-weight-the-earlier-turn
+//     rule, but now the dead turn is first: (2·0 + 1·1)/3 = 1/3 (Solar Beam);
 //   - escalating: a curated weighting (Rollout/Ice Ball).
-// Single-hit moves (and semi-invulnerable charge moves like Fly/Dig, whose charge
-// turn is offset by being untargetable) keep their full single-hit power.
+// Single-hit moves — and semi-invulnerable charge moves (Fly/Dig), whose charge
+// turn is offset by being untargetable — keep their full single-hit power.
 function getEffectiveHitMultiplier(move) {
   const escalating = ESCALATING_HIT_MULTIPLIER[move.id];
   if (escalating) return escalating;
@@ -880,6 +890,7 @@ function getEffectiveHitMultiplier(move) {
   }
 
   if (move.recharge) return 2 / 3;
+  if (move.charge && !SEMI_INVULNERABLE_CHARGE.has(move.id)) return 1 / 3;
 
   return 1;
 }
