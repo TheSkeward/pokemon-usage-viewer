@@ -273,6 +273,7 @@ function selectTeamByFit(
     return { evaluated, searchExact, benchSwapScores };
   } finally {
     fitReady = false;
+    for (const line of lines) line._choiceOptions = undefined;
   }
 }
 
@@ -404,7 +405,10 @@ function bestAssignmentForLines(comboLines, targetSize, opponentTypeBias) {
 }
 
 // Scores a team once and caches the sort keys, so the argmax loop never
-// recomputes a team's score.
+// recomputes a team's score. The identity key is NOT computed here: it's only
+// consulted to break an exact score tie (rare), so it's materialized lazily by
+// identityOf() and memoized onto the result — turning ~a third of the search's
+// work (a sort+join string per team) into a handful of computations per search.
 function evaluateTeam(team, megaUsed, targetSize, opponentTypeBias) {
   return {
     team,
@@ -412,17 +416,29 @@ function evaluateTeam(team, megaUsed, targetSize, opponentTypeBias) {
     sizePriority: getTeamSizePriority(team, targetSize),
     meaningful: countMeaningfulChoices(team),
     score: getTeamScore(team, opponentTypeBias),
-    identityKey: teamIdentityKey(team),
+    _identityKey: undefined,
   };
 }
 
+// Lazily computes a team's identity from its (snapshotted) members and caches it,
+// so the running best's key is built at most once no matter how many candidates
+// tie it.
+function identityOf(evaluated) {
+  if (evaluated._identityKey === undefined) {
+    evaluated._identityKey = teamIdentityKey(evaluated.team);
+  }
+  return evaluated._identityKey;
+}
+
 // Strictly-better test with a deterministic identity tie-break, so equal-scoring
-// teams resolve the same way no matter what order they were enumerated in.
+// teams resolve the same way no matter what order they were enumerated in. The
+// identity tie-break is only reached when size, meaningful count, and score all
+// match exactly, so identityOf() runs for a vanishing fraction of comparisons.
 function betterEvaluated(a, b) {
   if (a.sizePriority !== b.sizePriority) return a.sizePriority > b.sizePriority;
   if (a.meaningful !== b.meaningful) return a.meaningful > b.meaningful;
   if (a.score !== b.score) return a.score > b.score;
-  return a.identityKey < b.identityKey;
+  return identityOf(a) < identityOf(b);
 }
 
 function teamIdentityKey(team) {
@@ -508,7 +524,14 @@ function orderLinesForSelection(lines) {
   });
 }
 
+// A line's form options are fixed for the duration of a search but were being
+// re-sorted and re-deduped on every combination that touched the line (millions
+// of times for ~N distinct answers). Cache the result on the line; the cache is
+// populated by prepareFitScoring and cleared in selectTeamByFit's finally, so it
+// never outlives a single search (no cross-edit staleness).
 function getLineChoiceOptions(line) {
+  if (line._choiceOptions) return line._choiceOptions;
+
   const choices = line.choiceOptions?.length
     ? line.choiceOptions
     : [line.best, line.bestNonMega].filter(Boolean);
@@ -519,7 +542,7 @@ function getLineChoiceOptions(line) {
     unique.set(choice.pokemonId, choice);
   }
 
-  return [...unique.values()].slice(0, 6);
+  return (line._choiceOptions = [...unique.values()].slice(0, 6));
 }
 
 function pruneTeamStates(states, targetSize, opponentTypeBias = {}) {
