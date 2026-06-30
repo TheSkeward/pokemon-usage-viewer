@@ -112,9 +112,11 @@ function getDefensiveCoverTypes(profile, team) {
 //
 // Budgets are in number of team combinations C(N, size). The explicit Optimize
 // button enumerates up to a high ceiling; background auto-reoptimize only
-// enumerates when it's cheap, otherwise it takes the fast beam.
-const AUTO_EXHAUSTIVE_BUDGET = 150_000;
-const HARD_EXHAUSTIVE_CAP = 1_000_000;
+// enumerates when it's cheap, otherwise it takes the fast beam. With the fast
+// bitmask scorer these stay responsive: 300k ≈ a 27-line pool (background,
+// runs on every edit), 2M ≈ a 36-line pool (explicit Optimize, a few seconds).
+const AUTO_EXHAUSTIVE_BUDGET = 300_000;
+const HARD_EXHAUSTIVE_CAP = 2_000_000;
 const BEAM_WIDTH = 2000;
 
 function selectTeamByFit(
