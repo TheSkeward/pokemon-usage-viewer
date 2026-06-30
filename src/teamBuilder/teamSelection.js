@@ -122,8 +122,8 @@ const BEAM_WIDTH = 2000;
 
 // --- Full-enumeration team store -------------------------------------------
 // When an exact search enumerates every C(N, size) team, we keep them all — each
-// team's line positions + score + meaningful-pick count — keyed by the score
-// context. The optimum of ANY sub-pool is then just the best stored team that
+// team's line positions + score — keyed by the score context. The optimum of ANY
+// sub-pool is then just the best stored team that
 // uses only surviving lines, so a deletion to a never-visited subset (e.g.
 // dropping a mon that was on the optimal team) is answered by a fast scan instead
 // of a full re-search. Packed typed arrays hold ~2M teams in ~20MB (the 36-line
@@ -141,7 +141,6 @@ function createTeamStore(searchKey, lines, targetSize, capacity) {
     count: 0,
     positions: new Uint8Array(capacity * targetSize),
     scores: new Float32Array(capacity),
-    meaningful: new Uint8Array(capacity),
   };
 }
 
@@ -152,7 +151,6 @@ function recordStoreTeam(store, comboPositions, evaluated) {
     store.positions[base + j] = comboPositions[j];
   }
   store.scores[index] = evaluated.score;
-  store.meaningful[index] = evaluated.meaningful;
 }
 
 // The current pool is a subset of the stored full search — same context, same
@@ -174,7 +172,6 @@ function queryTeamStore(lines, targetSize, opponentTypeBias) {
   for (const line of lines) allowed[store.lineKeyToPos.get(line.lineKey)] = 1;
 
   const size = store.targetSize;
-  let bestMeaningful = -1;
   let bestScore = -Infinity;
   let ties = [];
   for (let i = 0; i < store.count; i++) {
@@ -187,13 +184,11 @@ function queryTeamStore(lines, targetSize, opponentTypeBias) {
       }
     }
     if (!ok) continue;
-    const meaningful = store.meaningful[i];
     const score = store.scores[i];
-    if (meaningful > bestMeaningful || (meaningful === bestMeaningful && score > bestScore)) {
-      bestMeaningful = meaningful;
+    if (score > bestScore) {
       bestScore = score;
       ties = [base];
-    } else if (meaningful === bestMeaningful && score === bestScore) {
+    } else if (score === bestScore) {
       ties.push(base);
     }
   }
@@ -414,7 +409,6 @@ function evaluateTeam(team, megaUsed, targetSize, opponentTypeBias) {
     team,
     megaUsed,
     sizePriority: getTeamSizePriority(team, targetSize),
-    meaningful: countMeaningfulChoices(team),
     score: getTeamScore(team, opponentTypeBias),
     _identityKey: undefined,
   };
@@ -431,12 +425,15 @@ function identityOf(evaluated) {
 }
 
 // Strictly-better test with a deterministic identity tie-break, so equal-scoring
-// teams resolve the same way no matter what order they were enumerated in. The
-// identity tie-break is only reached when size, meaningful count, and score all
+// teams resolve the same way no matter what order they were enumerated in. Score
+// is the sole quality key: usage tier is already folded into score (heavily, via
+// each member's usage prior), so we do NOT gate on meaningful-pick count — a
+// lower-usage mon whose coverage/legality/bias answer genuinely outscores a more
+// popular pick is allowed to earn its slot, rather than being categorically
+// outranked by usage. The identity tie-break is only reached when size and score
 // match exactly, so identityOf() runs for a vanishing fraction of comparisons.
 function betterEvaluated(a, b) {
   if (a.sizePriority !== b.sizePriority) return a.sizePriority > b.sizePriority;
-  if (a.meaningful !== b.meaningful) return a.meaningful > b.meaningful;
   if (a.score !== b.score) return a.score > b.score;
   return identityOf(a) < identityOf(b);
 }
@@ -581,14 +578,15 @@ function compareChoices(a, b) {
 }
 
 // Ranks partial/complete teams for the beam fallback (the exact path uses
-// betterEvaluated). Usage sits just under score: among similarly-scoring partial
-// teams near the prune cutoff, the ones built from higher-usage Pokémon survive,
-// so a strong pick is less likely to be pruned away before it's completed.
+// betterEvaluated). Score is the quality key (matching betterEvaluated, which no
+// longer gates on meaningful-pick count); usage sits just under it so that among
+// similarly-scoring partial teams near the prune cutoff, the ones built from
+// higher-usage Pokémon survive, and a strong pick is less likely to be pruned
+// away before it's completed.
 function compareCandidateTeams(a, b, targetSize = 6, opponentTypeBias = {}) {
   return (
     getTeamSizePriority(b.team, targetSize) -
       getTeamSizePriority(a.team, targetSize) ||
-    countMeaningfulChoices(b.team) - countMeaningfulChoices(a.team) ||
     getTeamScore(b.team, opponentTypeBias) -
       getTeamScore(a.team, opponentTypeBias) ||
     teamUsageSum(b.team) - teamUsageSum(a.team) ||
@@ -604,10 +602,6 @@ function teamUsageSum(team) {
 
 function getTeamSizePriority(team, targetSize) {
   return Math.min(team.length, targetSize);
-}
-
-function countMeaningfulChoices(team) {
-  return team.reduce((sum, row) => sum + (row.meaningfulUsage ? 1 : 0), 0);
 }
 
 // Team selection sums each member's bounded-tier `teamScore` (not the strict
