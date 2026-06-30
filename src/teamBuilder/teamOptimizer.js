@@ -17,6 +17,7 @@ import {
 } from "./candidateScoring";
 import { resolveRepresentativeLightBundle } from "./representativeBundle";
 import { choosePoolTeam } from "./teamSelection";
+import { loadPersistedResults, persistResult } from "./resultCacheStore.js";
 
 // --- Incremental caches ----------------------------------------------------
 // In a playthrough you mostly grow the pool one mon at a time at a fixed game
@@ -37,6 +38,29 @@ let searchCache = null; // { searchKey, team, megaUsed, baseLineKeys, teamLineKe
 const resultCache = new Map();
 const MAX_RESULT_CACHE = 400;
 
+// Layer 3 is also persisted to IndexedDB (resultCacheStore) so it survives page
+// reloads. Bump this whenever a change alters optimizer output (scoring, the
+// search, or the legality/damage model): a mismatched version retires the stored
+// results so a reload after such a deploy recomputes rather than showing stale
+// teams. UI-only deploys keep the version, so results survive them.
+const RESULT_CACHE_VERSION = "1";
+
+// Hydrate the in-memory memo from persisted results once, lazily. optimize()
+// awaits this before consulting the memo so a reload-then-same-pool is a hit.
+let hydration = null;
+function ensureHydrated() {
+  if (!hydration) {
+    hydration = loadPersistedResults(RESULT_CACHE_VERSION)
+      .then((entries) => {
+        for (const [poolKey, result] of entries) {
+          if (!resultCache.has(poolKey)) resultCache.set(poolKey, result);
+        }
+      })
+      .catch(() => {});
+  }
+  return hydration;
+}
+
 export async function optimizeTeamFromPool({
   availability,
   family,
@@ -51,6 +75,10 @@ export async function optimizeTeamFromPool({
   const total = groups.length;
   let completed = 0;
   onProgress?.({ completed, total });
+
+  // Restore any persisted results before checking the memo, so a pool computed in
+  // a previous session (e.g. before a reload) is answered without recomputing.
+  await ensureHydrated();
 
   const breedingContext = await buildRebornBreedingContext({
     pokemonIndex,
@@ -140,6 +168,8 @@ export async function optimizeTeamFromPool({
 
   seedSearchCache(result, lines, searchKey);
   storeResult(poolKey, result);
+  // Persist for future sessions (fire-and-forget; failures are silent no-ops).
+  persistResult(RESULT_CACHE_VERSION, poolKey, result);
 
   return result;
 }
