@@ -333,6 +333,7 @@ function makeChoice(input, result, note) {
     name: result.candidate.name,
     isMega: Boolean(result.candidate.isMega),
     score: result.score,
+    teamScore: result.teamScore,
     meaningfulUsage: result.meaningfulUsage,
     legalityProfile: result.legalityProfile,
     legalityScore: result.legalityScore,

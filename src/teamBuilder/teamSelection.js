@@ -422,8 +422,12 @@ function countMeaningfulChoices(team) {
   return team.reduce((sum, row) => sum + (row.meaningfulUsage ? 1 : 0), 0);
 }
 
+// Team selection sums each member's bounded-tier `teamScore` (not the strict
+// per-mon `score`), so type coverage can pull a lower-tier mon onto the team
+// when it answers a real need. Falls back to `score` for any choice built
+// without a teamScore.
 function sumTeamScore(team) {
-  return team.reduce((sum, row) => sum + (row.score || 0), 0);
+  return team.reduce((sum, row) => sum + (row.teamScore ?? row.score ?? 0), 0);
 }
 
 // --- Fast team-fit scoring -------------------------------------------------

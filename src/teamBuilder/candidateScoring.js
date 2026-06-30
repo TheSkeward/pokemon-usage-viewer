@@ -5,8 +5,18 @@ export const MIN_MEANINGFUL_USAGE_PERCENT = 0.1;
 
 // Per-tier prior step. Larger than the maximum non-tier prior swing (usage at
 // 100% ~ 34k, plus raw/lead/mega), so the first-meaningful tier strictly
-// dominates usage when ranking mons.
+// dominates usage when ranking mons. Drives the per-mon `score` — which form
+// represents a line, and the bench's worst-pick ranking.
 const TIER_DOMINANCE_STEP = 50000;
+
+// Per-tier step for the SEPARATE `teamScore` that team selection sums. Strict
+// dominance there would crush coverage: a barely-used higher-tier mon would
+// outrank a lower-tier one no matter how badly the team needs the latter's
+// typing. Instead the team tier preference is bounded to ~half a coverage
+// slot's worth of fit, so a needed answer (the only Water-resist, the only
+// Grass attacker) still earns its place across tiers, while among
+// coverage-equivalent picks the higher tier wins.
+const TEAM_TIER_STEP = 120;
 
 // Per bias level (1..6), how much preparedness against a biased opponent type is
 // worth. Resisting/being immune to it (you survive its STAB) and hitting it
@@ -79,7 +89,8 @@ export function scoreCandidate({
   // Within a tier, usage decides. Real mons cluster at the top tier, so this is
   // a constant for them (fit/bias/legality still decide) and only orders the
   // low-usage tail.
-  const tierQuality = (rank.totalTiers - rank.tierRank) * TIER_DOMINANCE_STEP;
+  const tierStep = rank.totalTiers - rank.tierRank;
+  const tierQuality = tierStep * TIER_DOMINANCE_STEP;
   const megaBonus = candidate.isMega ? 300 : 0;
   const legalityScore = scoreLegalityProfile(legalityProfile);
 
@@ -87,8 +98,12 @@ export function scoreCandidate({
   // evolved form; the legality score already reflects the form you actually
   // field, so only the prior is discounted by form-readiness.
   const formReadiness = getFormReadiness(legalityProfile);
-  const prior =
-    usageScore + rawScore + leadScore + tierQuality + megaBonus;
+  const priorBase = usageScore + rawScore + leadScore + megaBonus;
+  const prior = priorBase + tierQuality;
+  // Same prior, but with the bounded team-tier step instead of strict
+  // dominance — see TEAM_TIER_STEP. Used only when team selection sums member
+  // scores, so type coverage can trade against tier across the team.
+  const teamPrior = priorBase + tierStep * TEAM_TIER_STEP;
 
   // Opponent-type bias rewards the form you actually field (its real types and
   // attacks), so it's added to the honest part of the score, not discounted by
@@ -102,6 +117,7 @@ export function scoreCandidate({
 
   return {
     score: prior * formReadiness + legalityScore + biasScore,
+    teamScore: teamPrior * formReadiness + legalityScore + biasScore,
     legalityScore,
     biasScore,
     formReadiness,
