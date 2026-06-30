@@ -261,13 +261,13 @@ function renderBenchLine(result) {
 
   if (!bench.length) return "";
 
-  // Worst = the line whose best form has the worst ranking: deepest tier, then
-  // lowest usage; a line meaningful nowhere is the floor. Ties (e.g. a whole
-  // pool with no real usage) are all flagged.
-  const worstKey = bench.reduce(
-    (acc, entry) => (isWorseRank(entry.ceiling, acc) ? entry.ceiling : acc),
-    bench[0].ceiling,
-  );
+  // Worst = the most droppable line. Prefer the coverage-aware signal: the line
+  // whose best swap onto the optimal team scores lowest, so a unique-coverage
+  // mon (your only Water answer) isn't flagged just for low usage, while a
+  // low-tier mon whose coverage is redundant is. Fall back to the usage-tier
+  // ranking (deepest tier, then lowest usage; meaningful nowhere = floor) when
+  // there's no optimal team to swap against. Ties are all flagged.
+  const worstInputIds = pickWorstBench(bench, result.benchSwapScores);
 
   // Group by tier (best form's first-meaningful tier), ordered shallow → deep.
   const groups = new Map();
@@ -301,7 +301,7 @@ function renderBenchLine(result) {
 
       const chips = group.entries
         .map(({ representative, ceiling }) => {
-          const isWorst = sameRank(ceiling, worstKey);
+          const isWorst = worstInputIds.has(representative.inputPokemonId);
           const bestForm =
             ceiling?.name && ceiling.name !== representative.name
               ? ` · best form ${ceiling.name}`
@@ -356,6 +356,45 @@ function lineCeilingRanking(line) {
     }
   }
   return best;
+}
+
+// The set of bench inputPokemonIds to flag as "worst". Prefers the swap-score
+// signal: the lowest best-swap-onto-the-team score is the most droppable mon
+// (coverage and tier already folded in by the team scorer). Falls back to the
+// usage-tier ranking when no swap scores exist (no optimal team to swap onto).
+function pickWorstBench(bench, swapScores) {
+  const scored = swapScores
+    ? bench.filter(
+        (entry) =>
+          typeof swapScores.get(entry.representative.inputPokemonId) === "number",
+      )
+    : [];
+
+  if (scored.length) {
+    const min = Math.min(
+      ...scored.map((entry) =>
+        swapScores.get(entry.representative.inputPokemonId),
+      ),
+    );
+    return new Set(
+      scored
+        .filter(
+          (entry) =>
+            swapScores.get(entry.representative.inputPokemonId) === min,
+        )
+        .map((entry) => entry.representative.inputPokemonId),
+    );
+  }
+
+  const worstKey = bench.reduce(
+    (acc, entry) => (isWorseRank(entry.ceiling, acc) ? entry.ceiling : acc),
+    bench[0].ceiling,
+  );
+  return new Set(
+    bench
+      .filter((entry) => sameRank(entry.ceiling, worstKey))
+      .map((entry) => entry.representative.inputPokemonId),
+  );
 }
 
 function isWorseRank(a, b) {
