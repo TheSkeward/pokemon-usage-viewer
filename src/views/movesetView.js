@@ -9,6 +9,7 @@ export function renderMovesetPanel(container, options = {}) {
     selectedPokemonName = null,
     movesetEntry = null,
     lookupLabel = "",
+    sourceUsageLabel = "",
     aggregate = false,
     stitched = false,
     status = null,
@@ -59,7 +60,9 @@ export function renderMovesetPanel(container, options = {}) {
         <div>
           <h2>${escapeHtml(selectedPokemonName)}</h2>
           ${renderStatusLine(status)}
-          <p>Movesets from ${escapeHtml(lookupLabel || "the current source")}</p>
+          <p>Movesets from ${escapeHtml(lookupLabel || "the current source")}${
+            sourceUsageLabel ? ` · ${escapeHtml(sourceUsageLabel)}` : ""
+          }</p>
           ${notes.map((note) => `<p>${escapeHtml(note)}</p>`).join("")}
         </div>
       </div>
