@@ -170,6 +170,22 @@ async function isGenuineEvolutionMove(species, moveId, ownSources) {
   if (!species?.prevo) return false;
   if (!ownSources?.levelUp?.includes(1)) return false;
 
+  // @pkmn/dex's Gen 7 data encodes evolution moves as a plain "7L1" — the same
+  // as a regular level-1 move — so "level 1 on an evolved form" alone over-counts
+  // (it flagged both Bibarel's Aqua Jet AND Water Gun, but a form has at most one
+  // evolution move). Two signals separate a genuine evolution move (gained on
+  // evolving) from a pre-existing move merely relisted at level 1 in Gen 7:
+  //   (a) an explicit Gen 8/9 "L0" evolution marker (e.g. Double Kick "8L0/9L0"),
+  //       which is authoritative; or
+  //   (b) the move is new to this form at level 1 — no earlier-generation
+  //       level-up entry at all (Aqua Jet is "7L1" only), whereas a relocated
+  //       move keeps its history (Water Gun is "7L1","6L15",… → not an evo move).
+  // Lacking both, it's only obtainable through the move relearner.
+  const rawEntry = await getRawLearnsetEntry(species, moveId);
+  const hasEvolutionMarker = rawEntry.some((s) => /^[89]L0$/.test(s));
+  const hasEarlierLevelUp = rawEntry.some((s) => /^[1-6]L\d+$/.test(s));
+  if (!hasEvolutionMarker && hasEarlierLevelUp) return false;
+
   let current = species;
   const seen = new Set();
 
@@ -206,6 +222,15 @@ async function getPreEvolutionEggMoveIds(species) {
   }
 
   return eggMoveIds;
+}
+
+// The raw @pkmn/dex learnset entry for a move on this form (e.g. ["7L1","6L15"]),
+// resolved through the same parent fallback as the rest of the build so forms
+// without their own learnset read their base form's. Used to inspect generation
+// tags (the "L0" evolution marker and earlier-gen level-up history).
+async function getRawLearnsetEntry(species, moveId) {
+  const context = await getLearnsetContext(species);
+  return context?.learnset?.learnset?.[moveId] || [];
 }
 
 async function getLearnsetContext(species, seen = new Set()) {
