@@ -209,15 +209,17 @@ function computeBenchSwapScores(lines, team, opponentTypeBias) {
   return scores;
 }
 
-// Incremental is valid only when the cached optimum is a full team of the same
-// target size and all its lines are still present — i.e. the pool only grew. The
-// optimizer additionally guarantees the score context (progression/breeding) is
-// unchanged before passing this.
+// Incremental is valid when the cached optimum is a full team of the same target
+// size and all of the cached TEAM's lines are still present. Non-team lines may
+// have been removed — the optimum is invariant to unused mons, so a deletion
+// that doesn't touch the team is reused as-is (no team containing a new line
+// exists to enumerate), and an addition grows the search. The optimizer
+// guarantees the score context (progression/breeding) is unchanged.
 function incrementalApplicable(incremental, lines, targetSize) {
   if (!incremental?.previousBest?.team?.length) return false;
   if (incremental.previousBest.team.length !== targetSize) return false;
   const present = new Set(lines.map((line) => line.lineKey));
-  for (const key of incremental.baseLineKeys) {
+  for (const key of incremental.teamLineKeys || incremental.baseLineKeys) {
     if (!present.has(key)) return false;
   }
   return true;

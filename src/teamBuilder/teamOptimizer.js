@@ -89,17 +89,21 @@ export async function optimizeTeamFromPool({
     )
   ).filter(Boolean);
 
-  // Layer 2: if nothing about the score context changed and every line behind
-  // the cached optimum is unchanged (a cache hit), only new lines were added, so
-  // we can grow the previous search instead of redoing it.
+  // Layer 2: if nothing about the score context changed and every line of the
+  // cached optimal TEAM is unchanged (a cache hit), the previous optimum is
+  // still valid — the team score is intrinsic, so removing any non-team mon
+  // can't beat it, and added mons only need their containing teams enumerated.
+  // So a deletion that doesn't touch the team returns the cached result with no
+  // search, and an addition (with or without unrelated deletions) grows it.
   const searchKey = contextSig;
   const incremental =
     searchCache &&
     searchCache.searchKey === searchKey &&
-    [...searchCache.baseLineKeys].every((key) => hitLineKeys.has(key))
+    [...searchCache.teamLineKeys].every((key) => hitLineKeys.has(key))
       ? {
           previousBest: { team: searchCache.team, megaUsed: searchCache.megaUsed },
           baseLineKeys: searchCache.baseLineKeys,
+          teamLineKeys: searchCache.teamLineKeys,
         }
       : null;
 
@@ -110,6 +114,12 @@ export async function optimizeTeamFromPool({
 
   // Only seed future incremental searches from exact results.
   if (result.searchExact && result.bestEvaluated) {
+    const lineKeyByInput = new Map();
+    for (const line of lines) {
+      const rep = line.best || line.bestNonMega;
+      if (rep) lineKeyByInput.set(rep.inputPokemonId, line.lineKey);
+    }
+
     searchCache = {
       searchKey,
       team: result.bestEvaluated.team,
@@ -118,6 +128,13 @@ export async function optimizeTeamFromPool({
         lines
           .filter((line) => line.best || line.bestNonMega)
           .map((line) => line.lineKey),
+      ),
+      // The cached team's own line keys — incremental stays valid as long as
+      // these survive, regardless of which other (unused) mons come and go.
+      teamLineKeys: new Set(
+        result.bestEvaluated.team
+          .map((choice) => lineKeyByInput.get(choice.inputPokemonId))
+          .filter(Boolean),
       ),
     };
   } else {
