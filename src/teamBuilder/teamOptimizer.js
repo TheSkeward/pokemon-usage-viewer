@@ -133,6 +133,9 @@ export async function optimizeTeamFromPool({
   const result = choosePoolTeam(lines, progression.opponentTypeBias, {
     exhaustive,
     incremental,
+    // The team store is keyed on the same context as the incremental cache, so a
+    // deletion to an unvisited subset is answered from the last full search.
+    searchKey,
   });
 
   seedSearchCache(result, lines, searchKey);
