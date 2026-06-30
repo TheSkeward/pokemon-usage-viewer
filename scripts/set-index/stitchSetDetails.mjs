@@ -7,30 +7,39 @@ export function stitchPokemonSetDetail({
   family,
   formatsIndex,
   pokemon,
+  ranking,
   selection,
   sourceAggregates,
 }) {
-  let detail = null;
-  let seen = null;
-
+  // Every tier the mon actually appears in, in format×cutoff priority order.
+  const present = [];
   for (const { aggregateByPokemon } of sourceAggregates) {
     const aggregate = aggregateByPokemon.get(pokemon.id);
-    if (!aggregate) continue;
+    if (aggregate) present.push(aggregate);
+  }
 
+  if (!present.length) return null;
+
+  const primaryIndex = choosePrimaryIndex({ present, ranking, family });
+  const primaryAggregate = present[primaryIndex];
+  const primarySourceText = formatSource(primaryAggregate, formatsIndex);
+
+  const detail = createPrimaryDetail({
+    aggregate: primaryAggregate,
+    family,
+    pokemon,
+    selection,
+    sourceText: primarySourceText,
+  });
+  const seen = createSeenState(detail);
+
+  // Every other tier enriches the move/item/ability/spread pools as additional
+  // entries, in priority order — the primary already carries the headline set.
+  for (let index = 0; index < present.length; index += 1) {
+    if (index === primaryIndex) continue;
+
+    const aggregate = present[index];
     const sourceText = formatSource(aggregate, formatsIndex);
-
-    if (!detail) {
-      detail = createPrimaryDetail({
-        aggregate,
-        family,
-        pokemon,
-        selection,
-        sourceText,
-      });
-
-      seen = createSeenState(detail);
-      continue;
-    }
 
     const contributed = appendAdditionalEntries({
       detail,
@@ -54,6 +63,32 @@ export function stitchPokemonSetDetail({
   }
 
   return detail;
+}
+
+// Which appearing tier supplies the primary (headline) set. Prefer the first
+// tier whose usage clears 0.1% (the resolver-index `ranking`): a sub-0.1% mon's
+// highest-tier appearance is a noisy handful of teams, so we drop down the
+// ladder to where it's genuinely played. When no tier is meaningful (0.0%
+// everywhere down to LC), show the deepest tier's set in the build's own family
+// — that's the level where it actually gets used.
+function choosePrimaryIndex({ present, ranking, family }) {
+  if (ranking?.formatId != null) {
+    const matched = present.findIndex(
+      (aggregate) =>
+        aggregate.formatId === ranking.formatId &&
+        aggregate.cutoff === ranking.cutoff,
+    );
+    // The ranking tier may lack moveset data even when it has usage data; fall
+    // back to the highest appearing tier in that case.
+    return matched >= 0 ? matched : 0;
+  }
+
+  let deepestOwnFamily = -1;
+  for (let index = 0; index < present.length; index += 1) {
+    if (present[index].family === family) deepestOwnFamily = index;
+  }
+
+  return deepestOwnFamily >= 0 ? deepestOwnFamily : present.length - 1;
 }
 
 export function appendRelatedSetOptions({

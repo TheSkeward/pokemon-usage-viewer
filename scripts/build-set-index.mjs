@@ -8,7 +8,7 @@ import {
 } from "./set-index/constants.mjs";
 import { aggregateCandidateSource } from "./set-index/aggregateMovesets.mjs";
 import { getMovesetCandidates } from "./set-index/candidates.mjs";
-import { readJson, writeJson } from "./set-index/io.mjs";
+import { readJson, readJsonIfExists, writeJson } from "./set-index/io.mjs";
 import { buildSpeciesContext } from "./set-index/speciesContext.mjs";
 import {
   appendRelatedSetOptions,
@@ -58,10 +58,17 @@ async function buildFamilySetIndex({
     sourceFamilies,
   });
 
+  // The first tier (descending the format×cutoff ladder) whose usage clears
+  // 0.1% — the same signal the resolver index ranks low-usage mons by. A mon's
+  // primary set should be sourced from this tier, not the highest tier it
+  // merely appears in (which for a sub-0.1% mon is a noisy handful of teams).
+  const rankingByPokemon = await loadFamilyRankings(family);
+
   const samePokemonDetails = buildSamePokemonDetails({
     family,
     formatsIndex,
     pokemonIndex,
+    rankingByPokemon,
     selection,
     sourceAggregates,
   });
@@ -105,10 +112,24 @@ async function buildSourceAggregates({
   return sourceAggregates;
 }
 
+async function loadFamilyRankings(family) {
+  const index = await readJsonIfExists(
+    path.join(DATA_ROOT, "resolver-index", family, "all.json"),
+  );
+
+  const rankingByPokemon = new Map();
+  for (const [pokemonId, bundle] of Object.entries(index?.pokemon || {})) {
+    if (bundle?.ranking) rankingByPokemon.set(pokemonId, bundle.ranking);
+  }
+
+  return rankingByPokemon;
+}
+
 function buildSamePokemonDetails({
   family,
   formatsIndex,
   pokemonIndex,
+  rankingByPokemon,
   selection,
   sourceAggregates,
 }) {
@@ -119,6 +140,7 @@ function buildSamePokemonDetails({
       family,
       formatsIndex,
       pokemon,
+      ranking: rankingByPokemon.get(pokemon.id) || null,
       selection,
       sourceAggregates,
     });
