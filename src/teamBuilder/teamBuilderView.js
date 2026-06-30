@@ -221,9 +221,27 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
   `;
 }
 
+const SHORT_FORMAT = {
+  gen7anythinggoes: "AG",
+  gen7ubers: "Ubers",
+  gen7ou: "OU",
+  gen7uu: "UU",
+  gen7ru: "RU",
+  gen7nu: "NU",
+  gen7pu: "PU",
+  gen7zu: "ZU",
+  gen7nfe: "NFE",
+  gen7lc: "LC",
+  gen7doublesubers: "D-Ubers",
+  gen7doublesou: "DOU",
+  gen7doublesuu: "DUU",
+};
+
 // One compact line under the team table listing the resolved input lines that
-// did NOT make the team, in usage order, so it's easy to see which picks were
-// close and which are negligible — without spending much vertical space.
+// did NOT make the team, grouped by the tier where each line's best form first
+// reaches real usage. So a wall of identical 0.0% headline scores becomes a
+// readable "AG 1500 — Ekans 0.1%, … · AG 0 — Patrat 0.1%", and the weakest
+// (deepest-tier, or no-signal-anywhere) lines are flagged.
 function renderBenchLine(result) {
   const selectedInputIds = new Set(
     result.team.map((choice) => choice.inputPokemonId),
@@ -238,84 +256,119 @@ function renderBenchLine(result) {
     if (seenInputIds.has(representative.inputPokemonId)) continue;
 
     seenInputIds.add(representative.inputPokemonId);
-    bench.push({ representative, ceiling: lineCeilingUsage(line) });
+    bench.push({ representative, ceiling: lineCeilingRanking(line) });
   }
 
   if (!bench.length) return "";
 
-  // Keep the existing order (current-form usage, then score): it answers "which
-  // line is next-closest to contributing".
-  bench.sort(
-    (a, b) =>
-      benchUsage(b.representative) - benchUsage(a.representative) ||
-      (b.representative.score || 0) - (a.representative.score || 0) ||
-      a.representative.name.localeCompare(b.representative.name),
-  );
-
-  // The "worst in pool" is the line whose *best* form (regardless of level cap —
-  // Gyarados, not Magikarp) is least used. Ranked by usage then raw sample count
-  // so the very granular data rarely ties; genuine ties at the floor (all of an
-  // all-trash pool) are all flagged, which is the intended answer.
-  const worst = bench.reduce(
-    (acc, entry) => (isLowerCeiling(entry.ceiling, acc) ? entry.ceiling : acc),
+  // Worst = the line whose best form has the worst ranking: deepest tier, then
+  // lowest usage; a line meaningful nowhere is the floor. Ties (e.g. a whole
+  // pool with no real usage) are all flagged.
+  const worstKey = bench.reduce(
+    (acc, entry) => (isWorseRank(entry.ceiling, acc) ? entry.ceiling : acc),
     bench[0].ceiling,
   );
 
-  const items = bench
-    .map(({ representative, ceiling }) => {
-      const usageText =
-        typeof ceiling.value === "number" ? `${ceiling.value.toFixed(1)}%` : "—";
-      const trace = !representative.meaningfulUsage;
-      const isWorst = sameCeiling(ceiling, worst);
-      const bestForm =
-        ceiling.name && ceiling.name !== representative.name
-          ? ` · best form ${ceiling.name}`
-          : "";
-      const title = `from input ${representative.inputName}${bestForm}`;
-      const classes = `bench-chip${trace ? " trace" : ""}${isWorst ? " worst" : ""}`;
+  // Group by tier (best form's first-meaningful tier), ordered shallow → deep.
+  const groups = new Map();
+  for (const entry of bench) {
+    const c = entry.ceiling;
+    const key = c ? `${c.formatId}/${c.cutoff}` : "none";
+    if (!groups.has(key)) {
+      groups.set(key, {
+        tierRank: c ? c.tierRank : Infinity,
+        formatId: c?.formatId,
+        cutoff: c?.cutoff,
+        hasSignal: Boolean(c),
+        entries: [],
+      });
+    }
+    groups.get(key).entries.push(entry);
+  }
 
-      return `<span class="${classes}" title="${escapeHtml(title)}">${escapeHtml(representative.name)} <em>${usageText}</em></span>`;
+  const segments = [...groups.values()]
+    .sort((a, b) => a.tierRank - b.tierRank)
+    .map((group) => {
+      group.entries.sort(
+        (a, b) =>
+          (b.ceiling?.value || 0) - (a.ceiling?.value || 0) ||
+          a.representative.name.localeCompare(b.representative.name),
+      );
+
+      const label = group.hasSignal
+        ? `${SHORT_FORMAT[group.formatId] || group.formatId} ${group.cutoff}`
+        : "no usage data";
+
+      const chips = group.entries
+        .map(({ representative, ceiling }) => {
+          const isWorst = sameRank(ceiling, worstKey);
+          const bestForm =
+            ceiling?.name && ceiling.name !== representative.name
+              ? ` · best form ${ceiling.name}`
+              : "";
+          const usage = ceiling
+            ? ` <em>${truncatePercent(ceiling.value)}</em>`
+            : "";
+          const classes = `bench-chip${isWorst ? " worst" : ""}`;
+          return `<span class="${classes}" title="from input ${escapeHtml(representative.inputName)}${escapeHtml(bestForm)}">${escapeHtml(representative.name)}${usage}</span>`;
+        })
+        .join("");
+
+      return `<span class="bench-group"><span class="bench-tier">${escapeHtml(label)}</span>${chips}</span>`;
     })
-    .join("");
+    .join('<span class="bench-sep">·</span>');
 
   return `
     <div class="bench-line">
-      <span class="bench-label">Not selected · usage order (${bench.length}):</span>
-      <span class="bench-items">${items}</span>
+      <span class="bench-label">Not selected · by best meaningful tier:</span>
+      <span class="bench-items">${segments}</span>
     </div>
   `;
 }
 
-function benchUsage(representative) {
-  return Math.max(0, representative.bundle?.usage?.value || 0);
+// Usage is truncated, not rounded — 0.16% reads as 0.1%, matching the >=0.1%
+// hard cutoff used to find the meaningful tier.
+function truncatePercent(value) {
+  return `${(Math.floor((value || 0) * 10) / 10).toFixed(1)}%`;
 }
 
-// The line's ceiling: the form with the highest usage across every candidate,
-// ignoring the level-cap form-readiness discount, so a stuck pre-evolution is
-// judged by what it becomes. rawCount is kept to break otherwise-equal usages.
-function lineCeilingUsage(line) {
-  let best = { value: 0, rawCount: 0, name: null };
-  let found = false;
+// The line's best form by ranking: the shallowest meaningful tier, then highest
+// usage there — ignoring the level-cap form-readiness discount, so a stuck pre-
+// evolution is judged by what it becomes. null if no form is meaningful anywhere.
+function lineCeilingRanking(line) {
+  let best = null;
   for (const candidate of line.candidates || []) {
-    const value = candidate.bundle?.usage?.value || 0;
-    const rawCount =
-      candidate.rawCount ?? candidate.bundle?.usage?.entry?.rawCount ?? 0;
-    const next = { value, rawCount, name: candidate.candidate?.name };
-    if (!found || isLowerCeiling(best, next)) {
+    const ranking = candidate.bundle?.ranking;
+    if (!ranking) continue;
+    const next = {
+      tierRank: ranking.tierRank,
+      value: ranking.value,
+      formatId: ranking.formatId,
+      cutoff: ranking.cutoff,
+      name: candidate.candidate?.name,
+    };
+    if (
+      !best ||
+      next.tierRank < best.tierRank ||
+      (next.tierRank === best.tierRank && next.value > best.value)
+    ) {
       best = next;
-      found = true;
     }
   }
   return best;
 }
 
-function isLowerCeiling(a, b) {
-  if (a.value !== b.value) return a.value < b.value;
-  return a.rawCount < b.rawCount;
+function isWorseRank(a, b) {
+  const ta = a ? a.tierRank : Infinity;
+  const tb = b ? b.tierRank : Infinity;
+  if (ta !== tb) return ta > tb;
+  return (a?.value ?? -Infinity) < (b?.value ?? -Infinity);
 }
 
-function sameCeiling(a, b) {
-  return a.value === b.value && a.rawCount === b.rawCount;
+function sameRank(a, b) {
+  const ta = a ? a.tierRank : Infinity;
+  const tb = b ? b.tierRank : Infinity;
+  return ta === tb && (a?.value ?? -Infinity) === (b?.value ?? -Infinity);
 }
 
 function renderItemRec(item) {

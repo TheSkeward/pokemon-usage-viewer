@@ -408,6 +408,25 @@ input {
   gap: 4px 8px;
 }
 
+.bench-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+
+.bench-tier {
+  color: #8b97a6;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.bench-sep {
+  color: #5b6675;
+  margin: 0 2px;
+}
+
 .bench-chip {
   white-space: nowrap;
   color: #d7dee6;

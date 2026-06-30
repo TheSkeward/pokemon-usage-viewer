@@ -24,8 +24,13 @@ async function main() {
   }
 }
 
+// Hard floor for "real signal": a tier's usage must be at least 0.1% (a true
+// 0.1, not merely rounding up to it) for the mon to count as meaningful there.
+const MEANINGFUL_USAGE_PERCENT = 0.1;
+
 async function buildFamilyAllIndex(availability, family) {
-  const usageByPokemon = await resolveAllPokemonUsage(availability, family);
+  const { resolved: usageByPokemon, ranking: rankingByPokemon } =
+    await resolveAllPokemonUsage(availability, family);
   const leadsByPokemon = await resolveAllPokemonLeads(availability, family);
 
   const pokemon = {};
@@ -35,6 +40,10 @@ async function buildFamilyAllIndex(availability, family) {
     pokemon[pokemonId] = {
       usage: usageByPokemon[pokemonId] || null,
       leads: leadsByPokemon[pokemonId] || null,
+      // The first tier (descending the format×cutoff ladder) whose usage is
+      // >= 0.1% — the signal used to rank low-usage mons against each other,
+      // since the headline tier's raw count is noise for them.
+      ranking: rankingByPokemon[pokemonId] || null,
     };
   }
 
@@ -48,9 +57,12 @@ async function buildFamilyAllIndex(availability, family) {
 }
 
 async function resolveAllPokemonUsage(availability, family) {
-  const resolved = {};
+  const resolved = {}; // first tier the mon appears in at all (the headline)
+  const ranking = {}; // first tier whose usage rounds to >= 0.1% (ranking signal)
+  let tierRank = -1;
 
   for (const candidate of iterateCandidateSources(availability, family, 'usage')) {
+    tierRank += 1;
     const aggregate = new Map();
 
     for (const month of candidate.months) {
@@ -58,7 +70,9 @@ async function resolveAllPokemonUsage(availability, family) {
       if (!source?.pokemon) continue;
 
       for (const [pokemonId, entry] of Object.entries(source.pokemon)) {
-        if (resolved[pokemonId]) continue;
+        // Keep descending until BOTH the headline tier and the first meaningful
+        // tier are known; only then can we stop tracking this mon.
+        if (resolved[pokemonId] && ranking[pokemonId]) continue;
 
         const current = aggregate.get(pokemonId) || {
           pokemonId,
@@ -78,30 +92,42 @@ async function resolveAllPokemonUsage(availability, family) {
     }
 
     for (const [pokemonId, entry] of aggregate.entries()) {
-      if (resolved[pokemonId] || entry.monthsPresent === 0) continue;
+      if (entry.monthsPresent === 0) continue;
 
       const value = entry.totalUsage / candidate.months.length;
 
-      resolved[pokemonId] = {
-        selection: 'all',
-        family,
-        month: null,
-        formatId: candidate.formatId,
-        cutoff: candidate.cutoff,
-        monthsAvailable: candidate.months.length,
-        monthsPresent: entry.monthsPresent,
-        entry: {
-          pokemonId,
-          name: entry.name,
-          usage: value,
+      if (!resolved[pokemonId]) {
+        resolved[pokemonId] = {
+          selection: 'all',
+          family,
+          month: null,
+          formatId: candidate.formatId,
+          cutoff: candidate.cutoff,
+          monthsAvailable: candidate.months.length,
+          monthsPresent: entry.monthsPresent,
+          entry: {
+            pokemonId,
+            name: entry.name,
+            usage: value,
+            rawCount: entry.totalRawCount,
+          },
+          value,
+        };
+      }
+
+      if (!ranking[pokemonId] && value >= MEANINGFUL_USAGE_PERCENT) {
+        ranking[pokemonId] = {
+          tierRank,
+          formatId: candidate.formatId,
+          cutoff: candidate.cutoff,
+          value,
           rawCount: entry.totalRawCount,
-        },
-        value,
-      };
+        };
+      }
     }
   }
 
-  return resolved;
+  return { resolved, ranking };
 }
 
 async function resolveAllPokemonLeads(availability, family) {

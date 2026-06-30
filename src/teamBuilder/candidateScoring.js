@@ -3,6 +3,11 @@ import { getTypeMultiplier } from "../reborn/typeChart.js";
 
 export const MIN_MEANINGFUL_USAGE_PERCENT = 0.1;
 
+// Per-tier prior step. Larger than the maximum non-tier prior swing (usage at
+// 100% ~ 34k, plus raw/lead/mega), so the first-meaningful tier strictly
+// dominates usage when ranking mons.
+const TIER_DOMINANCE_STEP = 50000;
+
 // Per bias level (1..6), how much preparedness against a biased opponent type is
 // worth. Resisting/being immune to it (you survive its STAB) and hitting it
 // super-effectively (you can KO it) are both rewarded; being weak to it is
@@ -56,20 +61,25 @@ export function scoreCandidate({
   const formatOrder = familyConfig.formatOrder || [];
   const cutoffPriority = familyConfig.cutoffPriority || [];
 
-  const formatIndex = formatOrder.indexOf(usage.formatId);
-  const cutoffIndex = cutoffPriority.indexOf(usage.cutoff);
-
+  // Headline usage still decides the "meaningful" cutoff. But for the prior we
+  // rank by the first tier with real signal (descending the format×cutoff
+  // ladder until usage rounds to >= 0.1%) — the headline tier's raw count is
+  // noise for sub-0.1% mons.
   const usagePercent = Math.max(0, usage.value || 0);
   const rawCount = Math.max(0, usage.entry?.rawCount || 0);
   const leadPercent = Math.max(0, bundle.leads?.value || 0);
+  const rank = getUsageRanking(bundle, formatOrder, cutoffPriority);
 
-  const usageScore = Math.log1p(usagePercent) * 2000 + usagePercent * 250;
-  const rawScore = Math.log1p(rawCount) * 35;
+  const usageScore = Math.log1p(rank.value) * 2000 + rank.value * 250;
+  const rawScore = Math.log1p(rank.rawCount) * 35;
   const leadScore = leadPercent * 2;
-  const formatQuality =
-    formatIndex >= 0 ? (formatOrder.length - formatIndex) * 20 : 0;
-  const cutoffQuality =
-    cutoffIndex >= 0 ? (cutoffPriority.length - cutoffIndex) * 6 : 0;
+  // A shallower (higher-priority) tier strictly beats a deeper one: the step
+  // exceeds the largest possible usage/raw/lead/mega swing, so e.g. a mon
+  // meaningful only at AG/0 outranks one meaningful at Ubers/1760 even at 50%.
+  // Within a tier, usage decides. Real mons cluster at the top tier, so this is
+  // a constant for them (fit/bias/legality still decide) and only orders the
+  // low-usage tail.
+  const tierQuality = (rank.totalTiers - rank.tierRank) * TIER_DOMINANCE_STEP;
   const megaBonus = candidate.isMega ? 300 : 0;
   const legalityScore = scoreLegalityProfile(legalityProfile);
 
@@ -78,7 +88,7 @@ export function scoreCandidate({
   // field, so only the prior is discounted by form-readiness.
   const formReadiness = getFormReadiness(legalityProfile);
   const prior =
-    usageScore + rawScore + leadScore + formatQuality + cutoffQuality + megaBonus;
+    usageScore + rawScore + leadScore + tierQuality + megaBonus;
 
   // Opponent-type bias rewards the form you actually field (its real types and
   // attacks), so it's added to the honest part of the score, not discounted by
@@ -100,6 +110,38 @@ export function scoreCandidate({
     rawCount,
     leadPercent,
   };
+}
+
+// The first tier whose usage clears the 0.1% bar, used to rank low-usage mons by
+// real signal rather than their noisy headline-tier raw count. Prefers the
+// precomputed `ranking` from the resolver index; otherwise derives the tier from
+// the headline (non-"all" data); falls to the floor when there's no signal.
+export function getUsageRanking(bundle, formatOrder = [], cutoffPriority = []) {
+  const totalTiers = Math.max(1, formatOrder.length * cutoffPriority.length);
+  const ranking = bundle?.ranking;
+  if (ranking) {
+    return {
+      tierRank: ranking.tierRank,
+      value: ranking.value,
+      rawCount: ranking.rawCount,
+      totalTiers,
+    };
+  }
+
+  const usage = bundle?.usage;
+  const value = Math.max(0, usage?.value || 0);
+  const rawCount = Math.max(0, usage?.entry?.rawCount || 0);
+  if (value >= MIN_MEANINGFUL_USAGE_PERCENT) {
+    const formatIndex = formatOrder.indexOf(usage.formatId);
+    const cutoffIndex = cutoffPriority.indexOf(usage.cutoff);
+    const tierRank =
+      formatIndex >= 0 && cutoffIndex >= 0
+        ? formatIndex * cutoffPriority.length + cutoffIndex
+        : totalTiers;
+    return { tierRank, value, rawCount, totalTiers };
+  }
+
+  return { tierRank: totalTiers, value, rawCount, totalTiers };
 }
 
 // Rewards a pick for being prepared against the biased opponent types: resisting
