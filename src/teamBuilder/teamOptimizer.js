@@ -295,6 +295,7 @@ async function resolvePoolLine({
             candidate,
             family,
             legalityProfile,
+            levelCap: Number.parseInt(progression.levelCap, 10) || 0,
             opponentTypeBias: progression.opponentTypeBias,
           }),
         };
@@ -422,6 +423,11 @@ function makeChoice(input, result, note) {
     meaningfulUsage: result.meaningfulUsage,
     legalityProfile: result.legalityProfile,
     legalityScore: result.legalityScore,
+    currentRole: result.currentRole,
+    currentFeatures: result.currentFeatures,
+    ceiling: result.ceiling,
+    online: result.online,
+    futureValue: result.futureValue,
     bundle: result.bundle,
     note: legalityNote ? `${usageNote}; ${legalityNote}` : usageNote,
   };

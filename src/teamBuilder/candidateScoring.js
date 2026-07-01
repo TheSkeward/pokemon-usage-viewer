@@ -1,80 +1,65 @@
-import { GEN7_BASE_STAT_TOTALS, GEN7_BASE_STATS } from "../generated/gen7BaseStats.generated.js";
 import { getTypeMultiplier } from "../reborn/typeChart.js";
+import {
+  currentFormValue,
+  formReadinessRatio,
+  CURRENT_VALUE_SCALE,
+} from "./currentFormValue.js";
 
 export const MIN_MEANINGFUL_USAGE_PERCENT = 0.1;
 
 // ---------------------------------------------------------------------------
 // Individual value model.
 //
-// A pick is judged mostly by what the form you can actually field does RIGHT NOW
-// (its real stats, its real legal moves at this progression) — computed with no
-// reference to competitive usage. Competitive usage is only a prior that pulls
-// that honest current judgement toward the fully-evolved line's ceiling, and
-// only to the extent the fielded form actually resembles that ceiling form:
+//     V = C + α·O·[U − C]₊   (+ bias; F is computed but NOT spent here)
 //
-//     V = C + α·O·[U − C]₊ + F − K
-//
-//   C  current-form usefulness (legality/combat score; usage-independent)
-//   U  the line's competitive ceiling, from usage/tier, in the same units as C
+//   C  current-form usefulness (see currentFormValue.js) — role-based, stage-
+//      relative, usage-independent. On a [0, CURRENT_VALUE_SCALE] scale.
+//   U  the line's competitive ceiling, from usage/tier, on the SAME scale as C.
 //   O  online/readiness gate in [0,1]: how much the fielded form resembles the
-//      final competitive form (1 = you ARE it, ~0 = a baby that only promises it)
-//   α  how much competitive usage is allowed to matter, even when fully online
-//   F  small, capped near-future option value (evolves into something better soon)
-//   K  investment friction (grinding / rare items) — reserved, 0 for now
+//      final competitive form (1 = you ARE it, ~0 = a baby that only promises it).
+//   α  how much competitive usage may matter even when fully online.
 //
-// The [U − C]₊ (positive part) makes usage upside-only: it can lift a pre-evo
-// toward its famous ceiling, but never drag down a mon that is already doing a
-// better job right now than its competitive reputation suggests (the reliable
-// early-game workhorses). Because the pull is gated by O, a high ceiling cannot
-// carry a body that can't yet express it — Greninja's reputation barely reaches
-// Frogadier and doesn't reach Happiny-via-Chansey at all.
+// [U − C]₊ makes usage upside-only: it can lift a pre-evo toward its famous
+// ceiling but never drag down a mon already outperforming its reputation now.
+// Gated by O, so a high ceiling can't carry a body that can't express it.
 //
-// These are the only tunable *preferences* (everything feeding C/U/O is a
-// mechanical observation, not a knob). Overridable via globalThis for tuning.
-const USAGE_INFLUENCE = 0.3; // α — usage informative but never sovereign (≤ ~0.35)
+// Because C and U share a scale, the knobs have auditable bounds: the usage term
+// is at most α·(U − C), and with α = 0.3 that's ≤ ~15% of the value range for a
+// realistic online mon — informative, not sovereign.
+const USAGE_INFLUENCE = 0.3; // α
 
-// The competitive ceiling U, in the same points as the legality/combat score C.
-// All ~40 usage buckets (formats × skill cutoffs) collapse into one [0,1] number:
-// a shallow (high-prestige) tier and higher usage both push it up. Then it's
-// scaled into combat-score points. USAGE_CEILING is roughly the combat score of a
-// strong current attacker, so a top-of-the-metagame line can pull a fully-online
-// mon up to about that, and no further.
-const USAGE_CEILING = 2000;
-const USAGE_TIER_WEIGHT = 0.6; // ceiling leans on tier prestige over raw usage %
-const USAGE_REF_PERCENT = 20; // usage % at which the usage component saturates
+// The competitive ceiling U, on C's scale. All ~40 usage buckets collapse into one
+// [0,1] number (a shallow/high-prestige tier and higher usage both push it up),
+// then scaled to points.
+const USAGE_CEILING = CURRENT_VALUE_SCALE;
+const USAGE_TIER_WEIGHT = 0.6;
+const USAGE_REF_PERCENT = 20;
 
-// Near-future option value: a usable pre-evo of a higher-ceiling line gets a
-// small, capped credit for the upside it's about to reach. Capped hard so
-// "eventually becomes great" can never outweigh "useful now" — a promise is not a
-// starter. Gated on being at least a coherent mid-evo (O ≥ ONLINE_FLOOR) so a
-// baby that can't function now earns no speculative credit either.
+// Near-future option value. QUARANTINED from team selection: "usable mid-evo" and
+// "big upgrade reachable soon" are different facts, and we don't yet simulate the
+// latter. So F is computed for display only ("worth training toward") and is NOT
+// added to V — crude future value must not pick the current six.
 const FUTURE_WEIGHT = 0.35;
 const FUTURE_CAP = 300;
 
-// Readiness gate O — coarse and inspectable, from concrete facts, not a fitted
-// curve. A pre-evo drops to the "baby / incoherent" level when it can't deal real
-// damage now, regardless of how bulky it looks or how famous its final form is.
-const ONLINE_FINAL = 1.0; // you are fielding the competitive form itself
-const ONLINE_NEAR = 0.65; // near-final: keeps most of the final form's bulk
-const ONLINE_MIDEVO = 0.35; // a usable mid-evo with coherent stats + moves
-const ONLINE_BABY = 0.1; // can't meaningfully act yet; mostly future promise
-const ONLINE_DEAD = 0.0; // no legal moves at all
-const ONLINE_FLOOR = ONLINE_MIDEVO; // "online enough" for usage credit / future
-const NEAR_FINAL_BULK_RATIO = 0.85; // fielded bulk this close to final ⇒ near-final
-const COHERENT_DAMAGE_FLOOR = 20; // best damaging move below this ⇒ can't act
+// Readiness gate O — coarse, inspectable, ROLE-online (not bulk-based, which would
+// misjudge frail-but-ready attackers). A pre-evo that can't deal stage-real damage
+// is a baby no matter how bulky or how famous its final form.
+const ONLINE_FINAL = 1.0;
+const ONLINE_NEAR = 0.65;
+const ONLINE_MIDEVO = 0.35;
+const ONLINE_BABY = 0.1;
+const ONLINE_DEAD = 0.0;
+const ONLINE_FLOOR = ONLINE_MIDEVO; // "online enough" to count usage / be meaningful
+const ACT_FLOOR = 0.15; // damage_q below this ⇒ can't meaningfully act (stage-relative)
+const NEAR_FINAL_RATIO = 0.85; // key stats this close to final ⇒ near-final
 
-// Per bias level (1..6), how much preparedness against a biased opponent type is
-// worth. Resisting/being immune to it (you survive its STAB) and hitting it
-// super-effectively (you can KO it) are both rewarded; being weak to it is
-// penalised. Added straight onto the honest current-form value, since it reflects
-// the form you actually field.
+// Per bias level (1..6): preparedness against a biased opponent type. Added onto
+// the honest current-form value, since it reflects the form you actually field.
 const BIAS_RESIST_PER_LEVEL = 90;
 const BIAS_IMMUNE_PER_LEVEL = 130;
 const BIAS_WEAK_PENALTY_PER_LEVEL = 70;
 const BIAS_OFFENSE_PER_LEVEL = 90;
-
-// A strong enough answer to a biased opponent type reads as "meaningful" even at
-// trace usage, so a dedicated counter can still earn a slot.
 const BIAS_MEANINGFUL_THRESHOLD = 270;
 
 export function scoreCandidate({
@@ -83,6 +68,7 @@ export function scoreCandidate({
   candidate,
   family,
   legalityProfile,
+  levelCap = 0,
   opponentTypeBias,
 }) {
   const usage = bundle?.usage;
@@ -107,23 +93,21 @@ export function scoreCandidate({
   const leadPercent = Math.max(0, bundle.leads?.value || 0);
   const rank = getUsageRanking(bundle, formatOrder, cutoffPriority);
 
-  // C — current-form usefulness, from the fielded form's real combat ability. No
-  // usage in here: this is "how good is the thing I can put on the field today".
-  const currentValue = scoreLegalityProfile(legalityProfile);
+  // C — current-form usefulness (role-based, usage-independent).
+  const current = currentFormValue(legalityProfile, levelCap);
+  const currentValue = current.value;
 
-  // U — the line's competitive ceiling, derived from usage/tier, in C's units.
+  // U — competitive ceiling on C's scale.
   const ceiling = usageCeiling(rank);
 
   // O — how much the fielded form resembles the ceiling form.
-  const online = getReadinessGate(legalityProfile);
+  const online = getReadinessGate(legalityProfile, current.features);
 
-  // Usage pulls the current judgement toward the ceiling, gated by O and capped by
-  // α, and only ever upward (a mon already better than its reputation keeps its
-  // current value).
+  // Usage pulls C toward the ceiling: gated by O, capped by α, upside-only.
   const headroom = Math.max(0, ceiling - currentValue);
   const usagePull = USAGE_INFLUENCE * online * headroom;
 
-  // F — capped near-future option value for a usable pre-evo of a higher line.
+  // F — display-only near-future value; NOT added to V (see comment above).
   const futureValue =
     online >= ONLINE_FLOOR && online < ONLINE_FINAL
       ? Math.min(FUTURE_CAP, FUTURE_WEIGHT * (1 - online) * headroom)
@@ -132,20 +116,13 @@ export function scoreCandidate({
   // Bias reflects the form you actually field, so it's added to the honest value.
   const biasScore = scoreOpponentTypeBias(opponentTypeBias, legalityProfile);
 
-  // K — investment friction. Reserved for a later pass; 0 today.
-  const friction = 0;
-
-  const value =
-    currentValue + usagePull + futureValue - friction + biasScore;
+  const value = currentValue + usagePull + biasScore;
 
   const meaningfulUsage =
     (usagePercent >= MIN_MEANINGFUL_USAGE_PERCENT && online >= ONLINE_FLOOR) ||
     biasScore >= BIAS_MEANINGFUL_THRESHOLD;
 
   return {
-    // score (per-mon ranking: which form represents a line, bench ordering) and
-    // teamScore (summed by team selection) are the same value now — one honest
-    // axis, with coverage handled at the team level.
     score: value,
     teamScore: value,
     legalityScore: currentValue,
@@ -153,6 +130,8 @@ export function scoreCandidate({
     ceiling,
     online,
     futureValue,
+    currentRole: current.bestRole,
+    currentFeatures: current.features,
     meaningfulUsage,
     usagePercent,
     rawCount,
@@ -160,10 +139,9 @@ export function scoreCandidate({
   };
 }
 
-// Collapses the ~40 usage buckets into one competitive-ceiling number, in the
-// same points as the current-form combat score. A shallow (high-priority) tier
-// and higher usage both push it up; a mon that only shows up deep in the ladder
-// lands low, and a never-used mon lands at ~0.
+// Collapses the ~40 usage buckets into one competitive-ceiling number on C's
+// scale. A shallow (high-priority) tier and higher usage both push it up; a mon
+// that only shows up deep in the ladder lands low, never-used lands at ~0.
 function usageCeiling(rank) {
   const totalTiers = Math.max(1, rank.totalTiers || 1);
   const tierNorm = Math.max(0, (totalTiers - rank.tierRank) / totalTiers);
@@ -177,9 +155,7 @@ function usageCeiling(rank) {
 }
 
 // The first tier whose usage clears the 0.1% bar, used to rank low-usage mons by
-// real signal rather than their noisy headline-tier raw count. Prefers the
-// precomputed `ranking` from the resolver index; otherwise derives the tier from
-// the headline (non-"all" data); falls to the floor when there's no signal.
+// real signal rather than their noisy headline-tier raw count.
 export function getUsageRanking(bundle, formatOrder = [], cutoffPriority = []) {
   const totalTiers = Math.max(1, formatOrder.length * cutoffPriority.length);
   const ranking = bundle?.ranking;
@@ -209,9 +185,8 @@ export function getUsageRanking(bundle, formatOrder = [], cutoffPriority = []) {
 }
 
 // Rewards a pick for being prepared against the biased opponent types: resisting
-// or being immune to them (so their STAB doesn't threaten it) and being able to
-// hit them super-effectively (so it can KO them), scaled by each type's bias
-// level. Being weak to a biased type is penalised.
+// or being immune to them, and being able to hit them super-effectively, scaled
+// by each type's bias level. Being weak to a biased type is penalised.
 function scoreOpponentTypeBias(opponentTypeBias, profile) {
   if (!opponentTypeBias || !profile) return 0;
 
@@ -237,92 +212,27 @@ function scoreOpponentTypeBias(opponentTypeBias, profile) {
   return score;
 }
 
-// The online/readiness gate O: coarse, ordinal, and driven by concrete facts
-// about the fielded form. A pre-evo that can't deal real damage now is a baby no
-// matter how bulky it is or how famous its final form is (this is what keeps
-// Happiny — valued via Chansey — from riding a high ceiling); a pre-evo that
-// already carries most of its final form's bulk and can fight is near-final.
-function getReadinessGate(profile) {
+// The online/readiness gate O: role-online, from concrete facts. A pre-evo that
+// can't deal stage-real damage is a baby regardless of bulk or its final form's
+// fame; one that already has most of the final form's key stats is near-final.
+function getReadinessGate(profile, features) {
   const currentId = profile?.currentId;
   const representativeId = profile?.representativeId;
-  // Fielding the competitive form itself (or no line info): fully online.
   if (!currentId || !representativeId || currentId === representativeId) {
     return ONLINE_FINAL;
   }
-
   if ((profile?.legalMoveCount || 0) === 0) return ONLINE_DEAD;
 
-  // Can it deal meaningful damage at this progression? This — not raw bulk — is
-  // what separates a usable mid-evo from a baby that only promises its final form.
-  const bestDamage = Math.max(
-    profile?.bestStabMove?.estimatedDamage || 0,
-    profile?.bestDamagingMove?.estimatedDamage || 0,
-  );
+  // Can it act at this stage? damage_q is best-hit vs a stage-typical hit.
   if (
-    bestDamage < COHERENT_DAMAGE_FLOOR ||
+    (features?.damage_q ?? 0) < ACT_FLOOR ||
     (profile?.legalDamagingMoveCount || 0) === 0
   ) {
     return ONLINE_BABY;
   }
 
-  // Coherent attacker: grade by how much of the final form's bulk it already has.
-  const bulkRatio = bulkReadiness(currentId, representativeId);
-  return bulkRatio >= NEAR_FINAL_BULK_RATIO ? ONLINE_NEAR : ONLINE_MIDEVO;
-}
-
-// Fraction of the represented final form's non-attacking bulk (BST minus the two
-// attacking stats) that the fielded form already has. Used only to bucket the
-// readiness gate, never as a continuous multiplier.
-function bulkReadiness(currentId, representativeId) {
-  const current = nonAttackingTotal(currentId);
-  const representative = nonAttackingTotal(representativeId);
-  if (!current || !representative) return 1;
-  return Math.min(1, current / representative);
-}
-
-// BST minus the two attacking stats (Atk, SpA): the bulk-and-speed portion.
-function nonAttackingTotal(id) {
-  const total = GEN7_BASE_STAT_TOTALS[id];
-  const stats = GEN7_BASE_STATS[id]; // [Atk, Def, SpA, SpD, Spe]
-  if (!total || !stats) return null;
-  return total - stats[0] - stats[2];
-}
-
-// C — current-form combat usefulness: how well the fielded form does its ONE best
-// job at this progression, from its real moves and the stats behind them (damage
-// estimates are category/stat-aware). No usage/tier here.
-//
-// This deliberately rewards PEAK output (best STAB, best damaging move) and a
-// functional attacking kit, NOT breadth. Number-of-attack-types and SE-target
-// breadth are left out on purpose: coverage is scored once, at the team level
-// (fastTeamFit), so rewarding it again per-mon double-counts it and inflates
-// wide-but-weak gimmick mons (a Beautifly with many feeble move types) over a
-// focused hard-hitter. A mon only needs to be good at one thing.
-function scoreLegalityProfile(profile) {
-  if (!profile) return 0;
-
-  const bestStabPower = profile.bestStabMove?.estimatedDamage || 0;
-  const bestDamagePower = profile.bestDamagingMove?.estimatedDamage || 0;
-  const selectedMoveCount = profile.recommendedMoves?.length || 0;
-  const selectedDamagingCount = profile.recommendedDamagingMoveCount || 0;
-
-  // Peak offensive output — the mon's best single job.
-  const peak =
-    Math.min(180, bestStabPower) * 12 + Math.min(160, bestDamagePower) * 5;
-
-  // A functional attacking kit: a few real options and enough legal damaging
-  // moves to actually operate. Reliability, not coverage breadth.
-  const reliability =
-    Math.min(4, selectedDamagingCount) * 45 +
-    Math.min(4, selectedMoveCount) * 15 +
-    Math.min(6, profile.legalDamagingMoveCount) * 10;
-
-  return (
-    peak +
-    reliability +
-    (profile.bestStabMove ? 0 : -350) +
-    (profile.legalDamagingMoveCount ? 0 : -900)
-  );
+  const readiness = formReadinessRatio(currentId, representativeId);
+  return readiness >= NEAR_FINAL_RATIO ? ONLINE_NEAR : ONLINE_MIDEVO;
 }
 
 export function compareScoredCandidates(a, b) {
