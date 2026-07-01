@@ -44,7 +44,7 @@ const MAX_RESULT_CACHE = 400;
 // search, or the legality/damage model): a mismatched version retires the stored
 // results so a reload after such a deploy recomputes rather than showing stale
 // teams. UI-only deploys keep the version, so results survive them.
-const RESULT_CACHE_VERSION = "8";
+const RESULT_CACHE_VERSION = "9";
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
@@ -443,7 +443,15 @@ function formatLegalityNote(profile) {
     ? `best legal STAB: ${profile.bestStabMove.name}`
     : "no current legal STAB";
 
-  return `${bestStab}; ${profile.attackTypes.length} recommended attack types`;
+  // Make the assumed ability visible when it materially changes damage, so the
+  // score isn't silently claiming e.g. Protean without saying so.
+  const ability = String(profile.assumedAbility || "").toLowerCase();
+  const abilityNote =
+    ability === "protean" || ability === "adaptability"
+      ? `; scored assuming ${profile.assumedAbility}`
+      : "";
+
+  return `${bestStab}; ${profile.attackTypes.length} recommended attack types${abilityNote}`;
 }
 
 async function resolveCandidateLegalityProfile({

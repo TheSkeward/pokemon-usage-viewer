@@ -271,6 +271,11 @@ export function buildCandidateLegalityProfile({
 
   return {
     coverageVector,
+    // The ability the score ASSUMES (the form's primary competitive ability, e.g.
+    // Protean for the Greninja line). Surfaced so the assumption is visible — the
+    // actual caught mon's ability isn't known here, so this is "best obtainable,
+    // noted", not a claim about legality.
+    assumedAbility: ability || null,
     attackTypes: attackingTypes.map((entry) => entry.type),
     bestCoverageMoves: attackingTypes
       .filter((entry) => !member.types.includes(entry.type))
