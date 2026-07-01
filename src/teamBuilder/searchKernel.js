@@ -114,12 +114,20 @@ function fastTeamFit(team) {
   return score;
 }
 
+// How much the team-level coverage/defense fit is worth relative to the summed
+// individual values. Individual value now lives on the combat-score scale (peak
+// current usefulness, not the old usage-inflated scale), so this keeps coverage a
+// strong-but-not-dominant marginal term: it can pull a genuine answer onto the
+// team over a redundant stronger mon when it fills a real hole, but can't assemble
+// a team of type-spread chaff over the clear individual standouts. Tunable
+// preference — turn it up for more coverage-driven teams, down for more
+// quality-driven ones.
+const COVERAGE_WEIGHT = 0.5;
+
 export function getTeamScore(team, opponentTypeBias = {}) {
   const fast = fitReady ? fastTeamFit(team) : null;
-  return (
-    sumTeamScore(team) +
-    (fast != null ? fast : scoreTeamFit(team, opponentTypeBias))
-  );
+  const fit = fast != null ? fast : scoreTeamFit(team, opponentTypeBias);
+  return sumTeamScore(team) + COVERAGE_WEIGHT * fit;
 }
 
 export function getUsagePercent(choice) {
