@@ -9,6 +9,7 @@ import {
   loadRebornLegalMoveData,
 } from "../reborn/legalMoves";
 import { buildCandidateLegalityProfile } from "../reborn/teamAnalysis";
+import { loadTopSet } from "../reborn/topSpread.js";
 import { buildInputGroups } from "./inputGroups";
 import {
   MIN_MEANINGFUL_USAGE_PERCENT,
@@ -43,7 +44,7 @@ const MAX_RESULT_CACHE = 400;
 // search, or the legality/damage model): a mismatched version retires the stored
 // results so a reload after such a deploy recomputes rather than showing stale
 // teams. UI-only deploys keep the version, so results survive them.
-const RESULT_CACHE_VERSION = "4";
+const RESULT_CACHE_VERSION = "5";
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
@@ -280,8 +281,10 @@ async function resolvePoolLine({
         const legalityProfile = await resolveCandidateLegalityProfile({
           breedingContext,
           candidate,
+          family,
           input,
           progression,
+          selection,
         });
 
         return {
@@ -446,8 +449,10 @@ function formatLegalityNote(profile) {
 async function resolveCandidateLegalityProfile({
   breedingContext,
   candidate,
+  family,
   input,
   progression,
+  selection,
 }) {
   const choice = {
     inputPokemonId: input.id,
@@ -476,11 +481,22 @@ async function resolveCandidateLegalityProfile({
   };
   const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
 
+  // The competitive form's primary ability (Protean/Libero/Adaptability change
+  // damage), so team scoring values a Greninja/Frogadier line for what it really
+  // does. Sourced from the represented form's set index — a line-wide ability
+  // like Protean is what the usage prior itself reflects.
+  const topSet = await loadTopSet({
+    family,
+    pokemonId: candidate.id,
+    selection,
+  });
+
   return buildCandidateLegalityProfile({
     member,
     moves,
     representativeName: candidate.name,
     levelCap: progression.levelCap,
+    ability: topSet?.ability,
     opponentTypeBias: progression.opponentTypeBias,
   });
 }

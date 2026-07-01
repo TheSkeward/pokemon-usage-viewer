@@ -23,6 +23,20 @@ const DEFAULT_LEVEL = 100;
 const REFERENCE_DEFENSE_BASE = 70;
 const STAB_MULTIPLIER = 1.5;
 
+// Same-type-attack bonus, ability-aware. Protean/Libero change the user's type to
+// the move's before it hits, so EVERY attack gets STAB — the whole point of the
+// ability and the reason a Protean Greninja's coverage is undervalued if ignored.
+// Adaptability turns STAB into 2x. Everything else is the ordinary 1.5-if-matching.
+function abilityStab(ability, attackerTypes, moveType) {
+  const id = String(ability || "")
+    .toLowerCase()
+    .replace(/[^a-z]/g, "");
+  if (id === "protean" || id === "libero") return STAB_MULTIPLIER;
+  const matches = attackerTypes.includes(moveType);
+  if (id === "adaptability") return matches ? 2 : 1;
+  return matches ? STAB_MULTIPLIER : 1;
+}
+
 // Nature -> attacking-stat multipliers (only Atk/SpA matter here). Natures that
 // touch neither Atk nor SpA (e.g. Jolly hits Spe/SpA, Sassy hits SpD/Spe) are
 // simply absent and treated as neutral (1.0 / 1.0).
@@ -118,8 +132,9 @@ export function estimateMoveDamage({
   attackerStats,
   level,
   itemMultiplier = 1,
+  ability = null,
 }) {
-  const stab = attackerTypes.includes(type) ? STAB_MULTIPLIER : 1;
+  const stab = abilityStab(ability, attackerTypes, type);
   const lvl = normalizeLevel(level ?? attackerStats?.level);
 
   // No real base power -> fixed-damage move: treat its effective power as a flat

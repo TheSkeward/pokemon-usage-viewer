@@ -137,6 +137,7 @@ async function buildMemberLegalMoveEntry({
     levelCap: progression.levelCap,
     moveUsage: topSet.moveUsage,
     heldItem,
+    ability: topSet.ability,
     opponentTypeBias: progression.opponentTypeBias,
   });
 
@@ -195,10 +196,15 @@ export function buildCandidateLegalityProfile({
   moveUsage = new Map(),
   opponentTypeBias = {},
   heldItem = null,
+  ability = null,
 }) {
-  // Carry the recommended held item on the member so every damage estimate it
-  // flows into (display, ranking, bias) reflects it.
-  const member = heldItem ? { ...rawMember, heldItem } : rawMember;
+  // Carry the recommended held item AND the mon's competitive ability on the
+  // member, so every damage estimate (display, ranking, bias, team scoring)
+  // reflects them — Protean/Libero make every move STAB.
+  const member =
+    heldItem || ability
+      ? { ...rawMember, ...(heldItem ? { heldItem } : {}), ...(ability ? { ability } : {}) }
+      : rawMember;
   const stats =
     attackerStats ||
     getAttackingStats({ pokemonId: member.id, levelCap });
@@ -843,6 +849,7 @@ function getEstimatedDamage(move, member, attackerStats) {
       category: move.category,
       pokemonId: member.id,
     }),
+    ability: member.ability,
   });
   // Expected damage weights a hit by how often it lands, so an inaccurate nuke
   // (Focus Blast: 120 BP @ 70%) ranks below a reliable lower-power move (e.g. a
