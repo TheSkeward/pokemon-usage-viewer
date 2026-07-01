@@ -42,11 +42,27 @@ function hpOf(id) {
 function speedOf(id) {
   return statsOf(id)?.[4] ?? null;
 }
+// Effective bulk is multiplicative (HP × defensive stat), scored per side so a
+// one-sided wall can't hide a fake defence behind a real one — Happiny's SpD 65
+// must not launder its Def 5.
+function physBulkOf(id) {
+  const s = statsOf(id);
+  const hp = hpOf(id);
+  if (!s || hp == null) return null;
+  return hp * s[1]; // HP × Def
+}
+function specBulkOf(id) {
+  const s = statsOf(id);
+  const hp = hpOf(id);
+  if (!s || hp == null) return null;
+  return hp * s[3]; // HP × SpD
+}
+// Combined bulk (used to bucket readiness): the whole non-attacking mass.
 function bulkOf(id) {
   const s = statsOf(id);
   const hp = hpOf(id);
   if (!s || hp == null) return null;
-  return hp + s[1] + s[3]; // HP + Def + SpD
+  return hp + s[1] + s[3];
 }
 function mainAttackOf(id) {
   const s = statsOf(id);
@@ -64,7 +80,8 @@ function buildSorted(fn) {
   return arr;
 }
 const SPEED_REF = buildSorted(speedOf);
-const BULK_REF = buildSorted(bulkOf);
+const PHYS_BULK_REF = buildSorted(physBulkOf);
+const SPEC_BULK_REF = buildSorted(specBulkOf);
 
 // Fraction of the dex with a value <= this one (0..1).
 function percentile(value, sorted) {
@@ -114,10 +131,18 @@ export function currentFormFeatures(profile, levelCap) {
     profile?.bestStabMove?.estimatedDamage || 0,
     profile?.bestDamagingMove?.estimatedDamage || 0,
   );
-  const damage_q = clamp01(bestDamage / stageReferenceDamage(levelCap));
+  // Soft saturation (never a hard 1.0), so the hardest hitters stay distinguishable
+  // and one absurd nuke can't peg the scale: a hit equal to the stage reference
+  // reads ~0.7, double that ~0.91.
+  const damage_q = 1 - Math.exp(-1.2 * (bestDamage / stageReferenceDamage(levelCap)));
 
   const speed_q = percentile(speedOf(currentId), SPEED_REF);
-  const bulk_q = percentile(bulkOf(currentId), BULK_REF);
+  // General bulk is the geometric mean of the two sides — a wall that's fake on
+  // one axis (Happiny: real SpD, paper Def) scores as the frail thing it is.
+  const bulk_q = geomean([
+    percentile(physBulkOf(currentId), PHYS_BULK_REF),
+    percentile(specBulkOf(currentId), SPEC_BULK_REF),
+  ]);
 
   // Functional attacking kit: a couple of real damaging options.
   const damagingOptions = profile?.recommendedDamagingMoveCount || 0;
