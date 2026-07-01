@@ -135,6 +135,17 @@ function getDefensiveCoverTypes(profile, team) {
 const AUTO_EXHAUSTIVE_BUDGET = 2_000_000;
 const HARD_EXHAUSTIVE_CAP = 3_000_000;
 const BEAM_WIDTH = 2000;
+// For pools too big to enumerate fully (C(N,6) over the cap — roughly N > 38), we
+// reduce to a shortlist and enumerate THAT exactly, instead of a lossy beam. The
+// shortlist keeps the top mons by individual score plus the best provider of each
+// attack type and each defensive resist, so no mon that could earn a slot on
+// quality OR coverage is pruned before the optimiser sees it. C(24,6) ≈ 135k, an
+// exact search that stays interactive on the sequential path (routing it through
+// the Web Worker pool would allow a larger shortlist — noted as a follow-up).
+// This is what makes a 100-mon pool usable — exact on a coverage-preserving
+// shortlist instead of the old lossy beam.
+const SHORTLIST_MAX = 24;
+const SHORTLIST_CORE = 16;
 
 // --- Full-enumeration team store -------------------------------------------
 // When a SEQUENTIAL exact search enumerates every C(N, size) team, we keep them
@@ -305,8 +316,17 @@ async function selectTeamByFit(
       if (store) teamStore = store;
       searchExact = true;
     } else {
-      evaluated = selectTeamByBeam(lines, targetSize, opponentTypeBias);
-      searchExact = false;
+      // Too big to enumerate fully: reduce to a coverage-preserving shortlist and
+      // enumerate THAT exactly (far better than the old lossy beam).
+      const shortlist = buildShortlist(lines, opponentTypeBias);
+      evaluated = selectTeamExhaustive(
+        shortlist,
+        Math.min(6, shortlist.length),
+        opponentTypeBias,
+        null,
+        null,
+      );
+      searchExact = false; // exact on the shortlist, not the whole pool
     }
 
     // Rank the non-selected lines by how much the team would suffer if forced to
@@ -474,6 +494,55 @@ function countCombinations(n, k) {
     if (result > HARD_EXHAUSTIVE_CAP * 8) return Infinity;
   }
   return Math.round(result);
+}
+
+// Reduces a too-big pool to a shortlist that the optimiser can enumerate exactly.
+// Keeps the top mons by individual score (SHORTLIST_CORE) plus the best-scoring
+// provider of every attack type and every defensive resist, so a coverage answer
+// that isn't a top individual still gets a fair hearing. Deterministic (scored
+// order + fixed type order), so the shortlist — and thus the result — is stable.
+function buildShortlist(lines) {
+  const scored = lines
+    .map((line) => {
+      const best = getLineChoiceOptions(line)[0];
+      return { line, best, score: best?.teamScore ?? best?.score ?? 0 };
+    })
+    .sort(
+      (a, b) =>
+        b.score - a.score || a.line.lineKey.localeCompare(b.line.lineKey),
+    );
+
+  const picked = new Map();
+  const add = (entry) => {
+    if (entry && !picked.has(entry.line.lineKey)) {
+      picked.set(entry.line.lineKey, entry.line);
+    }
+  };
+
+  for (let i = 0; i < scored.length && picked.size < SHORTLIST_CORE; i++) {
+    add(scored[i]);
+  }
+  for (const type of REBORN_ANALYSIS_TYPES) {
+    if (picked.size >= SHORTLIST_MAX) break;
+    add(
+      scored.find((s) =>
+        (s.best?.legalityProfile?.attackTypes || []).includes(type),
+      ),
+    );
+    if (picked.size >= SHORTLIST_MAX) break;
+    add(
+      scored.find(
+        (s) =>
+          getTypeMultiplier(type, s.best?.legalityProfile?.currentTypes || []) <
+          1,
+      ),
+    );
+  }
+  for (const s of scored) {
+    if (picked.size >= SHORTLIST_MAX) break;
+    add(s);
+  }
+  return [...picked.values()];
 }
 
 // Fallback for pools too large to enumerate exactly: the incremental beam, just

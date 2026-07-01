@@ -31,7 +31,9 @@ function abilityStab(ability, attackerTypes, moveType) {
   const id = String(ability || "")
     .toLowerCase()
     .replace(/[^a-z]/g, "");
-  if (id === "protean" || id === "libero") return STAB_MULTIPLIER;
+  // Protean only — Libero is a Gen 8 ability and vanilla Reborn is Gen 7, so it
+  // would never legally appear; left out rather than pretending to support it.
+  if (id === "protean") return STAB_MULTIPLIER;
   const matches = attackerTypes.includes(moveType);
   if (id === "adaptability") return matches ? 2 : 1;
   return matches ? STAB_MULTIPLIER : 1;

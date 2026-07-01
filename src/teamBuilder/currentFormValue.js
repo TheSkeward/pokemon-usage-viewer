@@ -311,6 +311,31 @@ export function currentFormValue(profile, levelCap) {
   };
 }
 
+// Investment friction K (in C's point scale) for having reached the fielded form:
+// level evolutions are free, but a friendship grind or an item/time evolution is a
+// real cost, so a mon that must be laundered up an evolution line is worth a bit
+// less than an equally-good mon you can just field. Summed over the chain from the
+// base to the fielded form. NOT an anti-anything rule — it applies to every line
+// uniformly, and whether a friction-costed evolution still earns a slot is left to
+// the score, not decided in advance.
+const FRIENDSHIP_FRICTION = 180;
+const ITEM_FRICTION = 260; // item / time / trade — costlier than a friendship grind
+export function evolutionFriction(currentId) {
+  let friction = 0;
+  let id = currentId;
+  const seen = new Set();
+  while (id && !seen.has(id)) {
+    seen.add(id);
+    const s = GEN7_PROGRESSION_SPECIES[id];
+    if (!s || !s.prevoId) break; // base form reached
+    const evo = s.evoType || "";
+    if (evo === "levelFriendship") friction += FRIENDSHIP_FRICTION;
+    else if (evo && evo !== "") friction += ITEM_FRICTION; // levelHold / useItem / trade / ...
+    id = s.prevoId;
+  }
+  return friction;
+}
+
 // Fraction of the represented final form's key attributes the fielded form
 // already has — the best of its offense / bulk / speed ratios. Used only to
 // bucket the readiness gate (near-final vs mid-evo), so an OFFENSIVE line that's

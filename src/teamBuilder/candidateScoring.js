@@ -1,6 +1,7 @@
 import { getTypeMultiplier } from "../reborn/typeChart.js";
 import {
   currentFormValue,
+  evolutionFriction,
   formReadinessRatio,
   CURRENT_VALUE_SCALE,
 } from "./currentFormValue.js";
@@ -116,7 +117,12 @@ export function scoreCandidate({
   // Bias reflects the form you actually field, so it's added to the honest value.
   const biasScore = scoreOpponentTypeBias(opponentTypeBias, legalityProfile);
 
-  const value = currentValue + usagePull + biasScore;
+  // K — investment friction to have reached the fielded form (a friendship grind
+  // or item/time evolution costs something a level-up doesn't). Applied uniformly,
+  // not to any particular mon.
+  const friction = evolutionFriction(legalityProfile?.currentId);
+
+  const value = currentValue + usagePull + biasScore - friction;
 
   const meaningfulUsage =
     (usagePercent >= MIN_MEANINGFUL_USAGE_PERCENT && online >= ONLINE_FLOOR) ||
