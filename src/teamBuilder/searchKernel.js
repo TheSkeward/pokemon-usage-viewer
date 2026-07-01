@@ -10,44 +10,55 @@ import { MAX_OPPONENT_TYPE_BIAS } from "../reborn/progression";
 
 export { REBORN_ANALYSIS_TYPES, getTypeMultiplier };
 
-// --- Fast team-fit scoring -------------------------------------------------
-// Exhaustive search evaluates hundreds of thousands of teams, and the readable
-// scoreTeamFit() below makes ~400 getTypeMultiplier calls per team. So before a
-// search we precompute, once per choice, the bitmasks it needs — which defense
-// types it hits super-effectively, and which it's weak to / resists — and the
-// hot loop becomes pure bit ops. fastTeamFit is asserted equal to scoreTeamFit.
-const FIT_TYPE_INDEX = new Map(REBORN_ANALYSIS_TYPES.map((type, i) => [type, i]));
-// SE_MASK[i]: defense-type bitmask that attack type i hits super-effectively.
-const SE_MASK = REBORN_ANALYSIS_TYPES.map((attackType) =>
-  REBORN_ANALYSIS_TYPES.reduce(
-    (mask, defenseType, j) =>
-      getTypeMultiplier(attackType, [defenseType]) > 1 ? mask | (1 << j) : mask,
-    0,
-  ),
-);
+// --- Team-fit scoring ------------------------------------------------------
+// Exhaustive search evaluates hundreds of thousands of teams, so before a search
+// we precompute per choice what the hot loop needs: its damage-aware coverage
+// vector (best real hit into each defense type, 0..1 — from the legality profile)
+// and its defensive weak/resist bitmasks. fastTeamFit is asserted equal to
+// scoreTeamFit.
+const TYPE_COUNT = REBORN_ANALYSIS_TYPES.length;
+const ZERO_COVERAGE = new Float64Array(TYPE_COUNT);
+
+// Value of fully answering one defense type, tuned so team coverage is a
+// strong-but-not-dominant marginal signal against summed individual values.
+const COVERAGE_SCALE = 110;
+// A maxed opponent-bias type's coverage is worth up to this much extra.
+const BIAS_COVERAGE_BOOST = 2;
+
 let fitReady = false;
+let coverageWeights = null; // per-defense-type multiplier from opponent bias
+// Resolved once per search (not per team eval) so a tuning override doesn't cost
+// the hot loop.
+let coverageWeight = 0.5;
+
+function computeCoverageWeights(opponentTypeBias) {
+  const weights = new Array(TYPE_COUNT).fill(1);
+  if (!opponentTypeBias) return weights;
+  for (let j = 0; j < TYPE_COUNT; j++) {
+    const raw = opponentTypeBias[REBORN_ANALYSIS_TYPES[j]];
+    const level = Math.max(0, Math.min(MAX_OPPONENT_TYPE_BIAS, raw || 0));
+    if (level) {
+      weights[j] = 1 + (level / MAX_OPPONENT_TYPE_BIAS) * BIAS_COVERAGE_BOOST;
+    }
+  }
+  return weights;
+}
 
 function precomputeFit(choice, opponentTypeBias) {
   const profile = choice.legalityProfile || {};
-  let attackMask = 0;
-  let coverageMask = 0;
-  for (const attackType of profile.attackTypes || []) {
-    const i = FIT_TYPE_INDEX.get(attackType);
-    if (i === undefined) continue;
-    attackMask |= 1 << i;
-    coverageMask |= SE_MASK[i];
-  }
   let weakMask = 0;
   let resistMask = 0;
   const currentTypes = profile.currentTypes || [];
-  for (let j = 0; j < REBORN_ANALYSIS_TYPES.length; j++) {
+  for (let j = 0; j < TYPE_COUNT; j++) {
     const multiplier = getTypeMultiplier(REBORN_ANALYSIS_TYPES[j], currentTypes);
     if (multiplier > 1) weakMask |= 1 << j;
     else if (multiplier < 1) resistMask |= 1 << j;
   }
+  // Float64Array for fast sequential reads in the noisy-OR hot loop.
+  const cv = profile.coverageVector;
   choice._fit = {
-    attackMask,
-    coverageMask,
+    coverageVector:
+      cv && cv.length === TYPE_COUNT ? Float64Array.from(cv) : ZERO_COVERAGE,
     weakMask,
     resistMask,
     fitWeight: 1 - biasCounterExemption(profile, opponentTypeBias),
@@ -55,6 +66,8 @@ function precomputeFit(choice, opponentTypeBias) {
 }
 
 export function prepareFitScoring(lines, opponentTypeBias) {
+  coverageWeights = computeCoverageWeights(opponentTypeBias);
+  coverageWeight = globalThis.__COVERAGE_WEIGHT__ ?? COVERAGE_WEIGHT;
   for (const line of lines) {
     for (const choice of getLineChoiceOptions(line)) {
       precomputeFit(choice, opponentTypeBias);
@@ -67,35 +80,34 @@ export function prepareFitScoring(lines, opponentTypeBias) {
 // outside a search) and the per-line option cache (so it never outlives a search).
 export function resetFitScoring(lines) {
   fitReady = false;
+  coverageWeights = null;
   for (const line of lines) line._choiceOptions = undefined;
 }
 
-function popcount(value) {
-  let count = 0;
-  let x = value;
-  while (x) {
-    x &= x - 1;
-    count += 1;
-  }
-  return count;
-}
+// Damage-aware team coverage: for each defense type, the chance SOMEONE lands a
+// real hit into it — a noisy-OR over the members' per-type A values — weighted by
+// how much that type matters (opponent bias). Saturating by construction (the
+// first real answer is worth a lot, the fourth almost nothing), and a 30-BP chip
+// move contributes ~0. Plus the defensive shared-weakness term.
+const MISS_SCRATCH = new Float64Array(TYPE_COUNT);
 
 function fastTeamFit(team) {
-  let attackUnion = 0;
-  let coverUnion = 0;
+  const weights = coverageWeights || computeCoverageWeights(null);
+  // Noisy-OR miss probability per type, accumulated members-outer (each member's
+  // vector read sequentially) for cache locality on the hot search path.
+  MISS_SCRATCH.fill(1);
   for (const choice of team) {
-    if (!choice._fit) return null;
-    attackUnion |= choice._fit.attackMask;
-    coverUnion |= choice._fit.coverageMask;
+    const fit = choice._fit;
+    if (!fit) return null;
+    const cv = fit.coverageVector;
+    for (let j = 0; j < TYPE_COUNT; j++) MISS_SCRATCH[j] *= 1 - cv[j];
+  }
+  let score = 0;
+  for (let j = 0; j < TYPE_COUNT; j++) {
+    score += weights[j] * (1 - MISS_SCRATCH[j]) * COVERAGE_SCALE;
   }
 
-  const coverSize = popcount(coverUnion);
-  let score =
-    popcount(attackUnion) * 70 +
-    coverSize * 90 -
-    (REBORN_ANALYSIS_TYPES.length - coverSize) * 80;
-
-  for (let j = 0; j < REBORN_ANALYSIS_TYPES.length; j++) {
+  for (let j = 0; j < TYPE_COUNT; j++) {
     const bit = 1 << j;
     let weakWeight = 0;
     let coverCount = 0;
@@ -127,7 +139,8 @@ const COVERAGE_WEIGHT = 0.5;
 export function getTeamScore(team, opponentTypeBias = {}) {
   const fast = fitReady ? fastTeamFit(team) : null;
   const fit = fast != null ? fast : scoreTeamFit(team, opponentTypeBias);
-  return sumTeamScore(team) + COVERAGE_WEIGHT * fit;
+  const weight = fitReady ? coverageWeight : (globalThis.__COVERAGE_WEIGHT__ ?? COVERAGE_WEIGHT);
+  return sumTeamScore(team) + weight * fit;
 }
 
 export function getUsagePercent(choice) {
@@ -146,49 +159,39 @@ function scoreTeamFit(team, opponentTypeBias = {}) {
   const profiles = team
     .map((choice) => choice.legalityProfile)
     .filter(Boolean);
-  const attackTypes = new Set();
-  const coveredDefenseTypes = new Set();
-  let score = 0;
-
-  for (const profile of profiles) {
-    for (const attackType of profile.attackTypes || []) {
-      attackTypes.add(attackType);
-
-      for (const defenseType of REBORN_ANALYSIS_TYPES) {
-        if (getTypeMultiplier(attackType, [defenseType]) > 1) {
-          coveredDefenseTypes.add(defenseType);
-        }
-      }
-    }
-  }
-
+  const weights = computeCoverageWeights(opponentTypeBias);
   // Per-member fit-penalty weight: a pick that counters a biased opponent type
   // (resists/is immune to it, or hits it super-effectively) is shielded from
-  // shared-weakness penalties in proportion to that type's bias level, so
-  // stacking dedicated counters isn't punished. Non-counters keep full weight.
+  // shared-weakness penalties in proportion to that type's bias level.
   const fitWeights = profiles.map(
     (profile) => 1 - biasCounterExemption(profile, opponentTypeBias),
   );
+  let score = 0;
 
-  score += attackTypes.size * 70;
-  score += coveredDefenseTypes.size * 90;
-  score -= (REBORN_ANALYSIS_TYPES.length - coveredDefenseTypes.size) * 80;
+  // Damage-aware coverage: noisy-OR over members' per-type A values.
+  for (let j = 0; j < TYPE_COUNT; j++) {
+    let miss = 1;
+    for (const profile of profiles) {
+      const vector = profile.coverageVector || ZERO_COVERAGE;
+      miss *= 1 - (vector[j] || 0);
+    }
+    score += weights[j] * (1 - miss) * COVERAGE_SCALE;
+  }
 
-  for (const attackType of REBORN_ANALYSIS_TYPES) {
+  // Defensive shared-weakness term.
+  for (let j = 0; j < TYPE_COUNT; j++) {
+    const attackType = REBORN_ANALYSIS_TYPES[j];
     let weakWeight = 0;
     let coverCount = 0;
-
     profiles.forEach((profile, index) => {
       const multiplier = getTypeMultiplier(attackType, profile.currentTypes || []);
       if (multiplier > 1) weakWeight += fitWeights[index];
       else if (multiplier < 1) coverCount += 1;
     });
-
     if (weakWeight >= 2) {
       score -= (weakWeight - 1) * 180;
       if (!coverCount) score -= 260;
     }
-
     if (coverCount >= 2) score += Math.min(3, coverCount) * 45;
   }
 

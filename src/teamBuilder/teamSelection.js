@@ -139,13 +139,12 @@ const BEAM_WIDTH = 2000;
 // reduce to a shortlist and enumerate THAT exactly, instead of a lossy beam. The
 // shortlist keeps the top mons by individual score plus the best provider of each
 // attack type and each defensive resist, so no mon that could earn a slot on
-// quality OR coverage is pruned before the optimiser sees it. C(24,6) ≈ 135k, an
-// exact search that stays interactive on the sequential path (routing it through
-// the Web Worker pool would allow a larger shortlist — noted as a follow-up).
-// This is what makes a 100-mon pool usable — exact on a coverage-preserving
-// shortlist instead of the old lossy beam.
-const SHORTLIST_MAX = 24;
-const SHORTLIST_CORE = 16;
+// quality OR coverage is pruned before the optimiser sees it. C(28,6) ≈ 376k
+// (above the parallel threshold, so it runs across the Web Worker pool like any
+// other big search). This is what makes a 100-mon pool usable — exact on a
+// coverage-preserving shortlist instead of the old lossy beam.
+const SHORTLIST_MAX = 28;
+const SHORTLIST_CORE = 20;
 
 // --- Full-enumeration team store -------------------------------------------
 // When a SEQUENTIAL exact search enumerates every C(N, size) team, we keep them
@@ -317,15 +316,32 @@ async function selectTeamByFit(
       searchExact = true;
     } else {
       // Too big to enumerate fully: reduce to a coverage-preserving shortlist and
-      // enumerate THAT exactly (far better than the old lossy beam).
-      const shortlist = buildShortlist(lines, opponentTypeBias);
-      evaluated = selectTeamExhaustive(
-        shortlist,
-        Math.min(6, shortlist.length),
-        opponentTypeBias,
-        null,
-        null,
-      );
+      // enumerate THAT exactly (far better than the old lossy beam). Route through
+      // the Web Worker pool when it's worth it, so a big pool still uses all cores.
+      const shortlist = buildShortlist(lines);
+      const shortSize = Math.min(6, shortlist.length);
+      const shortCombos = countCombinations(shortlist.length, shortSize);
+      let shortEvaluated = null;
+      if (shortCombos >= PARALLEL_THRESHOLD) {
+        const compactLines = buildCompactLines(shortlist);
+        const bestRefs = await parallelFullSearch(
+          compactLines,
+          shortSize,
+          opponentTypeBias,
+          shortCombos,
+        );
+        if (bestRefs) {
+          shortEvaluated = evaluatedFromRefs(
+            bestRefs,
+            shortlist,
+            shortSize,
+            opponentTypeBias,
+          );
+        }
+      }
+      evaluated =
+        shortEvaluated ||
+        selectTeamExhaustive(shortlist, shortSize, opponentTypeBias, null, null);
       searchExact = false; // exact on the shortlist, not the whole pool
     }
 
@@ -358,6 +374,7 @@ function buildCompactLines(lines) {
       legalityProfile: {
         attackTypes: choice.legalityProfile?.attackTypes || [],
         currentTypes: choice.legalityProfile?.currentTypes || [],
+        coverageVector: choice.legalityProfile?.coverageVector || null,
       },
     })),
   }));

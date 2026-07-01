@@ -22,6 +22,7 @@ import { teamMemberKey } from "../teamBuilder/itemRecommendations.js";
 import { toId } from "../utils/ids.js";
 import { MAX_OPPONENT_TYPE_BIAS } from "./progression.js";
 import { getItemDamageMultiplier } from "./itemDamage.js";
+import { stageReferenceDamage } from "../teamBuilder/currentFormValue.js";
 
 export { REBORN_ANALYSIS_TYPES };
 
@@ -249,7 +250,27 @@ export function buildCandidateLegalityProfile({
     }
   }
 
+  // Damage-aware coverage vector: A(this build, e) for each defense type e — the
+  // build's best real hit into e (its recommended damaging moves' estimated damage,
+  // ability/STAB/effectiveness-aware) as a fraction of a stage-typical strong hit.
+  // So a 30-BP Lick contributes ~nothing to Ghost coverage while a Protean Ice
+  // Beam into Ground/Dragon contributes a lot. Consumed by the team coverage term.
+  const coverageRef = stageReferenceDamage(levelCap) || 1;
+  const recommendedMoveDamage = recommendedDamagingMoves.map((move) => ({
+    type: move.type,
+    damage: getEstimatedDamage(move, member, stats),
+  }));
+  const coverageVector = REBORN_ANALYSIS_TYPES.map((defenseType) => {
+    let best = 0;
+    for (const md of recommendedMoveDamage) {
+      const dealt = md.damage * getTypeMultiplier(md.type, [defenseType]);
+      if (dealt > best) best = dealt;
+    }
+    return Math.min(1, best / coverageRef);
+  });
+
   return {
+    coverageVector,
     attackTypes: attackingTypes.map((entry) => entry.type),
     bestCoverageMoves: attackingTypes
       .filter((entry) => !member.types.includes(entry.type))

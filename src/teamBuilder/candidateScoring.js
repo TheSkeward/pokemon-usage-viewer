@@ -105,8 +105,11 @@ export function scoreCandidate({
   const online = getReadinessGate(legalityProfile, current.features);
 
   // Usage pulls C toward the ceiling: gated by O, capped by α, upside-only.
+  // α overridable for the robustness sweep / tuning (not a hot path — ~pool-size
+  // calls per optimize).
+  const alpha = globalThis.__USAGE_INFLUENCE__ ?? USAGE_INFLUENCE;
   const headroom = Math.max(0, ceiling - currentValue);
-  const usagePull = USAGE_INFLUENCE * online * headroom;
+  const usagePull = alpha * online * headroom;
 
   // F — display-only near-future value; NOT added to V (see comment above).
   const futureValue =
