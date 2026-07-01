@@ -58,6 +58,51 @@ function isUtilityMove(move) {
   return false;
 }
 
+// Effects with no structured dex field, keyed by id.
+const HAZARD_REMOVE_MOVES = new Set(["rapidspin", "defog", "courtchange"]);
+const HAZARD_SIDE_CONDITIONS = new Set(["stealthrock", "spikes", "toxicspikes"]);
+const SCREEN_SIDE_CONDITIONS = new Set(["reflect", "lightscreen", "auroraveil"]);
+const DISRUPTION_VOLATILES = new Set(["taunt", "encore", "disable", "imprison"]);
+
+// A move's utility "kinds", so utility scoring can tell real team infrastructure
+// (recovery, hazards, speed control, setup) from an annoying-baby status move.
+// ~85% is read straight from @pkmn/dex effect fields; the rest is hand-coded above.
+function deriveRoles(move) {
+  const roles = new Set();
+  const secondaries =
+    move.secondaries || (move.secondary ? [move.secondary] : []);
+
+  if (move.heal || move.drain) roles.add("recovery");
+  if (move.boosts && Object.values(move.boosts).some((v) => v > 0))
+    roles.add("setup");
+  if (move.self?.boosts && Object.values(move.self.boosts).some((v) => v > 0))
+    roles.add("setup");
+  if (move.terrain || move.weather) roles.add("setup");
+
+  if (move.status) roles.add("status");
+  for (const s of secondaries) if (s?.status) roles.add("status");
+
+  if ((move.priority || 0) > 0) roles.add("priority");
+
+  if (HAZARD_SIDE_CONDITIONS.has(move.sideCondition)) roles.add("hazard_set");
+  if (HAZARD_REMOVE_MOVES.has(move.id)) roles.add("hazard_remove");
+  if (SCREEN_SIDE_CONDITIONS.has(move.sideCondition)) roles.add("screen");
+  if (move.forceSwitch) roles.add("phazing");
+  if (move.selfSwitch) roles.add("pivot");
+
+  if (move.status === "par") roles.add("speed_control");
+  if (move.sideCondition === "stickyweb") roles.add("speed_control");
+  if (move.pseudoWeather === "trickroom") roles.add("speed_control");
+  for (const s of secondaries) {
+    if (s?.status === "par") roles.add("speed_control");
+    if (s?.boosts?.spe && s.boosts.spe < 0) roles.add("speed_control");
+  }
+
+  if (DISRUPTION_VOLATILES.has(move.volatileStatus)) roles.add("disruption");
+
+  return [...roles];
+}
+
 function main() {
   const dex = Dex.forGen(7);
   const meta = {};
@@ -94,6 +139,11 @@ function main() {
     // Two-turn charge moves (Solar Beam, Fly, ...). The damage model amortizes
     // the wasted turn — except for the semi-invulnerable ones, handled by id.
     if (move.flags?.charge) entry.charge = true;
+    // Utility role kinds (recovery / setup / status / speed_control / hazards /
+    // screen / pivot / phazing / priority / disruption), so utility scoring can
+    // weight real team infrastructure above chip status.
+    const roles = deriveRoles(move);
+    if (roles.length) entry.roles = roles;
     meta[move.id] = entry;
   }
 

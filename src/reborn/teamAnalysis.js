@@ -234,7 +234,11 @@ export function buildCandidateLegalityProfile({
   const formattedRecommendedMoves = recommendedMoves
     .map((move) => formatRecommendedMove(move, member, stats))
     .sort((a, b) => compareDisplayOrder(a, b, canonicalRankById));
-  const attackingTypes = summarizeAttackTypes(member, recommendedDamagingMoves, stats);
+  const attackingTypes = summarizeAttackTypes(
+    member,
+    recommendedDamagingMoves,
+    stats,
+  );
   const superEffectiveTargetTypes = new Set();
 
   for (const move of recommendedDamagingMoves) {
@@ -767,6 +771,10 @@ function formatProfileMove(move, member, attackerStats) {
     name: move.name,
     priority: move.priority || 0,
     type: move.type,
+    // Utility role kinds + hit rate, so utility scoring can value real
+    // infrastructure (recovery/hazards/speed control) above chip status.
+    roles: move.roles || [],
+    accuracy: typeof move.accuracy === "number" ? move.accuracy : 100,
   };
 }
 

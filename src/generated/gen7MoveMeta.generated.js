@@ -69,7 +69,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "beakblast": {
     "name": "Beak Blast",
@@ -96,7 +99,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 1,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "blackholeeclipse": {
     "name": "Black Hole Eclipse",
@@ -132,7 +138,10 @@ export const MOVE_META = {
     "basePower": 90,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "breakneckblitz": {
     "name": "Breakneck Blitz",
@@ -150,7 +159,10 @@ export const MOVE_META = {
     "basePower": 40,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "speed_control"
+    ]
   },
   "buzzybuzz": {
     "name": "Buzzy Buzz",
@@ -159,7 +171,11 @@ export const MOVE_META = {
     "basePower": 90,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "camouflage": {
     "name": "Camouflage",
@@ -244,7 +260,10 @@ export const MOVE_META = {
     "basePower": 10,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "speed_control"
+    ]
   },
   "continentalcrush": {
     "name": "Continental Crush",
@@ -280,7 +299,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 50
+    "accuracy": 50,
+    "roles": [
+      "status"
+    ]
   },
   "defog": {
     "name": "Defog",
@@ -289,7 +311,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "hazard_remove"
+    ]
   },
   "devastatingdrake": {
     "name": "Devastating Drake",
@@ -376,7 +401,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "embargo": {
     "name": "Embargo",
@@ -394,7 +422,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "feintattack": {
     "name": "Feint Attack",
@@ -512,7 +543,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 55
+    "accuracy": 55,
+    "roles": [
+      "status"
+    ]
   },
   "grassyterrain": {
     "name": "Grassy Terrain",
@@ -521,7 +555,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "guardianofalola": {
     "name": "Guardian of Alola",
@@ -566,7 +603,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "healpulse": {
     "name": "Heal Pulse",
@@ -629,7 +669,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "hydrovortex": {
     "name": "Hydro Vortex",
@@ -701,7 +744,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 1,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "judgment": {
     "name": "Judgment",
@@ -737,7 +783,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 4,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "letssnuggleforever": {
     "name": "Let's Snuggle Forever",
@@ -827,7 +876,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "mefirst": {
     "name": "Me First",
@@ -1016,7 +1068,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 1,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "precipiceblades": {
     "name": "Precipice Blades",
@@ -1034,7 +1089,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "psychoboost": {
     "name": "Psycho Boost",
@@ -1115,7 +1173,10 @@ export const MOVE_META = {
     "basePower": 20,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "hazard_remove"
+    ]
   },
   "razorwind": {
     "name": "Razor Wind",
@@ -1143,7 +1204,10 @@ export const MOVE_META = {
     "basePower": 75,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "return": {
     "name": "Return",
@@ -1224,7 +1288,11 @@ export const MOVE_META = {
     "basePower": 70,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "seedflare": {
     "name": "Seed Flare",
@@ -1242,7 +1310,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "shatteredpsyche": {
     "name": "Shattered Psyche",
@@ -1296,7 +1367,10 @@ export const MOVE_META = {
     "basePower": 90,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "sketch": {
     "name": "Sketch",
@@ -1342,7 +1416,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 4,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "sonicboom": {
     "name": "Sonic Boom",
@@ -1409,7 +1486,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 3,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "steamroller": {
     "name": "Steamroller",
@@ -1427,7 +1507,11 @@ export const MOVE_META = {
     "basePower": 175,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "subzeroslammer": {
     "name": "Subzero Slammer",
@@ -1499,7 +1583,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "tectonicrage": {
     "name": "Tectonic Rage",
@@ -1535,7 +1622,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 90
+    "accuracy": 90,
+    "roles": [
+      "status"
+    ]
   },
   "toxicthread": {
     "name": "Toxic Thread",
@@ -1544,7 +1634,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "trumpcard": {
     "name": "Trump Card",
@@ -1563,7 +1656,10 @@ export const MOVE_META = {
     "priority": 0,
     "utility": true,
     "accuracy": 100,
-    "multihit": 2
+    "multihit": 2,
+    "roles": [
+      "status"
+    ]
   },
   "twinkletackle": {
     "name": "Twinkle Tackle",
@@ -1608,7 +1704,10 @@ export const MOVE_META = {
     "basePower": 50,
     "priority": 2,
     "utility": false,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "anchorshot": {
     "name": "Anchor Shot",
@@ -1626,7 +1725,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 4,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "batonpass": {
     "name": "Baton Pass",
@@ -1635,7 +1737,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "pivot"
+    ]
   },
   "bind": {
     "name": "Bind",
@@ -1680,7 +1785,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 4,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "disable": {
     "name": "Disable",
@@ -1689,7 +1797,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "disruption"
+    ]
   },
   "encore": {
     "name": "Encore",
@@ -1698,7 +1809,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "disruption"
+    ]
   },
   "endure": {
     "name": "Endure",
@@ -1707,7 +1821,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 4,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "entrainment": {
     "name": "Entrainment",
@@ -1761,7 +1878,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "hurricane": {
     "name": "Hurricane",
@@ -1779,7 +1899,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "disruption"
+    ]
   },
   "infestation": {
     "name": "Infestation",
@@ -1860,7 +1983,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 4,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "quickguard": {
     "name": "Quick Guard",
@@ -1869,7 +1995,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 3,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "recycle": {
     "name": "Recycle",
@@ -1961,7 +2090,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 4,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "spiritshackle": {
     "name": "Spirit Shackle",
@@ -1979,7 +2111,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "disruption"
+    ]
   },
   "thousandwaves": {
     "name": "Thousand Waves",
@@ -2006,7 +2141,11 @@ export const MOVE_META = {
     "basePower": 110,
     "priority": 0,
     "utility": true,
-    "accuracy": 70
+    "accuracy": 70,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "whirlpool": {
     "name": "Whirlpool",
@@ -2024,7 +2163,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 3,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "worryseed": {
     "name": "Worry Seed",
@@ -2051,7 +2193,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 2,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "aromatherapy": {
     "name": "Aromatherapy",
@@ -2069,7 +2214,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "screen"
+    ]
   },
   "autotomize": {
     "name": "Autotomize",
@@ -2078,7 +2226,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "belch": {
     "name": "Belch",
@@ -2096,7 +2247,10 @@ export const MOVE_META = {
     "basePower": 110,
     "priority": 0,
     "utility": true,
-    "accuracy": 70
+    "accuracy": 70,
+    "roles": [
+      "status"
+    ]
   },
   "boltbeak": {
     "name": "Bolt Beak",
@@ -2142,7 +2296,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "corrosivegas": {
     "name": "Corrosive Gas",
@@ -2160,7 +2317,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 3,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "cut": {
     "name": "Cut",
@@ -2254,7 +2414,10 @@ export const MOVE_META = {
     "priority": 0,
     "utility": true,
     "accuracy": 100,
-    "charge": true
+    "charge": true,
+    "roles": [
+      "setup"
+    ]
   },
   "glaciallance": {
     "name": "Glacial Lance",
@@ -2290,7 +2453,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "headcharge": {
     "name": "Head Charge",
@@ -2362,7 +2528,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 75
+    "accuracy": 75,
+    "roles": [
+      "status"
+    ]
   },
   "lusterpurge": {
     "name": "Luster Purge",
@@ -2380,7 +2549,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 4,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "matblock": {
     "name": "Mat Block",
@@ -2443,7 +2615,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 4,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "maxhailstorm": {
     "name": "Max Hailstorm",
@@ -2579,7 +2754,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "mindblown": {
     "name": "Mind Blown",
@@ -2633,7 +2811,10 @@ export const MOVE_META = {
     "basePower": 80,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "obstruct": {
     "name": "Obstruct",
@@ -2642,7 +2823,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 4,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "octazooka": {
     "name": "Octazooka",
@@ -2696,7 +2880,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "rest": {
     "name": "Rest",
@@ -2723,7 +2910,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "searingshot": {
     "name": "Searing Shot",
@@ -2732,7 +2922,10 @@ export const MOVE_META = {
     "basePower": 100,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "secretsword": {
     "name": "Secret Sword",
@@ -2778,7 +2971,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "snaptrap": {
     "name": "Snap Trap",
@@ -2796,7 +2992,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "spectralthief": {
     "name": "Spectral Thief",
@@ -2814,7 +3013,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "speed_control"
+    ]
   },
   "stormthrow": {
     "name": "Storm Throw",
@@ -3027,7 +3229,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "pinmissile": {
     "name": "Pin Missile",
@@ -3080,7 +3285,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "hazard_set"
+    ]
   },
   "stealthrock": {
     "name": "Stealth Rock",
@@ -3089,7 +3297,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "hazard_set"
+    ]
   },
   "substitute": {
     "name": "Substitute",
@@ -3129,7 +3340,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "hazard_set"
+    ]
   },
   "watershuriken": {
     "name": "Water Shuriken",
@@ -3142,6 +3356,9 @@ export const MOVE_META = {
     "multihit": [
       2,
       5
+    ],
+    "roles": [
+      "priority"
     ]
   },
   "weatherball": {
@@ -3160,7 +3377,10 @@ export const MOVE_META = {
     "basePower": 20,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "accelerock": {
     "name": "Accelerock",
@@ -3169,7 +3389,10 @@ export const MOVE_META = {
     "basePower": 40,
     "priority": 1,
     "utility": false,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "acid": {
     "name": "Acid",
@@ -3187,7 +3410,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "acidspray": {
     "name": "Acid Spray",
@@ -3250,7 +3476,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "aircutter": {
     "name": "Air Cutter",
@@ -3286,7 +3515,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "ancientpower": {
     "name": "Ancient Power",
@@ -3322,7 +3554,10 @@ export const MOVE_META = {
     "basePower": 40,
     "priority": 1,
     "utility": false,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "aquaring": {
     "name": "Aqua Ring",
@@ -3367,7 +3602,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "assurance": {
     "name": "Assurance",
@@ -3466,7 +3704,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 1,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "barbbarrage": {
     "name": "Barb Barrage",
@@ -3475,7 +3716,10 @@ export const MOVE_META = {
     "basePower": 60,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "beatup": {
     "name": "Beat Up",
@@ -3511,7 +3755,10 @@ export const MOVE_META = {
     "basePower": 90,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "bittermalice": {
     "name": "Bitter Malice",
@@ -3539,7 +3786,10 @@ export const MOVE_META = {
     "basePower": 85,
     "priority": 0,
     "utility": true,
-    "accuracy": 90
+    "accuracy": 90,
+    "roles": [
+      "status"
+    ]
   },
   "blazingtorque": {
     "name": "Blazing Torque",
@@ -3548,7 +3798,10 @@ export const MOVE_META = {
     "basePower": 80,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "bleakwindstorm": {
     "name": "Bleakwind Storm",
@@ -3557,7 +3810,10 @@ export const MOVE_META = {
     "basePower": 100,
     "priority": 0,
     "utility": true,
-    "accuracy": 80
+    "accuracy": 80,
+    "roles": [
+      "speed_control"
+    ]
   },
   "bloodmoon": {
     "name": "Blood Moon",
@@ -3575,7 +3831,10 @@ export const MOVE_META = {
     "basePower": 130,
     "priority": 0,
     "utility": true,
-    "accuracy": 85
+    "accuracy": 85,
+    "roles": [
+      "status"
+    ]
   },
   "bodypress": {
     "name": "Body Press",
@@ -3593,7 +3852,11 @@ export const MOVE_META = {
     "basePower": 85,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "boltstrike": {
     "name": "Bolt Strike",
@@ -3602,7 +3865,11 @@ export const MOVE_META = {
     "basePower": 130,
     "priority": 0,
     "utility": true,
-    "accuracy": 85
+    "accuracy": 85,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "boomburst": {
     "name": "Boomburst",
@@ -3621,7 +3888,11 @@ export const MOVE_META = {
     "priority": 0,
     "utility": true,
     "accuracy": 85,
-    "charge": true
+    "charge": true,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "branchpoke": {
     "name": "Branch Poke",
@@ -3684,7 +3955,10 @@ export const MOVE_META = {
     "basePower": 65,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "speed_control"
+    ]
   },
   "bugbite": {
     "name": "Bug Bite",
@@ -3711,7 +3985,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "bulldoze": {
     "name": "Bulldoze",
@@ -3720,7 +3997,10 @@ export const MOVE_META = {
     "basePower": 60,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "speed_control"
+    ]
   },
   "bulletpunch": {
     "name": "Bullet Punch",
@@ -3729,7 +4009,10 @@ export const MOVE_META = {
     "basePower": 40,
     "priority": 1,
     "utility": false,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "burningbulwark": {
     "name": "Burning Bulwark",
@@ -3738,7 +4021,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 4,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "burningjealousy": {
     "name": "Burning Jealousy",
@@ -3756,7 +4042,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "ceaselessedge": {
     "name": "Ceaseless Edge",
@@ -3801,7 +4090,11 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup",
+      "pivot"
+    ]
   },
   "chloroblast": {
     "name": "Chloroblast",
@@ -3819,7 +4112,10 @@ export const MOVE_META = {
     "basePower": 60,
     "priority": -6,
     "utility": true,
-    "accuracy": 90
+    "accuracy": 90,
+    "roles": [
+      "phazing"
+    ]
   },
   "clangingscales": {
     "name": "Clanging Scales",
@@ -3837,7 +4133,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "clearsmog": {
     "name": "Clear Smog",
@@ -3864,7 +4163,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "coil": {
     "name": "Coil",
@@ -3873,7 +4175,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "collisioncourse": {
     "name": "Collision Course",
@@ -3891,7 +4196,11 @@ export const MOVE_META = {
     "basePower": 100,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "comeuppance": {
     "name": "Comeuppance",
@@ -3954,7 +4263,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "cottonguard": {
     "name": "Cotton Guard",
@@ -3963,7 +4275,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "cottonspore": {
     "name": "Cotton Spore",
@@ -3990,7 +4305,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "hazard_remove"
+    ]
   },
   "covet": {
     "name": "Covet",
@@ -4026,7 +4344,10 @@ export const MOVE_META = {
     "basePower": 70,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "crunch": {
     "name": "Crunch",
@@ -4089,7 +4410,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "defendorder": {
     "name": "Defend Order",
@@ -4098,7 +4422,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "defensecurl": {
     "name": "Defense Curl",
@@ -4107,7 +4434,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "destinybond": {
     "name": "Destiny Bond",
@@ -4125,7 +4455,10 @@ export const MOVE_META = {
     "basePower": 100,
     "priority": 0,
     "utility": true,
-    "accuracy": 95
+    "accuracy": 95,
+    "roles": [
+      "setup"
+    ]
   },
   "dig": {
     "name": "Dig",
@@ -4162,7 +4495,11 @@ export const MOVE_META = {
     "basePower": 80,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "doodle": {
     "name": "Doodle",
@@ -4227,7 +4564,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "dracometeor": {
     "name": "Draco Meteor",
@@ -4254,7 +4594,11 @@ export const MOVE_META = {
     "basePower": 60,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "dragoncheer": {
     "name": "Dragon Cheer",
@@ -4281,7 +4625,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "dragondarts": {
     "name": "Dragon Darts",
@@ -4327,7 +4674,10 @@ export const MOVE_META = {
     "basePower": 60,
     "priority": -6,
     "utility": true,
-    "accuracy": 90
+    "accuracy": 90,
+    "roles": [
+      "phazing"
+    ]
   },
   "drainingkiss": {
     "name": "Draining Kiss",
@@ -4336,7 +4686,10 @@ export const MOVE_META = {
     "basePower": 50,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "drainpunch": {
     "name": "Drain Punch",
@@ -4345,7 +4698,10 @@ export const MOVE_META = {
     "basePower": 75,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "dreameater": {
     "name": "Dream Eater",
@@ -4354,7 +4710,10 @@ export const MOVE_META = {
     "basePower": 100,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "drillpeck": {
     "name": "Drill Peck",
@@ -4381,7 +4740,10 @@ export const MOVE_META = {
     "basePower": 80,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "speed_control"
+    ]
   },
   "dualwingbeat": {
     "name": "Dual Wingbeat",
@@ -4482,7 +4844,10 @@ export const MOVE_META = {
     "basePower": 55,
     "priority": 0,
     "utility": true,
-    "accuracy": 95
+    "accuracy": 95,
+    "roles": [
+      "speed_control"
+    ]
   },
   "ember": {
     "name": "Ember",
@@ -4491,7 +4856,10 @@ export const MOVE_META = {
     "basePower": 40,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "endeavor": {
     "name": "Endeavor",
@@ -4563,7 +4931,10 @@ export const MOVE_META = {
     "basePower": 80,
     "priority": 2,
     "utility": false,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "facade": {
     "name": "Facade",
@@ -4590,7 +4961,10 @@ export const MOVE_META = {
     "basePower": 40,
     "priority": 3,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "faketears": {
     "name": "Fake Tears",
@@ -4635,7 +5009,10 @@ export const MOVE_META = {
     "basePower": 30,
     "priority": 2,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "fellstinger": {
     "name": "Fell Stinger",
@@ -4680,7 +5057,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "finalgambit": {
     "name": "Final Gambit",
@@ -4698,7 +5078,10 @@ export const MOVE_META = {
     "basePower": 110,
     "priority": 0,
     "utility": true,
-    "accuracy": 85
+    "accuracy": 85,
+    "roles": [
+      "status"
+    ]
   },
   "firefang": {
     "name": "Fire Fang",
@@ -4707,7 +5090,10 @@ export const MOVE_META = {
     "basePower": 65,
     "priority": 0,
     "utility": true,
-    "accuracy": 95
+    "accuracy": 95,
+    "roles": [
+      "status"
+    ]
   },
   "firelash": {
     "name": "Fire Lash",
@@ -4734,7 +5120,10 @@ export const MOVE_META = {
     "basePower": 75,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "firstimpression": {
     "name": "First Impression",
@@ -4743,7 +5132,10 @@ export const MOVE_META = {
     "basePower": 90,
     "priority": 2,
     "utility": false,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "fissure": {
     "name": "Fissure",
@@ -4779,7 +5171,10 @@ export const MOVE_META = {
     "basePower": 90,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "flamewheel": {
     "name": "Flame Wheel",
@@ -4788,7 +5183,10 @@ export const MOVE_META = {
     "basePower": 60,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "flareblitz": {
     "name": "Flare Blitz",
@@ -4797,7 +5195,10 @@ export const MOVE_META = {
     "basePower": 120,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "flashcannon": {
     "name": "Flash Cannon",
@@ -4815,7 +5216,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "fleurcannon": {
     "name": "Fleur Cannon",
@@ -4842,7 +5246,10 @@ export const MOVE_META = {
     "basePower": 60,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "pivot"
+    ]
   },
   "floatyfall": {
     "name": "Floaty Fall",
@@ -4905,7 +5312,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 2,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "forcepalm": {
     "name": "Force Palm",
@@ -4914,7 +5324,11 @@ export const MOVE_META = {
     "basePower": 60,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "forestscurse": {
     "name": "Forest's Curse",
@@ -4941,7 +5355,10 @@ export const MOVE_META = {
     "basePower": 70,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "freezeshock": {
     "name": "Freeze Shock",
@@ -4951,7 +5368,11 @@ export const MOVE_META = {
     "priority": 0,
     "utility": true,
     "accuracy": 90,
-    "charge": true
+    "charge": true,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "freezingglare": {
     "name": "Freezing Glare",
@@ -4960,7 +5381,10 @@ export const MOVE_META = {
     "basePower": 90,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "frenzyplant": {
     "name": "Frenzy Plant",
@@ -5015,7 +5439,10 @@ export const MOVE_META = {
     "basePower": 75,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "gigaimpact": {
     "name": "Giga Impact",
@@ -5043,7 +5470,10 @@ export const MOVE_META = {
     "basePower": 65,
     "priority": 0,
     "utility": true,
-    "accuracy": 95
+    "accuracy": 95,
+    "roles": [
+      "speed_control"
+    ]
   },
   "glaiverush": {
     "name": "Glaive Rush",
@@ -5061,7 +5491,11 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "gmaxbefuddle": {
     "name": "G-Max Befuddle",
@@ -5421,7 +5855,10 @@ export const MOVE_META = {
     "basePower": 120,
     "priority": 0,
     "utility": true,
-    "accuracy": 80
+    "accuracy": 80,
+    "roles": [
+      "status"
+    ]
   },
   "gust": {
     "name": "Gust",
@@ -5466,7 +5903,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "hardpress": {
     "name": "Hard Press",
@@ -5520,7 +5960,10 @@ export const MOVE_META = {
     "basePower": 95,
     "priority": 0,
     "utility": true,
-    "accuracy": 90
+    "accuracy": 90,
+    "roles": [
+      "status"
+    ]
   },
   "helpinghand": {
     "name": "Helping Hand",
@@ -5529,7 +5972,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 5,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "hex": {
     "name": "Hex",
@@ -5565,7 +6011,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "hornattack": {
     "name": "Horn Attack",
@@ -5592,7 +6041,10 @@ export const MOVE_META = {
     "basePower": 75,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "hydrocannon": {
     "name": "Hydro Cannon",
@@ -5657,7 +6109,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 60
+    "accuracy": 60,
+    "roles": [
+      "status"
+    ]
   },
   "icebeam": {
     "name": "Ice Beam",
@@ -5666,7 +6121,10 @@ export const MOVE_META = {
     "basePower": 90,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "iceburn": {
     "name": "Ice Burn",
@@ -5676,7 +6134,10 @@ export const MOVE_META = {
     "priority": 0,
     "utility": true,
     "accuracy": 90,
-    "charge": true
+    "charge": true,
+    "roles": [
+      "status"
+    ]
   },
   "icefang": {
     "name": "Ice Fang",
@@ -5685,7 +6146,10 @@ export const MOVE_META = {
     "basePower": 65,
     "priority": 0,
     "utility": true,
-    "accuracy": 95
+    "accuracy": 95,
+    "roles": [
+      "status"
+    ]
   },
   "icepunch": {
     "name": "Ice Punch",
@@ -5694,7 +6158,10 @@ export const MOVE_META = {
     "basePower": 75,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "iceshard": {
     "name": "Ice Shard",
@@ -5703,7 +6170,10 @@ export const MOVE_META = {
     "basePower": 40,
     "priority": 1,
     "utility": false,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "icespinner": {
     "name": "Ice Spinner",
@@ -5730,7 +6200,10 @@ export const MOVE_META = {
     "basePower": 55,
     "priority": 0,
     "utility": true,
-    "accuracy": 95
+    "accuracy": 95,
+    "roles": [
+      "speed_control"
+    ]
   },
   "incinerate": {
     "name": "Incinerate",
@@ -5748,7 +6221,10 @@ export const MOVE_META = {
     "basePower": 60,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "inferno": {
     "name": "Inferno",
@@ -5757,7 +6233,10 @@ export const MOVE_META = {
     "basePower": 100,
     "priority": 0,
     "utility": true,
-    "accuracy": 50
+    "accuracy": 50,
+    "roles": [
+      "status"
+    ]
   },
   "irondefense": {
     "name": "Iron Defense",
@@ -5766,7 +6245,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "ironhead": {
     "name": "Iron Head",
@@ -5811,7 +6293,10 @@ export const MOVE_META = {
     "basePower": 60,
     "priority": 1,
     "utility": false,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "junglehealing": {
     "name": "Jungle Healing",
@@ -5865,7 +6350,10 @@ export const MOVE_META = {
     "basePower": 80,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "leafage": {
     "name": "Leafage",
@@ -5901,7 +6389,10 @@ export const MOVE_META = {
     "basePower": 80,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "leer": {
     "name": "Leer",
@@ -5919,7 +6410,11 @@ export const MOVE_META = {
     "basePower": 30,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "lifedew": {
     "name": "Life Dew",
@@ -5928,7 +6423,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "lightscreen": {
     "name": "Light Screen",
@@ -5937,7 +6435,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "screen"
+    ]
   },
   "liquidation": {
     "name": "Liquidation",
@@ -5964,7 +6465,10 @@ export const MOVE_META = {
     "basePower": 65,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "speed_control"
+    ]
   },
   "luminacrash": {
     "name": "Lumina Crash",
@@ -6000,7 +6504,10 @@ export const MOVE_META = {
     "basePower": 40,
     "priority": 1,
     "utility": false,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "magicalleaf": {
     "name": "Magical Leaf",
@@ -6063,7 +6570,10 @@ export const MOVE_META = {
     "basePower": 100,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "matchagotcha": {
     "name": "Matcha Gotcha",
@@ -6072,7 +6582,11 @@ export const MOVE_META = {
     "basePower": 80,
     "priority": 0,
     "utility": true,
-    "accuracy": 90
+    "accuracy": 90,
+    "roles": [
+      "recovery",
+      "status"
+    ]
   },
   "megadrain": {
     "name": "Mega Drain",
@@ -6081,7 +6595,10 @@ export const MOVE_META = {
     "basePower": 40,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "megahorn": {
     "name": "Megahorn",
@@ -6199,7 +6716,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "moonblast": {
     "name": "Moonblast",
@@ -6217,7 +6737,10 @@ export const MOVE_META = {
     "basePower": 30,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "mountaingale": {
     "name": "Mountain Gale",
@@ -6244,7 +6767,10 @@ export const MOVE_META = {
     "basePower": 55,
     "priority": 0,
     "utility": true,
-    "accuracy": 95
+    "accuracy": 95,
+    "roles": [
+      "speed_control"
+    ]
   },
   "mudslap": {
     "name": "Mud-Slap",
@@ -6280,7 +6806,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "nightdaze": {
     "name": "Night Daze",
@@ -6334,7 +6863,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "noxioustorque": {
     "name": "Noxious Torque",
@@ -6343,7 +6875,10 @@ export const MOVE_META = {
     "basePower": 100,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "nuzzle": {
     "name": "Nuzzle",
@@ -6352,7 +6887,11 @@ export const MOVE_META = {
     "basePower": 20,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "orderup": {
     "name": "Order Up",
@@ -6415,7 +6954,10 @@ export const MOVE_META = {
     "basePower": 65,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "recovery"
+    ]
   },
   "partingshot": {
     "name": "Parting Shot",
@@ -6424,7 +6966,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "pivot"
+    ]
   },
   "payback": {
     "name": "Payback",
@@ -6542,7 +7087,10 @@ export const MOVE_META = {
     "basePower": 50,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "poisongas": {
     "name": "Poison Gas",
@@ -6551,7 +7099,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 90
+    "accuracy": 90,
+    "roles": [
+      "status"
+    ]
   },
   "poisonjab": {
     "name": "Poison Jab",
@@ -6560,7 +7111,10 @@ export const MOVE_META = {
     "basePower": 80,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "poisonpowder": {
     "name": "Poison Powder",
@@ -6569,7 +7123,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 75
+    "accuracy": 75,
+    "roles": [
+      "status"
+    ]
   },
   "poisonsting": {
     "name": "Poison Sting",
@@ -6578,7 +7135,10 @@ export const MOVE_META = {
     "basePower": 15,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "poisontail": {
     "name": "Poison Tail",
@@ -6587,7 +7147,10 @@ export const MOVE_META = {
     "basePower": 50,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "poltergeist": {
     "name": "Poltergeist",
@@ -6615,7 +7178,10 @@ export const MOVE_META = {
     "basePower": 50,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "speed_control"
+    ]
   },
   "pound": {
     "name": "Pound",
@@ -6633,7 +7199,10 @@ export const MOVE_META = {
     "basePower": 40,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "powergem": {
     "name": "Power Gem",
@@ -6814,7 +7383,10 @@ export const MOVE_META = {
     "basePower": 120,
     "priority": 0,
     "utility": true,
-    "accuracy": 90
+    "accuracy": 90,
+    "roles": [
+      "status"
+    ]
   },
   "quickattack": {
     "name": "Quick Attack",
@@ -6823,7 +7395,10 @@ export const MOVE_META = {
     "basePower": 40,
     "priority": 1,
     "utility": false,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "quiverdance": {
     "name": "Quiver Dance",
@@ -6832,7 +7407,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "ragefist": {
     "name": "Rage Fist",
@@ -6850,7 +7428,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 2,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "ragingbull": {
     "name": "Raging Bull",
@@ -6877,7 +7458,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "razorleaf": {
     "name": "Razor Leaf",
@@ -6904,7 +7488,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "screen"
+    ]
   },
   "retaliate": {
     "name": "Retaliate",
@@ -6931,7 +7518,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "pivot"
+    ]
   },
   "risingvoltage": {
     "name": "Rising Voltage",
@@ -6949,7 +7539,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": -6,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "phazing"
+    ]
   },
   "roaroftime": {
     "name": "Roar of Time",
@@ -6968,7 +7561,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "rockslide": {
     "name": "Rock Slide",
@@ -7004,7 +7600,10 @@ export const MOVE_META = {
     "basePower": 60,
     "priority": 0,
     "utility": true,
-    "accuracy": 95
+    "accuracy": 95,
+    "roles": [
+      "speed_control"
+    ]
   },
   "rockwrecker": {
     "name": "Rock Wrecker",
@@ -7041,7 +7640,10 @@ export const MOVE_META = {
     "basePower": 100,
     "priority": 0,
     "utility": true,
-    "accuracy": 95
+    "accuracy": 95,
+    "roles": [
+      "status"
+    ]
   },
   "sacredsword": {
     "name": "Sacred Sword",
@@ -7086,7 +7688,10 @@ export const MOVE_META = {
     "basePower": 100,
     "priority": 0,
     "utility": true,
-    "accuracy": 80
+    "accuracy": 80,
+    "roles": [
+      "status"
+    ]
   },
   "sandstorm": {
     "name": "Sandstorm",
@@ -7095,7 +7700,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "scald": {
     "name": "Scald",
@@ -7104,7 +7712,10 @@ export const MOVE_META = {
     "basePower": 80,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "scaleshot": {
     "name": "Scale Shot",
@@ -7135,7 +7746,10 @@ export const MOVE_META = {
     "basePower": 70,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "scratch": {
     "name": "Scratch",
@@ -7226,7 +7840,10 @@ export const MOVE_META = {
     "basePower": 40,
     "priority": 1,
     "utility": false,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "shedtail": {
     "name": "Shed Tail",
@@ -7235,7 +7852,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "pivot"
+    ]
   },
   "sheercold": {
     "name": "Sheer Cold",
@@ -7253,7 +7873,10 @@ export const MOVE_META = {
     "basePower": 90,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "shellsmash": {
     "name": "Shell Smash",
@@ -7262,7 +7885,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "shelter": {
     "name": "Shelter",
@@ -7271,7 +7897,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "shiftgear": {
     "name": "Shift Gear",
@@ -7280,7 +7909,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "shockwave": {
     "name": "Shock Wave",
@@ -7298,7 +7930,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 4,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "sing": {
     "name": "Sing",
@@ -7307,7 +7942,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 55
+    "accuracy": 55,
+    "roles": [
+      "status"
+    ]
   },
   "skittersmack": {
     "name": "Skitter Smack",
@@ -7353,7 +7991,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 75
+    "accuracy": 75,
+    "roles": [
+      "status"
+    ]
   },
   "sludge": {
     "name": "Sludge",
@@ -7362,7 +8003,10 @@ export const MOVE_META = {
     "basePower": 65,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "sludgebomb": {
     "name": "Sludge Bomb",
@@ -7371,7 +8015,10 @@ export const MOVE_META = {
     "basePower": 90,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "sludgewave": {
     "name": "Sludge Wave",
@@ -7380,7 +8027,10 @@ export const MOVE_META = {
     "basePower": 95,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "smackdown": {
     "name": "Smack Down",
@@ -7407,7 +8057,10 @@ export const MOVE_META = {
     "basePower": 30,
     "priority": 0,
     "utility": true,
-    "accuracy": 70
+    "accuracy": 70,
+    "roles": [
+      "status"
+    ]
   },
   "smokescreen": {
     "name": "Smokescreen",
@@ -7452,7 +8105,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "spacialrend": {
     "name": "Spacial Rend",
@@ -7470,7 +8126,11 @@ export const MOVE_META = {
     "basePower": 65,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "sparklingaria": {
     "name": "Sparkling Aria",
@@ -7497,7 +8157,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "spinout": {
     "name": "Spin Out",
@@ -7551,7 +8214,11 @@ export const MOVE_META = {
     "basePower": 90,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "spore": {
     "name": "Spore",
@@ -7560,7 +8227,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "springtidestorm": {
     "name": "Springtide Storm",
@@ -7578,7 +8248,10 @@ export const MOVE_META = {
     "basePower": 110,
     "priority": 0,
     "utility": true,
-    "accuracy": 95
+    "accuracy": 95,
+    "roles": [
+      "status"
+    ]
   },
   "steelbeam": {
     "name": "Steel Beam",
@@ -7731,7 +8404,11 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 75
+    "accuracy": 75,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "suckerpunch": {
     "name": "Sucker Punch",
@@ -7740,7 +8417,10 @@ export const MOVE_META = {
     "basePower": 70,
     "priority": 1,
     "utility": false,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "sunnyday": {
     "name": "Sunny Day",
@@ -7749,7 +8429,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "supercellslam": {
     "name": "Supercell Slam",
@@ -7813,7 +8496,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 85
+    "accuracy": 85,
+    "roles": [
+      "setup"
+    ]
   },
   "sweetkiss": {
     "name": "Sweet Kiss",
@@ -7849,7 +8535,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "syrupbomb": {
     "name": "Syrup Bomb",
@@ -8012,7 +8701,11 @@ export const MOVE_META = {
     "basePower": 90,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "thunderclap": {
     "name": "Thunderclap",
@@ -8021,7 +8714,10 @@ export const MOVE_META = {
     "basePower": 70,
     "priority": 1,
     "utility": false,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "thunderfang": {
     "name": "Thunder Fang",
@@ -8030,7 +8726,11 @@ export const MOVE_META = {
     "basePower": 65,
     "priority": 0,
     "utility": true,
-    "accuracy": 95
+    "accuracy": 95,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "thunderouskick": {
     "name": "Thunderous Kick",
@@ -8048,7 +8748,11 @@ export const MOVE_META = {
     "basePower": 75,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "thundershock": {
     "name": "Thunder Shock",
@@ -8057,7 +8761,11 @@ export const MOVE_META = {
     "basePower": 40,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "thunderwave": {
     "name": "Thunder Wave",
@@ -8066,7 +8774,11 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 90
+    "accuracy": 90,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "tickle": {
     "name": "Tickle",
@@ -8156,7 +8868,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": -7,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "speed_control"
+    ]
   },
   "triplearrows": {
     "name": "Triple Arrows",
@@ -8232,7 +8947,10 @@ export const MOVE_META = {
     "basePower": 65,
     "priority": 3,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "uproar": {
     "name": "Uproar",
@@ -8250,7 +8968,10 @@ export const MOVE_META = {
     "basePower": 70,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "pivot"
+    ]
   },
   "vacuumwave": {
     "name": "Vacuum Wave",
@@ -8259,7 +8980,10 @@ export const MOVE_META = {
     "basePower": 40,
     "priority": 1,
     "utility": false,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "priority"
+    ]
   },
   "veeveevolley": {
     "name": "Veevee Volley",
@@ -8286,7 +9010,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "vinewhip": {
     "name": "Vine Whip",
@@ -8313,7 +9040,10 @@ export const MOVE_META = {
     "basePower": 70,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "pivot"
+    ]
   },
   "volttackle": {
     "name": "Volt Tackle",
@@ -8322,7 +9052,11 @@ export const MOVE_META = {
     "basePower": 120,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "waterfall": {
     "name": "Waterfall",
@@ -8385,7 +9119,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": -6,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "phazing"
+    ]
   },
   "wickedtorque": {
     "name": "Wicked Torque",
@@ -8394,7 +9131,10 @@ export const MOVE_META = {
     "basePower": 80,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   },
   "wildboltstorm": {
     "name": "Wildbolt Storm",
@@ -8403,7 +9143,11 @@ export const MOVE_META = {
     "basePower": 100,
     "priority": 0,
     "utility": true,
-    "accuracy": 80
+    "accuracy": 80,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "wildcharge": {
     "name": "Wild Charge",
@@ -8421,7 +9165,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 85
+    "accuracy": 85,
+    "roles": [
+      "status"
+    ]
   },
   "wingattack": {
     "name": "Wing Attack",
@@ -8448,7 +9195,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "wonderroom": {
     "name": "Wonder Room",
@@ -8475,7 +9225,10 @@ export const MOVE_META = {
     "basePower": 0,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "setup"
+    ]
   },
   "xscissor": {
     "name": "X-Scissor",
@@ -8502,7 +9255,11 @@ export const MOVE_META = {
     "basePower": 120,
     "priority": 0,
     "utility": true,
-    "accuracy": 50
+    "accuracy": 50,
+    "roles": [
+      "status",
+      "speed_control"
+    ]
   },
   "zenheadbutt": {
     "name": "Zen Headbutt",
@@ -8547,6 +9304,9 @@ export const MOVE_META = {
     "basePower": 75,
     "priority": 0,
     "utility": true,
-    "accuracy": 100
+    "accuracy": 100,
+    "roles": [
+      "status"
+    ]
   }
 };

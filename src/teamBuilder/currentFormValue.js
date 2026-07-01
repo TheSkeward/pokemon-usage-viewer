@@ -25,10 +25,20 @@ import {
   GEN7_BASE_STATS,
   GEN7_BASE_STAT_TOTALS,
 } from "../generated/gen7BaseStats.generated.js";
+import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
 
 // Points scale for C; shared with the usage ceiling U so the two are directly
 // comparable (see candidateScoring).
 export const CURRENT_VALUE_SCALE = 2000;
+
+// How much an attacker's role leans on its secondary threats vs its single best
+// move. Small and capped — "one role" doesn't mean "one move", but breadth must
+// not dominate peak. (Swept {0, 0.1, 0.2} for stability.)
+const PORTFOLIO_WEIGHT = 0.15;
+
+// Utility roles score below attacker roles at equal feature quality — support is
+// valuable but shouldn't bench a real threat in a PvE playthrough.
+const UTILITY_ROLE_WEIGHT = 0.75;
 
 function statsOf(id) {
   return GEN7_BASE_STATS[id] || null; // [Atk, Def, SpA, SpD, Spe]
@@ -83,6 +93,54 @@ const SPEED_REF = buildSorted(speedOf);
 const PHYS_BULK_REF = buildSorted(physBulkOf);
 const SPEC_BULK_REF = buildSorted(specBulkOf);
 
+// R_cap: the forms plausibly reachable by the current level cap, so an early
+// workhorse is ranked against what it actually competes with, not the full dex
+// of late-game evolutions and legendaries. A form is reachable if its whole
+// evolution chain is satisfiable — level steps at or below the cap; friendship/
+// item steps assumed grindable. Percentiles blend global and R_cap 50/50 so the
+// reference shifts with progression without lurching. Reference arrays cached
+// per cap (built at most once each).
+const REACHABLE_BLEND = 0.5;
+function reachableByCap(id, cap) {
+  const s = GEN7_PROGRESSION_SPECIES[id];
+  if (!s || !s.prevoId) return true; // base form / unknown: always available
+  if (s.evoLevel != null && s.evoLevel > cap) return false; // level evo above cap
+  return reachableByCap(s.prevoId, cap);
+}
+const capRefCache = new Map();
+function capRefs(levelCap) {
+  const cap = Math.max(1, Math.min(100, levelCap || 100));
+  let refs = capRefCache.get(cap);
+  if (!refs) {
+    const ids = Object.keys(GEN7_BASE_STATS).filter((id) =>
+      reachableByCap(id, cap),
+    );
+    const sortedFrom = (fn) => {
+      const arr = [];
+      for (const id of ids) {
+        const v = fn(id);
+        if (v != null) arr.push(v);
+      }
+      arr.sort((a, b) => a - b);
+      return arr;
+    };
+    refs = {
+      speed: sortedFrom(speedOf),
+      phys: sortedFrom(physBulkOf),
+      spec: sortedFrom(specBulkOf),
+    };
+    capRefCache.set(cap, refs);
+  }
+  return refs;
+}
+// Percentile blended between the full dex and the reachable-at-cap set.
+function stagePercentile(value, globalRef, capRef) {
+  return (
+    (1 - REACHABLE_BLEND) * percentile(value, globalRef) +
+    REACHABLE_BLEND * percentile(value, capRef)
+  );
+}
+
 // Fraction of the dex with a value <= this one (0..1).
 function percentile(value, sorted) {
   if (value == null || !sorted.length) return 0;
@@ -100,7 +158,7 @@ function percentile(value, sorted) {
 // STAB move at this level cap, using the same core math as the damage estimator
 // (base-70 reference defender). damage_q divides the mon's best hit by this, so
 // "hits hard" is judged against the current stage rather than an absolute bar.
-function stageReferenceDamage(levelCap) {
+export function stageReferenceDamage(levelCap) {
   const lvl = Math.max(1, Math.min(100, levelCap || 50));
   const statAt = (base) => Math.floor((2 * base * lvl) / 100) + 5;
   // A genuinely strong attacker (base-115 offense, 100-BP STAB) as the "1.0" bar,
@@ -123,41 +181,88 @@ function geomean(values) {
 }
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 
+// How much each utility role is worth as team infrastructure. Recovery / hazards /
+// speed control / setup are real jobs; a lone status or priority tag is minor.
+const ROLE_WEIGHTS = {
+  recovery: 1.0,
+  hazard_set: 0.9,
+  speed_control: 0.8,
+  setup: 0.7,
+  pivot: 0.7,
+  hazard_remove: 0.7,
+  phazing: 0.6,
+  screen: 0.6,
+  disruption: 0.6,
+  status: 0.4,
+  priority: 0.4,
+};
+
+// Summed utility value of a recommended set: each move contributes its best
+// role's weight, scaled by hit rate. Saturated by the caller.
+function utilityValue(recommendedMoves) {
+  let total = 0;
+  for (const move of recommendedMoves || []) {
+    let best = 0;
+    for (const role of move.roles || []) {
+      best = Math.max(best, ROLE_WEIGHTS[role] || 0);
+    }
+    if (best > 0) total += best * ((move.accuracy ?? 100) / 100);
+  }
+  return total;
+}
+
 // The five features for the fielded form, all in [0,1].
 export function currentFormFeatures(profile, levelCap) {
   const currentId = profile?.currentId;
 
-  const bestDamage = Math.max(
+  // Offensive quality is mostly the PEAK hit (an attacker's one job) plus a small,
+  // capped portfolio term — its 2nd/3rd best attacks — so a one-strong-move mon
+  // that's hard-walled scores a touch below a mon with real secondary threats.
+  // This is a narrow anti-wall measure, NOT per-type breadth spam: it's the mon's
+  // actual recommended set, and it's where Protean earns individual credit (its
+  // coverage moves are STAB-boosted, so its portfolio rises).
+  const ref = stageReferenceDamage(levelCap);
+  // Soft saturation (never a hard 1.0): a hit at the reference reads ~0.7.
+  const soft = (d) => 1 - Math.exp(-1.2 * (d / ref));
+
+  const peakDamage = Math.max(
     profile?.bestStabMove?.estimatedDamage || 0,
     profile?.bestDamagingMove?.estimatedDamage || 0,
   );
-  // Soft saturation (never a hard 1.0), so the hardest hitters stay distinguishable
-  // and one absurd nuke can't peg the scale: a hit equal to the stage reference
-  // reads ~0.7, double that ~0.91.
-  const damage_q = 1 - Math.exp(-1.2 * (bestDamage / stageReferenceDamage(levelCap)));
+  const peak_damage_q = soft(peakDamage);
 
-  const speed_q = percentile(speedOf(currentId), SPEED_REF);
+  const portfolio = (profile?.recommendedMoves || [])
+    .filter((m) => m.category !== "Status" && (m.estimatedDamage || 0) > 0)
+    .map((m) => m.estimatedDamage)
+    .sort((a, b) => b - a)
+    .slice(0, 3);
+  const portfolio_q = portfolio.length
+    ? portfolio.map(soft).reduce((a, b) => a + b, 0) / portfolio.length
+    : peak_damage_q;
+
+  const w = globalThis.__PORTFOLIO_WEIGHT__ ?? PORTFOLIO_WEIGHT;
+  const damage_q = (1 - w) * peak_damage_q + w * portfolio_q;
+
+  const cr = capRefs(levelCap);
+  const speed_q = stagePercentile(speedOf(currentId), SPEED_REF, cr.speed);
   // General bulk is the geometric mean of the two sides — a wall that's fake on
   // one axis (Happiny: real SpD, paper Def) scores as the frail thing it is.
   const bulk_q = geomean([
-    percentile(physBulkOf(currentId), PHYS_BULK_REF),
-    percentile(specBulkOf(currentId), SPEC_BULK_REF),
+    stagePercentile(physBulkOf(currentId), PHYS_BULK_REF, cr.phys),
+    stagePercentile(specBulkOf(currentId), SPEC_BULK_REF, cr.spec),
   ]);
 
   // Functional attacking kit: a couple of real damaging options.
   const damagingOptions = profile?.recommendedDamagingMoveCount || 0;
   const reliability_q = clamp01((damagingOptions + 1) / 4);
 
-  // Coarse utility: status moves + priority attackers in the recommended set.
-  const moves = profile?.recommendedMoves || [];
-  let utilityCount = 0;
-  for (const move of moves) {
-    if (move.category === "Status") utilityCount += 1;
-    else if ((move.priority || 0) > 0) utilityCount += 1;
-  }
-  const utility_q = clamp01(utilityCount / 3);
+  // Utility, role-aware and accuracy-weighted: real team infrastructure
+  // (recovery, hazards, speed control, setup, pivot) counts far more than chip
+  // status, so an annoying baby's Sweet Kiss / Charm doesn't read as support.
+  // A 75%-accurate move is discounted vs reliable ones.
+  const utility_q = clamp01(utilityValue(profile?.recommendedMoves) / 1.5);
 
-  return { damage_q, speed_q, bulk_q, reliability_q, utility_q };
+  return { damage_q, peak_damage_q, speed_q, bulk_q, reliability_q, utility_q };
 }
 
 // C = max over a few mechanically-derived roles. Returns the score in points plus
@@ -169,19 +274,24 @@ export function currentFormValue(profile, levelCap) {
   const f = currentFormFeatures(profile, levelCap);
 
   // A utility mon still has to threaten something — otherwise it's passive and
-  // gets walled for free. This floor gates the utility roles by damage.
-  const nonPassive = clamp01(f.damage_q / 0.25);
+  // gets walled for free. Gate the utility roles by PEAK damage (can it hurt
+  // anything at all), not the portfolio-blended figure.
+  const nonPassive = clamp01((f.peak_damage_q ?? f.damage_q) / 0.25);
 
   // reliability_q is deliberately NOT a role axis: with the available move data it
   // saturates to ~1 for almost everyone (every mon has a few damaging moves), so
   // it only inflates every score, and accuracy — the part that would discriminate
   // — is already folded into damage_q by the damage estimate. Kept in features for
   // display, unused here.
+  // Utility roles are valued but capped below attacker roles: a support movepool
+  // (recovery/hazards/setup) is real, but in this PvE context it must not let a
+  // mediocre mon outscore a genuine threat — otherwise a full-TM utility body
+  // benches a strong attacker at high level caps.
   const roles = {
     fast_attacker: geomean([f.damage_q, f.speed_q]),
     bulky_attacker: geomean([f.damage_q, f.bulk_q]),
-    bulky_utility: geomean([f.bulk_q, f.utility_q, nonPassive]),
-    fast_utility: geomean([f.speed_q, f.utility_q, nonPassive]),
+    bulky_utility: UTILITY_ROLE_WEIGHT * geomean([f.bulk_q, f.utility_q, nonPassive]),
+    fast_utility: UTILITY_ROLE_WEIGHT * geomean([f.speed_q, f.utility_q, nonPassive]),
   };
 
   let bestRole = "fast_attacker";

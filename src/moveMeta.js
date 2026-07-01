@@ -78,6 +78,9 @@ export function hydrateLegalMove(rawMove) {
     basePower: meta?.basePower ?? 0,
     priority: meta?.priority ?? 0,
     utility: meta?.utility ?? false,
+    // Utility role kinds (recovery / setup / hazard_set / speed_control / ...),
+    // so utility scoring can value real team infrastructure over chip status.
+    roles: meta?.roles ?? [],
     // Hit rate (0–100) so the damage estimate can weight by expected accuracy.
     accuracy: meta?.accuracy ?? 100,
     // Multi-hit / recharge / charge flags feed the effective-power damage model.
