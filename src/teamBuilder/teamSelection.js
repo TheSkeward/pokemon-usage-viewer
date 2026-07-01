@@ -257,7 +257,13 @@ async function selectTeamByFit(
   // takes the parallel full enumeration (exact, and core-count fast).
   const isPureDeletion = incApplies && addedCount === 0;
   const isStoreCovered = !!searchKey && teamStoreCovers(searchKey, lines, targetSize);
+  // Test hook (regret validation only): force the shortlist path even on a pool
+  // small enough to enumerate fully, so its optimum can be compared to the true
+  // exact optimum. No effect in production (the global is never set).
+  const forceShortlist =
+    !!globalThis.__FORCE_SHORTLIST__ && !incApplies && !isStoreCovered;
   const useParallel =
+    !forceShortlist &&
     !isPureDeletion &&
     !isStoreCovered &&
     combinations <= budget &&
@@ -305,7 +311,7 @@ async function selectTeamByFit(
     } else if (isStoreCovered) {
       evaluated = queryTeamStore(lines, targetSize, opponentTypeBias);
       searchExact = true;
-    } else if (combinations <= budget) {
+    } else if (combinations <= budget && !forceShortlist) {
       // Sequential full enumeration: record every team so later subsets of this
       // pool are answered by queryTeamStore.
       const store = searchKey
@@ -529,6 +535,8 @@ function buildShortlist(lines) {
         b.score - a.score || a.line.lineKey.localeCompare(b.line.lineKey),
     );
 
+  const maxSize = globalThis.__SHORTLIST_MAX__ ?? SHORTLIST_MAX;
+  const coreSize = Math.min(SHORTLIST_CORE, maxSize);
   const picked = new Map();
   const add = (entry) => {
     if (entry && !picked.has(entry.line.lineKey)) {
@@ -536,17 +544,17 @@ function buildShortlist(lines) {
     }
   };
 
-  for (let i = 0; i < scored.length && picked.size < SHORTLIST_CORE; i++) {
+  for (let i = 0; i < scored.length && picked.size < coreSize; i++) {
     add(scored[i]);
   }
   for (const type of REBORN_ANALYSIS_TYPES) {
-    if (picked.size >= SHORTLIST_MAX) break;
+    if (picked.size >= maxSize) break;
     add(
       scored.find((s) =>
         (s.best?.legalityProfile?.attackTypes || []).includes(type),
       ),
     );
-    if (picked.size >= SHORTLIST_MAX) break;
+    if (picked.size >= maxSize) break;
     add(
       scored.find(
         (s) =>
@@ -556,7 +564,7 @@ function buildShortlist(lines) {
     );
   }
   for (const s of scored) {
-    if (picked.size >= SHORTLIST_MAX) break;
+    if (picked.size >= maxSize) break;
     add(s);
   }
   return [...picked.values()];
