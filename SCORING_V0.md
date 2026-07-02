@@ -174,3 +174,12 @@ Invariants the shape encodes (each guarded by fixtures):
      (data is immutable per deploy; the persisted result cache is already
      data-signature-versioned). Documented in-code that any future field/boss
      awareness must join the key.
+  4. *Browser performance telemetry* (`src/teamBuilder/telemetry.js`): every
+     interactive optimizer run records resolve/search wall-clock, pool size,
+     surviving build count, core count, and cache temperature (cold / warm /
+     result-hit) into localStorage (last 500 samples); the provenance footer
+     reports p50/p90/p95 per cache temperature, and `__TEAM_TELEMETRY__` in
+     the console exports raw samples. Confidence-sweep runs (active scoring
+     overrides) and the investment projection's future-cap re-runs are
+     excluded — they would corrupt the interactive latency distribution.
+     Scoring-neutral: no golden impact.

@@ -9,6 +9,7 @@ import {
   explainSeatedChoice,
   explainExcludedChoice,
 } from "./explanations.js";
+import { getTelemetrySummary } from "./telemetry.js";
 
 export function renderTeamBuilderPage({
   app,
@@ -405,7 +406,52 @@ function renderProvenanceFooter(manifest, timings) {
         signature ${escapeHtml(manifest?.dataSignature || "?")} ·
         built ${escapeHtml((manifest?.generatedAt || "").slice(0, 10))}${timingText}
       </p>
+      ${renderTelemetryDetails()}
     </section>
+  `;
+}
+
+// Accumulated in-browser performance percentiles (external review ask):
+// p50/p90/p95 resolve and search time per cache temperature, with the pool
+// sizes and build counts they were measured over, plus this machine's core
+// count. Raw samples are exportable from the console via __TEAM_TELEMETRY__.
+function renderTelemetryDetails() {
+  let summary;
+  try {
+    summary = getTelemetrySummary();
+  } catch {
+    return "";
+  }
+  if (!summary || !summary.total) return "";
+  const ms = (value) =>
+    value == null ? "–" : value >= 10_000 ? `${(value / 1000).toFixed(1)}s` : `${value}ms`;
+  const dist = (d) => `${ms(d.p50)} / ${ms(d.p90)} / ${ms(d.p95)}`;
+  const range = (r) => (r.min === r.max ? `${r.min}` : `${r.min}–${r.max}`);
+  const labels = { cold: "cold", warm: "warm cache", result: "result-cache hit" };
+  const rows = Object.entries(summary.byCache)
+    .map(
+      ([state, group]) => `
+        <tr>
+          <td>${escapeHtml(labels[state] || state)}</td>
+          <td>${group.n}</td>
+          <td>${dist(group.resolveMs)}</td>
+          <td>${dist(group.searchMs)}</td>
+          <td>${range(group.poolSize)}</td>
+          <td>${range(group.builds)}</td>
+        </tr>`,
+    )
+    .join("");
+  return `
+    <details class="muted" style="font-size: 0.85em">
+      <summary>Performance (${summary.total} run${summary.total === 1 ? "" : "s"} on this browser${summary.cores ? `, ${summary.cores} cores` : ""})</summary>
+      <table>
+        <thead>
+          <tr><th>cache</th><th>n</th><th>resolve p50/p90/p95</th><th>search p50/p90/p95</th><th>pool size</th><th>builds</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <p>Raw samples: <code>__TEAM_TELEMETRY__.samples()</code> in the console; <code>.clear()</code> resets.</p>
+    </details>
   `;
 }
 

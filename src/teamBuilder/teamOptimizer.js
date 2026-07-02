@@ -23,6 +23,7 @@ import {
 import { resolveRepresentativeLightBundle } from "./representativeBundle";
 import { choosePoolTeam } from "./teamSelection";
 import { loadPersistedResults, persistResult } from "./resultCacheStore.js";
+import { recordOptimizerSample } from "./telemetry.js";
 import { getDataSignature } from "../manifest.js";
 
 // --- Incremental caches ----------------------------------------------------
@@ -85,6 +86,7 @@ export async function optimizeTeamFromPool({
   selection,
   onProgress,
   exhaustive = true,
+  telemetry = true,
 }) {
   const groups = buildInputGroups(query, pokemonIndex);
   const total = groups.length;
@@ -134,10 +136,25 @@ export async function optimizeTeamFromPool({
     .map((group) => group.input?.id ?? group.token)
     .sort()
     .join(",")}`;
+  // Interactive runs feed the performance telemetry; sweep/test runs (active
+  // scoring overrides) and background callers that opt out (the investment
+  // projection's future-cap re-runs) don't — either would corrupt the latency
+  // distribution the footer reports.
+  const interactive = telemetry && scoringOverridesSignature() === "base";
+
   const memoized = resultCache.get(poolKey);
   if (memoized) {
     onProgress?.({ completed: total, total });
     seedSearchCache(memoized, memoized.lines, contextSig);
+    if (interactive) {
+      recordOptimizerSample({
+        cache: "result",
+        resolveMs: 0,
+        searchMs: 0,
+        poolSize: total,
+        builds: countKeptBuilds(memoized.lines),
+      });
+    }
     return memoized;
   }
 
@@ -201,6 +218,18 @@ export async function optimizeTeamFromPool({
     resolveMs: searchStart - resolveStart,
     searchMs: Date.now() - searchStart,
   };
+  if (interactive) {
+    recordOptimizerSample({
+      // Warm = anything short of from-scratch: line-cache hits and/or an
+      // incremental (grown) search. Cold = every line resolved fresh AND a
+      // full search.
+      cache: hitLineKeys.size > 0 || incremental ? "warm" : "cold",
+      resolveMs: result.timings.resolveMs,
+      searchMs: result.timings.searchMs,
+      poolSize: lines.length,
+      builds: countKeptBuilds(lines),
+    });
+  }
 
   seedSearchCache(result, lines, searchKey);
   storeResult(poolKey, result);
@@ -241,6 +270,18 @@ function seedSearchCache(result, lines, searchKey) {
         .filter(Boolean),
     ),
   };
+}
+
+// Total candidate builds that survived dominance pruning across the pool — the
+// realization pass's working-set size, and the telemetry axis the review asked
+// for alongside pool size.
+function countKeptBuilds(lines) {
+  let total = 0;
+  for (const line of lines || []) {
+    const rep = line.best || line.bestNonMega;
+    if (rep) total += rep.buildChoices?.length || 1;
+  }
+  return total;
 }
 
 function storeResult(poolKey, result) {
