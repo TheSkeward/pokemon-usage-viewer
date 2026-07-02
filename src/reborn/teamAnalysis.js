@@ -878,7 +878,24 @@ function getAdjustedPower(move, member) {
 // Category/STAB-aware unresisted-damage estimate, used as the ranking key so a
 // physical attacker prefers its physical moves and vice versa. Fixed-damage
 // moves (handled inside estimateMoveDamage) keep their value on weak attackers.
+// Damage estimates are recomputed for every build variant of every candidate of
+// every line (the same move × member × stats many times over) — the hot spot of
+// multi-build line resolution. Memoized on everything the estimate depends on;
+// bounded so a long session can't leak.
+const damageMemo = new Map();
+const DAMAGE_MEMO_LIMIT = 200_000;
+
 function getEstimatedDamage(move, member, attackerStats) {
+  const key = `${move.id}|${member.id}|${member.ability || ""}|${member.heldItem || ""}|${attackerStats?.atk ?? ""}|${attackerStats?.spa ?? ""}|${attackerStats?.level ?? ""}`;
+  const cached = damageMemo.get(key);
+  if (cached !== undefined) return cached;
+  const value = computeEstimatedDamage(move, member, attackerStats);
+  if (damageMemo.size >= DAMAGE_MEMO_LIMIT) damageMemo.clear();
+  damageMemo.set(key, value);
+  return value;
+}
+
+function computeEstimatedDamage(move, member, attackerStats) {
   const perHit = estimateMoveDamage({
     // Scale base power by the move's effective-hit factor (multi-hit average,
     // recharge amortization, escalating-move weighting), so ranking and the

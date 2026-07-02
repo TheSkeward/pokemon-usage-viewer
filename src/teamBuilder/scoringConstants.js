@@ -71,6 +71,11 @@ export const SCORING_DEFAULTS = Object.freeze({
   SHORTLIST_MAX: 28,
   SHORTLIST_CORE: 14,
   FORCE_SHORTLIST: false, // test hook: force shortlist path for regret validation
+  // Selection scores an optimistic (max-over-builds) coverage relaxation, so the
+  // best relaxed team need not be best after concrete builds are assigned. The
+  // search keeps this many top relaxed teams; realization re-ranks them by exact
+  // realized score. Sized by regret validation (regret 0 well below this).
+  REALIZATION_POOL: 64,
 });
 
 export function tunable(key) {

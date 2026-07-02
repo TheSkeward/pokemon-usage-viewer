@@ -41,11 +41,12 @@ function getWorkerPool() {
   return workerPool;
 }
 
-// Returns the best team (compact id refs) over the whole combination space, found
-// in parallel when possible. `compactLines` is the trimmed, worker-cloneable line
-// data; `total` is C(lines, targetSize).
-export function parallelFullSearch(compactLines, targetSize, bias, total) {
-  const run = () => dispatch(compactLines, targetSize, bias, total);
+// Returns the top relaxed teams (compact id refs, best first) over the whole
+// combination space, found in parallel when possible. `compactLines` is the
+// trimmed, worker-cloneable line data; `total` is C(lines, targetSize);
+// `topCount` is how many candidates the realization pass wants to re-rank.
+export function parallelFullSearch(compactLines, targetSize, bias, total, topCount = 1) {
+  const run = () => dispatch(compactLines, targetSize, bias, total, topCount);
   const result = chain.then(run, run);
   // Keep the chain alive regardless of this job's outcome.
   chain = result.then(
@@ -55,12 +56,12 @@ export function parallelFullSearch(compactLines, targetSize, bias, total) {
   return result;
 }
 
-async function dispatch(compactLines, targetSize, bias, total) {
+async function dispatch(compactLines, targetSize, bias, total, topCount) {
   const pool = total >= PARALLEL_THRESHOLD ? getWorkerPool() : null;
 
   if (!pool || pool.length < 2) {
     // Synchronous fallback (small job, or no workers): identical code path.
-    return searchCombinationRange(compactLines, targetSize, bias, 0, total);
+    return searchCombinationRange(compactLines, targetSize, bias, 0, total, topCount);
   }
 
   try {
@@ -71,17 +72,19 @@ async function dispatch(compactLines, targetSize, bias, total) {
       const start = w * chunk;
       const end = Math.min(total, start + chunk);
       if (start >= end) break;
-      jobs.push(runOnWorker(pool[w], compactLines, targetSize, bias, start, end));
+      jobs.push(
+        runOnWorker(pool[w], compactLines, targetSize, bias, start, end, topCount),
+      );
     }
     const results = await Promise.all(jobs);
-    return mergeResults(results);
+    return mergeResults(results, topCount);
   } catch {
     // Any worker failure (load error, crash, or hang) → retire the pool so we
     // don't pay the failure again, and recompute synchronously so a correct
     // result is always returned. A broken worker degrades to "no speedup", never
     // to a wrong answer or a frozen UI.
     retireWorkerPool();
-    return searchCombinationRange(compactLines, targetSize, bias, 0, total);
+    return searchCombinationRange(compactLines, targetSize, bias, 0, total, topCount);
   }
 }
 
@@ -90,7 +93,7 @@ async function dispatch(compactLines, targetSize, bias, total) {
 // is a few seconds) so it only ever fires on a genuine hang.
 const WORKER_TIMEOUT_MS = 30_000;
 
-function runOnWorker(worker, compactLines, targetSize, bias, start, end) {
+function runOnWorker(worker, compactLines, targetSize, bias, start, end, topCount) {
   const id = ++messageSeq;
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
@@ -114,7 +117,7 @@ function runOnWorker(worker, compactLines, targetSize, bias, start, end) {
     };
     worker.addEventListener("message", onMessage);
     worker.addEventListener("error", onError);
-    worker.postMessage({ id, compactLines, targetSize, bias, start, end });
+    worker.postMessage({ id, compactLines, targetSize, bias, start, end, topCount });
   });
 }
 
@@ -132,20 +135,20 @@ function retireWorkerPool() {
   }
 }
 
-// Picks the best per-range winner with the SAME ordering as betterEvaluated for
+// Merges the per-range top lists with the SAME ordering as betterEvaluated for
 // full teams: all are the target size (equal sizePriority), so it's score, then
-// the deterministic identity tie-break.
-function mergeResults(results) {
-  let best = null;
-  for (const candidate of results) {
-    if (!candidate) continue;
-    if (
-      !best ||
-      candidate.score > best.score ||
-      (candidate.score === best.score && candidate.identityKey < best.identityKey)
-    ) {
-      best = candidate;
-    }
+// the deterministic identity tie-break. Returns { top: [...] } best-first.
+function mergeResults(results, topCount) {
+  const merged = [];
+  for (const result of results) {
+    if (!result?.top) continue;
+    merged.push(...result.top);
   }
-  return best;
+  if (!merged.length) return null;
+  merged.sort(
+    (a, b) =>
+      b.score - a.score ||
+      (a.identityKey < b.identityKey ? -1 : a.identityKey > b.identityKey ? 1 : 0),
+  );
+  return { top: merged.slice(0, Math.max(1, topCount)) };
 }

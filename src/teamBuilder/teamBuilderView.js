@@ -227,7 +227,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
 
     ${renderUnresolved(result.unresolved)}
 
-    ${renderProvenanceFooter(state.manifest)}
+    ${renderProvenanceFooter(state.manifest, state.result?.timings)}
   `;
 }
 
@@ -382,7 +382,8 @@ function renderInvestmentSection(state) {
 
   return `
     <section class="panel">
-      <h2>Investment picks (caps ${plan.caps.join(" / ")})</h2>
+      <h2>Level-cap investment projection (caps ${plan.caps.join(" / ")})</h2>
+      <p class="muted">Projects only the level cap forward — evolutions and level-up moves that unlock by training. New TMs, tutors, items, and locations from future badges are NOT modeled here.</p>
       ${trainRows ? `<h3>Train for the next caps</h3><ul>${trainRows}</ul>` : ""}
       ${closeRows ? `<h3>Close bench (nearly seat today)</h3><ul>${closeRows}</ul>` : ""}
       ${holdRows ? `<h3>Do not invest yet</h3><ul>${holdRows}</ul>` : `<p class="muted">Nothing else in the pool gains meaningfully at the next caps.</p>`}
@@ -391,15 +392,18 @@ function renderInvestmentSection(state) {
 }
 
 // --- Provenance (roadmap Phase 7) --------------------------------------------
-function renderProvenanceFooter(manifest) {
-  if (!manifest) return "";
+function renderProvenanceFooter(manifest, timings) {
+  if (!manifest && !timings) return "";
+  const timingText = timings
+    ? ` · resolved in ${(timings.resolveMs / 1000).toFixed(1)}s, searched in ${(timings.searchMs / 1000).toFixed(1)}s`
+    : "";
   return `
     <section class="panel">
       <p class="muted" style="font-size: 0.85em">
-        Data: Reborn ${escapeHtml(manifest.rebornVersion || "?")} ·
-        scoring ${escapeHtml(manifest.scoringVersion || "?")} ·
-        signature ${escapeHtml(manifest.dataSignature || "?")} ·
-        built ${escapeHtml((manifest.generatedAt || "").slice(0, 10))}
+        Data: Reborn ${escapeHtml(manifest?.rebornVersion || "?")} ·
+        scoring ${escapeHtml(manifest?.scoringVersion || "?")} ·
+        signature ${escapeHtml(manifest?.dataSignature || "?")} ·
+        built ${escapeHtml((manifest?.generatedAt || "").slice(0, 10))}${timingText}
       </p>
     </section>
   `;

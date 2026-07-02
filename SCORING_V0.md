@@ -126,3 +126,21 @@ Invariants the shape encodes (each guarded by fixtures):
 - **Phase 9 (investment)**: future value moved wholly into the investment view
   (re-optimizing at the next level caps); `F` remains display-only in
   selection, as frozen.
+- **Post-review correctness pass** (external review of the phase delivery):
+  1. *Realization soundness*: the optimistic build relaxation can overstate a
+     line by combining virtues of mutually incompatible builds, so the single
+     best relaxed team need not be best after realization. Every search path
+     now keeps the top `REALIZATION_POOL` (64) relaxed teams; realization
+     assigns concrete builds to each and re-ranks by exact realized score.
+     Improves the meaning of "exact"; goldens regenerated.
+  2. *Sweep-safe build pruning*: dominance pruning across build variants now
+     uses MECHANICAL facts only (per-type coverage, utility value, peak damage,
+     friction — all invariant under every sweep axis), never scored value, and
+     the confidence sweep re-picks each line's representative build per
+     setting. Prevents default constants from deciding which alternatives
+     exist during robustness testing ("stability theater").
+  3. *Investment labeling*: the Phase 9 panel is a LEVEL-CAP projection and now
+     says so — future TM/tutor/item/location unlocks are not modeled.
+  4. *Performance*: damage estimates memoized across build variants (the
+     multi-build resolution hot spot); wall-clock resolve/search timings
+     surfaced in the provenance footer.

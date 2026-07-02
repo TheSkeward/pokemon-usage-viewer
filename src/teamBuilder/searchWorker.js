@@ -5,9 +5,16 @@
 import { searchCombinationRange } from "./searchKernel.js";
 
 self.onmessage = (event) => {
-  const { id, compactLines, targetSize, bias, start, end } = event.data;
+  const { id, compactLines, targetSize, bias, start, end, topCount } = event.data;
   try {
-    const result = searchCombinationRange(compactLines, targetSize, bias, start, end);
+    const result = searchCombinationRange(
+      compactLines,
+      targetSize,
+      bias,
+      start,
+      end,
+      topCount || 1,
+    );
     self.postMessage({ id, ok: true, result });
   } catch (error) {
     self.postMessage({ id, ok: false, error: String(error?.message || error) });

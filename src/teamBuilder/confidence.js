@@ -149,9 +149,12 @@ export async function computeTeamConfidence({
 }
 
 // Re-scores a line's choices under the ACTIVE overrides. Profiles and bundles
-// are reused untouched (they are mechanical facts); only the judgement layer
-// (scoreCandidate) re-runs. Clones everything it touches so sweep state never
-// leaks into the real result.
+// are reused untouched (they are mechanical facts — and build variants are
+// dominance-pruned on mechanical facts only, so no alternative a setting might
+// prefer was discarded under default constants); only the judgement layer
+// (scoreCandidate) re-runs. The representative build is RE-PICKED per setting:
+// under "utility-strict" a different build of the same form may deserve to
+// carry the line. Clones everything it touches so sweep state never leaks.
 function rescoreLine(line, context) {
   const clone = { ...line, _choiceOptions: undefined };
   const rescoreChoice = (choice) => {
@@ -169,9 +172,22 @@ function rescoreLine(line, context) {
       }),
     };
     if (choice.buildAlternatives?.length) {
-      rescored.buildAlternatives = choice.buildAlternatives.map((build) =>
-        build === choice ? rescored : rescoreChoice({ ...build, buildAlternatives: undefined }),
+      const builds = choice.buildAlternatives.map((build) =>
+        rescoreChoice({ ...build, buildAlternatives: undefined }),
       );
+      // Representative = best build UNDER THIS SETTING; alternatives and the
+      // optimistic vector (settings-independent) ride along.
+      const best = builds.reduce((lead, build) =>
+        (build.teamScore ?? -Infinity) > (lead.teamScore ?? -Infinity)
+          ? build
+          : lead,
+      );
+      return {
+        ...best,
+        buildAlternatives: builds,
+        optimisticCoverageVector:
+          choice.optimisticCoverageVector || best.optimisticCoverageVector,
+      };
     }
     return rescored;
   };

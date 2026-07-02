@@ -340,6 +340,42 @@ export function teamIdentityKey(team) {
     .join("|");
 }
 
+// --- Top-N team collection ---------------------------------------------------
+// Team SELECTION scores a relaxation (optimistic max-over-builds coverage), so
+// the single best relaxed team is not guaranteed to be the best team after
+// concrete builds are realized — a line can look like it patches two holes that
+// no single build patches together. The search therefore keeps the TOP N relaxed
+// teams; the realization pass (teamSelection) assigns concrete builds to each
+// and re-ranks by the exact realized score. Bounded, deterministic (insertion
+// uses the same betterEvaluated comparator incl. the identity tie-break).
+export function createTopTeams(capacity) {
+  return { capacity: Math.max(1, capacity), items: [] };
+}
+
+export function offerTopTeam(top, evaluated) {
+  const items = top.items;
+  if (
+    items.length >= top.capacity &&
+    !betterEvaluated(evaluated, items[items.length - 1])
+  ) {
+    return;
+  }
+  let index = items.length;
+  while (index > 0 && betterEvaluated(evaluated, items[index - 1])) index -= 1;
+  items.splice(index, 0, evaluated);
+  if (items.length > top.capacity) items.pop();
+}
+
+// The exact realized score of a CONCRETE team (its members' real coverage
+// vectors, never the optimistic selection relaxation) — used to re-rank the
+// top-N relaxed teams after build assignment.
+export function getRealizedTeamScore(team, opponentTypeBias = {}) {
+  return (
+    sumTeamScore(team) +
+    tunable("COVERAGE_WEIGHT") * scoreTeamFit(team, opponentTypeBias)
+  );
+}
+
 export function getTeamSizePriority(team, targetSize) {
   return Math.min(team.length, targetSize);
 }
@@ -409,34 +445,39 @@ function unrankCombination(rank, n, k) {
 // survives a worker postMessage). Pure and self-contained: it prepares and resets
 // its own fit state, so it can run in a worker or on the main thread as a fallback.
 // `lines` must carry a prepared `choiceOptions` array per line (the form options).
-export function searchCombinationRange(lines, targetSize, opponentTypeBias, start, end) {
+export function searchCombinationRange(lines, targetSize, opponentTypeBias, start, end, topCount = 1) {
   for (const line of lines) line._choiceOptions = line.choiceOptions;
   prepareFitScoring(lines, opponentTypeBias);
 
-  let best = null;
+  const top = createTopTeams(topCount);
   const n = lines.length;
   const idx = unrankCombination(start, n, targetSize);
   if (idx) {
     for (let pos = start; pos < end; pos++) {
       const comboLines = idx.map((i) => lines[i]);
       const candidate = bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
-      if (candidate && (!best || betterEvaluated(candidate, best))) best = candidate;
+      if (candidate) offerTopTeam(top, candidate);
       if (!nextCombination(idx, n, targetSize)) break;
     }
   }
 
   resetFitScoring(lines);
-  if (!best) return null;
+  if (!top.items.length) return null;
   return {
-    team: best.team.map((c) => ({
-      inputPokemonId: c.inputPokemonId,
-      pokemonId: c.pokemonId,
-      isMega: !!c.isMega,
+    top: top.items.map((evaluated) => ({
+      team: evaluated.team.map((c) => ({
+        inputPokemonId: c.inputPokemonId,
+        pokemonId: c.pokemonId,
+        isMega: !!c.isMega,
+      })),
+      megaUsed: evaluated.megaUsed
+        ? {
+            inputPokemonId: evaluated.megaUsed.inputPokemonId,
+            pokemonId: evaluated.megaUsed.pokemonId,
+          }
+        : null,
+      score: evaluated.score,
+      identityKey: identityOf(evaluated),
     })),
-    megaUsed: best.megaUsed
-      ? { inputPokemonId: best.megaUsed.inputPokemonId, pokemonId: best.megaUsed.pokemonId }
-      : null,
-    score: best.score,
-    identityKey: identityOf(best),
   };
 }

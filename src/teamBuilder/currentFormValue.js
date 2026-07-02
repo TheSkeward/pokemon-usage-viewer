@@ -191,8 +191,10 @@ const ROLE_WEIGHTS = {
 };
 
 // Summed utility value of a recommended set: each move contributes its best
-// role's weight, scaled by hit rate. Saturated by the caller.
-function utilityValue(recommendedMoves) {
+// role's weight, scaled by hit rate. Saturated by the caller. Exported as a
+// MECHANICAL fact (fixed role weights, no sweepable constants) for build
+// dominance pruning.
+export function utilityValue(recommendedMoves) {
   let total = 0;
   for (const move of recommendedMoves || []) {
     let best = 0;

@@ -14,6 +14,7 @@ import { buildInputGroups } from "./inputGroups";
 import { parseAbilityAnnotations } from "./poolParsing";
 import { normalizeName } from "./nameUtils";
 import { tunable, scoringOverridesSignature } from "./scoringConstants.js";
+import { utilityValue } from "./currentFormValue.js";
 import {
   MIN_MEANINGFUL_USAGE_PERCENT,
   compareScoredCandidates,
@@ -132,6 +133,7 @@ export async function optimizeTeamFromPool({
   }
 
   const hitLineKeys = new Set();
+  const resolveStart = Date.now();
 
   const lines = (
     await Promise.all(
@@ -176,6 +178,7 @@ export async function optimizeTeamFromPool({
         }
       : null;
 
+  const searchStart = Date.now();
   const result = await choosePoolTeam(lines, progression.opponentTypeBias, {
     exhaustive,
     incremental,
@@ -183,6 +186,12 @@ export async function optimizeTeamFromPool({
     // deletion to an unvisited subset is answered from the last full search.
     searchKey,
   });
+  // Wall-clock telemetry (roadmap: performance visibility): how long line
+  // resolution vs the search actually took, surfaced in the provenance footer.
+  result.timings = {
+    resolveMs: searchStart - resolveStart,
+    searchMs: Date.now() - searchStart,
+  };
 
   seedSearchCache(result, lines, searchKey);
   storeResult(poolKey, result);
@@ -438,46 +447,60 @@ async function resolvePoolLine({
   };
 }
 
-// Dominance pruning across a candidate's build variants: drop build B when
-// another build of the same form is at least as good on individual value AND
-// on coverage into every defense type AND no more expensive in friction. Keep
-// at most three (the realization pass enumerates the cross product across six
-// members, so 3^6 stays trivial). The default build is always kept — it is the
-// canonical honest set the recommendation displays.
+// Dominance pruning across a candidate's build variants — on MECHANICAL facts
+// only (coverage into every defense type, utility value, peak damage, friction),
+// never on scored value: the confidence sweep perturbs the value weights, so a
+// build pruned "because it scores lower under today's constants" could be
+// exactly the alternative a sweep setting needs. Pruning on facts that no sweep
+// axis can reorder keeps the robustness test honest (friction scales uniformly
+// under FRICTION_SCALE, so ≤ friction is scale-invariant). Keep at most four
+// (realization enumerates ≤4^6 — trivial); the default build is always kept as
+// the canonical honest set.
 function pruneDominatedBuilds(rows) {
+  const facts = rows.map((row) => ({
+    coverage: row.legalityProfile?.coverageVector || [],
+    utility: utilityValue(row.legalityProfile?.recommendedMoves),
+    peak: Math.max(
+      row.legalityProfile?.bestStabMove?.estimatedDamage || 0,
+      row.legalityProfile?.bestDamagingMove?.estimatedDamage || 0,
+    ),
+    friction: row.legalityProfile?.frictionCost || 0,
+  }));
+  const dominates = (a, b) => {
+    if (facts[a].friction > facts[b].friction) return false;
+    if (facts[a].utility < facts[b].utility - 1e-9) return false;
+    if (facts[a].peak < facts[b].peak - 1e-9) return false;
+    const ca = facts[a].coverage;
+    const cb = facts[b].coverage;
+    for (let i = 0; i < cb.length; i++) {
+      if ((ca[i] || 0) < (cb[i] || 0) - 1e-9) return false;
+    }
+    return true;
+  };
+
   const kept = [];
-  for (const row of rows) {
-    const dominated = rows.some((other) => {
-      if (other === row) return false;
-      if ((other.teamScore ?? 0) < (row.teamScore ?? 0)) return false;
-      if (
-        (other.legalityProfile?.frictionCost || 0) >
-        (row.legalityProfile?.frictionCost || 0)
-      ) {
-        return false;
-      }
-      const a = other.legalityProfile?.coverageVector || [];
-      const b = row.legalityProfile?.coverageVector || [];
-      for (let i = 0; i < b.length; i++) {
-        if ((a[i] || 0) < (b[i] || 0) - 1e-9) return false;
-      }
-      // Strictly-equal twins: keep the earlier (default-first) one only.
-      if (
-        (other.teamScore ?? 0) === (row.teamScore ?? 0) &&
-        rows.indexOf(other) > rows.indexOf(row)
-      ) {
-        return false;
-      }
+  for (let b = 0; b < rows.length; b++) {
+    const dominated = rows.some((_, a) => {
+      if (a === b) return false;
+      if (!dominates(a, b)) return false;
+      // Mutually-equal twins: keep the earlier (default-first) one only.
+      if (dominates(b, a)) return a < b;
       return true;
     });
-    if (!dominated || row.buildKey === "default") kept.push(row);
+    if (!dominated || rows[b].buildKey === "default") kept.push(rows[b]);
   }
-  const byScore = kept.sort(
+  // Deterministic, value-free ordering: default first, then by mechanical
+  // richness (coverage mass), then friction.
+  const coverageMass = (row) =>
+    (row.legalityProfile?.coverageVector || []).reduce((sum, v) => sum + v, 0);
+  kept.sort(
     (a, b) =>
       Number(b.buildKey === "default") - Number(a.buildKey === "default") ||
-      (b.teamScore ?? 0) - (a.teamScore ?? 0),
+      coverageMass(b) - coverageMass(a) ||
+      (a.legalityProfile?.frictionCost || 0) -
+        (b.legalityProfile?.frictionCost || 0),
   );
-  return byScore.slice(0, 3);
+  return kept.slice(0, 4);
 }
 
 // Element-wise max of the kept builds' coverage vectors: the line's optimistic

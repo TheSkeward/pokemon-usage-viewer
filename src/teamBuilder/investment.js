@@ -1,9 +1,15 @@
-// Investment recommendations (roadmap Phase 9): "best six right now" and
+// LEVEL-CAP investment projection (roadmap Phase 9): "best six right now" and
 // "worth training soon" are different products. Selection never spends future
 // value; THIS view is where the future lives. It re-runs the real optimizer at
-// the next level cap(s) — same pool, same unlocks, only the cap moved — and
+// the next level cap(s) — same pool, SAME unlocks, only the cap moved — and
 // compares each line's value, so "Magikarp is one badge from a real payoff"
 // falls out of the same model instead of a special rule.
+//
+// Scope honesty: this projects the level cap ONLY. Real Reborn progression also
+// unlocks TMs, tutors, items, shops, and locations at future badges — none of
+// that is modeled here (it would need per-badge unlock data), and the UI says
+// so. Good for cap-gated futures (evolutions, level-up moves); not a full
+// future-gamestate simulation.
 
 import { optimizeTeamFromPool } from "./teamOptimizer.js";
 

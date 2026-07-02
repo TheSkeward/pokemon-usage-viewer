@@ -13,6 +13,9 @@ import {
   teamIdentityKey,
   getTeamSizePriority,
   forEachCombination,
+  createTopTeams,
+  offerTopTeam,
+  getRealizedTeamScore,
 } from "./searchKernel.js";
 import { parallelFullSearch, PARALLEL_THRESHOLD } from "./parallelSearch.js";
 import { tunable } from "./scoringConstants.js";
@@ -30,13 +33,9 @@ export async function choosePoolTeam(
     searchKey,
   });
   const evaluated = bestTeam.evaluated;
-  // Realize concrete builds: selection ran on each line's best build with an
-  // OPTIMISTIC coverage relaxation (max over its build variants); now that the
-  // six lines are fixed, enumerate the actual build assignments (≤3 per member,
-  // ≤729 teams) and keep the best REAL team score — this is where "Greninja
-  // with the coverage set" gets chosen when the team actually needs it.
-  const realizedTeam = assignTeamBuilds(evaluated.team, opponentTypeBias);
-  const team = addTeamFitNotes(realizedTeam);
+  // selectTeamByFit already realized concrete builds and re-ranked the top
+  // relaxed teams by exact realized score; evaluated.team is the final team.
+  const team = addTeamFitNotes(evaluated.team);
   const megaUsed = evaluated.megaUsed
     ? team.find(
         (choice) =>
@@ -65,21 +64,23 @@ export async function choosePoolTeam(
 // Post-selection build assignment (roadmap Phase 3): with the six lines fixed,
 // pick one build per member (at most one build per evolutionary line holds by
 // construction — builds are alternatives of the same member) maximizing the
-// realized team score. Uses the exact scoring path, so members' REAL coverage
-// vectors — not the selection relaxation — decide. Deterministic: fixed
-// enumeration order, strict improvement.
+// realized team score. Always scores through the exact path (real coverage
+// vectors, never the selection relaxation). Deterministic: fixed enumeration
+// order, strict improvement. Returns { team, score }.
 export function assignTeamBuilds(team, opponentTypeBias = {}) {
-  if (!team.length) return team;
+  if (!team.length) return { team, score: 0 };
   const options = team.map((choice) =>
     choice.buildAlternatives?.length ? choice.buildAlternatives : [choice],
   );
-  if (options.every((builds) => builds.length === 1)) return team;
+  if (options.every((builds) => builds.length === 1)) {
+    return { team, score: getRealizedTeamScore(team, opponentTypeBias) };
+  }
 
   let best = null;
   const assignment = new Array(team.length);
   const walk = (index) => {
     if (index === team.length) {
-      const score = getTeamScore(assignment, opponentTypeBias);
+      const score = getRealizedTeamScore(assignment, opponentTypeBias);
       if (!best || score > best.score) best = { score, team: [...assignment] };
       return;
     }
@@ -89,7 +90,36 @@ export function assignTeamBuilds(team, opponentTypeBias = {}) {
     }
   };
   walk(0);
-  return best ? best.team : team;
+  return best || { team, score: getRealizedTeamScore(team, opponentTypeBias) };
+}
+
+// Realizes each of the top relaxed teams and returns the best by EXACT realized
+// score (the fix for the relaxation's blind spot: a line that looks like it
+// patches two holes no single build patches together can win the relaxed
+// ranking; another top-N team may beat it once builds are concrete).
+// Deterministic: realized score, then team identity.
+function realizeBestTeam(candidates, opponentTypeBias) {
+  let best = null;
+  let bestIdentity = "";
+  for (const evaluated of candidates) {
+    if (!evaluated?.team?.length) continue;
+    const realized = assignTeamBuilds(evaluated.team, opponentTypeBias);
+    const identity = teamIdentityKey(realized.team);
+    if (
+      !best ||
+      realized.score > best.score ||
+      (realized.score === best.score && identity < bestIdentity)
+    ) {
+      best = {
+        ...evaluated,
+        team: realized.team,
+        score: realized.score,
+        megaUsed: realized.team.find((choice) => choice.isMega) || null,
+      };
+      bestIdentity = identity;
+    }
+  }
+  return best;
 }
 
 function addTeamFitNotes(team) {
@@ -227,15 +257,18 @@ function teamStoreCovers(searchKey, lines, targetSize) {
   return true;
 }
 
-function queryTeamStore(lines, targetSize, opponentTypeBias) {
+// Top-N surviving teams from the full-enumeration store (best relaxed scores,
+// reconstructed and re-compared with the full deterministic comparator), for
+// the realization re-rank.
+function queryTeamStoreTop(lines, targetSize, opponentTypeBias, topCount) {
   const store = teamStore;
   const lineByKey = new Map(lines.map((line) => [line.lineKey, line]));
   const allowed = new Uint8Array(store.posToLineKey.length);
   for (const line of lines) allowed[store.lineKeyToPos.get(line.lineKey)] = 1;
 
   const size = store.targetSize;
-  let bestScore = -Infinity;
-  let ties = [];
+  // Bounded insertion list of {score, base}, kept sorted descending by score.
+  const keep = [];
   for (let i = 0; i < store.count; i++) {
     const base = i * size;
     let ok = true;
@@ -247,27 +280,24 @@ function queryTeamStore(lines, targetSize, opponentTypeBias) {
     }
     if (!ok) continue;
     const score = store.scores[i];
-    if (score > bestScore) {
-      bestScore = score;
-      ties = [base];
-    } else if (score === bestScore) {
-      ties.push(base);
-    }
+    if (keep.length >= topCount && score <= keep[keep.length - 1].score) continue;
+    let index = keep.length;
+    while (index > 0 && score > keep[index - 1].score) index -= 1;
+    keep.splice(index, 0, { score, base });
+    if (keep.length > topCount) keep.pop();
   }
-  if (!ties.length) return { team: [], megaUsed: null };
+  if (!keep.length) return [];
 
-  // Reconstruct the (rare) score-tied teams and pick with the full comparator, so
-  // the deterministic identity tie-break matches a live search exactly.
-  let best = null;
-  for (const base of ties) {
+  const top = createTopTeams(topCount);
+  for (const { base } of keep) {
     const comboLines = [];
     for (let j = 0; j < size; j++) {
       comboLines.push(lineByKey.get(store.posToLineKey[store.positions[base + j]]));
     }
     const candidate = bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
-    if (candidate && (!best || betterEvaluated(candidate, best))) best = candidate;
+    if (candidate) offerTopTeam(top, candidate);
   }
-  return best || { team: [], megaUsed: null };
+  return top.items;
 }
 
 async function selectTeamByFit(
@@ -306,21 +336,25 @@ async function selectTeamByFit(
     combinations <= budget &&
     combinations >= PARALLEL_THRESHOLD;
 
+  const realizationPool = Math.max(1, tunable("REALIZATION_POOL"));
+
   if (useParallel) {
     // The parallel path doesn't build a team store; drop any stale one.
     teamStore = null;
     const compactLines = buildCompactLines(lines);
-    const bestRefs = await parallelFullSearch(
+    const refs = await parallelFullSearch(
       compactLines,
       targetSize,
       opponentTypeBias,
       combinations,
+      realizationPool,
     );
     prepareFitScoring(lines, opponentTypeBias);
     try {
-      const evaluated = bestRefs
-        ? evaluatedFromRefs(bestRefs, lines, targetSize, opponentTypeBias)
-        : null;
+      const candidates = (refs?.top || [])
+        .map((entry) => evaluatedFromRefs(entry, lines, targetSize, opponentTypeBias))
+        .filter(Boolean);
+      const evaluated = realizeBestTeam(candidates, opponentTypeBias);
       if (evaluated) {
         const benchSwapScores = computeBenchSwapScores(
           lines,
@@ -337,16 +371,23 @@ async function selectTeamByFit(
 
   prepareFitScoring(lines, opponentTypeBias);
   try {
-    let evaluated;
+    let candidates;
     let searchExact;
 
     if (incApplies) {
       // Reuse the cached optimum: instant for a pure deletion, or enumerate the
       // teams that include a newly-added line (small pools; big adds went parallel).
-      evaluated = selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, null);
+      const top = createTopTeams(realizationPool);
+      selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, null, top);
+      candidates = top.items;
       searchExact = true;
     } else if (isStoreCovered) {
-      evaluated = queryTeamStore(lines, targetSize, opponentTypeBias);
+      candidates = queryTeamStoreTop(
+        lines,
+        targetSize,
+        opponentTypeBias,
+        realizationPool,
+      );
       searchExact = true;
     } else if (combinations <= budget && !forceShortlist) {
       // Sequential full enumeration: record every team so later subsets of this
@@ -354,8 +395,10 @@ async function selectTeamByFit(
       const store = searchKey
         ? createTeamStore(searchKey, lines, targetSize, combinations)
         : null;
-      evaluated = selectTeamExhaustive(lines, targetSize, opponentTypeBias, null, store);
+      const top = createTopTeams(realizationPool);
+      selectTeamExhaustive(lines, targetSize, opponentTypeBias, null, store, top);
       if (store) teamStore = store;
+      candidates = top.items;
       searchExact = true;
     } else {
       // Too big to enumerate fully: reduce to a coverage-preserving shortlist and
@@ -364,29 +407,39 @@ async function selectTeamByFit(
       const shortlist = buildShortlist(lines);
       const shortSize = Math.min(6, shortlist.length);
       const shortCombos = countCombinations(shortlist.length, shortSize);
-      let shortEvaluated = null;
+      candidates = null;
       if (shortCombos >= PARALLEL_THRESHOLD) {
         const compactLines = buildCompactLines(shortlist);
-        const bestRefs = await parallelFullSearch(
+        const refs = await parallelFullSearch(
           compactLines,
           shortSize,
           opponentTypeBias,
           shortCombos,
+          realizationPool,
         );
-        if (bestRefs) {
-          shortEvaluated = evaluatedFromRefs(
-            bestRefs,
-            shortlist,
-            shortSize,
-            opponentTypeBias,
-          );
+        if (refs?.top?.length) {
+          candidates = refs.top
+            .map((entry) =>
+              evaluatedFromRefs(entry, shortlist, shortSize, opponentTypeBias),
+            )
+            .filter(Boolean);
         }
       }
-      evaluated =
-        shortEvaluated ||
-        selectTeamExhaustive(shortlist, shortSize, opponentTypeBias, null, null);
+      if (!candidates?.length) {
+        const top = createTopTeams(realizationPool);
+        selectTeamExhaustive(shortlist, shortSize, opponentTypeBias, null, null, top);
+        candidates = top.items;
+      }
       searchExact = false; // exact on the shortlist, not the whole pool
     }
+
+    // Realize concrete builds for the top relaxed teams and keep the best by
+    // exact realized score (see realizeBestTeam).
+    const evaluated =
+      realizeBestTeam(candidates || [], opponentTypeBias) || {
+        team: [],
+        megaUsed: null,
+      };
 
     // Rank the non-selected lines by how much the team would suffer if forced to
     // field them — independent of which search ran above.
@@ -507,15 +560,21 @@ function incrementalApplicable(incremental, lines, targetSize) {
 // Streams every team of the target size, keeping the single best. With
 // `incremental`, it seeds the best from the cached optimum and only enumerates
 // teams containing at least one newly-added line.
-function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, recordStore) {
+function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, recordStore, topCollector = null) {
   let best = null;
+  const offer = (candidate) => {
+    if (topCollector) offerTopTeam(topCollector, candidate);
+    if (!best || betterEvaluated(candidate, best)) best = candidate;
+  };
 
   if (incremental) {
-    best = evaluateTeam(
-      incremental.previousBest.team,
-      incremental.previousBest.megaUsed,
-      targetSize,
-      opponentTypeBias,
+    offer(
+      evaluateTeam(
+        incremental.previousBest.team,
+        incremental.previousBest.megaUsed,
+        targetSize,
+        opponentTypeBias,
+      ),
     );
     const baseKeys = incremental.baseLineKeys;
     const added = lines.filter((line) => !baseKeys.has(line.lineKey));
@@ -532,7 +591,7 @@ function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, 
         forEachCombination(old.length, fromOld, (oldIdx) => {
           const comboLines = addedLines.concat(oldIdx.map((i) => old[i]));
           const candidate = bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
-          if (candidate && (!best || betterEvaluated(candidate, best))) best = candidate;
+          if (candidate) offer(candidate);
         });
       });
     }
@@ -544,7 +603,7 @@ function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, 
     const candidate = bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
     if (!candidate) return;
     if (recordStore) recordStoreTeam(recordStore, comboIndices, candidate);
-    if (!best || betterEvaluated(candidate, best)) best = candidate;
+    offer(candidate);
   });
 
   return best || { team: [], megaUsed: null };
