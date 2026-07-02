@@ -7,7 +7,7 @@
   "levelCap": 45,
   "golden": true,
   "expectations": {
-    "fieldedForm": { "Machop": "machoke", "Gastly": "haunter" },
+    "fieldedForm": { "Machop": ["machoke", "machamp"], "Gastly": ["haunter", "gengar"] },
     "searchExact": true
   }
 }

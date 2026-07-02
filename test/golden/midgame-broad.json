@@ -2,41 +2,41 @@
   "team": [
     "Abra -> kadabra",
     "Doduo -> dodrio",
+    "Eevee -> sylveon",
+    "Gastly -> haunter",
     "Magnemite -> magneton",
-    "Mareep -> ampharos",
-    "Rhyhorn -> rhydon",
-    "Tentacool -> tentacruel"
+    "Mareep -> ampharos"
   ],
   "searchExact": true,
   "lines": {
     "Machop": {
       "fielded": "machoke",
-      "score": 1192,
+      "score": 1179,
       "role": "bulky_attacker",
-      "online": 0.35
+      "online": 1
     },
     "Growlithe": {
-      "fielded": "growlithe",
-      "score": 1099,
+      "fielded": "arcanine",
+      "score": 1201,
       "role": "fast_attacker",
-      "online": 0.35
+      "online": 1
     },
     "Poliwag": {
       "fielded": "poliwhirl",
-      "score": 1157,
+      "score": 1345,
+      "role": "fast_utility",
+      "online": 1
+    },
+    "Abra": {
+      "fielded": "alakazam",
+      "score": 1398,
       "role": "fast_attacker",
       "online": 0.65
     },
-    "Abra": {
-      "fielded": "kadabra",
-      "score": 1681,
-      "role": "fast_attacker",
-      "online": 0.35
-    },
     "Tentacool": {
       "fielded": "tentacruel",
-      "score": 1502,
-      "role": "fast_attacker",
+      "score": 1388,
+      "role": "fast_utility",
       "online": 1
     },
     "Ponyta": {
@@ -46,44 +46,44 @@
       "online": 1
     },
     "Magnemite": {
-      "fielded": "magneton",
-      "score": 1220,
-      "role": "fast_attacker",
-      "online": 0.65
+      "fielded": "magnezone",
+      "score": 1196,
+      "role": "bulky_attacker",
+      "online": 1
     },
     "Doduo": {
       "fielded": "dodrio",
-      "score": 1589,
+      "score": 1536,
       "role": "fast_attacker",
       "online": 1
     },
     "Gastly": {
-      "fielded": "haunter",
-      "score": 1510,
+      "fielded": "gengar",
+      "score": 1255,
       "role": "fast_attacker",
       "online": 0.35
     },
     "Rhyhorn": {
       "fielded": "rhydon",
-      "score": 1463,
+      "score": 1400,
       "role": "bulky_attacker",
       "online": 0.65
     },
     "Horsea": {
       "fielded": "seadra",
-      "score": 1227,
+      "score": 1225,
       "role": "fast_attacker",
-      "online": 0.65
+      "online": 1
     },
     "Scyther": {
-      "fielded": "scyther",
-      "score": 1551,
-      "role": "fast_attacker",
+      "fielded": "scizor",
+      "score": 593,
+      "role": "bulky_attacker",
       "online": 0.65
     },
     "Eevee": {
       "fielded": "espeon",
-      "score": 1565,
+      "score": 1529,
       "role": "fast_attacker",
       "online": 1
     },
@@ -95,7 +95,7 @@
     },
     "Mareep": {
       "fielded": "ampharos",
-      "score": 1477,
+      "score": 1473,
       "role": "bulky_attacker",
       "online": 0.65
     },
