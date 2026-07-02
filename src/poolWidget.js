@@ -10,6 +10,7 @@ import { optimizeTeamFromPool } from "./teamBuilder/teamOptimizer";
 import { computeTeamConfidence } from "./teamBuilder/confidence.js";
 import { computeInvestmentPlan } from "./teamBuilder/investment.js";
 import { setScoringOverrides } from "./teamBuilder/scoringConstants.js";
+import { buildPerformanceReport } from "./teamBuilder/telemetry.js";
 import { loadManifest } from "./manifest.js";
 import { renderRebornLegalMovesPanel } from "./reborn/legalMovesView";
 import { renderRebornTeamAnalysisPanel } from "./reborn/teamAnalysisView";
@@ -500,6 +501,19 @@ export function mountPoolOptimizer(container, options = {}) {
       .querySelector("#copy-pool-button")
       ?.addEventListener("click", async () => {
         await copyPool();
+      });
+
+    app
+      .querySelector("#copy-perf-report-button")
+      ?.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(
+            JSON.stringify(buildPerformanceReport(), null, 2),
+          );
+          updatePoolStatusMessage("Performance report copied to clipboard");
+        } catch {
+          updatePoolStatusMessage("Clipboard copy failed");
+        }
       });
 
     app.querySelector("#clear-pool-button")?.addEventListener("click", () => {

@@ -126,7 +126,8 @@ export async function optimizeTeamFromPool({
   // Scoring overrides (confidence sweep / tests) and the DATA signature are part
   // of the score context: a sweep run must never hit — or seed — the production
   // ("base") caches, and a data refresh must retire every cached verdict.
-  const contextSig = `${family}|${selection}|${progressionSig}|${breedingSig}|${abilitySig}|${scoringOverridesSignature()}|${await getDataSignature()}`;
+  const dataSignature = await getDataSignature();
+  const contextSig = `${family}|${selection}|${progressionSig}|${breedingSig}|${abilitySig}|${scoringOverridesSignature()}|${dataSignature}`;
 
   // Layer 3: the result is a pure function of the score context and the set of
   // input mons, so memoize by both. A hit short-circuits line resolution and the
@@ -153,6 +154,7 @@ export async function optimizeTeamFromPool({
         searchMs: 0,
         poolSize: total,
         builds: countKeptBuilds(memoized.lines),
+        dataSignature,
       });
     }
     return memoized;
@@ -228,6 +230,7 @@ export async function optimizeTeamFromPool({
       searchMs: result.timings.searchMs,
       poolSize: lines.length,
       builds: countKeptBuilds(lines),
+      dataSignature,
     });
   }
 

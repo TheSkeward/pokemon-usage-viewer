@@ -412,9 +412,11 @@ function renderProvenanceFooter(manifest, timings) {
 }
 
 // Accumulated in-browser performance percentiles (external review ask):
-// p50/p90/p95 resolve and search time per cache temperature, with the pool
-// sizes and build counts they were measured over, plus this machine's core
-// count. Raw samples are exportable from the console via __TEAM_TELEMETRY__.
+// p50/p90/p95 resolve and search time segmented by cache temperature AND
+// pool-size bucket, for this build/scoring/data only (stale samples from
+// before a deploy are excluded, not averaged in), plus this machine's core
+// count. "Copy performance report" yields redacted JSON for bug filings; raw
+// samples are exportable from the console via __TEAM_TELEMETRY__.
 function renderTelemetryDetails() {
   let summary;
   try {
@@ -428,29 +430,36 @@ function renderTelemetryDetails() {
   const dist = (d) => `${ms(d.p50)} / ${ms(d.p90)} / ${ms(d.p95)}`;
   const range = (r) => (r.min === r.max ? `${r.min}` : `${r.min}–${r.max}`);
   const labels = { cold: "cold", warm: "warm cache", result: "result-cache hit" };
-  const rows = Object.entries(summary.byCache)
+  const rows = summary.segments
     .map(
-      ([state, group]) => `
+      (segment) => `
         <tr>
-          <td>${escapeHtml(labels[state] || state)}</td>
-          <td>${group.n}</td>
-          <td>${dist(group.resolveMs)}</td>
-          <td>${dist(group.searchMs)}</td>
-          <td>${range(group.poolSize)}</td>
-          <td>${range(group.builds)}</td>
+          <td>${escapeHtml(labels[segment.cache] || segment.cache)}</td>
+          <td>${escapeHtml(segment.poolBucket)}</td>
+          <td>${segment.n}</td>
+          <td>${dist(segment.resolveMs)}</td>
+          <td>${dist(segment.searchMs)}</td>
+          <td>${range(segment.builds)} (${escapeHtml(segment.buildBucket)})</td>
         </tr>`,
     )
     .join("");
+  const staleNote = summary.stale
+    ? ` · ${summary.stale} run${summary.stale === 1 ? "" : "s"} from previous builds excluded`
+    : "";
   return `
     <details class="muted" style="font-size: 0.85em">
-      <summary>Performance (${summary.total} run${summary.total === 1 ? "" : "s"} on this browser${summary.cores ? `, ${summary.cores} cores` : ""})</summary>
+      <summary>Performance (${summary.total} run${summary.total === 1 ? "" : "s"} on this build${summary.cores ? `, ${summary.cores} cores` : ""})</summary>
       <table>
         <thead>
-          <tr><th>cache</th><th>n</th><th>resolve p50/p90/p95</th><th>search p50/p90/p95</th><th>pool size</th><th>builds</th></tr>
+          <tr><th>cache</th><th>pool</th><th>n</th><th>resolve p50/p90/p95</th><th>search p50/p90/p95</th><th>builds</th></tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
-      <p>Raw samples: <code>__TEAM_TELEMETRY__.samples()</code> in the console; <code>.clear()</code> resets.</p>
+      <p>
+        <button id="copy-perf-report-button" type="button">Copy performance report</button>
+        — redacted JSON (timings, workload sizes, versions; no pool or team content)${staleNote}.
+        Raw samples: <code>__TEAM_TELEMETRY__.samples()</code> in the console; <code>.clear()</code> resets.
+      </p>
     </details>
   `;
 }

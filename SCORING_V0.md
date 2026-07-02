@@ -178,8 +178,27 @@ Invariants the shape encodes (each guarded by fixtures):
      interactive optimizer run records resolve/search wall-clock, pool size,
      surviving build count, core count, and cache temperature (cold / warm /
      result-hit) into localStorage (last 500 samples); the provenance footer
-     reports p50/p90/p95 per cache temperature, and `__TEAM_TELEMETRY__` in
-     the console exports raw samples. Confidence-sweep runs (active scoring
-     overrides) and the investment projection's future-cap re-runs are
-     excluded — they would corrupt the interactive latency distribution.
-     Scoring-neutral: no golden impact.
+     reports p50/p90/p95, and `__TEAM_TELEMETRY__` in the console exports raw
+     samples. Confidence-sweep runs (active scoring overrides) and the
+     investment projection's future-cap re-runs are excluded — they would
+     corrupt the interactive latency distribution. Scoring-neutral: no golden
+     impact.
+- **Telemetry hardening** (third external review round; schema 2):
+  1. *Environment stamping*: every sample carries `telemetry schema | app
+     build id (vite __BUILD_ID__) | scoring version | data signature`, and the
+     summary reads only samples matching the newest sample's environment — a
+     deploy that changes any of those retires the old implementation's
+     latencies from the percentiles (counted and shown as "N runs from
+     previous builds excluded") instead of averaging slow-old with fast-new.
+  2. *Workload segmentation*: percentiles are computed per (cache temperature
+     × pool-size bucket 1–12 / 13–24 / 25–36 / 37+), with the build-count
+     range and a low/≤48 / medium/≤96 / high bucket per segment — a cold run
+     on pool 7 and one on pool 45 are different distributions.
+  3. *Copy performance report*: a footer button copies redacted JSON (summary
+     segments, last run, environment, core count — no pool, team, or query
+     content; a unit test walks every key in the report tree to keep it that
+     way) for pasting into bug reports.
+  4. *Cancellation-ready schema*: samples record `cancelled` (always false
+     today) and summaries count-but-exclude cancelled runs, so when optimizer
+     cancellation lands it must record the aborted phase and elapsed ms — slow
+     abandoned runs stay visible rather than vanishing.
