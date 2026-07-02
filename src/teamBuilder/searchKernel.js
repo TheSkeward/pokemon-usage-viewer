@@ -7,6 +7,7 @@
 
 import { getTypeMultiplier, REBORN_ANALYSIS_TYPES } from "../reborn/typeChart.js";
 import { MAX_OPPONENT_TYPE_BIAS } from "../reborn/progression";
+import { tunable } from "./scoringConstants.js";
 
 export { REBORN_ANALYSIS_TYPES, getTypeMultiplier };
 
@@ -14,31 +15,36 @@ export { REBORN_ANALYSIS_TYPES, getTypeMultiplier };
 // Exhaustive search evaluates hundreds of thousands of teams, so before a search
 // we precompute per choice what the hot loop needs: its damage-aware coverage
 // vector (best real hit into each defense type, 0..1 — from the legality profile)
-// and its defensive weak/resist bitmasks. fastTeamFit is asserted equal to
-// scoreTeamFit.
+// and its defensive weak/resist bitmasks. All judgement constants come from
+// scoringConstants.js, snapshotted once per search so overrides don't cost the
+// hot loop.
 const TYPE_COUNT = REBORN_ANALYSIS_TYPES.length;
 const ZERO_COVERAGE = new Float64Array(TYPE_COUNT);
 
-// Value of fully answering one defense type, tuned so team coverage is a
-// strong-but-not-dominant marginal signal against summed individual values.
-const COVERAGE_SCALE = 110;
-// A maxed opponent-bias type's coverage is worth up to this much extra.
-const BIAS_COVERAGE_BOOST = 2;
-
 let fitReady = false;
 let coverageWeights = null; // per-defense-type multiplier from opponent bias
-// Resolved once per search (not per team eval) so a tuning override doesn't cost
-// the hot loop.
-let coverageWeight = 0.5;
+// Tunables snapshotted per search (prepareFitScoring) for the hot loop.
+let ACTIVE = snapshotFitTunables();
+
+function snapshotFitTunables() {
+  return {
+    coverageWeight: tunable("COVERAGE_WEIGHT"),
+    coverageScale: tunable("COVERAGE_SCALE"),
+    sharedWeakPenalty: tunable("SHARED_WEAK_PENALTY"),
+    uncoveredWeakPenalty: tunable("UNCOVERED_WEAK_PENALTY"),
+    resistStackBonus: tunable("RESIST_STACK_BONUS"),
+  };
+}
 
 function computeCoverageWeights(opponentTypeBias) {
   const weights = new Array(TYPE_COUNT).fill(1);
+  const boost = tunable("BIAS_COVERAGE_BOOST");
   if (!opponentTypeBias) return weights;
   for (let j = 0; j < TYPE_COUNT; j++) {
     const raw = opponentTypeBias[REBORN_ANALYSIS_TYPES[j]];
     const level = Math.max(0, Math.min(MAX_OPPONENT_TYPE_BIAS, raw || 0));
     if (level) {
-      weights[j] = 1 + (level / MAX_OPPONENT_TYPE_BIAS) * BIAS_COVERAGE_BOOST;
+      weights[j] = 1 + (level / MAX_OPPONENT_TYPE_BIAS) * boost;
     }
   }
   return weights;
@@ -54,8 +60,13 @@ function precomputeFit(choice, opponentTypeBias) {
     if (multiplier > 1) weakMask |= 1 << j;
     else if (multiplier < 1) resistMask |= 1 << j;
   }
+  // Team SELECTION uses the line's optimistic coverage vector (the max over its
+  // build variants) when present — a relaxation, so a line whose coverage build
+  // could patch a hole isn't pruned before the optimiser sees it. The chosen
+  // team's concrete builds are then realized by the post-selection build
+  // assignment (teamSelection.assignTeamBuilds), which scores REAL vectors.
   // Float64Array for fast sequential reads in the noisy-OR hot loop.
-  const cv = profile.coverageVector;
+  const cv = choice.optimisticCoverageVector || profile.coverageVector;
   choice._fit = {
     coverageVector:
       cv && cv.length === TYPE_COUNT ? Float64Array.from(cv) : ZERO_COVERAGE,
@@ -67,7 +78,7 @@ function precomputeFit(choice, opponentTypeBias) {
 
 export function prepareFitScoring(lines, opponentTypeBias) {
   coverageWeights = computeCoverageWeights(opponentTypeBias);
-  coverageWeight = globalThis.__COVERAGE_WEIGHT__ ?? COVERAGE_WEIGHT;
+  ACTIVE = snapshotFitTunables();
   for (const line of lines) {
     for (const choice of getLineChoiceOptions(line)) {
       precomputeFit(choice, opponentTypeBias);
@@ -104,7 +115,7 @@ function fastTeamFit(team) {
   }
   let score = 0;
   for (let j = 0; j < TYPE_COUNT; j++) {
-    score += weights[j] * (1 - MISS_SCRATCH[j]) * COVERAGE_SCALE;
+    score += weights[j] * (1 - MISS_SCRATCH[j]) * ACTIVE.coverageScale;
   }
 
   for (let j = 0; j < TYPE_COUNT; j++) {
@@ -117,29 +128,25 @@ function fastTeamFit(team) {
       else if (fit.resistMask & bit) coverCount += 1;
     }
     if (weakWeight >= 2) {
-      score -= (weakWeight - 1) * 180;
-      if (!coverCount) score -= 260;
+      score -= (weakWeight - 1) * ACTIVE.sharedWeakPenalty;
+      if (!coverCount) score -= ACTIVE.uncoveredWeakPenalty;
     }
-    if (coverCount >= 2) score += Math.min(3, coverCount) * 45;
+    if (coverCount >= 2)
+      score += Math.min(3, coverCount) * ACTIVE.resistStackBonus;
   }
 
   return score;
 }
 
-// How much the team-level coverage/defense fit is worth relative to the summed
-// individual values. Individual value now lives on the combat-score scale (peak
-// current usefulness, not the old usage-inflated scale), so this keeps coverage a
-// strong-but-not-dominant marginal term: it can pull a genuine answer onto the
-// team over a redundant stronger mon when it fills a real hole, but can't assemble
-// a team of type-spread chaff over the clear individual standouts. Tunable
-// preference — turn it up for more coverage-driven teams, down for more
-// quality-driven ones.
-const COVERAGE_WEIGHT = 0.5;
-
+// COVERAGE_WEIGHT: how much the team-level coverage/defense fit is worth relative
+// to the summed individual values — a strong-but-not-dominant marginal term: it
+// can pull a genuine answer onto the team over a redundant stronger mon when it
+// fills a real hole, but can't assemble a team of type-spread chaff over the
+// clear individual standouts.
 export function getTeamScore(team, opponentTypeBias = {}) {
   const fast = fitReady ? fastTeamFit(team) : null;
   const fit = fast != null ? fast : scoreTeamFit(team, opponentTypeBias);
-  const weight = fitReady ? coverageWeight : (globalThis.__COVERAGE_WEIGHT__ ?? COVERAGE_WEIGHT);
+  const weight = fitReady ? ACTIVE.coverageWeight : tunable("COVERAGE_WEIGHT");
   return sumTeamScore(team) + weight * fit;
 }
 
@@ -167,15 +174,21 @@ function scoreTeamFit(team, opponentTypeBias = {}) {
     (profile) => 1 - biasCounterExemption(profile, opponentTypeBias),
   );
   let score = 0;
+  const coverageScale = tunable("COVERAGE_SCALE");
+  const sharedWeakPenalty = tunable("SHARED_WEAK_PENALTY");
+  const uncoveredWeakPenalty = tunable("UNCOVERED_WEAK_PENALTY");
+  const resistStackBonus = tunable("RESIST_STACK_BONUS");
 
-  // Damage-aware coverage: noisy-OR over members' per-type A values.
+  // Damage-aware coverage: noisy-OR over members' per-type A values. This exact
+  // path scores the members' REAL coverage vectors (their concrete builds), not
+  // the optimistic selection relaxation.
   for (let j = 0; j < TYPE_COUNT; j++) {
     let miss = 1;
     for (const profile of profiles) {
       const vector = profile.coverageVector || ZERO_COVERAGE;
       miss *= 1 - (vector[j] || 0);
     }
-    score += weights[j] * (1 - miss) * COVERAGE_SCALE;
+    score += weights[j] * (1 - miss) * coverageScale;
   }
 
   // Defensive shared-weakness term.
@@ -189,10 +202,10 @@ function scoreTeamFit(team, opponentTypeBias = {}) {
       else if (multiplier < 1) coverCount += 1;
     });
     if (weakWeight >= 2) {
-      score -= (weakWeight - 1) * 180;
-      if (!coverCount) score -= 260;
+      score -= (weakWeight - 1) * sharedWeakPenalty;
+      if (!coverCount) score -= uncoveredWeakPenalty;
     }
-    if (coverCount >= 2) score += Math.min(3, coverCount) * 45;
+    if (coverCount >= 2) score += Math.min(3, coverCount) * resistStackBonus;
   }
 
   return score;

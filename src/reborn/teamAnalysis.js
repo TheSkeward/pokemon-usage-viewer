@@ -198,6 +198,9 @@ export function buildCandidateLegalityProfile({
   opponentTypeBias = {},
   heldItem = null,
   ability = null,
+  evolution = null,
+  buildFriction = 0,
+  movePreference = "default",
 }) {
   // Carry the recommended held item AND the mon's competitive ability on the
   // member, so every damage estimate (display, ranking, bias, team scoring)
@@ -216,6 +219,7 @@ export function buildCandidateLegalityProfile({
     stats,
     moveUsage,
     opponentTypeBias,
+    movePreference,
   );
   const recommendedDamagingMoves = recommendedMoves.filter(isDamagingMove);
   const stabMoves = damagingMoves
@@ -276,6 +280,16 @@ export function buildCandidateLegalityProfile({
     // actual caught mon's ability isn't known here, so this is "best obtainable,
     // noted", not a claim about legality.
     assumedAbility: ability || null,
+    movePreference,
+    // K for having reached this fielded form (evolution requirements) plus any
+    // build friction (e.g. delayed-evolution moves), with the auditable proof.
+    frictionCost: (evolution?.friction || 0) + (buildFriction || 0),
+    legalityProof: {
+      fielded: member.id,
+      evolutionSteps: evolution?.steps || [],
+      blockedEvolutions: evolution?.blocked || [],
+      buildFriction: buildFriction || 0,
+    },
     attackTypes: attackingTypes.map((entry) => entry.type),
     bestCoverageMoves: attackingTypes
       .filter((entry) => !member.types.includes(entry.type))
@@ -972,6 +986,7 @@ function recommendCurrentMoves(
   attackerStats,
   moveUsage = new Map(),
   opponentTypeBias = {},
+  movePreference = "default",
 ) {
   const decorated = moves.map((move) =>
     decorateMove(move, member, attackerStats, moveUsage, opponentTypeBias),
@@ -994,14 +1009,34 @@ function recommendCurrentMoves(
     return true;
   };
 
-  // 1. Canonical (top-4 by usage), in usage order, each kept if available now.
-  const canonicalIds = [...moveUsage.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 4)
-    .map(([id]) => id);
-  for (const id of canonicalIds) {
-    const move = byId.get(id);
-    if (move && isSelectableMove(move, moves)) add(move);
+  if (movePreference === "coverage") {
+    // Coverage build: best STAB nuke first, then greedily add fresh attacking
+    // types by damage (the shared fill loop below keeps extending coverage).
+    // A build the team optimizer can pick when it needs THIS mon's off-type
+    // answers rather than its canonical competitive set.
+    add(
+      usableDamaging
+        .filter((move) => member.types.includes(move.type))
+        .sort(compareByDamage)[0],
+    );
+  } else if (movePreference === "utility") {
+    // Utility build: the strongest role moves (recovery/hazards/speed control
+    // rank above chip status via utilityWeight), plus the guaranteed attack
+    // from the shared steps so it can't go fully passive.
+    const rankedUtility = usableUtility
+      .filter((move) => move.usage > 0 || move.utilityWeight > 0)
+      .sort(compareUtilityByUsage);
+    for (const move of rankedUtility.slice(0, 3)) add(move);
+  } else {
+    // 1. Canonical (top-4 by usage), in usage order, each kept if available now.
+    const canonicalIds = [...moveUsage.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([id]) => id);
+    for (const id of canonicalIds) {
+      const move = byId.get(id);
+      if (move && isSelectableMove(move, moves)) add(move);
+    }
   }
 
   // 2. Guarantee at least one attack — but only if none was picked yet. A mon

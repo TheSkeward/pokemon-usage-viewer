@@ -11,6 +11,9 @@ import {
 import { buildCandidateLegalityProfile } from "../reborn/teamAnalysis";
 import { loadTopSet } from "../reborn/topSpread.js";
 import { buildInputGroups } from "./inputGroups";
+import { parseAbilityAnnotations } from "./poolParsing";
+import { normalizeName } from "./nameUtils";
+import { tunable, scoringOverridesSignature } from "./scoringConstants.js";
 import {
   MIN_MEANINGFUL_USAGE_PERCENT,
   compareScoredCandidates,
@@ -19,6 +22,7 @@ import {
 import { resolveRepresentativeLightBundle } from "./representativeBundle";
 import { choosePoolTeam } from "./teamSelection";
 import { loadPersistedResults, persistResult } from "./resultCacheStore.js";
+import { getDataSignature } from "../manifest.js";
 
 // --- Incremental caches ----------------------------------------------------
 // In a playthrough you mostly grow the pool one mon at a time at a fixed game
@@ -98,7 +102,19 @@ export async function optimizeTeamFromPool({
     Object.keys(breedingContext.byPokemonId).length
       ? stableStringify(breedingContext.byPokemonId)
       : "none";
-  const contextSig = `${family}|${selection}|${progressionSig}|${breedingSig}`;
+  // Ability annotations ("Froakie (Torrent)") change a line's builds, so they
+  // are part of the score context too.
+  const abilityAnnotations = parseAbilityAnnotations(query, pokemonIndex);
+  const abilitySig = abilityAnnotations.size
+    ? [...abilityAnnotations.entries()]
+        .sort()
+        .map(([name, ability]) => `${name}=${ability}`)
+        .join(",")
+    : "none";
+  // Scoring overrides (confidence sweep / tests) and the DATA signature are part
+  // of the score context: a sweep run must never hit — or seed — the production
+  // ("base") caches, and a data refresh must retire every cached verdict.
+  const contextSig = `${family}|${selection}|${progressionSig}|${breedingSig}|${abilitySig}|${scoringOverridesSignature()}|${await getDataSignature()}`;
 
   // Layer 3: the result is a pure function of the score context and the set of
   // input mons, so memoize by both. A hit short-circuits line resolution and the
@@ -129,6 +145,7 @@ export async function optimizeTeamFromPool({
             pokemonIndex,
             progression,
             selection,
+            abilityAnnotations,
           },
           contextSig,
           hitLineKeys,
@@ -253,6 +270,7 @@ async function resolvePoolLine({
   pokemonIndex,
   progression,
   selection,
+  abilityAnnotations = null,
 }) {
   if (group.unresolved || !group.entries.length) {
     return {
@@ -267,6 +285,8 @@ async function resolvePoolLine({
 
   const input = group.input;
   const candidates = getLineRepresentativeCandidates(input.id, pokemonIndex);
+  const abilityOverride =
+    abilityAnnotations?.get(normalizeName(input.name)) || null;
 
   const scored = await Promise.all(
     candidates.map(async (candidate) => {
@@ -278,30 +298,84 @@ async function resolvePoolLine({
           pokemonId: candidate.id,
           selection,
         });
-        const legalityProfile = await resolveCandidateLegalityProfile({
+        const builds = await resolveCandidateBuilds({
           breedingContext,
           candidate,
           family,
           input,
           progression,
           selection,
+          abilityOverride,
         });
-
-        return {
-          input,
-          candidate,
-          bundle,
-          legalityProfile,
-          ...scoreCandidate({
+        const levelCap = Number.parseInt(progression.levelCap, 10) || 0;
+        const scoreOf = (legalityProfile) =>
+          scoreCandidate({
             availability,
             bundle,
             candidate,
             family,
             legalityProfile,
-            levelCap: Number.parseInt(progression.levelCap, 10) || 0,
+            levelCap,
             opponentTypeBias: progression.opponentTypeBias,
-          }),
-        };
+          });
+
+        const scoredBuilds = builds.variants
+          .map((variant) => ({
+            input,
+            candidate,
+            bundle,
+            buildKey: variant.key,
+            buildLabel: variant.label,
+            legalityProfile: variant.profile,
+            ...scoreOf(variant.profile),
+          }))
+          .filter((row) => Number.isFinite(row.score));
+        if (!scoredBuilds.length) {
+          // No usage bundle for this form (e.g. a mega with no ladder data):
+          // an unscoreable candidate, filtered by the ranked cut — not an error.
+          return {
+            input,
+            candidate,
+            bundle,
+            score: -Infinity,
+            teamScore: -Infinity,
+            meaningfulUsage: false,
+            usagePercent: 0,
+            rawCount: 0,
+            leadPercent: 0,
+            legalityProfile: builds.variants[0]?.profile || null,
+          };
+        }
+
+        // Ability sensitivity: how much V rests on the ability ASSUMPTION
+        // (primary vs secondary on the same set). Zero when the user pinned the
+        // ability. Stored on every build so the sweep's "assume the secondary
+        // ability" axis and the explanation layer can both use it.
+        if (builds.sensitivityProbe) {
+          const probe = scoreOf(builds.sensitivityProbe);
+          const defaultRow =
+            scoredBuilds.find((row) => row.buildKey === "default") ||
+            scoredBuilds[0];
+          const sensitivity = Number.isFinite(probe.score)
+            ? Math.max(0, Math.round(defaultRow.score - probe.score))
+            : 0;
+          for (const row of scoredBuilds) {
+            row.abilitySensitivity = sensitivity;
+            row.legalityProfile.abilitySensitivity = sensitivity;
+          }
+        }
+
+        const kept = pruneDominatedBuilds(scoredBuilds);
+        kept.sort(compareScoredCandidates);
+        const best = kept[0];
+        // Choice-shaped builds for the post-selection realization pass, built
+        // BEFORE tagging `best` so there is no self-nesting.
+        const buildChoices = kept.map((row) =>
+          makeChoice(input, row, row.buildLabel || "Build"),
+        );
+        best.buildChoices = buildChoices;
+        best.optimisticCoverageVector = optimisticCoverageVector(kept);
+        return best;
       } catch (error) {
         console.warn("Failed to score team-builder candidate", {
           candidate,
@@ -362,6 +436,61 @@ async function resolvePoolLine({
     choiceOptions: buildChoiceOptions(input, ranked, best, bestNonMega),
     candidates: ranked,
   };
+}
+
+// Dominance pruning across a candidate's build variants: drop build B when
+// another build of the same form is at least as good on individual value AND
+// on coverage into every defense type AND no more expensive in friction. Keep
+// at most three (the realization pass enumerates the cross product across six
+// members, so 3^6 stays trivial). The default build is always kept — it is the
+// canonical honest set the recommendation displays.
+function pruneDominatedBuilds(rows) {
+  const kept = [];
+  for (const row of rows) {
+    const dominated = rows.some((other) => {
+      if (other === row) return false;
+      if ((other.teamScore ?? 0) < (row.teamScore ?? 0)) return false;
+      if (
+        (other.legalityProfile?.frictionCost || 0) >
+        (row.legalityProfile?.frictionCost || 0)
+      ) {
+        return false;
+      }
+      const a = other.legalityProfile?.coverageVector || [];
+      const b = row.legalityProfile?.coverageVector || [];
+      for (let i = 0; i < b.length; i++) {
+        if ((a[i] || 0) < (b[i] || 0) - 1e-9) return false;
+      }
+      // Strictly-equal twins: keep the earlier (default-first) one only.
+      if (
+        (other.teamScore ?? 0) === (row.teamScore ?? 0) &&
+        rows.indexOf(other) > rows.indexOf(row)
+      ) {
+        return false;
+      }
+      return true;
+    });
+    if (!dominated || row.buildKey === "default") kept.push(row);
+  }
+  const byScore = kept.sort(
+    (a, b) =>
+      Number(b.buildKey === "default") - Number(a.buildKey === "default") ||
+      (b.teamScore ?? 0) - (a.teamScore ?? 0),
+  );
+  return byScore.slice(0, 3);
+}
+
+// Element-wise max of the kept builds' coverage vectors: the line's optimistic
+// coverage for team SELECTION (a relaxation — realized by assignTeamBuilds).
+function optimisticCoverageVector(rows) {
+  let vector = null;
+  for (const row of rows) {
+    const cv = row.legalityProfile?.coverageVector;
+    if (!cv) continue;
+    if (!vector) vector = [...cv];
+    else for (let i = 0; i < vector.length; i++) vector[i] = Math.max(vector[i], cv[i] || 0);
+  }
+  return vector;
 }
 
 function buildChoiceOptions(input, ranked, best, bestNonMega) {
@@ -426,11 +555,19 @@ function makeChoice(input, result, note) {
     meaningfulUsage: result.meaningfulUsage,
     legalityProfile: result.legalityProfile,
     legalityScore: result.legalityScore,
+    friction: result.friction,
     currentRole: result.currentRole,
     currentFeatures: result.currentFeatures,
     ceiling: result.ceiling,
     online: result.online,
     futureValue: result.futureValue,
+    buildKey: result.buildKey || "default",
+    buildLabel: result.buildLabel || null,
+    abilitySensitivity: result.abilitySensitivity || 0,
+    ...(result.buildChoices ? { buildAlternatives: result.buildChoices } : {}),
+    ...(result.optimisticCoverageVector
+      ? { optimisticCoverageVector: result.optimisticCoverageVector }
+      : {}),
     bundle: result.bundle,
     note: legalityNote ? `${usageNote}; ${legalityNote}` : usageNote,
   };
@@ -454,13 +591,25 @@ function formatLegalityNote(profile) {
   return `${bestStab}; ${profile.attackTypes.length} recommended attack types${abilityNote}`;
 }
 
-async function resolveCandidateLegalityProfile({
+// Generates the candidate's BUILD VARIANTS (roadmap Phase 3): a build is a
+// concrete (form, ability, move set, friction) with its own legality profile
+// and coverage vector. 2–4 plausible builds per viable form:
+//   default   — the usage-anchored competitive set (natural evolution path)
+//   coverage  — maximizes distinct real attacking coverage
+//   utility   — leads with role moves (recovery/hazards/speed control)
+//   delayed   — the default set allowed to use delayed-evolution moves, paying
+//               DELAYED_EVO_FRICTION and labelled
+// plus, when the caught mon's ability is UNKNOWN, a secondary-ability probe
+// used only to measure ability sensitivity (the optimizer must never "choose"
+// an ability the player doesn't control; a user annotation pins it instead).
+async function resolveCandidateBuilds({
   breedingContext,
   candidate,
   family,
   input,
   progression,
   selection,
+  abilityOverride = null,
 }) {
   const choice = {
     inputPokemonId: input.id,
@@ -488,25 +637,128 @@ async function resolveCandidateLegalityProfile({
     types: legalMoveData?.types || [],
   };
   const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
+  // The DEFAULT build assumes the natural evolution path: moves that would
+  // require delaying an evolution are split into a friction-costed variant,
+  // never silently assumed.
+  const naturalMoves = moves.filter((move) => !move.delayedEvolution);
+  const delayedMoves = moves.filter((move) => move.delayedEvolution);
 
-  // The competitive form's primary ability (Protean/Libero/Adaptability change
-  // damage), so team scoring values a Greninja/Frogadier line for what it really
-  // does. Sourced from the represented form's set index — a line-wide ability
-  // like Protean is what the usage prior itself reflects.
+  // Ability: a user annotation ("Froakie (Torrent)") pins the caught mon's real
+  // ability; otherwise assume the represented form's primary competitive
+  // ability (what the usage prior itself reflects) and measure sensitivity
+  // against the secondary.
   const topSet = await loadTopSet({
     family,
     pokemonId: candidate.id,
     selection,
   });
+  const abilityChoices = topSet?.abilities || [];
+  const matchedOverride = abilityOverride
+    ? abilityChoices.find(
+        (entry) => entry.name.toLowerCase() === abilityOverride.toLowerCase(),
+      )?.name || null
+    : null;
+  const assumedAbility = matchedOverride || topSet?.ability || null;
+  const abilityKnown = Boolean(matchedOverride);
+  const secondaryAbility =
+    !abilityKnown && abilityChoices.length > 1
+      ? abilityChoices.find((entry) => entry.name !== assumedAbility)?.name ||
+        null
+      : null;
 
-  return buildCandidateLegalityProfile({
-    member,
-    moves,
-    representativeName: candidate.name,
-    levelCap: progression.levelCap,
-    ability: topSet?.ability,
-    opponentTypeBias: progression.opponentTypeBias,
-  });
+  const evolution = currentSpecies
+    ? {
+        friction: currentSpecies.evolutionFriction || 0,
+        steps: currentSpecies.evolutionSteps || [],
+        blocked: currentSpecies.blockedEvolutions || [],
+      }
+    : { friction: 0, steps: [], blocked: [] };
+
+  const makeProfile = ({ movePreference, buildMoves, buildFriction = 0, ability }) => {
+    const profile = buildCandidateLegalityProfile({
+      member,
+      moves: buildMoves,
+      representativeName: candidate.name,
+      levelCap: progression.levelCap,
+      ability,
+      evolution,
+      buildFriction,
+      opponentTypeBias: progression.opponentTypeBias,
+      movePreference,
+    });
+    profile.abilityKnown = abilityKnown;
+    profile.abilityOptions = abilityChoices;
+    return profile;
+  };
+
+  const variants = [
+    {
+      key: "default",
+      label: "Standard set",
+      profile: makeProfile({
+        movePreference: "default",
+        buildMoves: naturalMoves,
+        ability: assumedAbility,
+      }),
+    },
+    {
+      key: "coverage",
+      label: "Coverage set",
+      profile: makeProfile({
+        movePreference: "coverage",
+        buildMoves: naturalMoves,
+        ability: assumedAbility,
+      }),
+    },
+    {
+      key: "utility",
+      label: "Utility set",
+      profile: makeProfile({
+        movePreference: "utility",
+        buildMoves: naturalMoves,
+        ability: assumedAbility,
+      }),
+    },
+  ];
+
+  if (delayedMoves.length) {
+    const delayedProfile = makeProfile({
+      movePreference: "default",
+      buildMoves: [...naturalMoves, ...delayedMoves],
+      ability: assumedAbility,
+    });
+    const delayedIds = new Set(delayedMoves.map((move) => move.id));
+    const usedDelayed = (delayedProfile.recommendedMoves || []).filter((move) =>
+      delayedIds.has(move.id),
+    );
+    // Only a distinct build if the set actually uses a delayed move; then it
+    // pays the delayed-evolution K and says which move required the delay.
+    if (usedDelayed.length) {
+      delayedProfile.frictionCost += tunable("DELAYED_EVO_FRICTION");
+      delayedProfile.legalityProof.buildFriction = tunable("DELAYED_EVO_FRICTION");
+      delayedProfile.legalityProof.delayedMoves = usedDelayed.map((move) => ({
+        name: move.name,
+        source: move.availableSources?.[0]?.label || "delayed evolution",
+      }));
+      variants.push({
+        key: "delayed",
+        label: `Delayed-evolution set (${usedDelayed.map((m) => m.name).join(", ")})`,
+        profile: delayedProfile,
+      });
+    }
+  }
+
+  // Sensitivity probe: same default set, secondary ability. Never a competing
+  // build — only a measurement.
+  const sensitivityProbe = secondaryAbility
+    ? makeProfile({
+        movePreference: "default",
+        buildMoves: naturalMoves,
+        ability: secondaryAbility,
+      })
+    : null;
+
+  return { variants, sensitivityProbe, assumedAbility, abilityKnown, secondaryAbility };
 }
 
 function getLineKey(candidates, fallbackId) {

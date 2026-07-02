@@ -2,6 +2,28 @@ export function parsePoolTokens(query, pokemonIndex) {
   return extractPoolNames(query, pokemonIndex);
 }
 
+// Ability annotations (roadmap 4C): a pool line like "Froakie (Torrent)" or
+// "Froakie [Torrent]" declares the CAUGHT mon's actual ability, replacing the
+// competitive-primary assumption for that line. Returns a map of normalized
+// pokemon name -> annotation text; the optimizer validates the text against the
+// line's real ability options and ignores (with a note) anything that doesn't
+// match, so ordinary parenthetical noise in pasted lists can't corrupt scoring.
+export function parseAbilityAnnotations(query, pokemonIndex) {
+  const annotations = new Map();
+  for (const rawLine of String(query || "").split(/\n+/)) {
+    for (const part of rawLine.split(",")) {
+      const match = /^(.*?)\s*[([]\s*([A-Za-z][A-Za-z' -]{1,28})\s*[)\]]\s*$/.exec(
+        part.trim(),
+      );
+      if (!match) continue;
+      const name = findPokemonNameInText(match[1], pokemonIndex);
+      if (!name) continue;
+      annotations.set(normalizeName(name), match[2].trim());
+    }
+  }
+  return annotations;
+}
+
 export function getPoolStats(query, pokemonIndex) {
   const tokens = parsePoolTokens(query, pokemonIndex);
   const unique = new Set(tokens.map(normalizeName).filter(Boolean));

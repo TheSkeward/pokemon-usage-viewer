@@ -7,6 +7,10 @@ import {
 import { createTeamBuilderSetDetailsLoader } from "./teamBuilder/setDetailsLoader";
 import { getPoolStats, normalizePoolText } from "./teamBuilder/poolParsing";
 import { optimizeTeamFromPool } from "./teamBuilder/teamOptimizer";
+import { computeTeamConfidence } from "./teamBuilder/confidence.js";
+import { computeInvestmentPlan } from "./teamBuilder/investment.js";
+import { setScoringOverrides } from "./teamBuilder/scoringConstants.js";
+import { loadManifest } from "./manifest.js";
 import { renderRebornLegalMovesPanel } from "./reborn/legalMovesView";
 import { renderRebornTeamAnalysisPanel } from "./reborn/teamAnalysisView";
 import { getCurrentRebornSpeciesForChoice } from "./reborn/currentSpecies.js";
@@ -90,6 +94,10 @@ export function mountPoolOptimizer(container, options = {}) {
       loadAvailability(),
       loadPokemonIndex(),
     ]);
+    // Provenance for the debug footer (which data produced these verdicts).
+    loadManifest().then((manifest) => {
+      state.manifest = manifest;
+    });
 
     if (initialQuery.trim()) {
       savePool(initialQuery);
@@ -160,6 +168,11 @@ export function mountPoolOptimizer(container, options = {}) {
 
       writeUrl();
       render();
+
+      // First-class confidence + investment analysis, computed AFTER the team
+      // renders so "click optimize" stays snappy; each re-renders when it lands
+      // (guarded against a newer optimize having replaced the result).
+      void runPostAnalysis(state.result);
     } catch (error) {
       console.error("Team Builder optimization failed", error);
 
@@ -169,6 +182,48 @@ export function mountPoolOptimizer(container, options = {}) {
 
       setDetails.cancel();
       render();
+    }
+  }
+
+  // Confidence sweep + investment plan, run after each optimize. The sweep sets
+  // global scoring overrides around synchronous blocks only; still, a user
+  // optimize started mid-sweep aborts the sweep (checked between settings via
+  // the result-identity guard) and clears overrides defensively.
+  async function runPostAnalysis(forResult) {
+    state.confidence = null;
+    state.investment = null;
+    state.analysisPending = true;
+    render();
+    try {
+      const confidence = await computeTeamConfidence({
+        result: forResult,
+        availability,
+        family: state.family,
+        progression: state.progression,
+      });
+      if (state.result !== forResult) return; // superseded by a newer optimize
+      state.confidence = confidence;
+      render();
+
+      const investment = await computeInvestmentPlan({
+        availability,
+        family: state.family,
+        pokemonIndex,
+        progression: state.progression,
+        query: state.query,
+        selection: state.selection,
+        result: forResult,
+      });
+      if (state.result !== forResult) return;
+      state.investment = investment;
+    } catch (error) {
+      console.warn("Post-analysis failed", error);
+    } finally {
+      setScoringOverrides(null);
+      if (state.result === forResult) {
+        state.analysisPending = false;
+        render();
+      }
     }
   }
 

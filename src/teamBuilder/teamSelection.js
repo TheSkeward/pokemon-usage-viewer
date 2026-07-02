@@ -15,6 +15,7 @@ import {
   forEachCombination,
 } from "./searchKernel.js";
 import { parallelFullSearch, PARALLEL_THRESHOLD } from "./parallelSearch.js";
+import { tunable } from "./scoringConstants.js";
 
 export async function choosePoolTeam(
   lines,
@@ -29,7 +30,13 @@ export async function choosePoolTeam(
     searchKey,
   });
   const evaluated = bestTeam.evaluated;
-  const team = addTeamFitNotes(evaluated.team);
+  // Realize concrete builds: selection ran on each line's best build with an
+  // OPTIMISTIC coverage relaxation (max over its build variants); now that the
+  // six lines are fixed, enumerate the actual build assignments (≤3 per member,
+  // ≤729 teams) and keep the best REAL team score — this is where "Greninja
+  // with the coverage set" gets chosen when the team actually needs it.
+  const realizedTeam = assignTeamBuilds(evaluated.team, opponentTypeBias);
+  const team = addTeamFitNotes(realizedTeam);
   const megaUsed = evaluated.megaUsed
     ? team.find(
         (choice) =>
@@ -53,6 +60,36 @@ export async function choosePoolTeam(
     // the search incrementally next time. Only exact results are safe to seed.
     bestEvaluated: bestTeam.searchExact ? evaluated : null,
   };
+}
+
+// Post-selection build assignment (roadmap Phase 3): with the six lines fixed,
+// pick one build per member (at most one build per evolutionary line holds by
+// construction — builds are alternatives of the same member) maximizing the
+// realized team score. Uses the exact scoring path, so members' REAL coverage
+// vectors — not the selection relaxation — decide. Deterministic: fixed
+// enumeration order, strict improvement.
+export function assignTeamBuilds(team, opponentTypeBias = {}) {
+  if (!team.length) return team;
+  const options = team.map((choice) =>
+    choice.buildAlternatives?.length ? choice.buildAlternatives : [choice],
+  );
+  if (options.every((builds) => builds.length === 1)) return team;
+
+  let best = null;
+  const assignment = new Array(team.length);
+  const walk = (index) => {
+    if (index === team.length) {
+      const score = getTeamScore(assignment, opponentTypeBias);
+      if (!best || score > best.score) best = { score, team: [...assignment] };
+      return;
+    }
+    for (const build of options[index]) {
+      assignment[index] = build;
+      walk(index + 1);
+    }
+  };
+  walk(0);
+  return best ? best.team : team;
 }
 
 function addTeamFitNotes(team) {
@@ -137,14 +174,14 @@ const HARD_EXHAUSTIVE_CAP = 3_000_000;
 const BEAM_WIDTH = 2000;
 // For pools too big to enumerate fully (C(N,6) over the cap — roughly N > 38), we
 // reduce to a shortlist and enumerate THAT exactly, instead of a lossy beam. The
-// shortlist keeps the top mons by individual score plus the best provider of each
-// attack type and each defensive resist, so no mon that could earn a slot on
-// quality OR coverage is pruned before the optimiser sees it. C(28,6) ≈ 376k
-// (above the parallel threshold, so it runs across the Web Worker pool like any
-// other big search). This is what makes a 100-mon pool usable — exact on a
-// coverage-preserving shortlist instead of the old lossy beam.
-const SHORTLIST_MAX = 28;
-const SHORTLIST_CORE = 20;
+// shortlist keeps the top mons by individual score plus the best provider of
+// every coverage-relevant capability (attack types, resists, immunities, speed,
+// priority, utility, low-friction evolved forms — see buildShortlist), so no mon
+// that could earn a slot on quality OR coverage is pruned before the optimiser
+// sees it. C(28,6) ≈ 376k (above the parallel threshold, so it runs across the
+// Web Worker pool like any other big search). Sizes live in scoringConstants
+// (SHORTLIST_MAX / SHORTLIST_CORE) so the confidence sweep can perturb them;
+// FORCE_SHORTLIST is the regret-validation hook.
 
 // --- Full-enumeration team store -------------------------------------------
 // When a SEQUENTIAL exact search enumerates every C(N, size) team, we keep them
@@ -261,7 +298,7 @@ async function selectTeamByFit(
   // small enough to enumerate fully, so its optimum can be compared to the true
   // exact optimum. No effect in production (the global is never set).
   const forceShortlist =
-    !!globalThis.__FORCE_SHORTLIST__ && !incApplies && !isStoreCovered;
+    !!tunable("FORCE_SHORTLIST") && !incApplies && !isStoreCovered;
   const useParallel =
     !forceShortlist &&
     !isPureDeletion &&
@@ -380,7 +417,12 @@ function buildCompactLines(lines) {
       legalityProfile: {
         attackTypes: choice.legalityProfile?.attackTypes || [],
         currentTypes: choice.legalityProfile?.currentTypes || [],
-        coverageVector: choice.legalityProfile?.coverageVector || null,
+        // Workers score the selection relaxation: the optimistic (max-over-
+        // builds) vector when the line has build variants.
+        coverageVector:
+          choice.optimisticCoverageVector ||
+          choice.legalityProfile?.coverageVector ||
+          null,
       },
     })),
   }));
@@ -521,9 +563,12 @@ function countCombinations(n, k) {
 
 // Reduces a too-big pool to a shortlist that the optimiser can enumerate exactly.
 // Keeps the top mons by individual score (SHORTLIST_CORE) plus the best-scoring
-// provider of every attack type and every defensive resist, so a coverage answer
-// that isn't a top individual still gets a fair hearing. Deterministic (scored
-// order + fixed type order), so the shortlist — and thus the result — is stable.
+// provider of every capability a team could need a specialist for: real damage
+// into each defense type (optimistic across builds), each defensive resist and
+// IMMUNITY, speed, priority, utility infrastructure, and low-friction evolved
+// forms — so no mon that could earn a slot on quality OR any coverage axis is
+// pruned before the optimiser sees it. Deterministic (scored order + fixed type
+// order), so the shortlist — and thus the result — is stable.
 function buildShortlist(lines) {
   const scored = lines
     .map((line) => {
@@ -535,26 +580,30 @@ function buildShortlist(lines) {
         b.score - a.score || a.line.lineKey.localeCompare(b.line.lineKey),
     );
 
-  const maxSize = globalThis.__SHORTLIST_MAX__ ?? SHORTLIST_MAX;
-  const coreSize = Math.min(SHORTLIST_CORE, maxSize);
+  const maxSize = tunable("SHORTLIST_MAX");
+  const coreSize = Math.min(tunable("SHORTLIST_CORE"), maxSize);
   const picked = new Map();
   const add = (entry) => {
     if (entry && !picked.has(entry.line.lineKey)) {
       picked.set(entry.line.lineKey, entry.line);
     }
   };
+  const coverageOf = (s) =>
+    s.best?.optimisticCoverageVector ||
+    s.best?.legalityProfile?.coverageVector ||
+    null;
 
+  // 1. The straightforwardly best individuals.
   for (let i = 0; i < scored.length && picked.size < coreSize; i++) {
     add(scored[i]);
   }
-  for (const type of REBORN_ANALYSIS_TYPES) {
-    if (picked.size >= maxSize) break;
-    add(
-      scored.find((s) =>
-        (s.best?.legalityProfile?.attackTypes || []).includes(type),
-      ),
-    );
-    if (picked.size >= maxSize) break;
+
+  // 2. Best provider per defense type: real damage INTO it (damage-aware, so a
+  //    chip move doesn't qualify), a resist, and an immunity.
+  REBORN_ANALYSIS_TYPES.forEach((type, typeIndex) => {
+    if (picked.size >= maxSize) return;
+    add(scored.find((s) => (coverageOf(s)?.[typeIndex] || 0) >= 0.5));
+    if (picked.size >= maxSize) return;
     add(
       scored.find(
         (s) =>
@@ -562,7 +611,41 @@ function buildShortlist(lines) {
           1,
       ),
     );
-  }
+    if (picked.size >= maxSize) return;
+    add(
+      scored.find(
+        (s) =>
+          getTypeMultiplier(
+            type,
+            s.best?.legalityProfile?.currentTypes || [],
+          ) === 0,
+      ),
+    );
+  });
+
+  // 3. Best specialist per capability: speed, priority access, utility
+  //    infrastructure, and a friction-free fully-online form.
+  const bySpecialty = (predicate) => scored.find(predicate);
+  if (picked.size < maxSize)
+    add(bySpecialty((s) => (s.best?.currentFeatures?.speed_q || 0) >= 0.8));
+  if (picked.size < maxSize)
+    add(
+      bySpecialty((s) =>
+        (s.best?.legalityProfile?.recommendedMoves || []).some(
+          (move) => (move.priority || 0) > 0,
+        ),
+      ),
+    );
+  if (picked.size < maxSize)
+    add(bySpecialty((s) => (s.best?.currentFeatures?.utility_q || 0) >= 0.6));
+  if (picked.size < maxSize)
+    add(
+      bySpecialty(
+        (s) => (s.best?.online ?? 0) === 1 && (s.best?.friction || 0) === 0,
+      ),
+    );
+
+  // 4. Fill any remaining seats by raw score.
   for (const s of scored) {
     if (picked.size >= maxSize) break;
     add(s);

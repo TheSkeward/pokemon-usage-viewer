@@ -1,0 +1,15 @@
+{
+  "name": "unique-fast-attacker",
+  "category": "pool with one unique fast attacker",
+  "notes": "Eleven slow, bulky-ish mons plus Zubat, which fields Crobat (Golbat at 22, then friendship with K — base 130 Speed) — by far the pool's fastest real attacker. The fast_attacker role route must earn it a seat; a model that only values bulk or raw damage benches it.",
+  "pool": ["Slowpoke","Onix","Pineco","Bronzor","Shellder","Exeggcute","Cubone","Rhyhorn","Koffing","Tangela","Seel","Zubat"],
+  "badge": 1,
+  "levelCap": 25,
+  "golden": true,
+  "expectations": {
+    "mustSeat": ["Zubat"],
+    "roles": { "Zubat": ["fast_attacker", "fast_utility"] },
+    "fieldedForm": { "Zubat": "crobat" },
+    "searchExact": true
+  }
+}

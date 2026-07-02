@@ -1,0 +1,13 @@
+{
+  "name": "midgame-broad",
+  "category": "midgame broad pool",
+  "notes": "Badge 4 / cap 45: a broad mixed pool where most lines have their mid or final evolutions online and TMs have opened up. Loose expectations — this fixture exists mostly as a golden snapshot so unintended scoring drift at midgame shows up in review.",
+  "pool": ["Machop","Growlithe","Poliwag","Abra","Tentacool","Ponyta","Magnemite","Doduo","Gastly","Rhyhorn","Horsea","Scyther","Eevee","Dratini","Mareep","Hoppip"],
+  "badge": 4,
+  "levelCap": 45,
+  "golden": true,
+  "expectations": {
+    "fieldedForm": { "Machop": "machoke", "Gastly": "haunter" },
+    "searchExact": true
+  }
+}

@@ -7,6 +7,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 40,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "abomasnow",
     "eggGroups": [
       "Monster",
@@ -21,6 +25,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "abomasnow",
     "eggGroups": [
       "Monster",
@@ -37,6 +45,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "abra",
     "eggGroups": [
       "Human-Like"
@@ -50,6 +62,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "absol",
     "eggGroups": [
       "Field"
@@ -63,6 +79,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "absol",
     "eggGroups": [
       "Field"
@@ -76,6 +96,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "with a Karrablast",
     "baseSpeciesId": "accelgor",
     "eggGroups": [
       "Bug"
@@ -89,6 +113,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Dusk Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "aegislash",
     "eggGroups": [
       "Mineral"
@@ -102,6 +130,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "aerodactyl",
     "eggGroups": [
       "Flying"
@@ -115,6 +147,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "aerodactyl",
     "eggGroups": [
       "Flying"
@@ -128,6 +164,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 42,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "aggron",
     "eggGroups": [
       "Monster"
@@ -141,6 +181,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "aggron",
     "eggGroups": [
       "Monster"
@@ -156,6 +200,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "aipom",
     "eggGroups": [
       "Field"
@@ -169,6 +217,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "alakazam",
     "eggGroups": [
       "Human-Like"
@@ -182,6 +234,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "alakazam",
     "eggGroups": [
       "Human-Like"
@@ -195,6 +251,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "alomomola",
     "eggGroups": [
       "Water 1",
@@ -209,6 +269,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 35,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "altaria",
     "eggGroups": [
       "Flying",
@@ -223,6 +287,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "altaria",
     "eggGroups": [
       "Flying",
@@ -239,6 +307,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "amaura",
     "eggGroups": [
       "Monster"
@@ -252,6 +324,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelMove",
+    "evoItem": "",
+    "evoMove": "Double Hit",
+    "evoMoveLevel": 32,
+    "evoCondition": "",
     "baseSpeciesId": "ambipom",
     "eggGroups": [
       "Field"
@@ -265,6 +341,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 39,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "amoonguss",
     "eggGroups": [
       "Grass"
@@ -278,6 +358,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ampharos",
     "eggGroups": [
       "Monster",
@@ -292,6 +376,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ampharos",
     "eggGroups": [
       "Monster",
@@ -308,6 +396,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "anorith",
     "eggGroups": [
       "Water 3"
@@ -321,6 +413,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 22,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "araquanid",
     "eggGroups": [
       "Water 1",
@@ -335,6 +431,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "araquanid",
     "eggGroups": [
       "Water 1",
@@ -349,6 +449,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 22,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arbok",
     "eggGroups": [
       "Field",
@@ -363,6 +467,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Fire Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arcanine",
     "eggGroups": [
       "Field"
@@ -376,6 +484,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -389,6 +501,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -402,6 +518,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -415,6 +535,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -428,6 +552,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -441,6 +569,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -454,6 +586,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -467,6 +603,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -480,6 +620,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -493,6 +637,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -506,6 +654,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -519,6 +671,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -532,6 +688,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -545,6 +705,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -558,6 +722,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -571,6 +739,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -584,6 +756,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -597,6 +773,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "arceus",
     "eggGroups": [
       "Undiscovered"
@@ -612,6 +792,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "archen",
     "eggGroups": [
       "Flying",
@@ -626,6 +810,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 37,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "archeops",
     "eggGroups": [
       "Flying",
@@ -640,6 +828,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 22,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ariados",
     "eggGroups": [
       "Bug"
@@ -653,6 +845,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 40,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "armaldo",
     "eggGroups": [
       "Water 3"
@@ -666,6 +862,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "Sachet",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "aromatisse",
     "eggGroups": [
       "Fairy"
@@ -681,6 +881,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "aron",
     "eggGroups": [
       "Monster"
@@ -694,6 +898,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "articuno",
     "eggGroups": [
       "Undiscovered"
@@ -707,6 +915,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "audino",
     "eggGroups": [
       "Fairy"
@@ -720,6 +932,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "audino",
     "eggGroups": [
       "Fairy"
@@ -733,6 +949,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 39,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "at night",
     "baseSpeciesId": "aurorus",
     "eggGroups": [
       "Monster"
@@ -746,6 +966,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 37,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "avalugg",
     "eggGroups": [
       "Monster"
@@ -761,6 +985,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "axew",
     "eggGroups": [
       "Monster",
@@ -775,6 +1003,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "azelf",
     "eggGroups": [
       "Undiscovered"
@@ -788,6 +1020,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 18,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "azumarill",
     "eggGroups": [
       "Water 1",
@@ -804,6 +1040,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "azurill",
     "eggGroups": [
       "Undiscovered"
@@ -819,6 +1059,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bagon",
     "eggGroups": [
       "Dragon"
@@ -834,6 +1078,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "baltoy",
     "eggGroups": [
       "Mineral"
@@ -847,6 +1095,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 37,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "banette",
     "eggGroups": [
       "Amorphous"
@@ -860,6 +1112,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "banette",
     "eggGroups": [
       "Amorphous"
@@ -873,6 +1129,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 39,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "barbaracle",
     "eggGroups": [
       "Water 3"
@@ -888,6 +1148,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "barboach",
     "eggGroups": [
       "Water 2"
@@ -901,6 +1165,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "basculin",
     "eggGroups": [
       "Water 2"
@@ -914,6 +1182,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bastiodon",
     "eggGroups": [
       "Monster"
@@ -929,6 +1201,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bayleef",
     "eggGroups": [
       "Monster",
@@ -943,6 +1219,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 37,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "beartic",
     "eggGroups": [
       "Field"
@@ -956,6 +1236,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 10,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "beautifly",
     "eggGroups": [
       "Bug"
@@ -969,6 +1253,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 10,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "beedrill",
     "eggGroups": [
       "Bug"
@@ -982,6 +1270,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "beedrill",
     "eggGroups": [
       "Bug"
@@ -995,6 +1287,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 42,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "beheeyem",
     "eggGroups": [
       "Human-Like"
@@ -1010,6 +1306,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "beldum",
     "eggGroups": [
       "Mineral"
@@ -1023,6 +1323,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Sun Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bellossom",
     "eggGroups": [
       "Grass"
@@ -1038,6 +1342,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bellsprout",
     "eggGroups": [
       "Grass"
@@ -1053,6 +1361,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bergmite",
     "eggGroups": [
       "Monster"
@@ -1066,6 +1378,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 27,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bewear",
     "eggGroups": [
       "Field"
@@ -1079,6 +1395,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 15,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bibarel",
     "eggGroups": [
       "Water 1",
@@ -1095,6 +1415,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bidoof",
     "eggGroups": [
       "Water 1",
@@ -1111,6 +1435,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "binacle",
     "eggGroups": [
       "Water 3"
@@ -1124,6 +1452,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 52,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bisharp",
     "eggGroups": [
       "Human-Like"
@@ -1137,6 +1469,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "blacephalon",
     "eggGroups": [
       "Undiscovered"
@@ -1150,6 +1486,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "blastoise",
     "eggGroups": [
       "Monster",
@@ -1164,6 +1504,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "blastoise",
     "eggGroups": [
       "Monster",
@@ -1178,6 +1522,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "blaziken",
     "eggGroups": [
       "Field"
@@ -1191,6 +1539,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "blaziken",
     "eggGroups": [
       "Field"
@@ -1204,6 +1556,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "blissey",
     "eggGroups": [
       "Fairy"
@@ -1219,6 +1575,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "blitzle",
     "eggGroups": [
       "Field"
@@ -1234,6 +1594,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "boldore",
     "eggGroups": [
       "Mineral"
@@ -1249,6 +1613,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bonsly",
     "eggGroups": [
       "Undiscovered"
@@ -1262,6 +1630,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bouffalant",
     "eggGroups": [
       "Field"
@@ -1277,6 +1649,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bounsweet",
     "eggGroups": [
       "Grass"
@@ -1292,6 +1668,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "braixen",
     "eggGroups": [
       "Field"
@@ -1305,6 +1685,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 54,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "braviary",
     "eggGroups": [
       "Flying"
@@ -1318,6 +1702,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 23,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "breloom",
     "eggGroups": [
       "Fairy",
@@ -1334,6 +1722,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 17,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "brionne",
     "eggGroups": [
       "Water 1",
@@ -1348,6 +1740,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 33,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bronzong",
     "eggGroups": [
       "Mineral"
@@ -1363,6 +1759,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bronzor",
     "eggGroups": [
       "Mineral"
@@ -1376,6 +1776,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bruxish",
     "eggGroups": [
       "Water 2"
@@ -1391,6 +1795,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "budew",
     "eggGroups": [
       "Undiscovered"
@@ -1406,6 +1814,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "buizel",
     "eggGroups": [
       "Water 1",
@@ -1422,6 +1834,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bulbasaur",
     "eggGroups": [
       "Monster",
@@ -1438,6 +1854,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "buneary",
     "eggGroups": [
       "Field",
@@ -1454,6 +1874,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "bunnelby",
     "eggGroups": [
       "Field"
@@ -1472,6 +1896,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "burmy",
     "eggGroups": [
       "Bug"
@@ -1485,6 +1913,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 10,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "butterfree",
     "eggGroups": [
       "Bug"
@@ -1498,6 +1930,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "buzzwole",
     "eggGroups": [
       "Undiscovered"
@@ -1513,6 +1949,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cacnea",
     "eggGroups": [
       "Grass",
@@ -1527,6 +1967,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 32,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cacturne",
     "eggGroups": [
       "Grass",
@@ -1541,6 +1985,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 33,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "camerupt",
     "eggGroups": [
       "Field"
@@ -1554,6 +2002,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "camerupt",
     "eggGroups": [
       "Field"
@@ -1567,6 +2019,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "carbink",
     "eggGroups": [
       "Fairy",
@@ -1581,6 +2037,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "carnivine",
     "eggGroups": [
       "Grass"
@@ -1594,6 +2054,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 37,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "carracosta",
     "eggGroups": [
       "Water 1",
@@ -1610,6 +2074,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "carvanha",
     "eggGroups": [
       "Water 2"
@@ -1625,6 +2093,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 7,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cascoon",
     "eggGroups": [
       "Bug"
@@ -1638,6 +2110,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "castform",
     "eggGroups": [
       "Fairy",
@@ -1654,6 +2130,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "caterpie",
     "eggGroups": [
       "Bug"
@@ -1667,6 +2147,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "celebi",
     "eggGroups": [
       "Undiscovered"
@@ -1680,6 +2164,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "celesteela",
     "eggGroups": [
       "Undiscovered"
@@ -1693,6 +2181,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Dusk Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "chandelure",
     "eggGroups": [
       "Amorphous"
@@ -1708,6 +2200,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "levelHold",
+    "evoItem": "Oval Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "during the day",
     "baseSpeciesId": "chansey",
     "eggGroups": [
       "Fairy"
@@ -1721,6 +2217,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "charizard",
     "eggGroups": [
       "Monster",
@@ -1735,6 +2235,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "charizard",
     "eggGroups": [
       "Monster",
@@ -1749,6 +2253,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "charizard",
     "eggGroups": [
       "Monster",
@@ -1765,6 +2273,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "charjabug",
     "eggGroups": [
       "Bug"
@@ -1780,6 +2292,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "charmander",
     "eggGroups": [
       "Monster",
@@ -1796,6 +2312,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "charmeleon",
     "eggGroups": [
       "Monster",
@@ -1810,6 +2330,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "chatot",
     "eggGroups": [
       "Flying"
@@ -1823,6 +2347,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cherrim",
     "eggGroups": [
       "Fairy",
@@ -1839,6 +2367,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cherubi",
     "eggGroups": [
       "Fairy",
@@ -1853,6 +2385,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "chesnaught",
     "eggGroups": [
       "Field"
@@ -1868,6 +2404,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "chespin",
     "eggGroups": [
       "Field"
@@ -1883,6 +2423,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "chikorita",
     "eggGroups": [
       "Monster",
@@ -1899,6 +2443,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "chimchar",
     "eggGroups": [
       "Field",
@@ -1913,6 +2461,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "at night",
     "baseSpeciesId": "chimecho",
     "eggGroups": [
       "Amorphous"
@@ -1928,6 +2480,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "chinchou",
     "eggGroups": [
       "Water 2"
@@ -1943,6 +2499,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "chingling",
     "eggGroups": [
       "Undiscovered"
@@ -1956,6 +2516,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Shiny Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cinccino",
     "eggGroups": [
       "Field"
@@ -1972,6 +2536,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "clamperl",
     "eggGroups": [
       "Water 1"
@@ -1987,6 +2555,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "clauncher",
     "eggGroups": [
       "Water 1",
@@ -2001,6 +2573,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 37,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "clawitzer",
     "eggGroups": [
       "Water 1",
@@ -2015,6 +2591,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "claydol",
     "eggGroups": [
       "Mineral"
@@ -2028,6 +2608,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Moon Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "clefable",
     "eggGroups": [
       "Fairy"
@@ -2043,6 +2627,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "clefairy",
     "eggGroups": [
       "Fairy"
@@ -2058,6 +2646,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cleffa",
     "eggGroups": [
       "Undiscovered"
@@ -2071,6 +2663,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Water Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cloyster",
     "eggGroups": [
       "Water 3"
@@ -2084,6 +2680,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cobalion",
     "eggGroups": [
       "Undiscovered"
@@ -2097,6 +2697,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 34,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cofagrigus",
     "eggGroups": [
       "Mineral",
@@ -2113,6 +2717,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "combee",
     "eggGroups": [
       "Bug"
@@ -2128,6 +2736,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "combusken",
     "eggGroups": [
       "Field"
@@ -2141,6 +2753,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "comfey",
     "eggGroups": [
       "Grass"
@@ -2154,6 +2770,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "conkeldurr",
     "eggGroups": [
       "Human-Like"
@@ -2169,6 +2789,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "corphish",
     "eggGroups": [
       "Water 1",
@@ -2183,6 +2807,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "corsola",
     "eggGroups": [
       "Water 1",
@@ -2200,6 +2828,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 43,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cosmoem",
     "eggGroups": [
       "Undiscovered"
@@ -2215,6 +2847,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cosmog",
     "eggGroups": [
       "Undiscovered"
@@ -2230,6 +2866,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cottonee",
     "eggGroups": [
       "Fairy",
@@ -2244,6 +2884,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelExtra",
+    "evoItem": "Ice Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "at Mount Lanakila",
     "baseSpeciesId": "crabominable",
     "eggGroups": [
       "Water 3"
@@ -2259,6 +2903,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "crabrawler",
     "eggGroups": [
       "Water 3"
@@ -2272,6 +2920,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 40,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cradily",
     "eggGroups": [
       "Water 3"
@@ -2287,6 +2939,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cranidos",
     "eggGroups": [
       "Monster"
@@ -2300,6 +2956,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "crawdaunt",
     "eggGroups": [
       "Water 1",
@@ -2314,6 +2974,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cresselia",
     "eggGroups": [
       "Undiscovered"
@@ -2329,6 +2993,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "croagunk",
     "eggGroups": [
       "Human-Like"
@@ -2342,6 +3010,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "crobat",
     "eggGroups": [
       "Flying"
@@ -2357,6 +3029,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 18,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "croconaw",
     "eggGroups": [
       "Monster",
@@ -2371,6 +3047,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 34,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "crustle",
     "eggGroups": [
       "Bug",
@@ -2385,6 +3065,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cryogonal",
     "eggGroups": [
       "Mineral"
@@ -2400,6 +3084,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cubchoo",
     "eggGroups": [
       "Field"
@@ -2416,6 +3104,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cubone",
     "eggGroups": [
       "Monster"
@@ -2431,6 +3123,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cutiefly",
     "eggGroups": [
       "Bug",
@@ -2447,6 +3143,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "cyndaquil",
     "eggGroups": [
       "Field"
@@ -2460,6 +3160,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "darkrai",
     "eggGroups": [
       "Undiscovered"
@@ -2473,6 +3177,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 35,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "darmanitan",
     "eggGroups": [
       "Field"
@@ -2488,6 +3196,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 17,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dartrix",
     "eggGroups": [
       "Flying"
@@ -2503,6 +3215,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "darumaka",
     "eggGroups": [
       "Field"
@@ -2516,6 +3232,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 34,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "decidueye",
     "eggGroups": [
       "Flying"
@@ -2529,6 +3249,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dedenne",
     "eggGroups": [
       "Field",
@@ -2545,6 +3269,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "deerling",
     "eggGroups": [
       "Field"
@@ -2560,6 +3288,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "deino",
     "eggGroups": [
       "Dragon"
@@ -2573,6 +3305,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Moon Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "delcatty",
     "eggGroups": [
       "Field",
@@ -2587,6 +3323,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "delibird",
     "eggGroups": [
       "Water 1",
@@ -2601,6 +3341,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "delphox",
     "eggGroups": [
       "Field"
@@ -2614,6 +3358,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "deoxys",
     "eggGroups": [
       "Undiscovered"
@@ -2627,6 +3375,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "deoxys",
     "eggGroups": [
       "Undiscovered"
@@ -2640,6 +3392,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "deoxys",
     "eggGroups": [
       "Undiscovered"
@@ -2653,6 +3409,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "deoxys",
     "eggGroups": [
       "Undiscovered"
@@ -2666,6 +3426,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 34,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dewgong",
     "eggGroups": [
       "Water 1",
@@ -2682,6 +3446,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 17,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dewott",
     "eggGroups": [
       "Field"
@@ -2697,6 +3465,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dewpider",
     "eggGroups": [
       "Water 1",
@@ -2711,6 +3483,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dhelmise",
     "eggGroups": [
       "Mineral"
@@ -2724,6 +3500,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dialga",
     "eggGroups": [
       "Undiscovered"
@@ -2737,6 +3517,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "diancie",
     "eggGroups": [
       "Undiscovered"
@@ -2750,6 +3534,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "diancie",
     "eggGroups": [
       "Undiscovered"
@@ -2763,6 +3551,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "diggersby",
     "eggGroups": [
       "Field"
@@ -2778,6 +3570,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "diglett",
     "eggGroups": [
       "Field"
@@ -2793,6 +3589,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "diglett",
     "eggGroups": [
       "Field"
@@ -2806,6 +3606,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ditto",
     "eggGroups": [
       "Ditto"
@@ -2819,6 +3623,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 31,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dodrio",
     "eggGroups": [
       "Flying"
@@ -2834,6 +3642,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "doduo",
     "eggGroups": [
       "Flying"
@@ -2847,6 +3659,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "donphan",
     "eggGroups": [
       "Field"
@@ -2862,6 +3678,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 35,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "doublade",
     "eggGroups": [
       "Mineral"
@@ -2875,6 +3695,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 48,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dragalge",
     "eggGroups": [
       "Water 1",
@@ -2891,6 +3715,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dragonair",
     "eggGroups": [
       "Water 1",
@@ -2905,6 +3733,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 55,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dragonite",
     "eggGroups": [
       "Water 1",
@@ -2919,6 +3751,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "drampa",
     "eggGroups": [
       "Monster",
@@ -2933,6 +3769,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 40,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "drapion",
     "eggGroups": [
       "Bug",
@@ -2949,6 +3789,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dratini",
     "eggGroups": [
       "Water 1",
@@ -2963,6 +3807,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 28,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "drifblim",
     "eggGroups": [
       "Amorphous"
@@ -2978,6 +3826,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "drifloon",
     "eggGroups": [
       "Amorphous"
@@ -2993,6 +3845,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "drilbur",
     "eggGroups": [
       "Field"
@@ -3008,6 +3864,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "drowzee",
     "eggGroups": [
       "Human-Like"
@@ -3021,6 +3881,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "druddigon",
     "eggGroups": [
       "Monster",
@@ -3037,6 +3901,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ducklett",
     "eggGroups": [
       "Water 1",
@@ -3051,6 +3919,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 26,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dugtrio",
     "eggGroups": [
       "Field"
@@ -3064,6 +3936,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 26,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dugtrio",
     "eggGroups": [
       "Field"
@@ -3077,6 +3953,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dunsparce",
     "eggGroups": [
       "Field"
@@ -3092,6 +3972,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 32,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "duosion",
     "eggGroups": [
       "Amorphous"
@@ -3105,6 +3989,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "durant",
     "eggGroups": [
       "Bug"
@@ -3120,6 +4008,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 37,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dusclops",
     "eggGroups": [
       "Amorphous"
@@ -3133,6 +4025,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "Reaper Cloth",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dusknoir",
     "eggGroups": [
       "Amorphous"
@@ -3148,6 +4044,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "duskull",
     "eggGroups": [
       "Amorphous"
@@ -3161,6 +4061,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 10,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dustox",
     "eggGroups": [
       "Bug"
@@ -3176,6 +4080,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "dwebble",
     "eggGroups": [
       "Bug",
@@ -3192,6 +4100,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 39,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "eelektrik",
     "eggGroups": [
       "Amorphous"
@@ -3205,6 +4117,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Thunder Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "eelektross",
     "eggGroups": [
       "Amorphous"
@@ -3227,6 +4143,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "eevee",
     "eggGroups": [
       "Field"
@@ -3242,6 +4162,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ekans",
     "eggGroups": [
       "Field",
@@ -3258,6 +4182,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "electabuzz",
     "eggGroups": [
       "Human-Like"
@@ -3271,6 +4199,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "Electirizer",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "electivire",
     "eggGroups": [
       "Human-Like"
@@ -3286,6 +4218,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "electrike",
     "eggGroups": [
       "Field"
@@ -3299,6 +4235,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "electrode",
     "eggGroups": [
       "Mineral"
@@ -3314,6 +4254,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "elekid",
     "eggGroups": [
       "Undiscovered"
@@ -3329,6 +4273,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "elgyem",
     "eggGroups": [
       "Human-Like"
@@ -3342,6 +4290,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "emboar",
     "eggGroups": [
       "Field"
@@ -3355,6 +4307,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "emolga",
     "eggGroups": [
       "Field"
@@ -3368,6 +4324,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "empoleon",
     "eggGroups": [
       "Water 1",
@@ -3382,6 +4342,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "entei",
     "eggGroups": [
       "Undiscovered"
@@ -3395,6 +4359,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "with a Shelmet",
     "baseSpeciesId": "escavalier",
     "eggGroups": [
       "Bug"
@@ -3408,6 +4376,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "during the day",
     "baseSpeciesId": "espeon",
     "eggGroups": [
       "Field"
@@ -3423,6 +4395,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "espurr",
     "eggGroups": [
       "Field"
@@ -3436,6 +4412,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 31,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "excadrill",
     "eggGroups": [
       "Field"
@@ -3452,6 +4432,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "exeggcute",
     "eggGroups": [
       "Grass"
@@ -3465,6 +4449,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Leaf Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "exeggutor",
     "eggGroups": [
       "Grass"
@@ -3478,6 +4466,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Leaf Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "exeggutor",
     "eggGroups": [
       "Grass"
@@ -3491,6 +4483,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 40,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "exploud",
     "eggGroups": [
       "Monster",
@@ -3505,6 +4501,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "farfetchd",
     "eggGroups": [
       "Flying",
@@ -3519,6 +4519,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "fearow",
     "eggGroups": [
       "Flying"
@@ -3534,6 +4538,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "feebas",
     "eggGroups": [
       "Water 1",
@@ -3550,6 +4558,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "fennekin",
     "eggGroups": [
       "Field"
@@ -3563,6 +4575,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "feraligatr",
     "eggGroups": [
       "Monster",
@@ -3579,6 +4595,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ferroseed",
     "eggGroups": [
       "Grass",
@@ -3593,6 +4613,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 40,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ferrothorn",
     "eggGroups": [
       "Grass",
@@ -3609,6 +4633,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "finneon",
     "eggGroups": [
       "Water 2"
@@ -3624,6 +4652,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 15,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "flaaffy",
     "eggGroups": [
       "Monster",
@@ -3640,6 +4672,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "flabebe",
     "eggGroups": [
       "Fairy"
@@ -3653,6 +4689,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Fire Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "flareon",
     "eggGroups": [
       "Field"
@@ -3668,6 +4708,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 17,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "fletchinder",
     "eggGroups": [
       "Flying"
@@ -3683,6 +4727,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "fletchling",
     "eggGroups": [
       "Flying"
@@ -3696,6 +4744,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 26,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "floatzel",
     "eggGroups": [
       "Water 1",
@@ -3712,6 +4764,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 19,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "floette",
     "eggGroups": [
       "Fairy"
@@ -3725,6 +4781,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "floette",
     "eggGroups": [
       "Undiscovered"
@@ -3738,6 +4798,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Shiny Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "florges",
     "eggGroups": [
       "Fairy"
@@ -3751,6 +4815,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 45,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "flygon",
     "eggGroups": [
       "Bug"
@@ -3766,6 +4834,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "fomantis",
     "eggGroups": [
       "Grass"
@@ -3781,6 +4853,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "foongus",
     "eggGroups": [
       "Grass"
@@ -3794,6 +4870,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 31,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "forretress",
     "eggGroups": [
       "Bug"
@@ -3809,6 +4889,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 38,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "fraxure",
     "eggGroups": [
       "Monster",
@@ -3825,6 +4909,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "frillish",
     "eggGroups": [
       "Amorphous"
@@ -3840,6 +4928,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "froakie",
     "eggGroups": [
       "Water 1"
@@ -3855,6 +4947,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "frogadier",
     "eggGroups": [
       "Water 1"
@@ -3868,6 +4964,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Dawn Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "froslass",
     "eggGroups": [
       "Fairy",
@@ -3882,6 +4982,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "furfrou",
     "eggGroups": [
       "Field"
@@ -3895,6 +4999,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 15,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "furret",
     "eggGroups": [
       "Field"
@@ -3910,6 +5018,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 24,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gabite",
     "eggGroups": [
       "Monster",
@@ -3924,6 +5036,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Dawn Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gallade",
     "eggGroups": [
       "Amorphous"
@@ -3937,6 +5053,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gallade",
     "eggGroups": [
       "Amorphous"
@@ -3950,6 +5070,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "galvantula",
     "eggGroups": [
       "Bug"
@@ -3963,6 +5087,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "garbodor",
     "eggGroups": [
       "Mineral"
@@ -3976,6 +5104,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 48,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "garchomp",
     "eggGroups": [
       "Monster",
@@ -3990,6 +5122,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "garchomp",
     "eggGroups": [
       "Monster",
@@ -4004,6 +5140,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gardevoir",
     "eggGroups": [
       "Amorphous"
@@ -4017,6 +5157,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gardevoir",
     "eggGroups": [
       "Amorphous"
@@ -4032,6 +5176,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gastly",
     "eggGroups": [
       "Amorphous"
@@ -4045,6 +5193,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gastrodon",
     "eggGroups": [
       "Water 1",
@@ -4059,6 +5211,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "genesect",
     "eggGroups": [
       "Undiscovered"
@@ -4072,6 +5228,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gengar",
     "eggGroups": [
       "Amorphous"
@@ -4085,6 +5245,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gengar",
     "eggGroups": [
       "Amorphous"
@@ -4100,6 +5264,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "geodude",
     "eggGroups": [
       "Mineral"
@@ -4115,6 +5283,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "geodude",
     "eggGroups": [
       "Mineral"
@@ -4130,6 +5302,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gible",
     "eggGroups": [
       "Monster",
@@ -4144,6 +5320,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gigalith",
     "eggGroups": [
       "Mineral"
@@ -4157,6 +5337,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "girafarig",
     "eggGroups": [
       "Field"
@@ -4170,6 +5354,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "giratina",
     "eggGroups": [
       "Undiscovered"
@@ -4183,6 +5371,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "giratina",
     "eggGroups": [
       "Undiscovered"
@@ -4196,6 +5388,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelExtra",
+    "evoItem": "Ice Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "near an Ice Rock",
     "baseSpeciesId": "glaceon",
     "eggGroups": [
       "Field"
@@ -4209,6 +5405,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 42,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "glalie",
     "eggGroups": [
       "Fairy",
@@ -4223,6 +5423,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "glalie",
     "eggGroups": [
       "Fairy",
@@ -4239,6 +5443,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "glameow",
     "eggGroups": [
       "Field"
@@ -4254,6 +5462,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gligar",
     "eggGroups": [
       "Bug"
@@ -4267,6 +5479,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelHold",
+    "evoItem": "Razor Fang",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "at night",
     "baseSpeciesId": "gliscor",
     "eggGroups": [
       "Bug"
@@ -4283,6 +5499,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 21,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gloom",
     "eggGroups": [
       "Grass"
@@ -4296,6 +5516,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 32,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gogoat",
     "eggGroups": [
       "Field"
@@ -4311,6 +5535,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 22,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "golbat",
     "eggGroups": [
       "Flying"
@@ -4326,6 +5554,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "goldeen",
     "eggGroups": [
       "Water 2"
@@ -4339,6 +5571,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 33,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "golduck",
     "eggGroups": [
       "Water 1",
@@ -4353,6 +5589,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "golem",
     "eggGroups": [
       "Mineral"
@@ -4366,6 +5606,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "golem",
     "eggGroups": [
       "Mineral"
@@ -4381,6 +5625,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "golett",
     "eggGroups": [
       "Mineral"
@@ -4394,6 +5642,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "golisopod",
     "eggGroups": [
       "Bug",
@@ -4408,6 +5660,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 43,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "golurk",
     "eggGroups": [
       "Mineral"
@@ -4421,6 +5677,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 50,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "during rain",
     "baseSpeciesId": "goodra",
     "eggGroups": [
       "Dragon"
@@ -4436,6 +5696,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "goomy",
     "eggGroups": [
       "Dragon"
@@ -4449,6 +5713,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "Deep Sea Scale",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gorebyss",
     "eggGroups": [
       "Water 1"
@@ -4464,6 +5732,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gothita",
     "eggGroups": [
       "Human-Like"
@@ -4477,6 +5749,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 41,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gothitelle",
     "eggGroups": [
       "Human-Like"
@@ -4492,6 +5768,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 32,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gothorita",
     "eggGroups": [
       "Human-Like"
@@ -4505,6 +5785,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gourgeist",
     "eggGroups": [
       "Amorphous"
@@ -4518,6 +5802,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gourgeist",
     "eggGroups": [
       "Amorphous"
@@ -4531,6 +5819,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gourgeist",
     "eggGroups": [
       "Amorphous"
@@ -4544,6 +5836,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gourgeist",
     "eggGroups": [
       "Amorphous"
@@ -4557,6 +5853,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 23,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "granbull",
     "eggGroups": [
       "Field",
@@ -4573,6 +5873,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "graveler",
     "eggGroups": [
       "Mineral"
@@ -4588,6 +5892,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "graveler",
     "eggGroups": [
       "Mineral"
@@ -4601,6 +5909,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "greninja",
     "eggGroups": [
       "Water 1"
@@ -4614,6 +5926,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "greninja",
     "eggGroups": [
       "Undiscovered"
@@ -4629,6 +5945,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "grimer",
     "eggGroups": [
       "Amorphous"
@@ -4644,6 +5964,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "grimer",
     "eggGroups": [
       "Amorphous"
@@ -4659,6 +5983,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 18,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "grotle",
     "eggGroups": [
       "Monster",
@@ -4673,6 +6001,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "groudon",
     "eggGroups": [
       "Undiscovered"
@@ -4686,6 +6018,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "groudon",
     "eggGroups": [
       "Undiscovered"
@@ -4701,6 +6037,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "grovyle",
     "eggGroups": [
       "Monster",
@@ -4717,6 +6057,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "growlithe",
     "eggGroups": [
       "Field"
@@ -4732,6 +6076,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "grubbin",
     "eggGroups": [
       "Bug"
@@ -4745,6 +6093,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 32,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "grumpig",
     "eggGroups": [
       "Field"
@@ -4760,6 +6112,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gulpin",
     "eggGroups": [
       "Amorphous"
@@ -4773,6 +6129,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "during the day",
     "baseSpeciesId": "gumshoos",
     "eggGroups": [
       "Field"
@@ -4786,6 +6146,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gumshoos",
     "eggGroups": [
       "Field"
@@ -4801,6 +6165,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gurdurr",
     "eggGroups": [
       "Human-Like"
@@ -4814,6 +6182,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "guzzlord",
     "eggGroups": [
       "Undiscovered"
@@ -4827,6 +6199,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gyarados",
     "eggGroups": [
       "Water 2",
@@ -4841,6 +6217,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "gyarados",
     "eggGroups": [
       "Water 2",
@@ -4857,6 +6237,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 35,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "hakamoo",
     "eggGroups": [
       "Dragon"
@@ -4872,6 +6256,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "happiny",
     "eggGroups": [
       "Undiscovered"
@@ -4885,6 +6273,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 24,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "hariyama",
     "eggGroups": [
       "Human-Like"
@@ -4900,6 +6292,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "haunter",
     "eggGroups": [
       "Amorphous"
@@ -4913,6 +6309,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "hawlucha",
     "eggGroups": [
       "Human-Like"
@@ -4926,6 +6326,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 48,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "haxorus",
     "eggGroups": [
       "Monster",
@@ -4940,6 +6344,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "heatmor",
     "eggGroups": [
       "Field"
@@ -4953,6 +6361,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "heatran",
     "eggGroups": [
       "Undiscovered"
@@ -4966,6 +6378,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Sun Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "heliolisk",
     "eggGroups": [
       "Monster",
@@ -4982,6 +6398,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "helioptile",
     "eggGroups": [
       "Monster",
@@ -4996,6 +6416,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "heracross",
     "eggGroups": [
       "Bug"
@@ -5009,6 +6433,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "heracross",
     "eggGroups": [
       "Bug"
@@ -5024,6 +6452,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "herdier",
     "eggGroups": [
       "Field"
@@ -5039,6 +6471,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "hippopotas",
     "eggGroups": [
       "Field"
@@ -5052,6 +6488,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 34,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "hippowdon",
     "eggGroups": [
       "Field"
@@ -5065,6 +6505,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "with an Atk stat < its Def stat",
     "baseSpeciesId": "hitmonchan",
     "eggGroups": [
       "Human-Like"
@@ -5078,6 +6522,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "with an Atk stat > its Def stat",
     "baseSpeciesId": "hitmonlee",
     "eggGroups": [
       "Human-Like"
@@ -5091,6 +6539,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "with an Atk stat equal to its Def stat",
     "baseSpeciesId": "hitmontop",
     "eggGroups": [
       "Human-Like"
@@ -5104,6 +6556,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "hooh",
     "eggGroups": [
       "Undiscovered"
@@ -5117,6 +6573,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Dusk Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "honchkrow",
     "eggGroups": [
       "Flying"
@@ -5132,6 +6592,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "honedge",
     "eggGroups": [
       "Mineral"
@@ -5145,6 +6609,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "hoopa",
     "eggGroups": [
       "Undiscovered"
@@ -5158,6 +6626,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "hoopa",
     "eggGroups": [
       "Undiscovered"
@@ -5173,6 +6645,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "hoothoot",
     "eggGroups": [
       "Flying"
@@ -5188,6 +6664,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "hoppip",
     "eggGroups": [
       "Fairy",
@@ -5204,6 +6684,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "horsea",
     "eggGroups": [
       "Water 1",
@@ -5218,6 +6702,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 24,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "houndoom",
     "eggGroups": [
       "Field"
@@ -5231,6 +6719,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "houndoom",
     "eggGroups": [
       "Field"
@@ -5246,6 +6738,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "houndour",
     "eggGroups": [
       "Field"
@@ -5259,6 +6755,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "Deep Sea Tooth",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "huntail",
     "eggGroups": [
       "Water 1"
@@ -5272,6 +6772,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 64,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "hydreigon",
     "eggGroups": [
       "Dragon"
@@ -5285,6 +6789,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 26,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "hypno",
     "eggGroups": [
       "Human-Like"
@@ -5300,6 +6808,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "igglybuff",
     "eggGroups": [
       "Undiscovered"
@@ -5313,6 +6825,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "illumise",
     "eggGroups": [
       "Bug",
@@ -5327,6 +6843,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 34,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "incineroar",
     "eggGroups": [
       "Field"
@@ -5340,6 +6860,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "infernape",
     "eggGroups": [
       "Field",
@@ -5356,6 +6880,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "inkay",
     "eggGroups": [
       "Water 1",
@@ -5372,6 +6900,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ivysaur",
     "eggGroups": [
       "Monster",
@@ -5388,6 +6920,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "jangmoo",
     "eggGroups": [
       "Dragon"
@@ -5401,6 +6937,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 40,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "jellicent",
     "eggGroups": [
       "Amorphous"
@@ -5416,6 +6956,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "jigglypuff",
     "eggGroups": [
       "Fairy"
@@ -5429,6 +6973,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "jirachi",
     "eggGroups": [
       "Undiscovered"
@@ -5442,6 +6990,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Thunder Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "jolteon",
     "eggGroups": [
       "Field"
@@ -5457,6 +7009,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "joltik",
     "eggGroups": [
       "Bug"
@@ -5470,6 +7026,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 27,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "jumpluff",
     "eggGroups": [
       "Fairy",
@@ -5484,6 +7044,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "jynx",
     "eggGroups": [
       "Human-Like"
@@ -5499,6 +7063,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kabuto",
     "eggGroups": [
       "Water 1",
@@ -5513,6 +7081,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 40,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kabutops",
     "eggGroups": [
       "Water 1",
@@ -5529,6 +7101,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kadabra",
     "eggGroups": [
       "Human-Like"
@@ -5544,6 +7120,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 7,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kakuna",
     "eggGroups": [
       "Bug"
@@ -5557,6 +7137,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kangaskhan",
     "eggGroups": [
       "Monster"
@@ -5570,6 +7154,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kangaskhan",
     "eggGroups": [
       "Monster"
@@ -5585,6 +7173,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "karrablast",
     "eggGroups": [
       "Bug"
@@ -5598,6 +7190,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kartana",
     "eggGroups": [
       "Undiscovered"
@@ -5611,6 +7207,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kecleon",
     "eggGroups": [
       "Field"
@@ -5624,6 +7224,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "keldeo",
     "eggGroups": [
       "Undiscovered"
@@ -5637,6 +7241,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "Dragon Scale",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kingdra",
     "eggGroups": [
       "Water 1",
@@ -5651,6 +7259,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 28,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kingler",
     "eggGroups": [
       "Water 3"
@@ -5667,6 +7279,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kirlia",
     "eggGroups": [
       "Amorphous"
@@ -5682,6 +7298,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 38,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "klang",
     "eggGroups": [
       "Mineral"
@@ -5695,6 +7315,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "klefki",
     "eggGroups": [
       "Mineral"
@@ -5710,6 +7334,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "klink",
     "eggGroups": [
       "Mineral"
@@ -5723,6 +7351,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 49,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "klinklang",
     "eggGroups": [
       "Mineral"
@@ -5738,6 +7370,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "koffing",
     "eggGroups": [
       "Amorphous"
@@ -5751,6 +7387,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "komala",
     "eggGroups": [
       "Field"
@@ -5764,6 +7404,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 45,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kommoo",
     "eggGroups": [
       "Dragon"
@@ -5777,6 +7421,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kommoo",
     "eggGroups": [
       "Dragon"
@@ -5792,6 +7440,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "krabby",
     "eggGroups": [
       "Water 3"
@@ -5807,6 +7459,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kricketot",
     "eggGroups": [
       "Bug"
@@ -5820,6 +7476,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 10,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kricketune",
     "eggGroups": [
       "Bug"
@@ -5835,6 +7495,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 29,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "krokorok",
     "eggGroups": [
       "Field"
@@ -5848,6 +7512,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 40,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "krookodile",
     "eggGroups": [
       "Field"
@@ -5861,6 +7529,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kyogre",
     "eggGroups": [
       "Undiscovered"
@@ -5874,6 +7546,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kyogre",
     "eggGroups": [
       "Undiscovered"
@@ -5887,6 +7563,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kyurem",
     "eggGroups": [
       "Undiscovered"
@@ -5900,6 +7580,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kyurem",
     "eggGroups": [
       "Undiscovered"
@@ -5913,6 +7597,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "kyurem",
     "eggGroups": [
       "Undiscovered"
@@ -5928,6 +7616,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 32,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lairon",
     "eggGroups": [
       "Monster"
@@ -5943,6 +7635,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 41,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lampent",
     "eggGroups": [
       "Amorphous"
@@ -5956,6 +7652,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "landorus",
     "eggGroups": [
       "Undiscovered"
@@ -5969,6 +7669,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "landorus",
     "eggGroups": [
       "Undiscovered"
@@ -5982,6 +7686,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 27,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lanturn",
     "eggGroups": [
       "Water 2"
@@ -5995,6 +7703,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lapras",
     "eggGroups": [
       "Monster",
@@ -6011,6 +7723,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "larvesta",
     "eggGroups": [
       "Bug"
@@ -6026,6 +7742,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "larvitar",
     "eggGroups": [
       "Monster"
@@ -6039,6 +7759,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "latias",
     "eggGroups": [
       "Undiscovered"
@@ -6052,6 +7776,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "latias",
     "eggGroups": [
       "Undiscovered"
@@ -6065,6 +7793,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "latios",
     "eggGroups": [
       "Undiscovered"
@@ -6078,6 +7810,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "latios",
     "eggGroups": [
       "Undiscovered"
@@ -6091,6 +7827,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelExtra",
+    "evoItem": "Leaf Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "near a Moss Rock",
     "baseSpeciesId": "leafeon",
     "eggGroups": [
       "Field"
@@ -6104,6 +7844,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "leavanny",
     "eggGroups": [
       "Bug"
@@ -6117,6 +7861,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 18,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ledian",
     "eggGroups": [
       "Bug"
@@ -6132,6 +7880,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ledyba",
     "eggGroups": [
       "Bug"
@@ -6145,6 +7897,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelMove",
+    "evoItem": "",
+    "evoMove": "Rollout",
+    "evoMoveLevel": 33,
+    "evoCondition": "",
     "baseSpeciesId": "lickilicky",
     "eggGroups": [
       "Monster"
@@ -6160,6 +7916,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lickitung",
     "eggGroups": [
       "Monster"
@@ -6173,6 +7933,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "liepard",
     "eggGroups": [
       "Field"
@@ -6188,6 +7952,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lileep",
     "eggGroups": [
       "Water 3"
@@ -6201,6 +7969,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Sun Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lilligant",
     "eggGroups": [
       "Grass"
@@ -6216,6 +7988,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lillipup",
     "eggGroups": [
       "Field"
@@ -6229,6 +8005,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "linoone",
     "eggGroups": [
       "Field"
@@ -6244,6 +8024,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "litleo",
     "eggGroups": [
       "Field"
@@ -6259,6 +8043,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "litten",
     "eggGroups": [
       "Field"
@@ -6274,6 +8062,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "litwick",
     "eggGroups": [
       "Amorphous"
@@ -6289,6 +8081,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 14,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lombre",
     "eggGroups": [
       "Water 1",
@@ -6303,6 +8099,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lopunny",
     "eggGroups": [
       "Field",
@@ -6317,6 +8117,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lopunny",
     "eggGroups": [
       "Field",
@@ -6333,6 +8137,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lotad",
     "eggGroups": [
       "Water 1",
@@ -6349,6 +8157,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "loudred",
     "eggGroups": [
       "Monster",
@@ -6363,6 +8175,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "during the day",
     "baseSpeciesId": "lucario",
     "eggGroups": [
       "Field",
@@ -6377,6 +8193,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lucario",
     "eggGroups": [
       "Field",
@@ -6391,6 +8211,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Water Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ludicolo",
     "eggGroups": [
       "Water 1",
@@ -6405,6 +8229,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lugia",
     "eggGroups": [
       "Undiscovered"
@@ -6418,6 +8246,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 31,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lumineon",
     "eggGroups": [
       "Water 2"
@@ -6431,6 +8263,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 53,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lunala",
     "eggGroups": [
       "Undiscovered"
@@ -6444,6 +8280,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lunatone",
     "eggGroups": [
       "Mineral"
@@ -6457,6 +8297,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 34,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "during the day",
     "baseSpeciesId": "lurantis",
     "eggGroups": [
       "Grass"
@@ -6470,6 +8314,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "lurantis",
     "eggGroups": [
       "Grass"
@@ -6483,6 +8331,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "luvdisc",
     "eggGroups": [
       "Water 2"
@@ -6498,6 +8350,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 15,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "luxio",
     "eggGroups": [
       "Field"
@@ -6511,6 +8367,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "luxray",
     "eggGroups": [
       "Field"
@@ -6524,6 +8384,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "in Pokemon Sun/Ultra Sun",
     "baseSpeciesId": "lycanroc",
     "eggGroups": [
       "Field"
@@ -6537,6 +8401,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "from a special Rockruff during the evening",
     "baseSpeciesId": "lycanroc",
     "eggGroups": [
       "Field"
@@ -6550,6 +8418,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "in Pokemon Moon/Ultra Moon",
     "baseSpeciesId": "lycanroc",
     "eggGroups": [
       "Field"
@@ -6563,6 +8435,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "machamp",
     "eggGroups": [
       "Human-Like"
@@ -6578,6 +8454,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 28,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "machoke",
     "eggGroups": [
       "Human-Like"
@@ -6593,6 +8473,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "machop",
     "eggGroups": [
       "Human-Like"
@@ -6608,6 +8492,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "magby",
     "eggGroups": [
       "Undiscovered"
@@ -6621,6 +8509,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 38,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "magcargo",
     "eggGroups": [
       "Amorphous"
@@ -6634,6 +8526,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "magearna",
     "eggGroups": [
       "Undiscovered"
@@ -6649,6 +8545,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "magikarp",
     "eggGroups": [
       "Water 2",
@@ -6665,6 +8565,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "magmar",
     "eggGroups": [
       "Human-Like"
@@ -6678,6 +8582,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "Magmarizer",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "magmortar",
     "eggGroups": [
       "Human-Like"
@@ -6693,6 +8601,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "magnemite",
     "eggGroups": [
       "Mineral"
@@ -6708,6 +8620,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "magneton",
     "eggGroups": [
       "Mineral"
@@ -6721,6 +8637,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelExtra",
+    "evoItem": "Thunder Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "in a special magnetic field",
     "baseSpeciesId": "magnezone",
     "eggGroups": [
       "Mineral"
@@ -6736,6 +8656,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "makuhita",
     "eggGroups": [
       "Human-Like"
@@ -6749,6 +8673,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "with the console turned upside-down",
     "baseSpeciesId": "malamar",
     "eggGroups": [
       "Water 1",
@@ -6763,6 +8691,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelMove",
+    "evoItem": "",
+    "evoMove": "Ancient Power",
+    "evoMoveLevel": 1,
+    "evoCondition": "",
     "baseSpeciesId": "mamoswine",
     "eggGroups": [
       "Field"
@@ -6776,6 +8708,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "manaphy",
     "eggGroups": [
       "Water 1",
@@ -6790,6 +8726,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 54,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mandibuzz",
     "eggGroups": [
       "Flying"
@@ -6803,6 +8743,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 26,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "manectric",
     "eggGroups": [
       "Field"
@@ -6816,6 +8760,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "manectric",
     "eggGroups": [
       "Field"
@@ -6831,6 +8779,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mankey",
     "eggGroups": [
       "Field"
@@ -6844,6 +8796,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelExtra",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "with a Remoraid in party",
     "baseSpeciesId": "mantine",
     "eggGroups": [
       "Water 1"
@@ -6859,6 +8815,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mantyke",
     "eggGroups": [
       "Undiscovered"
@@ -6872,6 +8832,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "maractus",
     "eggGroups": [
       "Grass"
@@ -6887,6 +8851,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mareanie",
     "eggGroups": [
       "Water 1"
@@ -6902,6 +8870,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mareep",
     "eggGroups": [
       "Monster",
@@ -6918,6 +8890,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "marill",
     "eggGroups": [
       "Water 1",
@@ -6932,6 +8908,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 28,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "marowak",
     "eggGroups": [
       "Monster"
@@ -6945,6 +8925,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 28,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "at night",
     "baseSpeciesId": "marowak",
     "eggGroups": [
       "Monster"
@@ -6958,6 +8942,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "marowak",
     "eggGroups": [
       "Monster"
@@ -6971,6 +8959,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "marshadow",
     "eggGroups": [
       "Undiscovered"
@@ -6986,6 +8978,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "marshtomp",
     "eggGroups": [
       "Monster",
@@ -7000,6 +8996,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 22,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "masquerain",
     "eggGroups": [
       "Water 1",
@@ -7014,6 +9014,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mawile",
     "eggGroups": [
       "Field",
@@ -7028,6 +9032,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mawile",
     "eggGroups": [
       "Field",
@@ -7042,6 +9050,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 37,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "medicham",
     "eggGroups": [
       "Human-Like"
@@ -7055,6 +9067,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "medicham",
     "eggGroups": [
       "Human-Like"
@@ -7070,6 +9086,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "meditite",
     "eggGroups": [
       "Human-Like"
@@ -7083,6 +9103,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 32,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "meganium",
     "eggGroups": [
       "Monster",
@@ -7097,6 +9121,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "meloetta",
     "eggGroups": [
       "Undiscovered"
@@ -7110,6 +9138,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "meowstic",
     "eggGroups": [
       "Field"
@@ -7125,6 +9157,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "meowth",
     "eggGroups": [
       "Field"
@@ -7140,6 +9176,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "meowth",
     "eggGroups": [
       "Field"
@@ -7153,6 +9193,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mesprit",
     "eggGroups": [
       "Undiscovered"
@@ -7166,6 +9210,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 45,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "metagross",
     "eggGroups": [
       "Mineral"
@@ -7179,6 +9227,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "metagross",
     "eggGroups": [
       "Mineral"
@@ -7194,6 +9246,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "metang",
     "eggGroups": [
       "Mineral"
@@ -7209,6 +9265,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 7,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "metapod",
     "eggGroups": [
       "Bug"
@@ -7222,6 +9282,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mew",
     "eggGroups": [
       "Undiscovered"
@@ -7235,6 +9299,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mewtwo",
     "eggGroups": [
       "Undiscovered"
@@ -7248,6 +9316,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mewtwo",
     "eggGroups": [
       "Undiscovered"
@@ -7261,6 +9333,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mewtwo",
     "eggGroups": [
       "Undiscovered"
@@ -7276,6 +9352,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mienfoo",
     "eggGroups": [
       "Field",
@@ -7290,6 +9370,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 50,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mienshao",
     "eggGroups": [
       "Field",
@@ -7304,6 +9388,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 18,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mightyena",
     "eggGroups": [
       "Field"
@@ -7317,6 +9405,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "Prism Scale",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "milotic",
     "eggGroups": [
       "Water 1",
@@ -7331,6 +9423,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "miltank",
     "eggGroups": [
       "Field"
@@ -7346,6 +9442,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mimejr",
     "eggGroups": [
       "Undiscovered"
@@ -7359,6 +9459,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mimikyu",
     "eggGroups": [
       "Amorphous"
@@ -7372,6 +9476,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mimikyu",
     "eggGroups": [
       "Amorphous"
@@ -7385,6 +9493,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mimikyu",
     "eggGroups": [
       "Amorphous"
@@ -7400,6 +9512,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "minccino",
     "eggGroups": [
       "Field"
@@ -7413,6 +9529,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "minior",
     "eggGroups": [
       "Mineral"
@@ -7426,6 +9546,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "minior",
     "eggGroups": [
       "Mineral"
@@ -7439,6 +9563,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "minun",
     "eggGroups": [
       "Fairy"
@@ -7454,6 +9582,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "misdreavus",
     "eggGroups": [
       "Amorphous"
@@ -7467,6 +9599,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Dusk Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mismagius",
     "eggGroups": [
       "Amorphous"
@@ -7480,6 +9616,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "moltres",
     "eggGroups": [
       "Undiscovered"
@@ -7495,6 +9635,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 14,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "monferno",
     "eggGroups": [
       "Field",
@@ -7511,6 +9655,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "morelull",
     "eggGroups": [
       "Grass"
@@ -7524,6 +9672,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mothim",
     "eggGroups": [
       "Bug"
@@ -7537,6 +9689,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelMove",
+    "evoItem": "",
+    "evoMove": "Mimic",
+    "evoMoveLevel": 15,
+    "evoCondition": "",
     "baseSpeciesId": "mrmime",
     "eggGroups": [
       "Human-Like"
@@ -7552,6 +9708,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mudbray",
     "eggGroups": [
       "Field"
@@ -7567,6 +9727,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mudkip",
     "eggGroups": [
       "Monster",
@@ -7581,6 +9745,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "mudsdale",
     "eggGroups": [
       "Field"
@@ -7594,6 +9762,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 38,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "muk",
     "eggGroups": [
       "Amorphous"
@@ -7607,6 +9779,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 38,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "muk",
     "eggGroups": [
       "Amorphous"
@@ -7622,6 +9798,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "munchlax",
     "eggGroups": [
       "Undiscovered"
@@ -7637,6 +9817,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "munna",
     "eggGroups": [
       "Field"
@@ -7652,6 +9836,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "murkrow",
     "eggGroups": [
       "Flying"
@@ -7665,6 +9853,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Moon Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "musharna",
     "eggGroups": [
       "Field"
@@ -7678,6 +9870,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelMove",
+    "evoItem": "",
+    "evoMove": "Dragon Pulse",
+    "evoMoveLevel": 1,
+    "evoCondition": "",
     "baseSpeciesId": "naganadel",
     "eggGroups": [
       "Undiscovered"
@@ -7693,6 +9889,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "natu",
     "eggGroups": [
       "Flying"
@@ -7706,6 +9906,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "necrozma",
     "eggGroups": [
       "Undiscovered"
@@ -7719,6 +9923,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "necrozma",
     "eggGroups": [
       "Undiscovered"
@@ -7732,6 +9940,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "necrozma",
     "eggGroups": [
       "Undiscovered"
@@ -7745,6 +9957,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Moon Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "nidoking",
     "eggGroups": [
       "Monster",
@@ -7759,6 +9975,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Moon Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "nidoqueen",
     "eggGroups": [
       "Undiscovered"
@@ -7774,6 +9994,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "nidoranf",
     "eggGroups": [
       "Monster",
@@ -7790,6 +10014,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "nidoranm",
     "eggGroups": [
       "Monster",
@@ -7806,6 +10034,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "nidorina",
     "eggGroups": [
       "Undiscovered"
@@ -7821,6 +10053,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "nidorino",
     "eggGroups": [
       "Monster",
@@ -7835,6 +10071,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "nihilego",
     "eggGroups": [
       "Undiscovered"
@@ -7851,6 +10091,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "nincada",
     "eggGroups": [
       "Bug"
@@ -7864,6 +10108,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Fire Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ninetales",
     "eggGroups": [
       "Field"
@@ -7877,6 +10125,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Ice Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ninetales",
     "eggGroups": [
       "Field"
@@ -7890,6 +10142,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ninjask",
     "eggGroups": [
       "Bug"
@@ -7903,6 +10159,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "noctowl",
     "eggGroups": [
       "Flying"
@@ -7918,6 +10178,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "noibat",
     "eggGroups": [
       "Flying"
@@ -7931,6 +10195,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 48,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "noivern",
     "eggGroups": [
       "Flying"
@@ -7946,6 +10214,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "nosepass",
     "eggGroups": [
       "Mineral"
@@ -7961,6 +10233,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "numel",
     "eggGroups": [
       "Field"
@@ -7976,6 +10252,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 14,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "nuzleaf",
     "eggGroups": [
       "Field",
@@ -7990,6 +10270,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "octillery",
     "eggGroups": [
       "Water 1",
@@ -8006,6 +10290,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "oddish",
     "eggGroups": [
       "Grass"
@@ -8021,6 +10309,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "omanyte",
     "eggGroups": [
       "Water 1",
@@ -8035,6 +10327,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 40,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "omastar",
     "eggGroups": [
       "Water 1",
@@ -8051,6 +10347,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "onix",
     "eggGroups": [
       "Mineral"
@@ -8064,6 +10364,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "oranguru",
     "eggGroups": [
       "Field"
@@ -8077,6 +10381,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "oricorio",
     "eggGroups": [
       "Flying"
@@ -8090,6 +10398,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "oricorio",
     "eggGroups": [
       "Flying"
@@ -8103,6 +10415,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "oricorio",
     "eggGroups": [
       "Flying"
@@ -8116,6 +10432,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "oricorio",
     "eggGroups": [
       "Flying"
@@ -8131,6 +10451,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "oshawott",
     "eggGroups": [
       "Field"
@@ -8144,6 +10468,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pachirisu",
     "eggGroups": [
       "Field",
@@ -8158,6 +10486,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "palkia",
     "eggGroups": [
       "Undiscovered"
@@ -8171,6 +10503,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 42,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "palossand",
     "eggGroups": [
       "Amorphous"
@@ -8186,6 +10522,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "palpitoad",
     "eggGroups": [
       "Water 1"
@@ -8201,6 +10541,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pancham",
     "eggGroups": [
       "Field",
@@ -8215,6 +10559,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 32,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "with a Dark-type in the party",
     "baseSpeciesId": "pangoro",
     "eggGroups": [
       "Field",
@@ -8231,6 +10579,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "panpour",
     "eggGroups": [
       "Field"
@@ -8246,6 +10598,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pansage",
     "eggGroups": [
       "Field"
@@ -8261,6 +10617,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pansear",
     "eggGroups": [
       "Field"
@@ -8276,6 +10636,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "paras",
     "eggGroups": [
       "Bug",
@@ -8290,6 +10654,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 24,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "parasect",
     "eggGroups": [
       "Bug",
@@ -8304,6 +10672,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "passimian",
     "eggGroups": [
       "Field"
@@ -8319,6 +10691,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "patrat",
     "eggGroups": [
       "Field"
@@ -8334,6 +10710,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pawniard",
     "eggGroups": [
       "Human-Like"
@@ -8347,6 +10727,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pelipper",
     "eggGroups": [
       "Water 1",
@@ -8361,6 +10745,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 28,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "persian",
     "eggGroups": [
       "Field"
@@ -8374,6 +10762,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "persian",
     "eggGroups": [
       "Field"
@@ -8389,6 +10781,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "petilil",
     "eggGroups": [
       "Grass"
@@ -8404,6 +10800,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "phanpy",
     "eggGroups": [
       "Field"
@@ -8419,6 +10819,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "phantump",
     "eggGroups": [
       "Grass",
@@ -8433,6 +10837,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pheromosa",
     "eggGroups": [
       "Undiscovered"
@@ -8446,6 +10854,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "phione",
     "eggGroups": [
       "Water 1",
@@ -8462,6 +10874,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pichu",
     "eggGroups": [
       "Undiscovered"
@@ -8475,6 +10891,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pidgeot",
     "eggGroups": [
       "Flying"
@@ -8488,6 +10908,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pidgeot",
     "eggGroups": [
       "Flying"
@@ -8503,6 +10927,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 18,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pidgeotto",
     "eggGroups": [
       "Flying"
@@ -8518,6 +10946,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pidgey",
     "eggGroups": [
       "Flying"
@@ -8533,6 +10965,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pidove",
     "eggGroups": [
       "Flying"
@@ -8548,6 +10984,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 17,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pignite",
     "eggGroups": [
       "Field"
@@ -8564,6 +11004,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pikachu",
     "eggGroups": [
       "Field",
@@ -8578,6 +11022,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pikachu",
     "eggGroups": [
       "Undiscovered"
@@ -8591,6 +11039,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pikachu",
     "eggGroups": [
       "Undiscovered"
@@ -8604,6 +11056,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pikachu",
     "eggGroups": [
       "Undiscovered"
@@ -8617,6 +11073,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pikachu",
     "eggGroups": [
       "Undiscovered"
@@ -8630,6 +11090,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pikachu",
     "eggGroups": [
       "Undiscovered"
@@ -8643,6 +11107,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pikachu",
     "eggGroups": [
       "Undiscovered"
@@ -8656,6 +11124,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pikachu",
     "eggGroups": [
       "Undiscovered"
@@ -8671,6 +11143,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pikipek",
     "eggGroups": [
       "Flying"
@@ -8686,6 +11162,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 33,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "piloswine",
     "eggGroups": [
       "Field"
@@ -8701,6 +11181,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pineco",
     "eggGroups": [
       "Bug"
@@ -8714,6 +11198,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pinsir",
     "eggGroups": [
       "Bug"
@@ -8727,6 +11215,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pinsir",
     "eggGroups": [
       "Bug"
@@ -8742,6 +11234,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "piplup",
     "eggGroups": [
       "Water 1",
@@ -8756,6 +11252,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "plusle",
     "eggGroups": [
       "Fairy"
@@ -8771,6 +11271,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "poipole",
     "eggGroups": [
       "Undiscovered"
@@ -8784,6 +11288,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "King's Rock",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "politoed",
     "eggGroups": [
       "Water 1"
@@ -8799,6 +11307,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "poliwag",
     "eggGroups": [
       "Water 1"
@@ -8815,6 +11327,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "poliwhirl",
     "eggGroups": [
       "Water 1"
@@ -8828,6 +11344,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Water Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "poliwrath",
     "eggGroups": [
       "Water 1"
@@ -8843,6 +11363,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ponyta",
     "eggGroups": [
       "Field"
@@ -8858,6 +11382,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "poochyena",
     "eggGroups": [
       "Field"
@@ -8873,6 +11401,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "popplio",
     "eggGroups": [
       "Water 1",
@@ -8889,6 +11421,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "porygon",
     "eggGroups": [
       "Mineral"
@@ -8902,6 +11438,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "Dubious Disc",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "porygonz",
     "eggGroups": [
       "Mineral"
@@ -8917,6 +11457,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "Up-Grade",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "porygon2",
     "eggGroups": [
       "Mineral"
@@ -8930,6 +11474,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 34,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "primarina",
     "eggGroups": [
       "Water 1",
@@ -8944,6 +11492,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 28,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "primeape",
     "eggGroups": [
       "Field"
@@ -8959,6 +11511,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "prinplup",
     "eggGroups": [
       "Water 1",
@@ -8973,6 +11529,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelExtra",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "near a special magnetic field",
     "baseSpeciesId": "probopass",
     "eggGroups": [
       "Mineral"
@@ -8988,6 +11548,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "psyduck",
     "eggGroups": [
       "Water 1",
@@ -9004,6 +11568,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pumpkaboo",
     "eggGroups": [
       "Amorphous"
@@ -9019,6 +11587,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pumpkaboo",
     "eggGroups": [
       "Amorphous"
@@ -9034,6 +11606,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pumpkaboo",
     "eggGroups": [
       "Amorphous"
@@ -9049,6 +11625,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pumpkaboo",
     "eggGroups": [
       "Amorphous"
@@ -9064,6 +11644,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pupitar",
     "eggGroups": [
       "Monster"
@@ -9079,6 +11663,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "purrloin",
     "eggGroups": [
       "Field"
@@ -9092,6 +11680,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 38,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "purugly",
     "eggGroups": [
       "Field"
@@ -9105,6 +11697,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 35,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pyroar",
     "eggGroups": [
       "Field"
@@ -9118,6 +11714,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "pyukumuku",
     "eggGroups": [
       "Water 1"
@@ -9131,6 +11731,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "quagsire",
     "eggGroups": [
       "Water 1",
@@ -9147,6 +11751,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 14,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "quilava",
     "eggGroups": [
       "Field"
@@ -9162,6 +11770,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "quilladin",
     "eggGroups": [
       "Field"
@@ -9175,6 +11787,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "qwilfish",
     "eggGroups": [
       "Water 2"
@@ -9188,6 +11804,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Thunder Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "raichu",
     "eggGroups": [
       "Field",
@@ -9202,6 +11822,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Thunder Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "raichu",
     "eggGroups": [
       "Field",
@@ -9216,6 +11840,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "raikou",
     "eggGroups": [
       "Undiscovered"
@@ -9231,6 +11859,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ralts",
     "eggGroups": [
       "Amorphous"
@@ -9244,6 +11876,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rampardos",
     "eggGroups": [
       "Monster"
@@ -9257,6 +11893,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 40,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rapidash",
     "eggGroups": [
       "Field"
@@ -9270,6 +11910,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "raticate",
     "eggGroups": [
       "Field"
@@ -9283,6 +11927,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "at night",
     "baseSpeciesId": "raticate",
     "eggGroups": [
       "Field"
@@ -9296,6 +11944,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "raticate",
     "eggGroups": [
       "Field"
@@ -9311,6 +11963,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rattata",
     "eggGroups": [
       "Field"
@@ -9326,6 +11982,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rattata",
     "eggGroups": [
       "Field"
@@ -9339,6 +11999,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rayquaza",
     "eggGroups": [
       "Undiscovered"
@@ -9352,6 +12016,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rayquaza",
     "eggGroups": [
       "Undiscovered"
@@ -9365,6 +12033,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "regice",
     "eggGroups": [
       "Undiscovered"
@@ -9378,6 +12050,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "regigigas",
     "eggGroups": [
       "Undiscovered"
@@ -9391,6 +12067,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "regirock",
     "eggGroups": [
       "Undiscovered"
@@ -9404,6 +12084,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "registeel",
     "eggGroups": [
       "Undiscovered"
@@ -9417,6 +12101,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "relicanth",
     "eggGroups": [
       "Water 1",
@@ -9433,6 +12121,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "remoraid",
     "eggGroups": [
       "Water 1",
@@ -9447,6 +12139,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "reshiram",
     "eggGroups": [
       "Undiscovered"
@@ -9460,6 +12156,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 41,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "reuniclus",
     "eggGroups": [
       "Amorphous"
@@ -9475,6 +12175,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 42,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rhydon",
     "eggGroups": [
       "Monster",
@@ -9491,6 +12195,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rhyhorn",
     "eggGroups": [
       "Monster",
@@ -9505,6 +12213,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "Protector",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rhyperior",
     "eggGroups": [
       "Monster",
@@ -9519,6 +12231,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ribombee",
     "eggGroups": [
       "Bug",
@@ -9533,6 +12249,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ribombee",
     "eggGroups": [
       "Bug",
@@ -9549,6 +12269,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "riolu",
     "eggGroups": [
       "Undiscovered"
@@ -9565,6 +12289,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rockruff",
     "eggGroups": [
       "Field"
@@ -9580,6 +12308,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rockruff",
     "eggGroups": [
       "Field"
@@ -9595,6 +12327,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "roggenrola",
     "eggGroups": [
       "Mineral"
@@ -9610,6 +12346,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "during the day",
     "baseSpeciesId": "roselia",
     "eggGroups": [
       "Fairy",
@@ -9624,6 +12364,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Shiny Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "roserade",
     "eggGroups": [
       "Fairy",
@@ -9638,6 +12382,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rotom",
     "eggGroups": [
       "Amorphous"
@@ -9651,6 +12399,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rotom",
     "eggGroups": [
       "Amorphous"
@@ -9664,6 +12416,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rotom",
     "eggGroups": [
       "Amorphous"
@@ -9677,6 +12433,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rotom",
     "eggGroups": [
       "Amorphous"
@@ -9690,6 +12450,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rotom",
     "eggGroups": [
       "Amorphous"
@@ -9703,6 +12467,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rotom",
     "eggGroups": [
       "Amorphous"
@@ -9718,6 +12486,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rowlet",
     "eggGroups": [
       "Flying"
@@ -9733,6 +12505,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "rufflet",
     "eggGroups": [
       "Flying"
@@ -9746,6 +12522,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sableye",
     "eggGroups": [
       "Human-Like"
@@ -9759,6 +12539,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sableye",
     "eggGroups": [
       "Human-Like"
@@ -9772,6 +12556,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 50,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "salamence",
     "eggGroups": [
       "Dragon"
@@ -9785,6 +12573,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "salamence",
     "eggGroups": [
       "Dragon"
@@ -9800,6 +12592,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "salandit",
     "eggGroups": [
       "Monster",
@@ -9814,6 +12610,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 33,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "salazzle",
     "eggGroups": [
       "Monster",
@@ -9828,6 +12628,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "salazzle",
     "eggGroups": [
       "Monster",
@@ -9842,6 +12646,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "samurott",
     "eggGroups": [
       "Field"
@@ -9857,6 +12665,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sandile",
     "eggGroups": [
       "Field"
@@ -9872,6 +12684,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sandshrew",
     "eggGroups": [
       "Field"
@@ -9887,6 +12703,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sandshrew",
     "eggGroups": [
       "Field"
@@ -9900,6 +12720,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 22,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sandslash",
     "eggGroups": [
       "Field"
@@ -9913,6 +12737,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Ice Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sandslash",
     "eggGroups": [
       "Field"
@@ -9928,6 +12756,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sandygast",
     "eggGroups": [
       "Amorphous"
@@ -9941,6 +12773,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sawk",
     "eggGroups": [
       "Human-Like"
@@ -9954,6 +12790,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 34,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sawsbuck",
     "eggGroups": [
       "Field"
@@ -9969,6 +12809,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "scatterbug",
     "eggGroups": [
       "Bug"
@@ -9982,6 +12826,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sceptile",
     "eggGroups": [
       "Monster",
@@ -9996,6 +12844,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sceptile",
     "eggGroups": [
       "Monster",
@@ -10010,6 +12862,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "Metal Coat",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "scizor",
     "eggGroups": [
       "Bug"
@@ -10023,6 +12879,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "scizor",
     "eggGroups": [
       "Bug"
@@ -10036,6 +12896,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "scolipede",
     "eggGroups": [
       "Bug"
@@ -10049,6 +12913,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 39,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "scrafty",
     "eggGroups": [
       "Field",
@@ -10065,6 +12933,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "scraggy",
     "eggGroups": [
       "Field",
@@ -10081,6 +12953,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "scyther",
     "eggGroups": [
       "Bug"
@@ -10096,6 +12972,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 32,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "seadra",
     "eggGroups": [
       "Water 1",
@@ -10110,6 +12990,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 33,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "seaking",
     "eggGroups": [
       "Water 2"
@@ -10125,6 +13009,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 32,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sealeo",
     "eggGroups": [
       "Water 1",
@@ -10141,6 +13029,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "seedot",
     "eggGroups": [
       "Field",
@@ -10157,6 +13049,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "seel",
     "eggGroups": [
       "Water 1",
@@ -10171,6 +13067,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "seismitoad",
     "eggGroups": [
       "Water 1"
@@ -10186,6 +13086,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sentret",
     "eggGroups": [
       "Field"
@@ -10199,6 +13103,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "serperior",
     "eggGroups": [
       "Field",
@@ -10215,6 +13123,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 17,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "servine",
     "eggGroups": [
       "Field",
@@ -10229,6 +13141,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "seviper",
     "eggGroups": [
       "Field",
@@ -10245,6 +13161,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sewaddle",
     "eggGroups": [
       "Bug"
@@ -10258,6 +13178,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sharpedo",
     "eggGroups": [
       "Water 2"
@@ -10271,6 +13195,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sharpedo",
     "eggGroups": [
       "Water 2"
@@ -10284,6 +13212,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "shaymin",
     "eggGroups": [
       "Undiscovered"
@@ -10297,6 +13229,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "shaymin",
     "eggGroups": [
       "Undiscovered"
@@ -10310,6 +13246,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "shedinja",
     "eggGroups": [
       "Mineral"
@@ -10325,6 +13265,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "shelgon",
     "eggGroups": [
       "Dragon"
@@ -10340,6 +13284,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "shellder",
     "eggGroups": [
       "Water 3"
@@ -10355,6 +13303,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "shellos",
     "eggGroups": [
       "Water 1",
@@ -10371,6 +13323,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "shelmet",
     "eggGroups": [
       "Bug"
@@ -10386,6 +13342,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "shieldon",
     "eggGroups": [
       "Monster"
@@ -10399,6 +13359,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Leaf Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "shiftry",
     "eggGroups": [
       "Field",
@@ -10413,6 +13377,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 24,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "shiinotic",
     "eggGroups": [
       "Grass"
@@ -10428,6 +13396,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "shinx",
     "eggGroups": [
       "Field"
@@ -10443,6 +13415,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "shroomish",
     "eggGroups": [
       "Fairy",
@@ -10457,6 +13433,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "shuckle",
     "eggGroups": [
       "Bug"
@@ -10472,6 +13452,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "shuppet",
     "eggGroups": [
       "Amorphous"
@@ -10485,6 +13469,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sigilyph",
     "eggGroups": [
       "Flying"
@@ -10500,6 +13488,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 7,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silcoon",
     "eggGroups": [
       "Bug"
@@ -10513,6 +13505,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10526,6 +13522,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10539,6 +13539,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10552,6 +13556,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10565,6 +13573,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10578,6 +13590,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10591,6 +13607,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10604,6 +13624,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10617,6 +13641,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10630,6 +13658,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10643,6 +13675,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10656,6 +13692,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10669,6 +13709,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10682,6 +13726,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10695,6 +13743,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10708,6 +13760,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10721,6 +13777,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10734,6 +13794,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "silvally",
     "eggGroups": [
       "Undiscovered"
@@ -10747,6 +13811,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Water Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "simipour",
     "eggGroups": [
       "Field"
@@ -10760,6 +13828,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Leaf Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "simisage",
     "eggGroups": [
       "Field"
@@ -10773,6 +13845,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Fire Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "simisear",
     "eggGroups": [
       "Field"
@@ -10786,6 +13862,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "skarmory",
     "eggGroups": [
       "Flying"
@@ -10801,6 +13881,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "skiddo",
     "eggGroups": [
       "Field"
@@ -10816,6 +13900,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 18,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "skiploom",
     "eggGroups": [
       "Fairy",
@@ -10832,6 +13920,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "skitty",
     "eggGroups": [
       "Field",
@@ -10848,6 +13940,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "skorupi",
     "eggGroups": [
       "Bug",
@@ -10864,6 +13960,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "skrelp",
     "eggGroups": [
       "Water 1",
@@ -10878,6 +13978,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 34,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "skuntank",
     "eggGroups": [
       "Field"
@@ -10891,6 +13995,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "slaking",
     "eggGroups": [
       "Field"
@@ -10906,6 +14014,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "slakoth",
     "eggGroups": [
       "Field"
@@ -10921,6 +14033,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 40,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sliggoo",
     "eggGroups": [
       "Dragon"
@@ -10934,6 +14050,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 37,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "slowbro",
     "eggGroups": [
       "Monster",
@@ -10948,6 +14068,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "slowbro",
     "eggGroups": [
       "Monster",
@@ -10962,6 +14086,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "King's Rock",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "slowking",
     "eggGroups": [
       "Monster",
@@ -10979,6 +14107,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "slowpoke",
     "eggGroups": [
       "Monster",
@@ -10995,6 +14127,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "slugma",
     "eggGroups": [
       "Amorphous"
@@ -11008,6 +14144,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "Whipped Dream",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "slurpuff",
     "eggGroups": [
       "Fairy"
@@ -11021,6 +14161,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "smeargle",
     "eggGroups": [
       "Field"
@@ -11036,6 +14180,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "smoochum",
     "eggGroups": [
       "Undiscovered"
@@ -11051,6 +14199,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sneasel",
     "eggGroups": [
       "Field"
@@ -11066,6 +14218,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "snivy",
     "eggGroups": [
       "Field",
@@ -11080,6 +14236,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "snorlax",
     "eggGroups": [
       "Monster"
@@ -11096,6 +14256,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "snorunt",
     "eggGroups": [
       "Fairy",
@@ -11112,6 +14276,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "snover",
     "eggGroups": [
       "Monster",
@@ -11128,6 +14296,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "snubbull",
     "eggGroups": [
       "Field",
@@ -11142,6 +14314,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 53,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "solgaleo",
     "eggGroups": [
       "Undiscovered"
@@ -11157,6 +14333,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "solosis",
     "eggGroups": [
       "Amorphous"
@@ -11170,6 +14350,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "solrock",
     "eggGroups": [
       "Mineral"
@@ -11185,6 +14369,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "spearow",
     "eggGroups": [
       "Flying"
@@ -11200,6 +14388,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 9,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "spewpa",
     "eggGroups": [
       "Bug"
@@ -11215,6 +14407,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "spheal",
     "eggGroups": [
       "Water 1",
@@ -11231,6 +14427,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "spinarak",
     "eggGroups": [
       "Bug"
@@ -11244,6 +14444,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "spinda",
     "eggGroups": [
       "Field",
@@ -11258,6 +14462,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "spiritomb",
     "eggGroups": [
       "Amorphous"
@@ -11273,6 +14481,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "spoink",
     "eggGroups": [
       "Field"
@@ -11288,6 +14500,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "spritzee",
     "eggGroups": [
       "Fairy"
@@ -11303,6 +14519,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "squirtle",
     "eggGroups": [
       "Monster",
@@ -11317,6 +14537,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "stakataka",
     "eggGroups": [
       "Undiscovered"
@@ -11330,6 +14554,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "stantler",
     "eggGroups": [
       "Field"
@@ -11343,6 +14571,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 34,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "staraptor",
     "eggGroups": [
       "Flying"
@@ -11358,6 +14590,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 14,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "staravia",
     "eggGroups": [
       "Flying"
@@ -11373,6 +14609,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "starly",
     "eggGroups": [
       "Flying"
@@ -11386,6 +14626,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Water Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "starmie",
     "eggGroups": [
       "Water 3"
@@ -11401,6 +14645,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "staryu",
     "eggGroups": [
       "Water 3"
@@ -11414,6 +14662,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "Metal Coat",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "steelix",
     "eggGroups": [
       "Mineral"
@@ -11427,6 +14679,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "steelix",
     "eggGroups": [
       "Mineral"
@@ -11442,6 +14698,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 18,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "steenee",
     "eggGroups": [
       "Grass"
@@ -11455,6 +14715,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 32,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "stoutland",
     "eggGroups": [
       "Field"
@@ -11470,6 +14734,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "stufful",
     "eggGroups": [
       "Field"
@@ -11483,6 +14751,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "stunfisk",
     "eggGroups": [
       "Water 1",
@@ -11499,6 +14771,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "stunky",
     "eggGroups": [
       "Field"
@@ -11512,6 +14788,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelMove",
+    "evoItem": "",
+    "evoMove": "Mimic",
+    "evoMoveLevel": 15,
+    "evoCondition": "",
     "baseSpeciesId": "sudowoodo",
     "eggGroups": [
       "Mineral"
@@ -11525,6 +14805,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "suicune",
     "eggGroups": [
       "Undiscovered"
@@ -11538,6 +14822,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Sun Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sunflora",
     "eggGroups": [
       "Grass"
@@ -11553,6 +14841,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "sunkern",
     "eggGroups": [
       "Grass"
@@ -11568,6 +14860,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "surskit",
     "eggGroups": [
       "Water 1",
@@ -11584,6 +14880,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "swablu",
     "eggGroups": [
       "Flying",
@@ -11600,6 +14900,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "swadloon",
     "eggGroups": [
       "Bug"
@@ -11613,6 +14917,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 26,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "swalot",
     "eggGroups": [
       "Amorphous"
@@ -11626,6 +14934,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "swampert",
     "eggGroups": [
       "Monster",
@@ -11640,6 +14952,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "swampert",
     "eggGroups": [
       "Monster",
@@ -11654,6 +14970,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 35,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "swanna",
     "eggGroups": [
       "Water 1",
@@ -11668,6 +14988,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 22,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "swellow",
     "eggGroups": [
       "Flying"
@@ -11683,6 +15007,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "swinub",
     "eggGroups": [
       "Field"
@@ -11698,6 +15026,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "swirlix",
     "eggGroups": [
       "Fairy"
@@ -11711,6 +15043,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "swoobat",
     "eggGroups": [
       "Flying",
@@ -11725,6 +15061,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelExtra",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "with a Fairy-type move and two levels of Affection",
     "baseSpeciesId": "sylveon",
     "eggGroups": [
       "Field"
@@ -11740,6 +15080,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "taillow",
     "eggGroups": [
       "Flying"
@@ -11753,6 +15097,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 35,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "talonflame",
     "eggGroups": [
       "Flying"
@@ -11768,6 +15116,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tangela",
     "eggGroups": [
       "Grass"
@@ -11781,6 +15133,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelMove",
+    "evoItem": "",
+    "evoMove": "Ancient Power",
+    "evoMoveLevel": 38,
+    "evoCondition": "",
     "baseSpeciesId": "tangrowth",
     "eggGroups": [
       "Grass"
@@ -11794,6 +15150,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tapubulu",
     "eggGroups": [
       "Undiscovered"
@@ -11807,6 +15167,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tapufini",
     "eggGroups": [
       "Undiscovered"
@@ -11820,6 +15184,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tapukoko",
     "eggGroups": [
       "Undiscovered"
@@ -11833,6 +15201,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tapulele",
     "eggGroups": [
       "Undiscovered"
@@ -11846,6 +15218,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tauros",
     "eggGroups": [
       "Field"
@@ -11861,6 +15237,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "teddiursa",
     "eggGroups": [
       "Field"
@@ -11876,6 +15256,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tentacool",
     "eggGroups": [
       "Water 3"
@@ -11889,6 +15273,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tentacruel",
     "eggGroups": [
       "Water 3"
@@ -11904,6 +15292,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tepig",
     "eggGroups": [
       "Field"
@@ -11917,6 +15309,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "terrakion",
     "eggGroups": [
       "Undiscovered"
@@ -11930,6 +15326,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "throh",
     "eggGroups": [
       "Human-Like"
@@ -11943,6 +15343,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "thundurus",
     "eggGroups": [
       "Undiscovered"
@@ -11956,6 +15360,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "thundurus",
     "eggGroups": [
       "Undiscovered"
@@ -11971,6 +15379,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "timburr",
     "eggGroups": [
       "Human-Like"
@@ -11986,6 +15398,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tirtouga",
     "eggGroups": [
       "Water 1",
@@ -12000,6 +15416,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "togedemaru",
     "eggGroups": [
       "Field",
@@ -12014,6 +15434,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "togedemaru",
     "eggGroups": [
       "Field",
@@ -12028,6 +15452,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Shiny Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "togekiss",
     "eggGroups": [
       "Flying",
@@ -12044,6 +15472,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "togepi",
     "eggGroups": [
       "Undiscovered"
@@ -12059,6 +15491,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "togetic",
     "eggGroups": [
       "Flying",
@@ -12075,6 +15511,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "torchic",
     "eggGroups": [
       "Field"
@@ -12088,6 +15528,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "torkoal",
     "eggGroups": [
       "Field"
@@ -12101,6 +15545,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tornadus",
     "eggGroups": [
       "Undiscovered"
@@ -12114,6 +15562,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tornadus",
     "eggGroups": [
       "Undiscovered"
@@ -12129,6 +15581,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 17,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "torracat",
     "eggGroups": [
       "Field"
@@ -12142,6 +15598,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 32,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "torterra",
     "eggGroups": [
       "Monster",
@@ -12158,6 +15618,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "totodile",
     "eggGroups": [
       "Monster",
@@ -12172,6 +15636,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 28,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "toucannon",
     "eggGroups": [
       "Flying"
@@ -12185,6 +15653,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 38,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "toxapex",
     "eggGroups": [
       "Water 1"
@@ -12198,6 +15670,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 37,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "toxicroak",
     "eggGroups": [
       "Human-Like"
@@ -12213,6 +15689,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 21,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tranquill",
     "eggGroups": [
       "Flying"
@@ -12228,6 +15708,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "trapinch",
     "eggGroups": [
       "Bug"
@@ -12243,6 +15727,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "treecko",
     "eggGroups": [
       "Monster",
@@ -12257,6 +15745,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "trade",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "trevenant",
     "eggGroups": [
       "Grass",
@@ -12271,6 +15763,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tropius",
     "eggGroups": [
       "Monster",
@@ -12287,6 +15783,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "trubbish",
     "eggGroups": [
       "Mineral"
@@ -12302,6 +15802,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 14,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "trumbeak",
     "eggGroups": [
       "Flying"
@@ -12315,6 +15819,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelMove",
+    "evoItem": "",
+    "evoMove": "Stomp",
+    "evoMoveLevel": 29,
+    "evoCondition": "",
     "baseSpeciesId": "tsareena",
     "eggGroups": [
       "Grass"
@@ -12328,6 +15836,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "turtonator",
     "eggGroups": [
       "Monster",
@@ -12344,6 +15856,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "turtwig",
     "eggGroups": [
       "Monster",
@@ -12360,6 +15876,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tympole",
     "eggGroups": [
       "Water 1"
@@ -12375,6 +15895,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tynamo",
     "eggGroups": [
       "Amorphous"
@@ -12390,6 +15914,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "typenull",
     "eggGroups": [
       "Undiscovered"
@@ -12403,6 +15931,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 36,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "typhlosion",
     "eggGroups": [
       "Field"
@@ -12416,6 +15948,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 55,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tyranitar",
     "eggGroups": [
       "Monster"
@@ -12429,6 +15965,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tyranitar",
     "eggGroups": [
       "Monster"
@@ -12442,6 +15982,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 39,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "during the day",
     "baseSpeciesId": "tyrantrum",
     "eggGroups": [
       "Monster",
@@ -12460,6 +16004,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tyrogue",
     "eggGroups": [
       "Undiscovered"
@@ -12475,6 +16023,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "tyrunt",
     "eggGroups": [
       "Monster",
@@ -12489,6 +16041,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelFriendship",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "at night",
     "baseSpeciesId": "umbreon",
     "eggGroups": [
       "Field"
@@ -12502,6 +16058,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 32,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "unfezant",
     "eggGroups": [
       "Flying"
@@ -12515,6 +16075,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "unown",
     "eggGroups": [
       "Undiscovered"
@@ -12528,6 +16092,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "ursaring",
     "eggGroups": [
       "Field"
@@ -12541,6 +16109,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "uxie",
     "eggGroups": [
       "Undiscovered"
@@ -12556,6 +16128,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 35,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "vanillish",
     "eggGroups": [
       "Mineral"
@@ -12571,6 +16147,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "vanillite",
     "eggGroups": [
       "Mineral"
@@ -12584,6 +16164,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 47,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "vanilluxe",
     "eggGroups": [
       "Mineral"
@@ -12597,6 +16181,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Water Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "vaporeon",
     "eggGroups": [
       "Field"
@@ -12612,6 +16200,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "venipede",
     "eggGroups": [
       "Bug"
@@ -12625,6 +16217,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 31,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "venomoth",
     "eggGroups": [
       "Bug"
@@ -12640,6 +16236,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "venonat",
     "eggGroups": [
       "Bug"
@@ -12653,6 +16253,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 32,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "venusaur",
     "eggGroups": [
       "Monster",
@@ -12667,6 +16271,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "venusaur",
     "eggGroups": [
       "Monster",
@@ -12681,6 +16289,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 21,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "vespiquen",
     "eggGroups": [
       "Bug"
@@ -12696,6 +16308,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 35,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "vibrava",
     "eggGroups": [
       "Bug"
@@ -12709,6 +16325,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "victini",
     "eggGroups": [
       "Undiscovered"
@@ -12722,6 +16342,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Leaf Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "victreebel",
     "eggGroups": [
       "Grass"
@@ -12737,6 +16361,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 18,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "vigoroth",
     "eggGroups": [
       "Field"
@@ -12750,6 +16378,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelExtra",
+    "evoItem": "Thunder Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "near a special magnetic field",
     "baseSpeciesId": "vikavolt",
     "eggGroups": [
       "Bug"
@@ -12763,6 +16395,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "vikavolt",
     "eggGroups": [
       "Bug"
@@ -12776,6 +16412,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Leaf Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "vileplume",
     "eggGroups": [
       "Grass"
@@ -12789,6 +16429,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "virizion",
     "eggGroups": [
       "Undiscovered"
@@ -12802,6 +16446,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 12,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "vivillon",
     "eggGroups": [
       "Bug"
@@ -12815,6 +16463,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "volbeat",
     "eggGroups": [
       "Bug",
@@ -12829,6 +16481,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "volcanion",
     "eggGroups": [
       "Undiscovered"
@@ -12842,6 +16498,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 59,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "volcarona",
     "eggGroups": [
       "Bug"
@@ -12857,6 +16517,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "voltorb",
     "eggGroups": [
       "Mineral"
@@ -12872,6 +16536,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "vullaby",
     "eggGroups": [
       "Flying"
@@ -12887,6 +16555,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "vulpix",
     "eggGroups": [
       "Field"
@@ -12902,6 +16574,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "vulpix",
     "eggGroups": [
       "Field"
@@ -12917,6 +16593,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wailmer",
     "eggGroups": [
       "Field",
@@ -12931,6 +16611,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 40,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wailord",
     "eggGroups": [
       "Field",
@@ -12945,6 +16629,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 44,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "walrein",
     "eggGroups": [
       "Water 1",
@@ -12961,6 +16649,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 16,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wartortle",
     "eggGroups": [
       "Monster",
@@ -12975,6 +16667,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "watchog",
     "eggGroups": [
       "Field"
@@ -12988,6 +16684,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelHold",
+    "evoItem": "Razor Claw",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "at night",
     "baseSpeciesId": "weavile",
     "eggGroups": [
       "Field"
@@ -13003,6 +16703,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "weedle",
     "eggGroups": [
       "Bug"
@@ -13018,6 +16722,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 21,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "weepinbell",
     "eggGroups": [
       "Grass"
@@ -13031,6 +16739,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 35,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "weezing",
     "eggGroups": [
       "Amorphous"
@@ -13044,6 +16756,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Sun Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "whimsicott",
     "eggGroups": [
       "Fairy",
@@ -13060,6 +16776,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 22,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "whirlipede",
     "eggGroups": [
       "Bug"
@@ -13073,6 +16793,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "whiscash",
     "eggGroups": [
       "Water 2"
@@ -13088,6 +16812,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "whismur",
     "eggGroups": [
       "Monster",
@@ -13102,6 +16830,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "useItem",
+    "evoItem": "Moon Stone",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wigglytuff",
     "eggGroups": [
       "Fairy"
@@ -13117,6 +16849,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wimpod",
     "eggGroups": [
       "Bug",
@@ -13133,6 +16869,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wingull",
     "eggGroups": [
       "Water 1",
@@ -13147,6 +16887,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wishiwashi",
     "eggGroups": [
       "Water 2"
@@ -13160,6 +16904,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wishiwashi",
     "eggGroups": [
       "Water 2"
@@ -13173,6 +16921,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 15,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wobbuffet",
     "eggGroups": [
       "Amorphous"
@@ -13188,6 +16940,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "woobat",
     "eggGroups": [
       "Flying",
@@ -13204,6 +16960,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wooper",
     "eggGroups": [
       "Water 1",
@@ -13218,6 +16978,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wormadam",
     "eggGroups": [
       "Bug"
@@ -13231,6 +16995,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wormadam",
     "eggGroups": [
       "Bug"
@@ -13244,6 +17012,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 20,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wormadam",
     "eggGroups": [
       "Bug"
@@ -13260,6 +17032,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wurmple",
     "eggGroups": [
       "Bug"
@@ -13275,6 +17051,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "wynaut",
     "eggGroups": [
       "Undiscovered"
@@ -13288,6 +17068,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 25,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "xatu",
     "eggGroups": [
       "Flying"
@@ -13301,6 +17085,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "xerneas",
     "eggGroups": [
       "Undiscovered"
@@ -13314,6 +17102,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "xurkitree",
     "eggGroups": [
       "Undiscovered"
@@ -13329,6 +17121,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "yamask",
     "eggGroups": [
       "Mineral",
@@ -13345,6 +17141,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "yanma",
     "eggGroups": [
       "Bug"
@@ -13358,6 +17158,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "levelMove",
+    "evoItem": "",
+    "evoMove": "Ancient Power",
+    "evoMoveLevel": 33,
+    "evoCondition": "",
     "baseSpeciesId": "yanmega",
     "eggGroups": [
       "Bug"
@@ -13373,6 +17177,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "yungoos",
     "eggGroups": [
       "Field"
@@ -13386,6 +17194,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "yveltal",
     "eggGroups": [
       "Undiscovered"
@@ -13399,6 +17211,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "zangoose",
     "eggGroups": [
       "Field"
@@ -13412,6 +17228,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "zapdos",
     "eggGroups": [
       "Undiscovered"
@@ -13425,6 +17245,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 27,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "zebstrika",
     "eggGroups": [
       "Field"
@@ -13438,6 +17262,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "zekrom",
     "eggGroups": [
       "Undiscovered"
@@ -13451,6 +17279,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "zeraora",
     "eggGroups": [
       "Undiscovered"
@@ -13466,6 +17298,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "zigzagoon",
     "eggGroups": [
       "Field"
@@ -13479,6 +17315,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": 30,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "zoroark",
     "eggGroups": [
       "Field"
@@ -13494,6 +17334,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "zorua",
     "eggGroups": [
       "Field"
@@ -13509,6 +17353,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "zubat",
     "eggGroups": [
       "Flying"
@@ -13524,6 +17372,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     ],
     "evoLevel": 50,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "zweilous",
     "eggGroups": [
       "Dragon"
@@ -13537,6 +17389,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "zygarde",
     "eggGroups": [
       "Undiscovered"
@@ -13550,6 +17406,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "zygarde",
     "eggGroups": [
       "Undiscovered"
@@ -13563,6 +17423,10 @@ export const GEN7_PROGRESSION_SPECIES = {
     "evos": [],
     "evoLevel": null,
     "evoType": "",
+    "evoItem": "",
+    "evoMove": "",
+    "evoMoveLevel": null,
+    "evoCondition": "",
     "baseSpeciesId": "zygarde",
     "eggGroups": [
       "Undiscovered"

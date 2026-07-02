@@ -5,6 +5,10 @@ import { renderRebornProgressionPanel } from "../reborn/progressionView";
 import { renderRebornTeamAnalysisPanel } from "../reborn/teamAnalysisView";
 import { getCurrentRebornSpeciesForChoice } from "../reborn/currentSpecies.js";
 import { teamMemberKey } from "./itemRecommendations";
+import {
+  explainSeatedChoice,
+  explainExcludedChoice,
+} from "./explanations.js";
 
 export function renderTeamBuilderPage({
   app,
@@ -215,9 +219,189 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
       ${renderBenchLine(result)}
     </section>
 
+    ${renderConfidenceSection(state)}
+    ${renderExplanationsSection(state)}
+    ${renderInvestmentSection(state)}
+
     <div id="reborn-team-analysis-root"></div>
 
     ${renderUnresolved(result.unresolved)}
+
+    ${renderProvenanceFooter(state.manifest)}
+  `;
+}
+
+// --- Confidence (roadmap Phase 5) -------------------------------------------
+// The recommendation is not "these six, full stop": it is core / likely / flex
+// with inclusion frequencies from the robustness sweep, plus the bench mons
+// that seat under plausible alternative settings.
+function renderConfidenceSection(state) {
+  if (state.analysisPending && !state.confidence) {
+    return `
+      <section class="panel">
+        <h2>Recommendation stability</h2>
+        <p class="muted">Sweeping alternative model settings…</p>
+      </section>
+    `;
+  }
+  const confidence = state.confidence;
+  if (!confidence) return "";
+
+  const byTier = { core: [], likely: [], flex: [], fragile: [] };
+  for (const member of confidence.members) {
+    byTier[member.tier]?.push(member);
+  }
+  const chip = (member) =>
+    `<strong>${escapeHtml(member.inputName)}</strong> ${Math.round(member.frequency * 100)}%`;
+  const rows = [];
+  if (byTier.core.length)
+    rows.push(`<p>Core: ${byTier.core.map(chip).join(" · ")}</p>`);
+  if (byTier.likely.length)
+    rows.push(`<p>Likely: ${byTier.likely.map(chip).join(" · ")}</p>`);
+  if (byTier.flex.length || byTier.fragile.length)
+    rows.push(
+      `<p>Flex slots (genuine close calls): ${[...byTier.flex, ...byTier.fragile].map(chip).join(" · ")}</p>`,
+    );
+  if (confidence.alternatives.length) {
+    rows.push(
+      `<p class="muted">Also seat under some settings: ${confidence.alternatives
+        .slice(0, 5)
+        .map(
+          (alt) =>
+            `${escapeHtml(alt.inputName)} ${Math.round(alt.frequency * 100)}%`,
+        )
+        .join(" · ")}</p>`,
+    );
+  }
+  return `
+    <section class="panel">
+      <h2>Recommendation stability</h2>
+      <p class="muted">Inclusion frequency across ${confidence.settings} settings of every model judgement (usage weight, coverage, utility strictness, readiness gates, friction, ability assumption, shortlist size).</p>
+      ${rows.join("\n")}
+    </section>
+  `;
+}
+
+// --- Explanations (roadmap Phase 8) ------------------------------------------
+function renderExplanationsSection(state) {
+  const result = state.result;
+  if (!result?.team?.length) return "";
+  const confidenceByInput = new Map(
+    (state.confidence?.members || []).map((member) => [
+      member.inputPokemonId,
+      member,
+    ]),
+  );
+  const alternativesByInput = new Map(
+    (state.confidence?.alternatives || []).map((alt) => [
+      alt.inputPokemonId,
+      alt,
+    ]),
+  );
+
+  const seated = result.team
+    .map((choice) => {
+      const lines = explainSeatedChoice(
+        choice,
+        result.team,
+        confidenceByInput.get(choice.inputPokemonId),
+      );
+      return `
+        <details>
+          <summary><strong>${escapeHtml(choice.inputName)}</strong> — ${escapeHtml(choice.legalityProfile?.currentName || choice.name)}</summary>
+          <ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
+        </details>
+      `;
+    })
+    .join("\n");
+
+  const teamIds = new Set(result.team.map((choice) => choice.inputPokemonId));
+  const notableBench = (result.lines || [])
+    .map((line) => line.best || line.bestNonMega)
+    .filter((choice) => choice && !teamIds.has(choice.inputPokemonId))
+    .sort((a, b) => (b.teamScore ?? 0) - (a.teamScore ?? 0))
+    .slice(0, 5);
+  const excluded = notableBench
+    .map((choice) => {
+      const lines = explainExcludedChoice(
+        choice,
+        result,
+        alternativesByInput.get(choice.inputPokemonId),
+      );
+      return `
+        <details>
+          <summary>${escapeHtml(choice.inputName)} — benched</summary>
+          <ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
+        </details>
+      `;
+    })
+    .join("\n");
+
+  return `
+    <section class="panel">
+      <h2>Why these picks</h2>
+      ${seated}
+      ${notableBench.length ? `<h3>Notable exclusions</h3>${excluded}` : ""}
+    </section>
+  `;
+}
+
+// --- Investment (roadmap Phase 9) --------------------------------------------
+// "Best six right now" vs "worth training soon" are different products; future
+// value lives HERE, never in selection.
+function renderInvestmentSection(state) {
+  if (state.analysisPending && !state.investment) {
+    return state.confidence
+      ? `<section class="panel"><h2>Investment picks</h2><p class="muted">Evaluating the pool at the next level caps…</p></section>`
+      : "";
+  }
+  const plan = state.investment;
+  if (!plan) return "";
+
+  const trainRows = plan.trainSoon
+    .slice(0, 8)
+    .map((entry) => {
+      const bits = [];
+      if (entry.evolves) bits.push(`evolves into ${escapeHtml(entry.evolvesInto || "?")}`);
+      bits.push(`+${entry.gain} value at cap ${entry.cap}`);
+      if (entry.seatsLater) bits.push("projected to SEAT");
+      return `<li><strong>${escapeHtml(entry.inputName)}</strong> — ${bits.join(", ")}</li>`;
+    })
+    .join("");
+  const closeRows = plan.closeBench
+    .slice(0, 6)
+    .map((entry) => `<li>${escapeHtml(entry.inputName)}</li>`)
+    .join("");
+  const holdRows = plan.holdOff
+    .slice(0, 6)
+    .map(
+      (entry) =>
+        `<li>${escapeHtml(entry.inputName)} — +${entry.gain} at cap ${entry.cap}</li>`,
+    )
+    .join("");
+
+  return `
+    <section class="panel">
+      <h2>Investment picks (caps ${plan.caps.join(" / ")})</h2>
+      ${trainRows ? `<h3>Train for the next caps</h3><ul>${trainRows}</ul>` : ""}
+      ${closeRows ? `<h3>Close bench (nearly seat today)</h3><ul>${closeRows}</ul>` : ""}
+      ${holdRows ? `<h3>Do not invest yet</h3><ul>${holdRows}</ul>` : `<p class="muted">Nothing else in the pool gains meaningfully at the next caps.</p>`}
+    </section>
+  `;
+}
+
+// --- Provenance (roadmap Phase 7) --------------------------------------------
+function renderProvenanceFooter(manifest) {
+  if (!manifest) return "";
+  return `
+    <section class="panel">
+      <p class="muted" style="font-size: 0.85em">
+        Data: Reborn ${escapeHtml(manifest.rebornVersion || "?")} ·
+        scoring ${escapeHtml(manifest.scoringVersion || "?")} ·
+        signature ${escapeHtml(manifest.dataSignature || "?")} ·
+        built ${escapeHtml((manifest.generatedAt || "").slice(0, 10))}
+      </p>
+    </section>
   `;
 }
 

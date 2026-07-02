@@ -1,67 +1,34 @@
 import { getTypeMultiplier } from "../reborn/typeChart.js";
+import { evolutionChainProof } from "../reborn/evolutionRequirements.js";
 import {
   currentFormValue,
-  evolutionFriction,
   formReadinessRatio,
   CURRENT_VALUE_SCALE,
 } from "./currentFormValue.js";
+import { tunable } from "./scoringConstants.js";
 
 export const MIN_MEANINGFUL_USAGE_PERCENT = 0.1;
 
 // ---------------------------------------------------------------------------
-// Individual value model.
+// Individual value model (frozen v0 shape — see SCORING_V0.md):
 //
-//     V = C + α·O·[U − C]₊   (+ bias; F is computed but NOT spent here)
+//     V = C + α·O·[U − C]₊ + bias − K      (F is computed but NOT spent here)
 //
-//   C  current-form usefulness (see currentFormValue.js) — role-based, stage-
+//   C  current-form usefulness (currentFormValue.js) — role-based, stage-
 //      relative, usage-independent. On a [0, CURRENT_VALUE_SCALE] scale.
 //   U  the line's competitive ceiling, from usage/tier, on the SAME scale as C.
 //   O  online/readiness gate in [0,1]: how much the fielded form resembles the
 //      final competitive form (1 = you ARE it, ~0 = a baby that only promises it).
 //   α  how much competitive usage may matter even when fully online.
+//   K  investment friction: evolution requirements (friendship/item/time) plus
+//      build friction (e.g. a move that requires delaying evolution).
 //
 // [U − C]₊ makes usage upside-only: it can lift a pre-evo toward its famous
 // ceiling but never drag down a mon already outperforming its reputation now.
 // Gated by O, so a high ceiling can't carry a body that can't express it.
-//
-// Because C and U share a scale, the knobs have auditable bounds: the usage term
-// is at most α·(U − C), and with α = 0.3 that's ≤ ~15% of the value range for a
-// realistic online mon — informative, not sovereign.
-const USAGE_INFLUENCE = 0.3; // α
-
-// The competitive ceiling U, on C's scale. All ~40 usage buckets collapse into one
-// [0,1] number (a shallow/high-prestige tier and higher usage both push it up),
-// then scaled to points.
-const USAGE_CEILING = CURRENT_VALUE_SCALE;
-const USAGE_TIER_WEIGHT = 0.6;
-const USAGE_REF_PERCENT = 20;
-
-// Near-future option value. QUARANTINED from team selection: "usable mid-evo" and
-// "big upgrade reachable soon" are different facts, and we don't yet simulate the
-// latter. So F is computed for display only ("worth training toward") and is NOT
-// added to V — crude future value must not pick the current six.
-const FUTURE_WEIGHT = 0.35;
-const FUTURE_CAP = 300;
-
-// Readiness gate O — coarse, inspectable, ROLE-online (not bulk-based, which would
-// misjudge frail-but-ready attackers). A pre-evo that can't deal stage-real damage
-// is a baby no matter how bulky or how famous its final form.
+// All judgement constants live in scoringConstants.js and are sweepable.
 const ONLINE_FINAL = 1.0;
-const ONLINE_NEAR = 0.65;
-const ONLINE_MIDEVO = 0.35;
-const ONLINE_BABY = 0.1;
 const ONLINE_DEAD = 0.0;
-const ONLINE_FLOOR = ONLINE_MIDEVO; // "online enough" to count usage / be meaningful
-const ACT_FLOOR = 0.15; // damage_q below this ⇒ can't meaningfully act (stage-relative)
-const NEAR_FINAL_RATIO = 0.85; // key stats this close to final ⇒ near-final
-
-// Per bias level (1..6): preparedness against a biased opponent type. Added onto
-// the honest current-form value, since it reflects the form you actually field.
-const BIAS_RESIST_PER_LEVEL = 90;
-const BIAS_IMMUNE_PER_LEVEL = 130;
-const BIAS_WEAK_PENALTY_PER_LEVEL = 70;
-const BIAS_OFFENSE_PER_LEVEL = 90;
-const BIAS_MEANINGFUL_THRESHOLD = 270;
 
 export function scoreCandidate({
   availability,
@@ -105,31 +72,48 @@ export function scoreCandidate({
   const online = getReadinessGate(legalityProfile, current.features);
 
   // Usage pulls C toward the ceiling: gated by O, capped by α, upside-only.
-  // α overridable for the robustness sweep / tuning (not a hot path — ~pool-size
-  // calls per optimize).
-  const alpha = globalThis.__USAGE_INFLUENCE__ ?? USAGE_INFLUENCE;
+  const alpha = tunable("USAGE_INFLUENCE");
   const headroom = Math.max(0, ceiling - currentValue);
   const usagePull = alpha * online * headroom;
 
-  // F — display-only near-future value; NOT added to V (see comment above).
+  // F — display-only near-future value; NOT added to V. The investment view
+  // (Phase 9) owns "worth training toward"; selection judges the present.
+  const onlineFloor = tunable("ONLINE_MIDEVO");
   const futureValue =
-    online >= ONLINE_FLOOR && online < ONLINE_FINAL
-      ? Math.min(FUTURE_CAP, FUTURE_WEIGHT * (1 - online) * headroom)
+    online >= onlineFloor && online < ONLINE_FINAL
+      ? Math.min(
+          tunable("FUTURE_CAP"),
+          tunable("FUTURE_WEIGHT") * (1 - online) * headroom,
+        )
       : 0;
 
   // Bias reflects the form you actually field, so it's added to the honest value.
   const biasScore = scoreOpponentTypeBias(opponentTypeBias, legalityProfile);
 
-  // K — investment friction to have reached the fielded form (a friendship grind
-  // or item/time evolution costs something a level-up doesn't). Applied uniformly,
-  // not to any particular mon.
-  const friction = evolutionFriction(legalityProfile?.currentId);
+  // K — friction to have reached this fielded form AND to run this build
+  // (delayed-evolution moves). Uniform rules; nothing mon-specific. Profiles
+  // built by the optimizer carry frictionCost; the fallback recomputes the
+  // evolution-chain friction for profiles built elsewhere (display paths).
+  const friction =
+    (legalityProfile?.frictionCost ??
+      evolutionChainProof(legalityProfile?.currentId).friction) *
+    tunable("FRICTION_SCALE");
 
-  const value = currentValue + usagePull + biasScore - friction;
+  // If the caught mon's ability is unknown and the sweep asks "what if it has the
+  // secondary ability?", subtract the build's measured sensitivity (V under
+  // primary minus V under secondary, damage-derived; 0 when ability is known or
+  // the build is ability-insensitive).
+  const abilityPenalty =
+    tunable("ABILITY_ASSUMPTION") === "secondary"
+      ? Math.max(0, legalityProfile?.abilitySensitivity || 0)
+      : 0;
+
+  const value =
+    currentValue + usagePull + biasScore - friction - abilityPenalty;
 
   const meaningfulUsage =
-    (usagePercent >= MIN_MEANINGFUL_USAGE_PERCENT && online >= ONLINE_FLOOR) ||
-    biasScore >= BIAS_MEANINGFUL_THRESHOLD;
+    (usagePercent >= MIN_MEANINGFUL_USAGE_PERCENT && online >= onlineFloor) ||
+    biasScore >= tunable("BIAS_MEANINGFUL_THRESHOLD");
 
   return {
     score: value,
@@ -139,6 +123,7 @@ export function scoreCandidate({
     ceiling,
     online,
     futureValue,
+    friction,
     currentRole: current.bestRole,
     currentFeatures: current.features,
     meaningfulUsage,
@@ -156,11 +141,12 @@ function usageCeiling(rank) {
   const tierNorm = Math.max(0, (totalTiers - rank.tierRank) / totalTiers);
   const usageNorm = Math.min(
     1,
-    Math.log1p(Math.max(0, rank.value)) / Math.log1p(USAGE_REF_PERCENT),
+    Math.log1p(Math.max(0, rank.value)) /
+      Math.log1p(tunable("USAGE_REF_PERCENT")),
   );
-  const combined =
-    USAGE_TIER_WEIGHT * tierNorm + (1 - USAGE_TIER_WEIGHT) * usageNorm;
-  return USAGE_CEILING * Math.max(0, Math.min(1, combined));
+  const tierWeight = tunable("USAGE_TIER_WEIGHT");
+  const combined = tierWeight * tierNorm + (1 - tierWeight) * usageNorm;
+  return CURRENT_VALUE_SCALE * Math.max(0, Math.min(1, combined));
 }
 
 // The first tier whose usage clears the 0.1% bar, used to rank low-usage mons by
@@ -208,14 +194,15 @@ function scoreOpponentTypeBias(opponentTypeBias, profile) {
     if (!level) continue;
 
     const defense = getTypeMultiplier(type, currentTypes);
-    if (defense === 0) score += level * BIAS_IMMUNE_PER_LEVEL;
-    else if (defense < 1) score += level * BIAS_RESIST_PER_LEVEL;
-    else if (defense > 1) score -= level * BIAS_WEAK_PENALTY_PER_LEVEL;
+    if (defense === 0) score += level * tunable("BIAS_IMMUNE_PER_LEVEL");
+    else if (defense < 1) score += level * tunable("BIAS_RESIST_PER_LEVEL");
+    else if (defense > 1)
+      score -= level * tunable("BIAS_WEAK_PENALTY_PER_LEVEL");
 
     const hitsSuperEffectively = attackTypes.some(
       (attackType) => getTypeMultiplier(attackType, [type]) > 1,
     );
-    if (hitsSuperEffectively) score += level * BIAS_OFFENSE_PER_LEVEL;
+    if (hitsSuperEffectively) score += level * tunable("BIAS_OFFENSE_PER_LEVEL");
   }
 
   return score;
@@ -224,6 +211,8 @@ function scoreOpponentTypeBias(opponentTypeBias, profile) {
 // The online/readiness gate O: role-online, from concrete facts. A pre-evo that
 // can't deal stage-real damage is a baby regardless of bulk or its final form's
 // fame; one that already has most of the final form's key stats is near-final.
+// ONLINE_JITTER (sweep axis) shifts every non-final judgement one category, so
+// the confidence layer can ask "what if my gate calls are one notch off?".
 function getReadinessGate(profile, features) {
   const currentId = profile?.currentId;
   const representativeId = profile?.representativeId;
@@ -232,16 +221,24 @@ function getReadinessGate(profile, features) {
   }
   if ((profile?.legalMoveCount || 0) === 0) return ONLINE_DEAD;
 
-  // Can it act at this stage? damage_q is best-hit vs a stage-typical hit.
+  const ladder = [
+    tunable("ONLINE_BABY"),
+    tunable("ONLINE_MIDEVO"),
+    tunable("ONLINE_NEAR"),
+  ];
+  let step;
   if (
-    (features?.damage_q ?? 0) < ACT_FLOOR ||
+    (features?.damage_q ?? 0) < tunable("ACT_FLOOR") ||
     (profile?.legalDamagingMoveCount || 0) === 0
   ) {
-    return ONLINE_BABY;
+    step = 0; // baby: can't act at this stage
+  } else {
+    const readiness = formReadinessRatio(currentId, representativeId);
+    step = readiness >= tunable("NEAR_FINAL_RATIO") ? 2 : 1;
   }
-
-  const readiness = formReadinessRatio(currentId, representativeId);
-  return readiness >= NEAR_FINAL_RATIO ? ONLINE_NEAR : ONLINE_MIDEVO;
+  const jitter = tunable("ONLINE_JITTER") | 0;
+  step = Math.max(0, Math.min(ladder.length - 1, step + jitter));
+  return ladder[step];
 }
 
 export function compareScoredCandidates(a, b) {

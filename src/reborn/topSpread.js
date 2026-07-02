@@ -17,12 +17,27 @@ export async function loadTopSet({ family, pokemonId, selection }) {
   return {
     spread: topUsageName(data?.spreads),
     ability: topUsageName(data?.abilities),
+    // The full competitive ability distribution (name + usage %, descending),
+    // so ability sensitivity ("what if my caught mon has Torrent, not
+    // Protean?") can be computed instead of assumed away.
+    abilities: abilityList(data?.abilities),
     item: topUsageName(data?.items),
     // Per-move Smogon usage (id -> usage%), so the recommender can anchor on the
     // mon's canonical moves and rank utility moves by how much they're actually
     // run. Entries with no real usage (the stitched tail) are dropped.
     moveUsage: moveUsageMap(data?.moves),
   };
+}
+
+function abilityList(entries) {
+  if (!Array.isArray(entries)) return [];
+  return entries
+    .filter((entry) => typeof entry?.name === "string")
+    .map((entry) => ({
+      name: entry.name,
+      usage: typeof entry.usage === "number" ? entry.usage : 0,
+    }))
+    .sort((a, b) => b.usage - a.usage);
 }
 
 function moveUsageMap(entries) {

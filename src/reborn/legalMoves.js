@@ -58,21 +58,36 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
   const moveRelearnerUnlocked = Boolean(progression.moveRelearnerUnlocked);
   const daycareUnlocked = Boolean(progression.daycareUnlocked);
   const pokemonId = legalMoveData?.pokemonId;
-  const evolvedSpecies = Boolean(GEN7_PROGRESSION_SPECIES[pokemonId]?.prevoId);
+  const speciesRecord = GEN7_PROGRESSION_SPECIES[pokemonId];
+  const evolvedSpecies = Boolean(speciesRecord?.prevoId);
+  // The level at which this form's direct pre-evolution NATURALLY evolves into
+  // it (evolve-as-soon-as-possible path). A pre-evo level-up move above this is
+  // only obtainable by deliberately delaying the evolution — legal, but a real
+  // cost, so it's split out and labelled instead of silently assumed. Null/
+  // non-level evolutions (friendship, item) can be taken at any level, so
+  // nothing is "delayed" for them. For deep chains the merged pre-evo level
+  // list can't attribute a level to a specific ancestor; the direct pre-evo's
+  // departure level is the right bound for the overwhelmingly common case.
+  const naturalDeparture = Number.isFinite(speciesRecord?.evoLevel)
+    ? speciesRecord.evoLevel
+    : Infinity;
   const moves = [];
 
   for (const move of legalMoveData?.moves || []) {
     const sources = [];
     const allLevelUpLevels = move.sources?.levelUp || [];
     const preEvolutionLevels = move.sources?.preEvolutionLevelUp || [];
-    const playableLevelUpLevels = [
+    const naturalLevelUpLevels = [
       ...allLevelUpLevels.filter(
         (level) =>
           !isEvolvedLevelOneMove(level, evolvedSpecies),
       ),
-      ...preEvolutionLevels,
+      ...preEvolutionLevels.filter((level) => level <= naturalDeparture),
     ];
-    const levels = playableLevelUpLevels.filter(
+    const delayedLevels = preEvolutionLevels.filter(
+      (level) => level > naturalDeparture && level <= levelCap,
+    );
+    const levels = naturalLevelUpLevels.filter(
       (level) => level <= levelCap,
     );
     // A genuine evolution move (flagged by the generator: level-1 on this form,
@@ -103,6 +118,16 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
           label: "Move relearner",
         });
       }
+    } else if (delayedLevels.length > 0) {
+      // Only reachable by delaying evolution past the natural level (e.g. a
+      // cap-60 Greninja running Hydro Pump means staying Frogadier to 56).
+      // Legal, but flagged: the default build avoids it, and a build that uses
+      // it pays DELAYED_EVO_FRICTION and says so.
+      sources.push({
+        kind: "level-up",
+        label: `Level ${Math.min(...delayedLevels)} (requires delayed evolution)`,
+        delayedEvolution: true,
+      });
     } else if (isEvolutionMove) {
       sources.push({
         kind: "level-up",
@@ -171,7 +196,15 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       });
     }
 
-    if (sources.length > 0) moves.push({ ...move, availableSources: sources });
+    if (sources.length > 0) {
+      moves.push({
+        ...move,
+        availableSources: sources,
+        // True when the move is ONLY reachable by delaying an evolution — the
+        // build generator treats these as a separate, friction-costed variant.
+        delayedEvolution: sources.every((source) => source.delayedEvolution),
+      });
+    }
   }
 
   return moves.sort(compareAvailableMoves);

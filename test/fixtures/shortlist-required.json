@@ -1,0 +1,14 @@
+{
+  "name": "shortlist-required",
+  "category": "pool where the shortlist path is required",
+  "notes": "45 lines — C(45,6) ≈ 8.1M exceeds the exact-search cap, so the coverage-preserving shortlist path must engage (searchExact false), still return a full team, and still seat the canonical strong pick. Regret vs true exact is validated separately on exact-feasible pools (regret suite).",
+  "pool": ["Bidoof","Bronzor","Burmy","Caterpie","Combee","Crabrawler","Drowzee","Ekans","Froakie","Grimer","Hoothoot","Joltik","Kricketot","Ledyba","Mankey","Meowth","Noivern","Onix","Pachirisu","Pancham","Pidgey","Pineco","Poochyena","Purrloin","Rattata","Slakoth","Spearow","Spinarak","Stunky","Surskit","Swirlix","Trubbish","Whismur","Woobat","Wurmple","Yungoos","Machop","Geodude","Zubat","Sandshrew","Vulpix","Growlithe","Poliwag","Tentacool","Ponyta"],
+  "badge": 1,
+  "levelCap": 25,
+  "golden": false,
+  "expectations": {
+    "mustSeat": ["Froakie"],
+    "searchExact": false,
+    "teamSize": 6
+  }
+}

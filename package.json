@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test test/*.test.mjs",
+    "validate": "node --test --import ./test/helpers/register.mjs test/validate/*.test.mjs",
+    "update-goldens": "UPDATE_GOLDENS=1 node --test --import ./test/helpers/register.mjs test/validate/scenarios-canonical.test.mjs test/validate/scenarios-swap.test.mjs test/validate/scenarios-small-a.test.mjs test/validate/scenarios-small-b.test.mjs",
     "dev": "vite --port 5173 --strictPort",
     "build": "vite build",
     "preview": "vite preview",
@@ -19,7 +21,8 @@
     "build:move-meta": "node scripts/build-move-meta.mjs",
     "build:item-damage": "node scripts/build-item-damage.mjs",
     "build:gen5-items": "node scripts/build-gen5-items.mjs",
-    "build:site": "npm run build && node scripts/copy-data.mjs",
+    "build:manifest": "node scripts/build-manifest.mjs",
+    "build:site": "node scripts/build-manifest.mjs && npm run build && node scripts/copy-data.mjs",
     "refresh:data": "npm run build:data -- --refresh-current && npm run build:resolver-index && npm run build:set-index && npm run build:move-meta && npm run build:item-damage && npm run build:reborn-legal-moves && npm run build:progression-species && npm run build:held-items && npm run build:unburden-species && npm run build:base-stats && npm run build:gen5-items",
     "dev:bg": "nohup npm run dev > /tmp/pokemon-vite.log 2>&1 &",
     "dev:log": "tail -50 /tmp/pokemon-vite.log",

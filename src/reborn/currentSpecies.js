@@ -1,5 +1,9 @@
 import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
 import { toId } from "../utils/ids.js";
+import {
+  getEvolutionRequirement,
+  evolutionChainProof,
+} from "./evolutionRequirements.js";
 
 export function getCurrentRebornSpeciesForChoice(choice, progression = {}) {
   const inputId = toId(choice?.inputPokemonId || choice?.pokemonId);
@@ -15,12 +19,20 @@ export function getCurrentRebornSpeciesForChoice(choice, progression = {}) {
 
   if (!current) return null;
 
+  const proof = evolutionChainProof(current.id);
   return {
     id: current.id,
     name: current.name,
     differsFromRepresentative: current.id !== representativeId,
     representativeId,
     representativeName: choice?.name || GEN7_PROGRESSION_SPECIES[representativeId]?.name || "",
+    // K for having reached this form, with the per-step proof, plus any
+    // evolutions that were NOT taken because their requirements are unknown —
+    // surfaced so the recommendation can say "Raichu unavailable: Thunder Stone
+    // availability unknown" instead of silently pretending.
+    evolutionFriction: proof.friction,
+    evolutionSteps: proof.steps,
+    blockedEvolutions: current.blockedEvolutions || [],
   };
 }
 
@@ -49,8 +61,8 @@ function getBestLevelReachableSpecies({ inputId, levelCap, representativeId }) {
   const input = GEN7_PROGRESSION_SPECIES[inputId];
   if (!input) return null;
 
-  const reachable = collectLevelReachableSpecies(input.id, levelCap);
-  if (!reachable.length) return input;
+  const { reachable, blocked } = collectReachableSpecies(input.id, levelCap);
+  if (!reachable.length) return { ...input, blockedEvolutions: blocked };
 
   const representativeLine = representativeId
     ? new Set(getAncestorIds(representativeId))
@@ -60,14 +72,21 @@ function getBestLevelReachableSpecies({ inputId, levelCap, representativeId }) {
     : [];
   const candidates = sameLineReachable.length ? sameLineReachable : reachable;
 
-  return candidates.sort((a, b) => getDepth(b.id) - getDepth(a.id) || a.name.localeCompare(b.name))[0];
+  const best = candidates.sort(
+    (a, b) => getDepth(b.id) - getDepth(a.id) || a.name.localeCompare(b.name),
+  )[0];
+  return { ...best, blockedEvolutions: blocked };
 }
 
-function collectLevelReachableSpecies(inputId, levelCap) {
+// Every form reachable from the input under the evolution-requirement rules
+// (legal-with-friction), plus the evolutions that were NOT taken because their
+// requirements are unknown — kept for surfacing, never silently dropped.
+function collectReachableSpecies(inputId, levelCap) {
   const input = GEN7_PROGRESSION_SPECIES[inputId];
-  if (!input) return [];
+  if (!input) return { reachable: [], blocked: [] };
 
   const reachable = [];
+  const blocked = [];
   const queue = [input];
   const seen = new Set();
 
@@ -79,19 +98,23 @@ function collectLevelReachableSpecies(inputId, levelCap) {
 
     for (const evoId of current.evos || []) {
       const evo = GEN7_PROGRESSION_SPECIES[evoId];
-      if (!isLevelEvolutionReachable(evo, levelCap)) continue;
+      if (!evo || evo.isMega) continue;
+      const requirement = getEvolutionRequirement(evo);
+      if (requirement.status !== "legal") {
+        blocked.push({ from: current.id, to: evo.id, reason: requirement.reason });
+        continue;
+      }
+      if (
+        requirement.levelRequired != null &&
+        requirement.levelRequired > levelCap
+      ) {
+        continue; // level-gated, not blocked: it unlocks with the cap
+      }
       queue.push(evo);
     }
   }
 
-  return reachable;
-}
-
-function isLevelEvolutionReachable(species, levelCap) {
-  if (!species || species.isMega) return false;
-  if (species.evoType && species.evoType !== "levelFriendship") return false;
-  if (!Number.isFinite(species.evoLevel)) return species.evoType === "levelFriendship";
-  return species.evoLevel <= levelCap;
+  return { reachable, blocked };
 }
 
 function getAncestorIds(speciesId) {

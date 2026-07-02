@@ -26,19 +26,12 @@ import {
   GEN7_BASE_STAT_TOTALS,
 } from "../generated/gen7BaseStats.generated.js";
 import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
+import { SCORING_DEFAULTS, tunable } from "./scoringConstants.js";
 
 // Points scale for C; shared with the usage ceiling U so the two are directly
-// comparable (see candidateScoring).
-export const CURRENT_VALUE_SCALE = 2000;
-
-// How much an attacker's role leans on its secondary threats vs its single best
-// move. Small and capped — "one role" doesn't mean "one move", but breadth must
-// not dominate peak. (Swept {0, 0.1, 0.2} for stability.)
-const PORTFOLIO_WEIGHT = 0.15;
-
-// Utility roles score below attacker roles at equal feature quality — support is
-// valuable but shouldn't bench a real threat in a PvE playthrough.
-const UTILITY_ROLE_WEIGHT = 0.75;
+// comparable (see candidateScoring). Not sweepable — it defines the scale the
+// other judgements are expressed in.
+export const CURRENT_VALUE_SCALE = SCORING_DEFAULTS.CURRENT_VALUE_SCALE;
 
 function statsOf(id) {
   return GEN7_BASE_STATS[id] || null; // [Atk, Def, SpA, SpD, Spe]
@@ -100,7 +93,6 @@ const SPEC_BULK_REF = buildSorted(specBulkOf);
 // item steps assumed grindable. Percentiles blend global and R_cap 50/50 so the
 // reference shifts with progression without lurching. Reference arrays cached
 // per cap (built at most once each).
-const REACHABLE_BLEND = 0.5;
 function reachableByCap(id, cap) {
   const s = GEN7_PROGRESSION_SPECIES[id];
   if (!s || !s.prevoId) return true; // base form / unknown: always available
@@ -135,9 +127,10 @@ function capRefs(levelCap) {
 }
 // Percentile blended between the full dex and the reachable-at-cap set.
 function stagePercentile(value, globalRef, capRef) {
+  const blend = tunable("REACHABLE_BLEND");
   return (
-    (1 - REACHABLE_BLEND) * percentile(value, globalRef) +
-    REACHABLE_BLEND * percentile(value, capRef)
+    (1 - blend) * percentile(value, globalRef) +
+    blend * percentile(value, capRef)
   );
 }
 
@@ -223,7 +216,8 @@ export function currentFormFeatures(profile, levelCap) {
   // coverage moves are STAB-boosted, so its portfolio rises).
   const ref = stageReferenceDamage(levelCap);
   // Soft saturation (never a hard 1.0): a hit at the reference reads ~0.7.
-  const soft = (d) => 1 - Math.exp(-1.2 * (d / ref));
+  const softRate = tunable("DAMAGE_SOFT_RATE");
+  const soft = (d) => 1 - Math.exp(-softRate * (d / ref));
 
   const peakDamage = Math.max(
     profile?.bestStabMove?.estimatedDamage || 0,
@@ -236,11 +230,16 @@ export function currentFormFeatures(profile, levelCap) {
     .map((m) => m.estimatedDamage)
     .sort((a, b) => b - a)
     .slice(0, 3);
+  // Fixed 3-slot denominator: a set with fewer real attacks pays for its thin
+  // offense instead of averaging it away (otherwise a 2-attack utility build
+  // weakly dominates the standard set by dropping its weakest attack).
   const portfolio_q = portfolio.length
-    ? portfolio.map(soft).reduce((a, b) => a + b, 0) / portfolio.length
-    : peak_damage_q;
+    ? portfolio.map(soft).reduce((a, b) => a + b, 0) / 3
+    : 0;
 
-  const w = globalThis.__PORTFOLIO_WEIGHT__ ?? PORTFOLIO_WEIGHT;
+  // Attacker damage leans mostly on the peak hit plus a small, capped portfolio
+  // term — "one role" doesn't mean "one move", but breadth must not dominate peak.
+  const w = tunable("PORTFOLIO_WEIGHT");
   const damage_q = (1 - w) * peak_damage_q + w * portfolio_q;
 
   const cr = capRefs(levelCap);
@@ -260,7 +259,9 @@ export function currentFormFeatures(profile, levelCap) {
   // (recovery, hazards, speed control, setup, pivot) counts far more than chip
   // status, so an annoying baby's Sweet Kiss / Charm doesn't read as support.
   // A 75%-accurate move is discounted vs reliable ones.
-  const utility_q = clamp01(utilityValue(profile?.recommendedMoves) / 1.5);
+  const utility_q = clamp01(
+    utilityValue(profile?.recommendedMoves) / tunable("UTILITY_SATURATION"),
+  );
 
   return { damage_q, peak_damage_q, speed_q, bulk_q, reliability_q, utility_q };
 }
@@ -276,7 +277,9 @@ export function currentFormValue(profile, levelCap) {
   // A utility mon still has to threaten something — otherwise it's passive and
   // gets walled for free. Gate the utility roles by PEAK damage (can it hurt
   // anything at all), not the portfolio-blended figure.
-  const nonPassive = clamp01((f.peak_damage_q ?? f.damage_q) / 0.25);
+  const nonPassive = clamp01(
+    (f.peak_damage_q ?? f.damage_q) / tunable("NON_PASSIVE_FLOOR"),
+  );
 
   // reliability_q is deliberately NOT a role axis: with the available move data it
   // saturates to ~1 for almost everyone (every mon has a few damaging moves), so
@@ -287,11 +290,12 @@ export function currentFormValue(profile, levelCap) {
   // (recovery/hazards/setup) is real, but in this PvE context it must not let a
   // mediocre mon outscore a genuine threat — otherwise a full-TM utility body
   // benches a strong attacker at high level caps.
+  const utilityWeight = tunable("UTILITY_ROLE_WEIGHT");
   const roles = {
     fast_attacker: geomean([f.damage_q, f.speed_q]),
     bulky_attacker: geomean([f.damage_q, f.bulk_q]),
-    bulky_utility: UTILITY_ROLE_WEIGHT * geomean([f.bulk_q, f.utility_q, nonPassive]),
-    fast_utility: UTILITY_ROLE_WEIGHT * geomean([f.speed_q, f.utility_q, nonPassive]),
+    bulky_utility: utilityWeight * geomean([f.bulk_q, f.utility_q, nonPassive]),
+    fast_utility: utilityWeight * geomean([f.speed_q, f.utility_q, nonPassive]),
   };
 
   let bestRole = "fast_attacker";
@@ -311,30 +315,8 @@ export function currentFormValue(profile, levelCap) {
   };
 }
 
-// Investment friction K (in C's point scale) for having reached the fielded form:
-// level evolutions are free, but a friendship grind or an item/time evolution is a
-// real cost, so a mon that must be laundered up an evolution line is worth a bit
-// less than an equally-good mon you can just field. Summed over the chain from the
-// base to the fielded form. NOT an anti-anything rule — it applies to every line
-// uniformly, and whether a friction-costed evolution still earns a slot is left to
-// the score, not decided in advance.
-const FRIENDSHIP_FRICTION = 180;
-const ITEM_FRICTION = 260; // item / time / trade — costlier than a friendship grind
-export function evolutionFriction(currentId) {
-  let friction = 0;
-  let id = currentId;
-  const seen = new Set();
-  while (id && !seen.has(id)) {
-    seen.add(id);
-    const s = GEN7_PROGRESSION_SPECIES[id];
-    if (!s || !s.prevoId) break; // base form reached
-    const evo = s.evoType || "";
-    if (evo === "levelFriendship") friction += FRIENDSHIP_FRICTION;
-    else if (evo && evo !== "") friction += ITEM_FRICTION; // levelHold / useItem / trade / ...
-    id = s.prevoId;
-  }
-  return friction;
-}
+// (Investment friction K lives in src/reborn/evolutionRequirements.js — the
+// legality engine is the single source of K truth.)
 
 // Fraction of the represented final form's key attributes the fielded form
 // already has — the best of its offense / bulk / speed ratios. Used only to

@@ -1,0 +1,13 @@
+{
+  "name": "high-utility-low-offense",
+  "category": "pool with one high-utility low-offense mon",
+  "notes": "Eleven functional attackers plus Cottonee: a status-rich, offense-poor body at cap 25 (Leech Seed / Stun Spore / Charm, feeble Absorb-tier damage). Utility roles are gated by the non-passive floor and weighted below attacker roles, so a mon that cannot threaten anything must not displace a real attacker in a PvE team.",
+  "pool": ["Rattata","Pidgey","Ekans","Machop","Growlithe","Ponyta","Doduo","Krabby","Voltorb","Mankey","Zubat","Cottonee"],
+  "badge": 1,
+  "levelCap": 25,
+  "golden": false,
+  "expectations": {
+    "mustNotSeat": ["Cottonee"],
+    "searchExact": true
+  }
+}
