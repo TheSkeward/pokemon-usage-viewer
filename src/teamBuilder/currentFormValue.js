@@ -190,10 +190,42 @@ const ROLE_WEIGHTS = {
   priority: 0.4,
 };
 
+// Component-wise utility tag vector of a recommended set: for each role tag,
+// the accuracy-weighted count of moves carrying it. PURELY mechanical — no
+// weights of any kind — so build dominance pruning can compare utility
+// per-component ("A has recovery, B has two status moves" are incomparable,
+// and both survive) instead of collapsing to a weighted scalar that a future
+// sweep axis could reorder.
+const UTILITY_TAGS = Object.freeze([
+  "recovery",
+  "hazard_set",
+  "hazard_remove",
+  "speed_control",
+  "setup",
+  "pivot",
+  "phazing",
+  "screen",
+  "disruption",
+  "status",
+  "priority",
+]);
+
+export function utilityTagVector(recommendedMoves) {
+  const vector = new Array(UTILITY_TAGS.length).fill(0);
+  for (const move of recommendedMoves || []) {
+    const hitRate = (move.accuracy ?? 100) / 100;
+    for (const role of move.roles || []) {
+      const index = UTILITY_TAGS.indexOf(role);
+      if (index >= 0) vector[index] += hitRate;
+    }
+  }
+  return vector;
+}
+
 // Summed utility value of a recommended set: each move contributes its best
-// role's weight, scaled by hit rate. Saturated by the caller. Exported as a
-// MECHANICAL fact (fixed role weights, no sweepable constants) for build
-// dominance pruning.
+// role's weight, scaled by hit rate. Saturated by the caller. (The weighted
+// scalar is a JUDGEMENT — used by utility_q scoring, never by dominance
+// pruning, which must stay weight-free.)
 export function utilityValue(recommendedMoves) {
   let total = 0;
   for (const move of recommendedMoves || []) {

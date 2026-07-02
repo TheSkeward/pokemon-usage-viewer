@@ -14,7 +14,7 @@ import { buildInputGroups } from "./inputGroups";
 import { parseAbilityAnnotations } from "./poolParsing";
 import { normalizeName } from "./nameUtils";
 import { tunable, scoringOverridesSignature } from "./scoringConstants.js";
-import { utilityValue } from "./currentFormValue.js";
+import { utilityTagVector } from "./currentFormValue.js";
 import {
   MIN_MEANINGFUL_USAGE_PERCENT,
   compareScoredCandidates,
@@ -50,6 +50,15 @@ const MAX_RESULT_CACHE = 400;
 // results so a reload after such a deploy recomputes rather than showing stale
 // teams. UI-only deploys keep the version, so results survive them.
 const RESULT_CACHE_VERSION = "9";
+
+// TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
+// full search against a warm incremental one in the same process (the
+// incremental-exactness proof). Never called by production code.
+export function __resetOptimizerCachesForTests() {
+  lineCache.clear();
+  searchCache = null;
+  resultCache.clear();
+}
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
@@ -448,7 +457,7 @@ async function resolvePoolLine({
 }
 
 // Dominance pruning across a candidate's build variants — on MECHANICAL facts
-// only (coverage into every defense type, utility value, peak damage, friction),
+// only (coverage into every defense type, utility tags, peak damage, friction),
 // never on scored value: the confidence sweep perturbs the value weights, so a
 // build pruned "because it scores lower under today's constants" could be
 // exactly the alternative a sweep setting needs. Pruning on facts that no sweep
@@ -459,7 +468,11 @@ async function resolvePoolLine({
 function pruneDominatedBuilds(rows) {
   const facts = rows.map((row) => ({
     coverage: row.legalityProfile?.coverageVector || [],
-    utility: utilityValue(row.legalityProfile?.recommendedMoves),
+    // Component-wise utility tags (accuracy-weighted counts, NO weights): a
+    // recovery build and a status build are incomparable, so both survive —
+    // a weighted scalar here could smuggle a judgement into what must stay a
+    // sweep-invariant candidate set.
+    utility: utilityTagVector(row.legalityProfile?.recommendedMoves),
     peak: Math.max(
       row.legalityProfile?.bestStabMove?.estimatedDamage || 0,
       row.legalityProfile?.bestDamagingMove?.estimatedDamage || 0,
@@ -468,8 +481,12 @@ function pruneDominatedBuilds(rows) {
   }));
   const dominates = (a, b) => {
     if (facts[a].friction > facts[b].friction) return false;
-    if (facts[a].utility < facts[b].utility - 1e-9) return false;
     if (facts[a].peak < facts[b].peak - 1e-9) return false;
+    const ua = facts[a].utility;
+    const ub = facts[b].utility;
+    for (let i = 0; i < ub.length; i++) {
+      if ((ua[i] || 0) < (ub[i] || 0) - 1e-9) return false;
+    }
     const ca = facts[a].coverage;
     const cb = facts[b].coverage;
     for (let i = 0; i < cb.length; i++) {

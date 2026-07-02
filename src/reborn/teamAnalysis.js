@@ -882,6 +882,17 @@ function getAdjustedPower(move, member) {
 // every line (the same move × member × stats many times over) — the hot spot of
 // multi-build line resolution. Memoized on everything the estimate depends on;
 // bounded so a long session can't leak.
+//
+// Key-completeness audit: `member.id` is the FORM-specific id (megas and
+// regional forms have distinct ids), ability and held item are explicit, and
+// attacker stats enter as atk/spa/level — level cap and stat spreads reach the
+// estimate only through those three numbers, so they're covered. The game data
+// itself (base stats, move meta) is immutable for a process lifetime — a data
+// update ships as a new deploy, and the manifest's data signature already
+// versions the optimizer's persisted result cache — so the in-process memo
+// needs no data signature. If damage ever becomes field-aware (boss fields,
+// weather, terrain), the active field MUST join this key; a field that scales
+// damage without entering the key would silently poison every estimate.
 const damageMemo = new Map();
 const DAMAGE_MEMO_LIMIT = 200_000;
 

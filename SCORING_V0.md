@@ -144,3 +144,33 @@ Invariants the shape encodes (each guarded by fixtures):
   4. *Performance*: damage estimates memoized across build variants (the
      multi-build resolution hot spot); wall-clock resolve/search timings
      surfaced in the provenance footer.
+- **Audit pass** (second external review round):
+  1. *Component-wise utility in pruning*: item 2 above still compared builds by
+     the scalar `utilityValue` — a weighted judgement score, not sweep-invariant
+     (its role weights are exactly what `UTILITY_ROLE_WEIGHT` perturbs). Build
+     dominance now compares an accuracy-weighted per-tag utility VECTOR
+     (`utilityTagVector`: recovery, hazards, hazard removal, speed control,
+     setup, pivot, phazing, screens, disruption, status, priority) component-
+     wise: A dominates B only if A ≥ B on every tag, every coverage component,
+     peak damage, and A ≤ B on friction. A build that trades hazards for
+     recovery now survives against one that trades recovery for hazards, no
+     matter what the sweep thinks utility is worth. Strictly fewer prunes, so
+     kept build sets can only widen; in the committed fixtures the surviving
+     sets and goldens are unchanged (the scalar had not been pruning anything
+     the vector keeps — the fix closes a latent hole, not a live bug).
+  2. *Incremental-search exactness proven*: the incremental optimizer path
+     (grown pool, warm cache) claims `searchExact: true`; the claim is sound
+     because the step enumerates `choose(a of added) × choose(size−a of ALL
+     old lines)` for every a ≥ 1 plus the cached exact optimum — not just
+     neighborhoods of the old optimum. `test/validate/incremental-exactness`
+     commits the adversarial fixture from the review: adding Sandshrew under a
+     Ground/Rock opponent bias reshuffles the companions beyond the old optimum
+     (Tentacool enters), and the warm incremental answer must equal a cold full
+     exact search of the union pool, member for member. The fixture asserts the
+     trap actually springs, so it can't silently decay into a trivial case.
+  3. *Damage-memo key audit*: the memo key covers move, form-specific member
+     id, ability, held item, and atk/spa/level (the only paths stats and level
+     cap take into the estimate); data signature is unnecessary in-process
+     (data is immutable per deploy; the persisted result cache is already
+     data-signature-versioned). Documented in-code that any future field/boss
+     awareness must join the key.
