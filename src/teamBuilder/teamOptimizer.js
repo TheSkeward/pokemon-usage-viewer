@@ -277,12 +277,13 @@ function seedSearchCache(result, lines, searchKey) {
 
 // Total candidate builds that survived dominance pruning across the pool — the
 // realization pass's working-set size, and the telemetry axis the review asked
-// for alongside pool size.
+// for alongside pool size. Line-level choices carry the kept builds as
+// `buildAlternatives` (makeChoice renames the scored row's `buildChoices`).
 function countKeptBuilds(lines) {
   let total = 0;
   for (const line of lines || []) {
     const rep = line.best || line.bestNonMega;
-    if (rep) total += rep.buildChoices?.length || 1;
+    if (rep) total += rep.buildAlternatives?.length || 1;
   }
   return total;
 }

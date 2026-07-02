@@ -202,3 +202,9 @@ Invariants the shape encodes (each guarded by fixtures):
      today) and summaries count-but-exclude cancelled runs, so when optimizer
      cancellation lands it must record the aborted phase and elapsed ms — slow
      abandoned runs stay visible rather than vanishing.
+  5. *Build-count fix* (caught by the first real-world report): the telemetry
+     build counter read `buildChoices` off line-level choices, but makeChoice
+     renames that field to `buildAlternatives` — so the `|| 1` fallback fired
+     on every line and `builds` always equalled pool size (the report's 61/61
+     giveaway). Now counts the real kept-variant total (e.g. 27 builds across
+     a 12-line pool at badge 8).
