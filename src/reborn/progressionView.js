@@ -65,6 +65,16 @@ export function renderRebornProgressionPanel(progression) {
           <small>Egg moves need breeding-chain checks before they count as legal.</small>
         </label>
 
+        <label class="checkbox-label">
+          <input
+            data-progression-field="hiddenPowerTypeChangerUnlocked"
+            type="checkbox"
+            ${progression.hiddenPowerTypeChangerUnlocked ? "checked" : ""}
+          />
+          <span>Hidden Power Type Changer unlocked</span>
+          <small>Until then Hidden Power's type is random per mon, so it isn't recommended; once unlocked every type is evaluated and the best one is picked.</small>
+        </label>
+
         <details class="progression-option-group evo-access-group">
           <summary>Evolution access <span class="muted">(checked = you can use it)</span></summary>
           <p class="muted">Checked means you can use that method now, so evolutions through it count as reachable. Uncheck what you can't use yet — those evolutions become blocked, and each pick lists the forms it lost.</p>

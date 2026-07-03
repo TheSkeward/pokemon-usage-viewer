@@ -1049,9 +1049,18 @@ function recommendCurrentMoves(
 
   const selected = [];
   const coveredTypes = new Set();
+  const isHiddenPower = (id) => String(id).startsWith("hiddenpower");
   const add = (move) => {
     if (!move || selected.length >= 4) return false;
     if (selected.some((entry) => entry.id === move.id)) return false;
+    // A mon has ONE Hidden Power — the typed variants are alternatives, not
+    // stackable coverage.
+    if (
+      isHiddenPower(move.id) &&
+      selected.some((entry) => isHiddenPower(entry.id))
+    ) {
+      return false;
+    }
     selected.push(move);
     if (isUsableDamagingMove(move, moves)) coveredTypes.add(move.type);
     return true;

@@ -417,3 +417,12 @@ Invariants the shape encodes (each guarded by fixtures):
      data-signature change).
   Committed tests cover both: the gate in both directions, and that an owned
   Mantine's line never carries a Mantyke candidate.
+- **Hidden Power gated behind the Type Changer** (user report: recommended
+  Hidden Power scored as the impossible "Hidden Power Normal"): before
+  Reborn's Type Changer, HP's type is a per-mon IV lottery — not a plannable
+  move — so it is excluded from legality outright (new progression checkbox,
+  default locked). Once unlocked, it expands into all 16 real Gen 7 variants
+  (every type except Normal and Fairy) with distinct ids, the recommender
+  evaluates each type separately and picks the best, and a set carries at
+  most ONE Hidden Power. Committed tests cover the gate, the variant
+  expansion, and the one-per-set cap.

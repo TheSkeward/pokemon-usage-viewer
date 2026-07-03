@@ -61,6 +61,9 @@ export function normalizeRebornProgression(progression = {}) {
     levelCap: normalizeLevelCap(progression.levelCap),
     moveRelearnerUnlocked: Boolean(progression.moveRelearnerUnlocked),
     daycareUnlocked: Boolean(progression.daycareUnlocked),
+    hiddenPowerTypeChangerUnlocked: Boolean(
+      progression.hiddenPowerTypeChangerUnlocked,
+    ),
     availableTmIds: normalizeOptionIds(
       progression.availableTmIds,
       REBORN_TM_OPTIONS,
