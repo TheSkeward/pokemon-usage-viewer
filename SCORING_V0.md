@@ -268,9 +268,16 @@ Invariants the shape encodes (each guarded by fixtures):
   could no longer field Haunter instead of Link-Stone Gengar). The collapse
   therefore re-picks the representative form PER SETTING across all rescored
   form options (deterministic: teamScore, then pokemonId); what the sweep
-  gives up is only per-TEAM-CONTEXT form switching. On the 65-mon pool this
-  recovers the friction distortion (Gastly core again; sweep 4.5s); residual
-  one-tier drift remains vs the full-form sweep on near-threshold mons
-  (Eevee likely→flex, Poliwag core→likely, Magikarp flex→fragile, Cottonee
-  likely→fragile) — raw seat-frequency comparison pending, recorded in the
-  next entry. Fixture green.
+  gives up is only per-TEAM-CONTEXT form switching for SAME-TYPING forms.
+  The raw seat-frequency comparison (both sweep variants on the same 65-mon
+  result) showed one-form-per-line was grossly unfaithful on branching lines
+  (Eevee 18/21 → 8/21 seats, Cottonee 13→3, Magikarp 10→1, with single-form
+  lines inheriting the seats) — team-context form choice is load-bearing
+  exactly where forms differ in typing. Final shape: per setting, keep the
+  argmax form plus up to two alternates whose TYPING differs from the kept
+  ones (same-typing variants are pure score/friction choices the per-setting
+  argmax already made — Gastly held its seats with Haunter/Gengar collapsed).
+  Measured on the 65-mon pool: full-form sweep 812s, one-form 4.5s (broken),
+  top-3-forms 515s (faithful, too slow), typing-aware 14.5s with every seat
+  count within ±1 of the full sweep (Poliwag ±2, sitting exactly on the
+  core/likely boundary at 90.5%). Fixture green.

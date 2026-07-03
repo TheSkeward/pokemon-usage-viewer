@@ -56,6 +56,9 @@ export const CONFIDENCE_GRID = [
 // exact-on-shortlist over the strongest 20 lines (the baseline team always
 // re-competes; a setting that changes the verdict shows up regardless).
 const SWEEP_SHORTLIST = 20;
+// Forms per line handed to the sweep's search — see rescoreLine for the
+// measured fidelity/speed trade behind the value.
+const SWEEP_FORM_OPTIONS = 3;
 
 export function classifyFrequency(frequency) {
   if (frequency >= 0.9) return "core";
@@ -170,16 +173,6 @@ export async function computeTeamConfidence({
 // carry the line. Clones everything it touches so sweep state never leaks.
 function rescoreLine(line, context) {
   const clone = { ...line, _choiceOptions: undefined };
-  // The sweep collapses each line to ONE form for the search: per-team form
-  // re-assignment is the search's cartesian hot loop (profiled at ~97% of
-  // sweep time — bestAssignmentForLines × fastTeamFit over every form product
-  // of every combination), and the sweep's question is which INPUT mons seat.
-  // But the form is re-picked PER SETTING from the rescored options below —
-  // under "friction-heavy" a line must be able to field Haunter instead of
-  // Link-Stone Gengar and keep its seat, or friction-ish settings read as
-  // "drops the line" and the tier collapses to fragile (observed on a real
-  // 65-mon pool when the collapse fixed the baseline form instead).
-  clone.choiceOptions = undefined;
   const rescoreChoice = (choice) => {
     if (!choice || !choice.legalityProfile) return choice;
     const rescored = {
@@ -214,28 +207,43 @@ function rescoreLine(line, context) {
     }
     return rescored;
   };
-  // Re-pick the representative FORM under this setting across every rescored
-  // form option (deterministic: teamScore, then score, then pokemonId).
+  // Rescore every form option, then hand the search the setting's best form
+  // plus alternates ONLY where they differ in TYPING from it. The search's
+  // per-team form assignment is its cartesian hot loop (bestAssignmentForLines
+  // × fastTeamFit, ~97% of sweep time when every line carries all its forms),
+  // and at low caps nearly every line legally fields 2–3 forms — but a form
+  // that shares the leader's typing is a pure score/friction variant, and the
+  // per-setting argmax already chose among those (measured: Gastly held its
+  // seats with Haunter/Gengar collapsed to one). Team-CONTEXT choice only
+  // matters when forms differ in shape — Eevee's branches, Magikarp/Gyarados,
+  // Cottonee/Whimsicott — and collapsing those was measured grossly unfaithful
+  // (Eevee 18/21 → 8/21 seats) while keeping them restores full-sweep seat
+  // counts. Deterministic: teamScore, then pokemonId.
   const rescoredForms = new Map();
   for (const option of [line.best, line.bestNonMega, ...(line.choiceOptions || [])]) {
     if (option && !rescoredForms.has(option.pokemonId)) {
       rescoredForms.set(option.pokemonId, rescoreChoice(option));
     }
   }
-  const better = (a, b) => {
-    if (!b) return true;
+  const ranked = [...rescoredForms.values()].sort((a, b) => {
     const aScore = a.teamScore ?? a.score ?? -Infinity;
     const bScore = b.teamScore ?? b.score ?? -Infinity;
-    if (aScore !== bScore) return aScore > bScore;
-    return String(a.pokemonId) < String(b.pokemonId);
-  };
-  let best = null;
-  let bestNonMega = null;
-  for (const option of rescoredForms.values()) {
-    if (better(option, best)) best = option;
-    if (!option.isMega && better(option, bestNonMega)) bestNonMega = option;
+    return bScore - aScore || String(a.pokemonId).localeCompare(String(b.pokemonId));
+  });
+  const typingOf = (option) =>
+    (option.legalityProfile?.currentTypes || []).join("/");
+  const kept = ranked.length ? [ranked[0]] : [];
+  for (const option of ranked.slice(1)) {
+    if (kept.length >= SWEEP_FORM_OPTIONS) break;
+    if (kept.every((k) => typingOf(k) !== typingOf(option))) kept.push(option);
   }
-  clone.best = best;
-  clone.bestNonMega = bestNonMega;
+  // The mega constraint needs a non-mega fallback available to the search.
+  if (kept.length && kept.every((option) => option.isMega)) {
+    const nonMega = ranked.find((option) => !option.isMega);
+    if (nonMega) kept.push(nonMega);
+  }
+  clone.choiceOptions = kept;
+  clone.best = kept[0] || null;
+  clone.bestNonMega = kept.find((option) => !option.isMega) || null;
   return clone;
 }
