@@ -535,10 +535,13 @@ function renderBenchLine(result) {
 
   if (!bench.length) return "";
 
-  // Worst = the most droppable lines: the bottom 10% (rounded up) by best
-  // swap-onto-the-team score, so pool curation gets a short candidate list to
-  // exercise judgement over rather than a single algorithmic verdict. Prefers
-  // the coverage-aware swap signal (a unique-coverage mon — your only Water
+  // Worst = worst fit RIGHT NOW: the bottom 10% (rounded up) by best
+  // swap-onto-the-team score at the current cap/gamestate. Deliberately NOT a
+  // "cut from pool" verdict — a gamestate-blocked future monster (Happiny at
+  // cap 25 with Chansey behind the stones gate: worst swap-in, highest
+  // ceiling) ranks at the bottom here and that's correct for THIS signal, so
+  // the label must claim nothing about eventual value. Prefers the
+  // coverage-aware swap signal (a unique-coverage mon — your only Water
   // answer — isn't flagged just for low usage); falls back to the usage-tier
   // ranking when there's no optimal team to swap against.
   const worstInputIds = pickWorstBench(bench, result.benchSwapScores);
@@ -601,7 +604,7 @@ function renderBenchLine(result) {
             ? `${representative.name} (${representative.inputName})`
             : representative.name;
           const worstNote = isWorst
-            ? " · flagged: among the least likely to ever earn a seat (bottom 10% by best swap-in score)"
+            ? " · flagged: worst fit for the current team right now (bottom 10% by best swap-in score at this level cap — not a judgement of eventual value)"
             : "";
           return `<span class="${classes}" title="from input ${escapeHtml(representative.inputName)}${escapeHtml(bestForm)}${escapeHtml(worstNote)}">${escapeHtml(chipName)}${usage}</span>`;
         })
@@ -651,12 +654,14 @@ function lineCeilingRanking(line) {
   return best;
 }
 
-// The set of bench inputPokemonIds to flag as "worst": the BOTTOM 10% of the
-// bench (rounded up, always at least one) — a curation shortlist the player
-// exercises judgement over, not a single algorithmic verdict. Prefers the
-// swap-score signal: recomputed on every optimize from the current team and
-// scoring, the lowest best-swap-onto-the-team score is the most droppable mon
-// (coverage and tier already folded in by the team scorer). Falls back to the
+// The set of bench inputPokemonIds to flag as "worst FIT RIGHT NOW": the
+// BOTTOM 10% of the bench (rounded up, always at least one) by present-tense
+// swap-in value — a snapshot the player exercises judgement over, not a
+// pool-culling verdict (a blocked future monster legitimately bottoms this
+// ranking while carrying the pool's highest ceiling). Prefers the swap-score
+// signal: recomputed on every optimize from the current team and scoring, the
+// lowest best-swap-onto-the-team score is the weakest swap-in today (coverage
+// and tier already folded in by the team scorer). Falls back to the
 // usage-tier ranking when no swap scores exist (no optimal team to swap onto).
 function pickWorstBench(bench, swapScores) {
   const flagCount = Math.max(1, Math.ceil(bench.length * 0.1));
