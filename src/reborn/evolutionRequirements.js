@@ -284,6 +284,111 @@ export function getEvolutionRequirement(species, access = null) {
   };
 }
 
+// Form-split requirements the dex has no structured fields for (gender locks
+// and Burmy's cloak-by-location). Reviewed by hand; display-only.
+const FORM_EVOLUTION_NOTES = Object.freeze({
+  wormadam: "Female, in grass",
+  wormadamsandy: "Female, in caves",
+  wormadamtrash: "Female, in buildings",
+  mothim: "Male",
+  vespiquen: "Female",
+  gallade: "Male",
+  froslass: "Female",
+  salazzle: "Female",
+  shedinja: "spare party slot and a Poké Ball",
+});
+
+// One evolution step INTO `species`, compressed for display: `level` when it's
+// a plain level-up (rendered as "@20" against the pre-evo's name), and `text`
+// for everything else the player must do ("hold Oval Stone, during the day",
+// "Link Stone + Metal Coat", "near a Moss Rock", "Female, in buildings").
+function shortStepRequirement(species) {
+  const note = FORM_EVOLUTION_NOTES[species.id];
+  const condition = species.evoCondition || "";
+  const evoType = species.evoType || "";
+  const extras = (base) =>
+    [base, note || condition || ""].filter(Boolean).join(", ");
+
+  if (evoType === "") {
+    return {
+      level: Number.isFinite(species.evoLevel) ? species.evoLevel : null,
+      text: extras("") || null,
+    };
+  }
+  if (evoType === "levelFriendship") return { level: null, text: extras("friendship") };
+  if (evoType === "levelMove") {
+    return { level: null, text: extras(`knowing ${species.evoMove || "a move"}`) };
+  }
+  if (evoType === "useItem") {
+    return { level: null, text: extras(species.evoItem || "an item") };
+  }
+  if (evoType === "levelHold") {
+    return { level: null, text: extras(`hold ${species.evoItem || "an item"}`) };
+  }
+  if (evoType === "trade") {
+    // Reborn replaces trades with the Link Stone.
+    return {
+      level: null,
+      text: extras(`Link Stone${species.evoItem ? ` + ${species.evoItem}` : ""}`),
+    };
+  }
+  // levelExtra and anything else: the recorded condition IS the requirement.
+  return { level: null, text: extras("") || "special condition" };
+}
+
+// Human note for "what it takes" to evolve `fromId` into `toId`, appended to
+// the input mon's name: Burmy -> Wormadam-Trash reads "@20 (Female, in
+// buildings)"; Happiny -> Blissey reads " (hold Oval Stone, during the day,
+// then friendship)". Empty string when `fromId` isn't a strict ancestor of
+// `toId` (nothing to explain). Static game mechanics only — gamestate (owned
+// items, access gates) is deliberately not consulted, so the note is stable.
+export function describeEvolutionPath(fromId, toId) {
+  if (!fromId || !toId || fromId === toId) return "";
+  const chain = [];
+  let id = toId;
+  const seen = new Set();
+  while (id && id !== fromId && !seen.has(id)) {
+    seen.add(id);
+    const species = GEN7_PROGRESSION_SPECIES[id];
+    if (!species?.prevoId) return "";
+    chain.unshift(species);
+    id = species.prevoId;
+  }
+  if (id !== fromId || !chain.length) return "";
+
+  let steps = chain.map(shortStepRequirement);
+  // A leading run of unconditioned level-ups collapses to its last level:
+  // Weedle -> Beedrill is "@10", not "@7 (then @10)" — reaching the final
+  // level implies the intermediate one.
+  while (
+    steps.length > 1 &&
+    steps[0].level != null &&
+    !steps[0].text &&
+    steps[1].level != null &&
+    !steps[1].text
+  ) {
+    steps = steps.slice(1);
+  }
+  let attachedLevel = "";
+  const tokens = [];
+  steps.forEach((step, index) => {
+    if (index === 0 && step.level != null) {
+      attachedLevel = `@${step.level}`;
+      if (step.text) tokens.push(step.text);
+      return;
+    }
+    const text =
+      step.level != null
+        ? [`@${step.level}`, step.text].filter(Boolean).join(", ")
+        : step.text;
+    if (!text) return;
+    // A token from a LATER step reads as a sequence: "@21 (then Leaf Stone)".
+    tokens.push(index > 0 && (attachedLevel || tokens.length) ? `then ${text}` : text);
+  });
+
+  return `${attachedLevel}${tokens.length ? ` (${tokens.join(", ")})` : ""}`;
+}
+
 // Walks the chain from the line's input form to `fieldedId`, summing friction
 // and collecting a human-auditable proof of each evolution step. Assumes the
 // fielded form was already validated as reachable.

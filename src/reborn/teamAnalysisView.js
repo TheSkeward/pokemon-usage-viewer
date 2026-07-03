@@ -1,5 +1,7 @@
 import { escapeHtml } from "../utils/html.js";
 import { getTypeColor } from "../moveMeta";
+import { toId } from "../utils/ids.js";
+import { describeEvolutionPath } from "./evolutionRequirements.js";
 import {
   buildRebornTeamAnalysis,
   formatTeamPokepaste,
@@ -256,7 +258,12 @@ function renderSetCard(profile) {
       : null;
   const subParts = [
     profile.inputName && profile.inputName !== profile.currentName
-      ? `from ${profile.inputName}`
+      ? // "from Burmy@20 (Female, in buildings)" — what the input mon needs to
+        // become this form; empty when the input isn't its pre-evolution.
+        `from ${profile.inputName}${describeEvolutionPath(
+          toId(profile.inputName),
+          profile.currentId,
+        )}`
       : null,
     eventual ? `→ ${eventual} later` : null,
   ].filter(Boolean);

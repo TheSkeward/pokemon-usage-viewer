@@ -5,6 +5,7 @@ import { renderRebornProgressionPanel } from "../reborn/progressionView";
 import { detailsStateAttrs } from "../utils/detailsState.js";
 import { renderRebornTeamAnalysisPanel } from "../reborn/teamAnalysisView";
 import { getCurrentRebornSpeciesForChoice } from "../reborn/currentSpecies.js";
+import { describeEvolutionPath } from "../reborn/evolutionRequirements.js";
 import { teamMemberKey } from "./itemRecommendations";
 import {
   explainSeatedChoice,
@@ -774,6 +775,12 @@ function renderTeamRow({
   const selected = setDetails.isSelected(row.pokemonId);
   const currentSpecies = getCurrentRebornSpeciesForChoice(row, progression);
   const currentName = currentSpecies?.name || row.name;
+  // "from Burmy@20 (Female, in buildings)" — what it takes for the input mon
+  // to become the current form. Empty when the input isn't its pre-evolution.
+  const evolutionNote = describeEvolutionPath(
+    row.inputPokemonId,
+    currentSpecies?.id,
+  );
   // "Eventual" only when the representative genuinely lies AHEAD of the
   // current form. A representative that is a PRE-evolution (a Noivern pick
   // whose usage bundle is Noibat's) is the pick's past, not its future.
@@ -796,7 +803,7 @@ function renderTeamRow({
         <strong>${escapeHtml(currentName)}</strong>
         ${
           row.inputName && row.inputName !== currentName
-            ? `<div class="representative-note">from ${escapeHtml(row.inputName)}</div>`
+            ? `<div class="representative-note">from ${escapeHtml(row.inputName)}${escapeHtml(evolutionNote)}</div>`
             : ""
         }
         ${renderItemRec(recommendedItem)}
