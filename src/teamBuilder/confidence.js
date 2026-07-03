@@ -170,6 +170,13 @@ export async function computeTeamConfidence({
 // carry the line. Clones everything it touches so sweep state never leaks.
 function rescoreLine(line, context) {
   const clone = { ...line, _choiceOptions: undefined };
+  // The sweep collapses each line to its rescored best form (+ the non-mega
+  // fallback getLineChoiceOptions derives from best/bestNonMega): per-team
+  // form re-assignment is the search's cartesian hot loop (profiled at ~97%
+  // of sweep time — bestAssignmentForLines × fastTeamFit over every form
+  // product of every combination), and the sweep's question is which INPUT
+  // mons seat, with the per-setting form choice already made by rescoring.
+  clone.choiceOptions = undefined;
   const rescoreChoice = (choice) => {
     if (!choice || !choice.legalityProfile) return choice;
     const rescored = {
@@ -206,8 +213,5 @@ function rescoreLine(line, context) {
   };
   clone.best = rescoreChoice(line.best);
   clone.bestNonMega = rescoreChoice(line.bestNonMega);
-  if (line.choiceOptions) {
-    clone.choiceOptions = line.choiceOptions.map(rescoreChoice);
-  }
   return clone;
 }

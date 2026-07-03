@@ -253,3 +253,16 @@ Invariants the shape encodes (each guarded by fixtures):
      full team evaluations per setting feeding a UI the sweep never reads).
      The confidence-investment fixture still passes; representative tiers
      unchanged on the committed pools.
+- **Sweep form-collapse: the actual whale** (CPU profile after the trims above
+  barely moved the needle): 97% of sweep time was `bestAssignmentForLines` ×
+  `fastTeamFit` — the per-combination cartesian re-assignment of every line's
+  FORM options, paid on all C(20,6) combinations of every setting. The sweep's
+  question is which INPUT mons seat, and each line's per-setting form is
+  already re-picked by rescoring — so sweep lines now collapse to their
+  rescored best (+ the non-mega fallback), removing the cartesian product.
+  Measured: 24-mon sweep 339s → 2.8s in Node (121×); fidelity cost is that a
+  sweep setting can no longer switch a line's form for team-context reasons —
+  acceptable inside an approximation that already runs exact-on-shortlist-20.
+  Confidence-investment fixture and committed tiers unchanged. The production
+  search keeps full per-combination form assignment (exactness there is a
+  promise).
