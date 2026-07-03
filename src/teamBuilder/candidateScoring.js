@@ -7,7 +7,15 @@ import {
 } from "./currentFormValue.js";
 import { tunable } from "./scoringConstants.js";
 
-export const MIN_MEANINGFUL_USAGE_PERCENT = 0.1;
+// Sourced from the constants module (single home for every judgement default;
+// this was previously duplicated here as a hardcoded 0.1 while the
+// scoringConstants entry was dead). Snapshotted at module load — it is not a
+// confidence-sweep axis, so late overrides don't need to reach it. This is
+// the SCORING gate; the row-note "trace" label uses the separate (higher)
+// TRACE_USAGE_PERCENT display threshold.
+export const MIN_MEANINGFUL_USAGE_PERCENT = tunable(
+  "MIN_MEANINGFUL_USAGE_PERCENT",
+);
 
 // ---------------------------------------------------------------------------
 // Individual value model (frozen v0 shape — see SCORING_V0.md):

@@ -20,10 +20,20 @@ export function getCurrentRebornSpeciesForChoice(choice, progression = {}) {
   if (!current) return null;
 
   const proof = evolutionChainProof(current.id);
+  // "The representative lies AHEAD of the current form" — true only when the
+  // current form is an ancestor of the representative (Frogadier → Greninja).
+  // When the representative is a PRE-evolution of the current form (a Noivern
+  // pick whose usage bundle is Noibat's), it is the pick's past, not its
+  // future, and must never render as "Eventual".
+  const representativeIsFuture =
+    current.id !== representativeId &&
+    Boolean(representativeId) &&
+    getAncestorIds(representativeId).includes(current.id);
   return {
     id: current.id,
     name: current.name,
     differsFromRepresentative: current.id !== representativeId,
+    representativeIsFuture,
     representativeId,
     representativeName: choice?.name || GEN7_PROGRESSION_SPECIES[representativeId]?.name || "",
     // K for having reached this form, with the per-step proof, plus any

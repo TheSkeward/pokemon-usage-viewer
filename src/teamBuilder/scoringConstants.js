@@ -18,7 +18,17 @@ export const SCORING_DEFAULTS = Object.freeze({
   USAGE_INFLUENCE: 0.3, // α — usage informative, never sovereign
   USAGE_TIER_WEIGHT: 0.6, // ceiling U leans on tier prestige over raw usage %
   USAGE_REF_PERCENT: 20, // usage % where the usage component of U saturates
+  // The SCORING/ORDERING gate: usage below this can't count as "meaningful"
+  // in candidate comparison or the U-ceiling fallback. Deliberately NOT the
+  // same knob as the display demotion below: raising this to 1% was measured
+  // to flip fielded forms for the worse (Kadabra outranked Alakazam because
+  // meaningful-first ordering beat score once Alakazam's ~0.5% tier usage
+  // fell under the bar).
   MIN_MEANINGFUL_USAGE_PERCENT: 0.1,
+  // The DISPLAY demotion: row notes call usage under this "trace". Raised to
+  // 1 (user judgement: sub-1% appearances in a tier are noise to a reader,
+  // even where the scorer still extracts signal from them).
+  TRACE_USAGE_PERCENT: 1,
 
   // --- C: current-form value --------------------------------------------------
   CURRENT_VALUE_SCALE: 2000, // points scale shared by C and U

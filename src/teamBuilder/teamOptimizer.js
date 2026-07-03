@@ -620,9 +620,14 @@ function getChoiceOptionNote(result, best, bestNonMega) {
 }
 
 function makeChoice(input, result, note) {
-  const usageNote = result.meaningfulUsage
-    ? note
-    : `${note}; trace usage (<${MIN_MEANINGFUL_USAGE_PERCENT}%)`;
+  // "Trace" is a DISPLAY judgement (TRACE_USAGE_PERCENT, default 1%), wider
+  // than the scoring gate: a 0.5% pick still scores normally but a reader
+  // deserves the flag that its usage evidence is thin.
+  const tracePercent = tunable("TRACE_USAGE_PERCENT");
+  const usageNote =
+    result.meaningfulUsage && (result.usagePercent ?? 0) >= tracePercent
+      ? note
+      : `${note}; trace usage (<${tracePercent}%)`;
   const legalityNote = formatLegalityNote(result.legalityProfile);
 
   return {

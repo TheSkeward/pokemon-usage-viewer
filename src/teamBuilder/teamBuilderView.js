@@ -199,7 +199,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
         <div>
           <h2>Recommended ${escapeHtml(familyLabel)} Team</h2>
           <p>${result.team.length} picks from ${result.linesConsidered} resolved input lines. ${megaText}.</p>
-          <p>v0 rules: at most one Mega, one long-term representative per input line, selected by usage prior plus current legal STAB, coverage, and defensive fit. Displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its set.</p>
+          <p>Scored at level cap ${escapeHtml(String(state.progression?.levelCap || "?"))}: each pick's current-form value plus a readiness-gated competitive ceiling, minus evolution/build friction; the team is chosen with damage-aware coverage and shared-weakness fit, at most one Mega, one build realized per line. Displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its set.</p>
           <p class="muted" data-progression-stale-warning ${progressionStale ? "" : "hidden"}>Progression changed after this team was optimized. Re-optimize before trusting row scores or legal move notes.</p>
         </div>
       </div>
@@ -211,10 +211,9 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
               <th>#</th>
               ${renderSortHeader("current", "Current", state)}
               ${renderSortHeader("name", "Eventual", state)}
-              ${renderSortHeader("usage", "Usage %", state)}
+              ${renderSortHeader("tier", "Usage", state)}
               ${renderSortHeader("lead", "Lead %", state)}
               ${renderSortHeader("score", "Score", state)}
-              <th>Source</th>
               <th>Notes</th>
             </tr>
           </thead>
@@ -535,13 +534,22 @@ function renderBenchLine(result) {
 
   if (!bench.length) return "";
 
-  // Worst = the most droppable line. Prefer the coverage-aware signal: the line
-  // whose best swap onto the optimal team scores lowest, so a unique-coverage
-  // mon (your only Water answer) isn't flagged just for low usage, while a
-  // low-tier mon whose coverage is redundant is. Fall back to the usage-tier
-  // ranking (deepest tier, then lowest usage; meaningful nowhere = floor) when
-  // there's no optimal team to swap against. Ties are all flagged.
+  // Worst = the most droppable lines: the bottom 10% (rounded up) by best
+  // swap-onto-the-team score, so pool curation gets a short candidate list to
+  // exercise judgement over rather than a single algorithmic verdict. Prefers
+  // the coverage-aware swap signal (a unique-coverage mon — your only Water
+  // answer — isn't flagged just for low usage); falls back to the usage-tier
+  // ranking when there's no optimal team to swap against.
   const worstInputIds = pickWorstBench(bench, result.benchSwapScores);
+
+  // Two different input lines can share a fielded form (Tranquill and Unfezant
+  // both benching as Unfezant) — disambiguate with the input name instead of
+  // rendering two identical chips.
+  const nameCounts = new Map();
+  for (const entry of bench) {
+    const name = entry.representative.name;
+    nameCounts.set(name, (nameCounts.get(name) || 0) + 1);
+  }
 
   // Group by tier (best form's first-meaningful tier), ordered shallow → deep.
   const groups = new Map();
@@ -584,7 +592,17 @@ function renderBenchLine(result) {
             ? ` <em>${truncatePercent(ceiling.value)}</em>`
             : "";
           const classes = `bench-chip${isWorst ? " worst" : ""}`;
-          return `<span class="${classes}" title="from input ${escapeHtml(representative.inputName)}${escapeHtml(bestForm)}">${escapeHtml(representative.name)}${usage}</span>`;
+          const collides =
+            (nameCounts.get(representative.name) || 0) > 1 &&
+            representative.inputName &&
+            representative.inputName !== representative.name;
+          const chipName = collides
+            ? `${representative.name} (${representative.inputName})`
+            : representative.name;
+          const worstNote = isWorst
+            ? " · flagged: among the least likely to ever earn a seat (bottom 10% by best swap-in score)"
+            : "";
+          return `<span class="${classes}" title="from input ${escapeHtml(representative.inputName)}${escapeHtml(bestForm)}${escapeHtml(worstNote)}">${escapeHtml(chipName)}${usage}</span>`;
         })
         .join("");
 
@@ -632,11 +650,15 @@ function lineCeilingRanking(line) {
   return best;
 }
 
-// The set of bench inputPokemonIds to flag as "worst". Prefers the swap-score
-// signal: the lowest best-swap-onto-the-team score is the most droppable mon
+// The set of bench inputPokemonIds to flag as "worst": the BOTTOM 10% of the
+// bench (rounded up, always at least one) — a curation shortlist the player
+// exercises judgement over, not a single algorithmic verdict. Prefers the
+// swap-score signal: recomputed on every optimize from the current team and
+// scoring, the lowest best-swap-onto-the-team score is the most droppable mon
 // (coverage and tier already folded in by the team scorer). Falls back to the
 // usage-tier ranking when no swap scores exist (no optimal team to swap onto).
 function pickWorstBench(bench, swapScores) {
+  const flagCount = Math.max(1, Math.ceil(bench.length * 0.1));
   const scored = swapScores
     ? bench.filter(
         (entry) =>
@@ -645,43 +667,38 @@ function pickWorstBench(bench, swapScores) {
     : [];
 
   if (scored.length) {
-    const min = Math.min(
-      ...scored.map((entry) =>
-        swapScores.get(entry.representative.inputPokemonId),
-      ),
+    const ordered = [...scored].sort(
+      (a, b) =>
+        swapScores.get(a.representative.inputPokemonId) -
+          swapScores.get(b.representative.inputPokemonId) ||
+        a.representative.name.localeCompare(b.representative.name),
     );
     return new Set(
-      scored
-        .filter(
-          (entry) =>
-            swapScores.get(entry.representative.inputPokemonId) === min,
-        )
+      ordered
+        .slice(0, Math.min(flagCount, ordered.length))
         .map((entry) => entry.representative.inputPokemonId),
     );
   }
 
-  const worstKey = bench.reduce(
-    (acc, entry) => (isWorseRank(entry.ceiling, acc) ? entry.ceiling : acc),
-    bench[0].ceiling,
+  const ordered = [...bench].sort(
+    (a, b) =>
+      compareRankWorseFirst(a.ceiling, b.ceiling) ||
+      a.representative.name.localeCompare(b.representative.name),
   );
   return new Set(
-    bench
-      .filter((entry) => sameRank(entry.ceiling, worstKey))
+    ordered
+      .slice(0, flagCount)
       .map((entry) => entry.representative.inputPokemonId),
   );
 }
 
-function isWorseRank(a, b) {
+// Worse-first ordering on usage-tier ceilings: deeper tier first, then lower
+// usage within the tier; no signal at all is the worst of all.
+function compareRankWorseFirst(a, b) {
   const ta = a ? a.tierRank : Infinity;
   const tb = b ? b.tierRank : Infinity;
-  if (ta !== tb) return ta > tb;
-  return (a?.value ?? -Infinity) < (b?.value ?? -Infinity);
-}
-
-function sameRank(a, b) {
-  const ta = a ? a.tierRank : Infinity;
-  const tb = b ? b.tierRank : Infinity;
-  return ta === tb && (a?.value ?? -Infinity) === (b?.value ?? -Infinity);
+  if (ta !== tb) return tb - ta;
+  return (a?.value ?? -Infinity) - (b?.value ?? -Infinity);
 }
 
 function renderItemRec(item) {
@@ -696,16 +713,19 @@ function renderItemRec(item) {
   } else if (item.proxy) {
     qualifier =
       typeof item.usage === "number"
-        ? `~${Math.round(item.usage)}% proxy`
+        ? `~${formatItemPercent(item.usage)} proxy`
         : "proxy";
     title = item.seed
       ? "Reborn Field Seed; demand proxied from this Pokémon's terrain-seed usage."
       : "Reborn type Gem; competitive demand proxied from the matching Z-Crystal.";
   } else if (typeof item.usage === "number") {
-    qualifier = `${Math.round(item.usage)}%`;
+    qualifier = formatItemPercent(item.usage);
+    title =
+      "Share of this Pokémon's observed competitive sets holding this item.";
   } else {
     qualifier = "situational";
-    title = "Observed on lower-usage or related sets, not headline usage.";
+    title =
+      "Seen on this Pokémon's sets but without a headline usage share — a real option, just not a statistically ranked one.";
   }
 
   if (item.unburden) {
@@ -715,6 +735,12 @@ function renderItemRec(item) {
   }
 
   return `<div class="representative-note item-rec-note"${title ? ` title="${escapeAttr(title)}"` : ""}>Item: ${escapeHtml(item.name)}${qualifier ? ` (${escapeHtml(qualifier)})` : ""}</div>`;
+}
+
+// Sub-2% item usage keeps a decimal so a genuine 0.4% never rounds to a
+// misleading "(0%)".
+function formatItemPercent(value) {
+  return value >= 2 ? `${Math.round(value)}%` : `${value.toFixed(1)}%`;
 }
 
 function renderSortHeader(sortBy, label, state) {
@@ -742,7 +768,10 @@ function renderTeamRow({
   const selected = setDetails.isSelected(row.pokemonId);
   const currentSpecies = getCurrentRebornSpeciesForChoice(row, progression);
   const currentName = currentSpecies?.name || row.name;
-  const eventualDiffers = Boolean(currentSpecies?.differsFromRepresentative);
+  // "Eventual" only when the representative genuinely lies AHEAD of the
+  // current form. A representative that is a PRE-evolution (a Noivern pick
+  // whose usage bundle is Noibat's) is the pick's past, not its future.
+  const eventualDiffers = Boolean(currentSpecies?.representativeIsFuture);
   const note = progressionStale
     ? "Progression changed; re-optimize for current scores and legal move notes."
     : row.note || "";
@@ -773,19 +802,31 @@ function renderTeamRow({
             : `<span class="muted">—</span>`
         }
       </td>
-      <td>${formatPercent(row.bundle?.usage?.value)}</td>
+      <td>${renderMeaningfulUsage(row, formatsIndex)}</td>
       <td>${formatPercent(row.bundle?.leads?.value)}</td>
       <td>${Number.isFinite(row.score) ? Math.round(row.score).toLocaleString() : ""}</td>
-      <td>${renderSource(row.bundle?.usage, formatsIndex)}</td>
       <td data-team-note>${escapeHtml(note)}</td>
     </tr>
 
     ${
       selected
-        ? `<tr class="team-builder-set-row"><td colspan="8"><div id="team-builder-set-details-root"></div></td></tr>`
+        ? `<tr class="team-builder-set-row"><td colspan="7"><div id="team-builder-set-details-root"></div></td></tr>`
         : ""
     }
   `;
+}
+
+// The pick's FIRST MEANINGFUL usage tier ("AG 1760 · 1.1%"), not its usage at
+// the top tier — "0.00 at AG 1760" says nothing about a mon that owns PU. The
+// headline top-tier source (with months of data) moves to the tooltip.
+function renderMeaningfulUsage(row, formatsIndex) {
+  const ranking = row.bundle?.ranking;
+  const headline = renderSource(row.bundle?.usage, formatsIndex);
+  if (!ranking || typeof ranking.value !== "number") {
+    return `<span class="muted" title="${escapeAttr(`No tier with meaningful usage. Best available: ${headline || "none"}`)}">trace</span>`;
+  }
+  const label = `${SHORT_FORMAT[ranking.formatId] || ranking.formatId} ${ranking.cutoff}`;
+  return `<span title="${escapeAttr(`First meaningful tier. Best available: ${headline || "none"}`)}">${escapeHtml(label)} · ${escapeHtml(truncatePercent(ranking.value))}</span>`;
 }
 
 function renderSelectedSetDetails({ app, pokemonIndex, setDetails, state }) {
@@ -864,6 +905,17 @@ export function getSortedTeam(team, sortBy, sortDir = "desc", progression = {}) 
       primary = compareNumber(a.bundle?.leads?.value, b.bundle?.leads?.value);
     } else if (sortBy === "usage") {
       primary = compareNumber(a.bundle?.usage?.value, b.bundle?.usage?.value);
+    } else if (sortBy === "tier") {
+      // "Descending" = best tier first (lowest tierRank), then highest usage
+      // within the tier — AG 1760 1.14%, AG 1760 1.12%, PU 1500 1.58%, ...
+      const rankOf = (row) => row.bundle?.ranking?.tierRank ?? Infinity;
+      const valueOf = (row) =>
+        typeof row.bundle?.ranking?.value === "number"
+          ? row.bundle.ranking.value
+          : -Infinity;
+      primary =
+        compareNumber(rankOf(b), rankOf(a)) ||
+        compareNumber(valueOf(a), valueOf(b));
     } else if (sortBy === "score") {
       primary = compareNumber(a.score, b.score);
     } else if (sortBy === "current" || sortBy === "input") {
@@ -896,6 +948,7 @@ function getSortLabel(sortBy, sortDir = "desc") {
 
   if (sortBy === "lead") return `Lead % ${direction}`;
   if (sortBy === "usage") return `Usage % ${direction}`;
+  if (sortBy === "tier") return `meaningful usage tier (best tier first when ${direction})`;
   if (sortBy === "score") return `optimizer score ${direction}`;
   if (sortBy === "current" || sortBy === "input") {
     return `current form ${direction}`;

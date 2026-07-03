@@ -281,3 +281,13 @@ Invariants the shape encodes (each guarded by fixtures):
   top-3-forms 515s (faithful, too slow), typing-aware 14.5s with every seat
   count within ±1 of the full sweep (Poliwag ±2, sitting exactly on the
   core/likely boundary at 90.5%). Fixture green.
+- **Threshold split: scoring gate vs display demotion** (user asked to raise
+  the 0.1% meaningful-usage bar to 1%, suspecting it no longer mattered): the
+  full validate run proved it still does — `meaningfulUsage` is the FIRST key
+  in candidate ordering, and at a 1% bar Kadabra outranked Alakazam (the
+  fixture's fielded form flipped) because Alakazam's ~0.5% tier usage fell
+  under it while score no longer got a vote. So the knobs are now separate:
+  `MIN_MEANINGFUL_USAGE_PERCENT` stays 0.1 (scoring/ordering; also un-deadened
+  — candidateScoring now reads it from the constants module instead of a
+  hardcoded duplicate), and the new `TRACE_USAGE_PERCENT` (1) drives only the
+  row-note "trace usage" label. Zero golden drift.

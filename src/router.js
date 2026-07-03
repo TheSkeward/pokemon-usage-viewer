@@ -29,16 +29,23 @@ export function writeStateToUrl(state) {
 
   params.set('view', state.view);
   params.set('family', state.family);
-  params.set('format', state.format);
-  params.set('month', state.month);
 
-  if (state.search) params.set('search', state.search);
-  if (state.sortBy !== DEFAULT_STATE.sortBy) params.set('sortBy', state.sortBy);
-  if (state.sortDir !== DEFAULT_STATE.sortDir) params.set('sortDir', state.sortDir);
-  if (state.selectedPokemon) params.set('pokemon', state.selectedPokemon);
-  if (state.resolverMonth) params.set('resolverMonth', state.resolverMonth);
-  if (state.resolverQuery) params.set('resolverQuery', state.resolverQuery);
-  if (state.resolverSelectedPokemon) params.set('resolverPokemon', state.resolverSelectedPokemon);
+  // Only the pool view's own params belong in a pool URL. format/month drive
+  // the usage browser and resolverMonth/... the resolver — writing them from
+  // the pool view (as this used to) just fossilized whatever the other views
+  // last showed into every shared link.
+  if (state.view !== 'pool') {
+    params.set('format', state.format);
+    params.set('month', state.month);
+
+    if (state.search) params.set('search', state.search);
+    if (state.sortBy !== DEFAULT_STATE.sortBy) params.set('sortBy', state.sortBy);
+    if (state.sortDir !== DEFAULT_STATE.sortDir) params.set('sortDir', state.sortDir);
+    if (state.selectedPokemon) params.set('pokemon', state.selectedPokemon);
+    if (state.resolverMonth) params.set('resolverMonth', state.resolverMonth);
+    if (state.resolverQuery) params.set('resolverQuery', state.resolverQuery);
+    if (state.resolverSelectedPokemon) params.set('resolverPokemon', state.resolverSelectedPokemon);
+  }
 
   const nextUrl = `${window.location.pathname}?${params.toString()}`;
   window.history.replaceState(null, '', nextUrl);
