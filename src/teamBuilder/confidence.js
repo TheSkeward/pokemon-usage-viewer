@@ -103,11 +103,18 @@ export async function computeTeamConfidence({
       ...setting.overrides,
       FORCE_SHORTLIST: true,
       SHORTLIST_MAX: setting.overrides.SHORTLIST_MAX || SWEEP_SHORTLIST,
+      // The sweep asks WHICH SIX SEAT, not for a perfectly re-ranked
+      // realization: a small realization pool keeps each setting cheap
+      // (the production run keeps its full 64).
+      REALIZATION_POOL: 8,
     });
     try {
       const rescored = lines.map((line) => rescoreLine(line, context));
       const swept = await choosePoolTeam(rescored, opponentTypeBias, {
         exhaustive: false,
+        // Bench-swap ranking is hundreds of full team evaluations per call
+        // and only feeds the bench UI — the sweep never reads it.
+        benchSwaps: false,
       });
       record(new Set(swept.team.map((c) => c.inputPokemonId)), setting.key);
     } finally {

@@ -23,7 +23,7 @@ import { tunable } from "./scoringConstants.js";
 export async function choosePoolTeam(
   lines,
   opponentTypeBias = {},
-  { exhaustive = true, incremental = null, searchKey = null } = {},
+  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true } = {},
 ) {
   const resolvedLines = lines.filter((line) => line.best || line.bestNonMega);
   const unresolved = lines.filter((line) => line.unresolved);
@@ -31,6 +31,7 @@ export async function choosePoolTeam(
     exhaustive,
     incremental,
     searchKey,
+    benchSwaps,
   });
   const evaluated = bestTeam.evaluated;
   // selectTeamByFit already realized concrete builds and re-ranked the top
@@ -303,7 +304,7 @@ function queryTeamStoreTop(lines, targetSize, opponentTypeBias, topCount) {
 async function selectTeamByFit(
   lines,
   opponentTypeBias = {},
-  { exhaustive = true, incremental = null, searchKey = null } = {},
+  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true } = {},
 ) {
   const targetSize = Math.min(6, lines.length);
   if (targetSize === 0) {
@@ -356,11 +357,9 @@ async function selectTeamByFit(
         .filter(Boolean);
       const evaluated = realizeBestTeam(candidates, opponentTypeBias);
       if (evaluated) {
-        const benchSwapScores = computeBenchSwapScores(
-          lines,
-          evaluated.team,
-          opponentTypeBias,
-        );
+        const benchSwapScores = benchSwaps
+          ? computeBenchSwapScores(lines, evaluated.team, opponentTypeBias)
+          : null;
         return { evaluated, searchExact: true, benchSwapScores };
       }
     } finally {
@@ -442,12 +441,12 @@ async function selectTeamByFit(
       };
 
     // Rank the non-selected lines by how much the team would suffer if forced to
-    // field them — independent of which search ran above.
-    const benchSwapScores = computeBenchSwapScores(
-      lines,
-      evaluated.team,
-      opponentTypeBias,
-    );
+    // field them — independent of which search ran above. Skippable (the
+    // confidence sweep only needs the seated set, and this is hundreds of full
+    // team evaluations per call).
+    const benchSwapScores = benchSwaps
+      ? computeBenchSwapScores(lines, evaluated.team, opponentTypeBias)
+      : null;
 
     return { evaluated, searchExact, benchSwapScores };
   } finally {

@@ -237,3 +237,19 @@ Invariants the shape encodes (each guarded by fixtures):
   Chromium on the 65-mon pool: movesets land WITH the team (+33s on a slow
   4-core container, sweep still running) instead of minutes behind it.
   Scoring-neutral: no golden impact.
+- **Adaptive progress bar + cheaper sweep** (user report: the bar "spends most
+  of its time on the right side, uselessly", and a 68-mon report showing
+  confidence at 60–82s wall-clock on 16 cores):
+  1. The bar now spans the whole optimizer window on per-phase TIME budgets
+     estimated from this browser's telemetry history for the same pool bucket
+     (`estimateRunBudget`; static defaults on first run, personal medians
+     after). Countable scoring advances by real fraction; the search advances
+     by elapsed-vs-budget with an asymptotic tail capped at 97%, pulsing only
+     when a phase runs 2× past its budget. Verified in headless Chromium: a
+     strictly increasing width series through a 30s search.
+  2. Sweep-only cost reductions, verdict-preserving in intent: settings run
+     with `REALIZATION_POOL: 8` (the sweep asks WHICH SIX SEAT, not for a
+     perfectly re-ranked realization) and `benchSwaps: false` (hundreds of
+     full team evaluations per setting feeding a UI the sweep never reads).
+     The confidence-investment fixture still passes; representative tiers
+     unchanged on the committed pools.

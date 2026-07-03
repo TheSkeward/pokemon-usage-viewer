@@ -18,6 +18,7 @@ const {
   percentile,
   poolBucket,
   buildBucket,
+  estimateRunBudget,
 } = await import("../src/teamBuilder/telemetry.js");
 
 test("percentile is nearest-rank", () => {
@@ -220,6 +221,42 @@ test("performance report is redacted and self-describing", () => {
       `content-shaped key in report: ${key}`,
     );
   }
+});
+
+test("run budget comes from bucket history, falls back to defaults", () => {
+  clearTelemetry();
+  // No history: static fallback for the bucket.
+  const cold = estimateRunBudget(65);
+  assert.ok(cold.resolveMs > 0 && cold.searchMs > 0 && cold.tailMs > 0);
+
+  // History in the same bucket: medians win.
+  for (const [resolve, search] of [[1000, 3000], [1200, 3400], [900, 2800]]) {
+    recordOptimizerSample({
+      cache: "cold",
+      resolveMs: resolve,
+      searchMs: search,
+      poolSize: 65,
+      builds: 80,
+      dataSignature: "sig",
+      phases: { setup: 100, resolve, search, items: 150, render: 20 },
+      totalMs: resolve + search + 300,
+    });
+  }
+  // A result-cache hit must NOT drag the medians to zero.
+  recordOptimizerSample({
+    cache: "result",
+    resolveMs: 0,
+    searchMs: 0,
+    poolSize: 65,
+    builds: 80,
+    dataSignature: "sig",
+    phases: { setup: 5, resolve: 0, search: 0, items: 0, render: 5 },
+    totalMs: 10,
+  });
+  const warm = estimateRunBudget(65);
+  assert.equal(warm.resolveMs, 1000);
+  assert.equal(warm.searchMs, 3000);
+  assert.equal(warm.tailMs, 170);
 });
 
 test("history is bounded and clear() resets", () => {

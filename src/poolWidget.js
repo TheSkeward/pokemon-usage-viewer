@@ -12,6 +12,7 @@ import { computeInvestmentPlan } from "./teamBuilder/investment.js";
 import { setScoringOverrides } from "./teamBuilder/scoringConstants.js";
 import {
   buildPerformanceReport,
+  estimateRunBudget,
   recordOptimizerSample,
 } from "./teamBuilder/telemetry.js";
 import { loadManifest } from "./manifest.js";
@@ -117,6 +118,7 @@ export function mountPoolOptimizer(container, options = {}) {
     state.loading = true;
     state.statusMessage = "Optimizing pool...";
     render();
+    startOptimizeProgress(getPoolStats(state.query, pokemonIndex).uniqueCount);
     await waitForPaint();
 
     // User-perceived pipeline clock: everything between "click" and the team
@@ -178,6 +180,7 @@ export function mountPoolOptimizer(container, options = {}) {
 
       setDetails.cancel();
 
+      stopOptimizeProgress();
       state.loading = false;
       const approxNote = state.result.searchExact
         ? ""
@@ -206,6 +209,7 @@ export function mountPoolOptimizer(container, options = {}) {
     } catch (error) {
       console.error("Team Builder optimization failed", error);
 
+      stopOptimizeProgress();
       state.loading = false;
       state.result = null;
       state.statusMessage = `Optimization failed: ${error?.message || error}`;
@@ -746,16 +750,75 @@ export function mountPoolOptimizer(container, options = {}) {
     }
   }
 
-  // Updates the loading panel's progress bar in place during optimization,
-  // without re-rendering (which would only ever show completed results).
-  // Phase-aware: line resolution is often the FAST part (warm caches finish it
-  // in milliseconds), after which the bar used to sit at 65/65 through the
-  // search, item loading, and render — the actual wait. Now each phase names
-  // itself, and the bar pulses (indeterminate) once the countable part is done.
+  // Adaptive optimize progress: the bar spans the WHOLE optimizer window using
+  // per-phase time budgets estimated from this browser's telemetry history for
+  // this pool size (static defaults on the very first run). Countable work
+  // (line scoring) advances by real fraction; time-only phases (the search)
+  // advance by elapsed-vs-budget with an asymptotic tail — so the bar keeps
+  // moving through the slow part instead of parking at 100% and pulsing.
+  // Width = elapsed / (elapsed + estimated remaining), capped at 97% until the
+  // run actually finishes; monotone because the remaining estimate only
+  // shrinks. A ticker repaints during phases that emit no progress events.
+  let optimizeProgress = null;
+
+  function startOptimizeProgress(poolSize) {
+    stopOptimizeProgress();
+    optimizeProgress = {
+      start: Date.now(),
+      phase: "resolve",
+      phaseStart: Date.now(),
+      completed: 0,
+      total: poolSize || 0,
+      budget: estimateRunBudget(poolSize),
+      timer: setInterval(paintOptimizeProgress, 150),
+    };
+    paintOptimizeProgress();
+  }
+
+  function stopOptimizeProgress() {
+    if (optimizeProgress?.timer) clearInterval(optimizeProgress.timer);
+    optimizeProgress = null;
+  }
+
+  function paintOptimizeProgress() {
+    const model = optimizeProgress;
+    const bar = app.querySelector("[data-optimize-progress-bar]");
+    if (!model || !bar) return;
+
+    const now = Date.now();
+    const elapsed = now - model.start;
+    const phaseElapsed = now - model.phaseStart;
+    const budget = model.budget;
+    let remaining;
+    if (model.phase === "resolve") {
+      const fraction = model.total ? model.completed / model.total : 0;
+      remaining =
+        budget.resolveMs * (1 - fraction) + budget.searchMs + budget.tailMs;
+    } else if (model.phase === "search") {
+      // Past its budget the remaining floor keeps the bar creeping (asymptote)
+      // rather than lying about being done.
+      remaining =
+        Math.max(budget.searchMs - phaseElapsed, budget.searchMs * 0.08) +
+        budget.tailMs;
+    } else {
+      remaining = Math.max(budget.tailMs - phaseElapsed, 120);
+    }
+    const fraction = Math.min(
+      0.97,
+      elapsed / (elapsed + Math.max(remaining, 1)),
+    );
+    bar.style.width = `${(fraction * 100).toFixed(1)}%`;
+    // Running far past the search budget: pulse to say "still working" —
+    // the estimate was wrong, not the run dead.
+    const late =
+      model.phase === "search" && phaseElapsed > 2 * budget.searchMs;
+    bar.style.animation = late
+      ? "pool-progress-pulse 1.2s ease-in-out infinite"
+      : "";
+  }
+
   function updateOptimizeProgress({ phase = "resolve", completed, total }) {
     const label = app.querySelector("[data-optimize-progress-label]");
-    const bar = app.querySelector("[data-optimize-progress-bar]");
-
     if (label) {
       label.textContent =
         phase === "search"
@@ -766,18 +829,16 @@ export function mountPoolOptimizer(container, options = {}) {
               ? `Scoring ${completed}/${total} Pokémon...`
               : "Optimizing pool...";
     }
-    if (bar) {
-      if (phase === "resolve") {
-        bar.style.animation = "";
-        bar.style.width = total
-          ? `${Math.round((completed / total) * 100)}%`
-          : "0%";
-      } else {
-        // Post-resolve phases have no countable units; pulse instead of
-        // pretending to be done.
-        bar.style.width = "100%";
-        bar.style.animation = "pool-progress-pulse 1.2s ease-in-out infinite";
+    if (optimizeProgress) {
+      if (phase !== optimizeProgress.phase) {
+        optimizeProgress.phase = phase;
+        optimizeProgress.phaseStart = Date.now();
       }
+      if (phase === "resolve") {
+        optimizeProgress.completed = completed || 0;
+        if (total) optimizeProgress.total = total;
+      }
+      paintOptimizeProgress();
     }
   }
 

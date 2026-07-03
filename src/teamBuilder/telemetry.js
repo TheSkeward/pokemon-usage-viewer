@@ -305,6 +305,51 @@ export function buildPerformanceReport() {
   };
 }
 
+// Per-phase time budget for a run on THIS machine at this pool size, from the
+// current environment's history (medians of cold/warm samples in the same
+// pool bucket, else any bucket), falling back to rough static defaults for a
+// first run. Feeds the adaptive progress bar — display only, never scoring.
+const FALLBACK_BUDGETS = {
+  "1–12": { resolveMs: 600, searchMs: 300 },
+  "13–24": { resolveMs: 1200, searchMs: 900 },
+  "25–36": { resolveMs: 2000, searchMs: 1600 },
+  "37+": { resolveMs: 2600, searchMs: 3200 },
+};
+
+export function estimateRunBudget(poolSize) {
+  const bucket = poolBucket(poolSize || 0);
+  const samples = loadTelemetrySamples();
+  const env = samples.length ? samples[samples.length - 1].env : null;
+  // Result-cache hits are ~0ms and would drag every median to nothing.
+  const usable = samples.filter(
+    (sample) =>
+      sample.env === env &&
+      !sample.cancelled &&
+      sample.phases &&
+      sample.cache !== "result",
+  );
+  const inBucket = usable.filter(
+    (sample) => poolBucket(sample.poolSize) === bucket,
+  );
+  const source = inBucket.length ? inBucket : usable;
+  if (source.length) {
+    const median = (key) =>
+      percentile(
+        source
+          .map((sample) => sample.phases[key] ?? 0)
+          .sort((a, b) => a - b),
+        50,
+      ) || 0;
+    return {
+      resolveMs: Math.max(200, median("resolve")),
+      searchMs: Math.max(200, median("search")),
+      tailMs: Math.max(150, median("items") + median("render")),
+    };
+  }
+  const fallback = FALLBACK_BUDGETS[bucket];
+  return { resolveMs: fallback.resolveMs, searchMs: fallback.searchMs, tailMs: 300 };
+}
+
 export function clearTelemetry() {
   try {
     storage()?.removeItem(STORE_KEY);
