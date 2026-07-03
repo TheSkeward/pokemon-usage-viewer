@@ -83,11 +83,21 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment-retry.outputs.page_url }}
     needs: build
     runs-on: ubuntu-latest
 
     steps:
+      # The site payload is large (multi-GB of usage data), and the Pages
+      # file-sync phase intermittently gives up with "Deployment failed, try
+      # again later" — a deploy-side flake, not a build failure. Retry once
+      # before declaring the run failed.
       - name: Deploy to GitHub Pages
         id: deployment
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+
+      - name: Retry deploy to GitHub Pages
+        id: deployment-retry
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v5
