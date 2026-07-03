@@ -177,7 +177,9 @@ export async function getTeamItemContext(
       });
       const damageTypes = new Set(
         (entry.profile.recommendedMoves || [])
-          .filter(isDamagingMove)
+          // Gems and plates can't boost fixed damage, so its type never
+          // justifies a type-boosting item.
+          .filter((move) => isDamagingMove(move) && !isFixedDamageMove(move.id))
           .map((move) => move.type),
       );
       byMember.set(teamMemberKey(row), {
@@ -225,7 +227,11 @@ export function buildCandidateLegalityProfile({
   );
   const recommendedDamagingMoves = recommendedMoves.filter(isDamagingMove);
   const stabMoves = damagingMoves
-    .filter((move) => member.types.includes(move.type))
+    // Typeless fixed damage never gets STAB, so it can't be the STAB pick.
+    .filter(
+      (move) =>
+        member.types.includes(move.type) && !isFixedDamageMove(move.id),
+    )
     .sort(compareMoveQuality);
   // Display order: the mon's canonical moves (its top-4 by usage) lead, in
   // descending-usage order, mirroring how its competitive set reads; the
@@ -408,7 +414,11 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
     // basePower from formatRecommendedMove, so reuse them rather than recompute.
     const damagingMoves = (profile?.recommendedMoves || []).filter(isDamagingMove);
     const stabMoves = damagingMoves
-      .filter((move) => member.types.includes(move.type))
+      // Typeless fixed damage is neither STAB nor an attack-type entry below.
+      .filter(
+        (move) =>
+          member.types.includes(move.type) && !isFixedDamageMove(move.id),
+      )
       .sort(compareMoveQuality);
 
     memberStab.push({
@@ -418,6 +428,9 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
     });
 
     for (const move of damagingMoves) {
+      // Fixed damage is typeless offense: it doesn't make the team "a Fighting
+      // attacker", and it can't be super effective.
+      if (isFixedDamageMove(move.id)) continue;
       const estimatedDamage = move.estimatedDamage || 0;
 
       const entry = attackTypes.get(move.type) || {
@@ -452,8 +465,6 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
       attackTypes.set(move.type, entry);
 
       for (const defenseType of REBORN_ANALYSIS_TYPES) {
-        // Fixed-damage moves can't be super effective.
-        if (isFixedDamageMove(move.id)) break;
         const multiplier = getTypeMultiplier(move.type, [defenseType]);
         if (multiplier <= 1) continue;
 
@@ -753,7 +764,15 @@ function resistsOrImmune(defenseTypes, attackType) {
 }
 
 function isDamagingMove(move) {
-  return move.category !== "Status" && getMovePower(move) > 0;
+  // Fixed-damage moves (Seismic Toss, Night Shade, ...) have base power 0 but
+  // deal real damage (damageModel.fixedMoveDamage), so they count as attacks.
+  // Their offense is typeless, though — sites that reason about a move's TYPE
+  // (attack-type summaries, coverage-type sets, gem assignment) must skip them
+  // via isFixedDamageMove.
+  return (
+    move.category !== "Status" &&
+    (getMovePower(move) > 0 || isFixedDamageMove(move.id))
+  );
 }
 
 // Snore only deals damage while the user is asleep, so it's a dead move unless
@@ -1062,7 +1081,10 @@ function recommendCurrentMoves(
       return false;
     }
     selected.push(move);
-    if (isUsableDamagingMove(move, moves)) coveredTypes.add(move.type);
+    // Fixed damage is typeless offense — it never claims a coverage type.
+    if (isUsableDamagingMove(move, moves) && !isFixedDamageMove(move.id)) {
+      coveredTypes.add(move.type);
+    }
     return true;
   };
 
@@ -1073,7 +1095,10 @@ function recommendCurrentMoves(
     // answers rather than its canonical competitive set.
     add(
       usableDamaging
-        .filter((move) => member.types.includes(move.type))
+        .filter(
+          (move) =>
+            member.types.includes(move.type) && !isFixedDamageMove(move.id),
+        )
         .sort(compareByDamage)[0],
     );
   } else if (movePreference === "utility") {
@@ -1114,7 +1139,12 @@ function recommendCurrentMoves(
   // 4. Fill by damage with type diversity, then bonus utility, then any attack.
   while (selected.length < 4) {
     const freshType = usableDamaging
-      .filter((move) => !coveredTypes.has(move.type) && !isSelected(move, selected))
+      .filter(
+        (move) =>
+          !coveredTypes.has(move.type) &&
+          !isFixedDamageMove(move.id) && // typeless — can't add a fresh type
+          !isSelected(move, selected),
+      )
       .sort(compareByDamage)[0];
     if (add(freshType)) continue;
     if (add(bestUtility(usableUtility, selected))) continue;
@@ -1134,7 +1164,9 @@ function isSelected(move, selected) {
 
 // A move is selectable if it's a usable damaging move, or any non-damaging
 // (status/utility) move — the sleep-gating only restricts attacks like Snore
-// that need the user asleep.
+// that need the user asleep. A mon's canonical top-4 is deliberately NOT
+// second-guessed here: if the meaningful tier's real sets run a move, the
+// recommendation may too.
 function isSelectableMove(move, moves) {
   return isDamagingMove(move) ? isUsableDamagingMove(move, moves) : true;
 }

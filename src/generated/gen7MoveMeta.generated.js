@@ -1612,7 +1612,7 @@ export const MOVE_META = {
     "category": "Status",
     "basePower": 0,
     "priority": 0,
-    "utility": true,
+    "utility": false,
     "accuracy": 100
   },
   "toxic": {
@@ -2286,7 +2286,7 @@ export const MOVE_META = {
     "category": "Status",
     "basePower": 0,
     "priority": 0,
-    "utility": true,
+    "utility": false,
     "accuracy": 100
   },
   "charge": {
@@ -2482,7 +2482,7 @@ export const MOVE_META = {
     "category": "Status",
     "basePower": 0,
     "priority": 0,
-    "utility": true,
+    "utility": false,
     "accuracy": 100
   },
   "kinesis": {
@@ -5893,7 +5893,7 @@ export const MOVE_META = {
     "category": "Status",
     "basePower": 0,
     "priority": 0,
-    "utility": true,
+    "utility": false,
     "accuracy": 100
   },
   "harden": {
@@ -8204,7 +8204,7 @@ export const MOVE_META = {
     "category": "Status",
     "basePower": 0,
     "priority": 0,
-    "utility": true,
+    "utility": false,
     "accuracy": 100
   },
   "splishysplash": {

@@ -55,7 +55,11 @@ const MAX_RESULT_CACHE = 400;
 // v10: fixed-damage honesty, tiebreaker K, pre-evo representative exclusion —
 // three output-changing fixes shipped without a data-signature change, so
 // persisted results from older builds must retire.
-const RESULT_CACHE_VERSION = "10";
+// v11: do-nothing status moves lost their utility flag (Splash-class) and
+// fixed-damage moves count as attacks with live flat coverage — output
+// changes again with no data-signature change. (Hidden Power gating needed
+// no bump: its new progression field changes the progression key itself.)
+const RESULT_CACHE_VERSION = "11";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the

@@ -426,3 +426,49 @@ Invariants the shape encodes (each guarded by fixtures):
   evaluates each type separately and picks the best, and a set carries at
   most ONE Hidden Power. Committed tests cover the gate, the variant
   expansion, and the one-per-set cap.
+- **Do-nothing status moves carry no utility; fixed damage is a first-class
+  attack again** (user report: Lopunny recommended Splash):
+  1. *The actual cause, established by reproduction*: base Lopunny's stitched
+     set index is primary-sourced from Gen 7 ZU @ 1500, where meme Splash
+     sets are real enough for 17.7% move usage; the move-meta generator
+     blanket-flagged every status move as utility; and the UTILITY-preference
+     build ranks utility moves by usage — so Splash out-ranked genuine role
+     moves into the utility build (`return, healingwish, magiccoat, splash`).
+     It was never in the canonical top-4 (Switcheroo / Return / High Jump
+     Kick / Fake Out), and the default and coverage builds never carried it.
+  2. *The fix — generator truth only*: a reviewed do-nothing list (Splash,
+     Celebrate, Hold Hands, Happy Hour, Gen-7 Teleport — no effect in a
+     Gen 7 trainer battle) now gets `utility: false`, so no utility-ranked
+     path (utility build, utility-slot guarantee, bonus-utility fill) can
+     seat them. Splash stays fully LEGAL.
+  3. *Explicit non-fix (user decision)*: the canonical top-4 is NOT gated —
+     a first attempted fix that barred non-valuable moves from the canonical
+     step was reverted. If the meaningful tier's real sets run a move, the
+     recommendation may too; usage stays sovereign for the canonical set,
+     and a committed test locks that in.
+  4. *Latent regression found while investigating*: since the fixed-damage
+     honesty change deleted the fake effective-power table,
+     `isDamagingMove` (base power > 0) had classified Seismic Toss-class
+     moves as NON-attacks — they could only enter sets as if they were
+     status moves, contributed zero coverage (the flat-into-non-immune
+     semantics from the coverage-semantics entry above were dead code on
+     the profile path — Bronzor's Psywave and Gastly's Night Shade carried
+     no offense), and were invisible to the one-attack guarantee.
+     `isDamagingMove` now counts fixed-damage moves; their flat typeless
+     coverage contribution is live; and every type-reasoning site
+     (attack-type summaries, STAB picks, coverage-type sets, gem
+     assignment) explicitly skips them. Improves invariants 3 and 6.
+     Golden drift audited and regenerated: Bronzor 818→853 (Psywave's flat
+     coverage going live) and Gastly 1198→1228 (Night Shade) — the
+     previously-approved fixed-damage coverage semantics finally taking
+     effect on the profile path. No team-seating changes. One recorded O
+     flip inside the Gastly line (1→0.35): both Gengar candidates rose and
+     the Mega Gengar-ceiling candidate (1228, O=0.35 mid-evo readiness
+     toward the mega) now edges the plain-Gengar candidate (1226, O=1) in
+     a near-tie; fielded form (gengar), role, and seating are unchanged,
+     and Night Shade at 25 flat genuinely is the line's hardest hit at
+     cap 25.
+  Committed tests cover the meta flags, the utility build refusing Splash
+  under the real ZU-shaped usage, canonical sovereignty (a top-4 Splash IS
+  kept), and the fixed-damage profile semantics (counts as attack, no attack
+  type, no SE targets, no STAB, flat coverage with Ghost immunity at zero).
