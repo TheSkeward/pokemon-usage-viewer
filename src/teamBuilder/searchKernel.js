@@ -237,12 +237,10 @@ function biasCounterExemption(profile, opponentTypeBias = {}) {
 
 // --- Per-line form options + team comparison -------------------------------
 
+// Score-first, mirroring compareScoredCandidates: the meaningfulUsage boolean
+// no longer outranks score anywhere (usage is informative inside score, never
+// sovereign over it — invariant 1).
 export function compareChoices(a, b) {
-  const meaningfulDiff =
-    Number(Boolean(b.meaningfulUsage)) - Number(Boolean(a.meaningfulUsage));
-
-  if (meaningfulDiff) return meaningfulDiff;
-
   return (
     b.score - a.score ||
     getUsagePercent(b) - getUsagePercent(a) ||

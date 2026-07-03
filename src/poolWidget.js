@@ -31,6 +31,10 @@ import {
 } from "./reborn/progression";
 import { toId } from "./utils/ids.js";
 import { GEN7_HELD_ITEMS_BY_ID } from "./generated/gen7HeldItems.generated.js";
+import {
+  REBORN_EXTRA_INVENTORY_ITEMS,
+  getEvolutionItemIds,
+} from "./reborn/itemAvailability.js";
 import { HIDDEN_INVENTORY_ITEM_IDS } from "./reborn/rebornSeeds";
 import { buildPoolAvailabilityText } from "./teamBuilder/availabilityExport";
 import {
@@ -492,8 +496,11 @@ export function mountPoolOptimizer(container, options = {}) {
     app.querySelector("[data-item-add-button]")?.addEventListener("click", () => {
       const input = app.querySelector("[data-item-add-input]");
       const itemId = toId(input?.value || "");
+      const knownExtra = REBORN_EXTRA_INVENTORY_ITEMS.some(
+        (item) => item.id === itemId,
+      );
 
-      if (!itemId || !GEN7_HELD_ITEMS_BY_ID[itemId]) {
+      if (!itemId || (!GEN7_HELD_ITEMS_BY_ID[itemId] && !knownExtra)) {
         updateProgressionStatusMessage(
           "Item not recognized; pick one from the suggestions.",
         );
@@ -1027,9 +1034,16 @@ function waitForPaint() {
 }
 
 function getProgressionKey(progression) {
-  // Owned items drive recommendations (recomputed every render), not the team
-  // optimization itself, so they must not flag an optimized team as stale.
+  // Ordinary owned items drive item recommendations (recomputed every render),
+  // not the team optimization, so they must not flag an optimized team as
+  // stale. Owned EVOLUTION items are the exception: they zero evolution
+  // friction and override access gates, so adding/removing one must
+  // re-optimize.
   const { ownedItems, ...rest } = progression || {};
-  return JSON.stringify(rest);
+  const evolutionItems = {};
+  for (const id of getEvolutionItemIds()) {
+    if (ownedItems?.[id] > 0) evolutionItems[id] = true;
+  }
+  return JSON.stringify({ ...rest, evolutionItems });
 }
 

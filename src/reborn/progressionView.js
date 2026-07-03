@@ -11,6 +11,7 @@ import {
   REBORN_TMX_OPTIONS,
 } from "./progressionOptions";
 import { EVOLUTION_ACCESS_FIELDS } from "./evolutionRequirements.js";
+import { REBORN_EXTRA_INVENTORY_ITEMS } from "./itemAvailability.js";
 import { MAX_TRACKED_ITEM_COUNT, MAX_OPPONENT_TYPE_BIAS } from "./progression";
 import { HIDDEN_INVENTORY_ITEM_IDS } from "./rebornSeeds";
 import { REBORN_ANALYSIS_TYPES } from "./typeChart.js";
@@ -64,9 +65,9 @@ export function renderRebornProgressionPanel(progression) {
           <small>Egg moves need breeding-chain checks before they count as legal.</small>
         </label>
 
-        <details class="progression-option-group">
-          <summary>Evolution access</summary>
-          <p class="muted">Uncheck methods you can't use yet — affected evolutions become blocked (each pick says which forms it lost) instead of silently assumed. Checked is the default.</p>
+        <details class="progression-option-group evo-access-group">
+          <summary>Evolution access <span class="muted">(checked = you can use it)</span></summary>
+          <p class="muted">Checked means you can use that method now, so evolutions through it count as reachable. Uncheck what you can't use yet — those evolutions become blocked, and each pick lists the forms it lost.</p>
           ${EVOLUTION_ACCESS_FIELDS.map(
             (field) => `
               <label class="checkbox-label">
@@ -168,14 +169,20 @@ function renderBiasRow(type, level) {
 }
 
 function renderItemInventory(ownedItems) {
+  const extrasById = Object.fromEntries(
+    REBORN_EXTRA_INVENTORY_ITEMS.map((item) => [item.id, item]),
+  );
   const ownedIds = Object.keys(ownedItems)
-    .map((id) => GEN7_HELD_ITEMS_BY_ID[id])
+    .map((id) => GEN7_HELD_ITEMS_BY_ID[id] || extrasById[id])
     .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const datalistOptions = GEN7_HELD_ITEMS.filter(
-    (item) => !HIDDEN_INVENTORY_ITEM_IDS.has(item.id),
-  )
+  const datalistOptions = [
+    ...GEN7_HELD_ITEMS.filter(
+      (item) => !HIDDEN_INVENTORY_ITEM_IDS.has(item.id),
+    ),
+    ...REBORN_EXTRA_INVENTORY_ITEMS,
+  ]
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((item) => `<option value="${escapeAttr(item.name)}"></option>`)
     .join("");

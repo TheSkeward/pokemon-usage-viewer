@@ -24,9 +24,14 @@ async function main() {
   }
 }
 
-// Hard floor for "real signal": a tier's usage must be at least 0.1% (a true
-// 0.1, not merely rounding up to it) for the mon to count as meaningful there.
-const MEANINGFUL_USAGE_PERCENT = 0.1;
+// Hard floor for "real signal": a tier's usage must be at least this percent
+// for the mon to count as meaningful there. Sourced from the scoring
+// constants (single knob): the runtime meaningful-usage judgement, the Usage
+// column's first-meaningful tier, and the set-index tier sourcing all move
+// together when it changes — regenerate this index and the set index in the
+// same commit.
+import { SCORING_DEFAULTS } from "../src/teamBuilder/scoringConstants.js";
+const MEANINGFUL_USAGE_PERCENT = SCORING_DEFAULTS.MIN_MEANINGFUL_USAGE_PERCENT;
 
 async function buildFamilyAllIndex(availability, family) {
   const { resolved: usageByPokemon, ranking: rankingByPokemon } =

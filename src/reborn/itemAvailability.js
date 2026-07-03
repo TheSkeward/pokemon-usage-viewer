@@ -49,6 +49,20 @@ const ITEM_AVAILABILITY = {
   everstone: { status: "farmable-tedious", source: "Reborn mining" },
 };
 
+// Reborn-only inventory items that aren't in the Gen 7 held-items list but
+// belong in the owned-items tracker (owning one zeroes the matching evolution
+// friction and overrides its access gate).
+export const REBORN_EXTRA_INVENTORY_ITEMS = Object.freeze([
+  { id: "linkstone", name: "Link Stone" },
+]);
+
+// Every item id that participates in evolution requirements — owning one of
+// THESE changes optimization results (friction/access), unlike ordinary held
+// items, so progression-staleness checks must watch them.
+export function getEvolutionItemIds() {
+  return Object.keys(ITEM_AVAILABILITY);
+}
+
 export function getItemAvailability(itemName) {
   const id = String(itemName || "")
     .toLowerCase()

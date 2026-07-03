@@ -721,6 +721,25 @@ input {
   width: auto;
 }
 
+/* Evolution-access toggles: checkbox stays beside its label, long labels wrap
+   WITHIN their own column instead of dropping below the box. */
+.evo-access-group .checkbox-label {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  min-height: 0;
+  margin: 0.35rem 0;
+}
+
+.evo-access-group .checkbox-label input {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+}
+
+.evo-access-group .checkbox-label span {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .progression-grid .checkbox-label small {
   flex-basis: 100%;
   margin-left: 1.45rem;

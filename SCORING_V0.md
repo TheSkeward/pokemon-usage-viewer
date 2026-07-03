@@ -306,3 +306,45 @@ Invariants the shape encodes (each guarded by fixtures):
   Progression panel. Committed test: Nosepass fields Probopass by default and
   Nosepass (with Probopass listed as blocked, reason naming the gate) when
   magnetic-field access is off, end-to-end through the optimizer.
+- **Usage sovereignty removed; friction made player-state-aware; meaningful
+  bar to 1%** (user challenged the Kadabra/Alakazam flip — "if not for being
+  propped up by usage, Kadabra was outscoring Alakazam?? I want to understand
+  and solve whatever was causing this"):
+  1. *Diagnosis*: Kadabra genuinely outscored Alakazam 1681 vs 1398 at badge
+     4 / cap 45 — Alakazam's C lead is only ~107 points (both saturate the
+     stage-relative percentiles; the extra 15 SpA / 15 Speed is mostly
+     overkill at that stage) while its Link Stone costs K=390. The old
+     `meaningfulUsage`-FIRST comparator silently seated Alakazam anyway
+     because 0.13% usage cleared the 0.1% bar and Kadabra's 0.002% didn't —
+     a lexicographic usage boolean overriding the entire value model is
+     exactly what invariant 1 forbids.
+  2. *Fix (comparators)*: `compareScoredCandidates` and `compareChoices` are
+     score-first; usage breaks exact ties only. Usage still speaks INSIDE
+     score (U, bias) — informative, never sovereign.
+  3. *Fix (friction honesty)*: evolution items tracked in the owned-items
+     inventory zero their step's acquisition friction and override their
+     access gate ("Link Stone (owned)" in the proof) — friction models the
+     grind of GETTING the item, and an owned item is already in the bag. Link
+     Stone added to the inventory picker (REBORN_EXTRA_INVENTORY_ITEMS). With
+     a Link Stone owned, Alakazam (C 1788, K 0) beats Kadabra again — the
+     verdict now tracks the player's actual state instead of a usage artifact.
+  4. *Bar to 1% everywhere*: `MIN_MEANINGFUL_USAGE_PERCENT` = 1 is now safe
+     (no comparator gate) and single-sourced: `build-resolver-index.mjs`
+     imports it, so `bundle.ranking` (Usage column, U-ceiling ranking, bench
+     tiers) and the set-index tier sourcing regenerate at ≥1% — a mon shows
+     "trace" only when NO tier reaches 1%. TRACE_USAGE_PERCENT (the interim
+     display-only split) is removed. Goldens regenerated: representatives may
+     legitimately shift where a boolean previously overrode score, and sets
+     now source from first-≥1% tiers.
+  Guarded by `test/validate/usage-sovereignty.test.mjs`: every line's
+  representative must be its highest-scoring candidate, and an owned Link
+  Stone must zero trade friction and flip the Abra line to Alakazam.
+  Observed golden drift, audited fixture by fixture: midgame-broad fields
+  Kadabra for the Abra line (the diagnosed case — no Link Stone owned in the
+  fixture gamestate); item-friendship-evos seats Growlithe→Arcanine and
+  fields Poliwhirl over Poliwag (score-first comparison letting evolved forms
+  win where the usage boolean previously vetoed their trace usage — their
+  SCORES always won); all other drift is score-only (−52 to +79) from
+  ≥1%-tier set sourcing and the U-ranking floor. Every fixture's own
+  invariant expectations (must-seat / must-not-seat / role / form arrays)
+  passed before regeneration.

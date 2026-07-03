@@ -41,6 +41,17 @@ export const EVOLUTION_ACCESS_FIELDS = Object.freeze([
   { key: "evoAccessOtherLocations", label: "Other special locations (Crabominable)" },
 ]);
 
+// How many of `itemName` the player tracked as owned (progression.ownedItems,
+// keyed by normalized id). An owned evolution item removes BOTH the access
+// gate and the acquisition friction for its step — it's in the bag.
+function ownedItemCount(access, itemName) {
+  if (!access?.ownedItems) return 0;
+  const id = String(itemName || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+  return id ? access.ownedItems[id] || 0 : 0;
+}
+
 // The access gate a requirement depends on, or null when none applies.
 function requiredAccessKeys(evoType, condition, species) {
   if (evoType === "levelFriendship") return ["evoAccessFriendship"];
@@ -90,10 +101,20 @@ export function getEvolutionRequirement(species, access = null) {
 
   // Access gate first: a method the player can't use yet is BLOCKED — a
   // concrete, user-stated fact that outranks the friction model. Surfaced,
-  // never silent.
+  // never silent. Owning the required item overrides its gate (a Thunder
+  // Stone in the bag works even if stones "aren't accessible yet").
   if (access) {
     const denied = requiredAccessKeys(evoType, condition, species).find(
-      (key) => access[key] === false,
+      (key) => {
+        if (access[key] !== false) return false;
+        if (key === "evoAccessStones" && ownedItemCount(access, species.evoItem)) {
+          return false;
+        }
+        if (key === "evoAccessLinkStone" && ownedItemCount(access, "Link Stone")) {
+          return false;
+        }
+        return true;
+      },
     );
     if (denied) {
       const label =
@@ -174,7 +195,14 @@ export function getEvolutionRequirement(species, access = null) {
         reason: "item evolution with no recorded item",
       };
     }
-    const unknown = parts.find((part) => part.status === "unknown");
+    // Owned items are settled facts — mark them before the availability check
+    // so "availability unknown" can't block an item that's already in the bag.
+    for (const part of parts) {
+      if (ownedItemCount(access, part.item)) part.owned = true;
+    }
+    const unknown = parts.find(
+      (part) => part.status === "unknown" && !part.owned,
+    );
     if (unknown) {
       return {
         status: "unknown",
@@ -185,6 +213,9 @@ export function getEvolutionRequirement(species, access = null) {
       };
     }
     for (const part of parts) {
+      // An owned item costs nothing to "acquire" — friction models the grind
+      // of getting it, and it's already in the bag.
+      if (part.owned) continue;
       const base =
         evoType === "trade" && part.item === "Link Stone"
           ? tunable("TRADE_FRICTION")
@@ -195,7 +226,11 @@ export function getEvolutionRequirement(species, access = null) {
           : base;
     }
     const how = parts
-      .map((part) => `${part.item} (${part.status}: ${part.source})`)
+      .map((part) =>
+        part.owned
+          ? `${part.item} (owned)`
+          : `${part.item} (${part.status}: ${part.source})`,
+      )
       .join(" + ");
     return {
       status: "legal",

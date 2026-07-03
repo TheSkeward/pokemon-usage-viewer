@@ -10,9 +10,7 @@ import { tunable } from "./scoringConstants.js";
 // Sourced from the constants module (single home for every judgement default;
 // this was previously duplicated here as a hardcoded 0.1 while the
 // scoringConstants entry was dead). Snapshotted at module load — it is not a
-// confidence-sweep axis, so late overrides don't need to reach it. This is
-// the SCORING gate; the row-note "trace" label uses the separate (higher)
-// TRACE_USAGE_PERCENT display threshold.
+// confidence-sweep axis, so late overrides don't need to reach it.
 export const MIN_MEANINGFUL_USAGE_PERCENT = tunable(
   "MIN_MEANINGFUL_USAGE_PERCENT",
 );
@@ -249,12 +247,14 @@ function getReadinessGate(profile, features) {
   return ladder[step];
 }
 
+// Score-first, no boolean gates. `meaningfulUsage` used to be the primary key
+// and that made usage SOVEREIGN over the whole value model (invariant 1
+// violation) — measured: Kadabra outscored Alakazam 1681 vs 1398 (Link Stone
+// friction exceeding the stage-compressed C gap), and the boolean silently
+// seated Alakazam anyway because 0.13% usage cleared the old bar while
+// Kadabra's 0.002% didn't. Usage already speaks inside score (U, bias);
+// here it only breaks exact ties.
 export function compareScoredCandidates(a, b) {
-  const meaningfulDiff =
-    Number(Boolean(b.meaningfulUsage)) - Number(Boolean(a.meaningfulUsage));
-
-  if (meaningfulDiff) return meaningfulDiff;
-
   return (
     b.score - a.score ||
     (b.usagePercent || 0) - (a.usagePercent || 0) ||
