@@ -63,6 +63,44 @@ const NATURE_ATTACK_MULTIPLIERS = {
   careful: { spa: 0.9 }, // +SpD
 };
 
+// Typical uninvested HP at a level (median base HP ≈ 70 across the dex, IV 31)
+// — the defender that fraction-of-HP moves (Super Fang) are scored against,
+// matching the base-70 neutral-wall convention used for defenses.
+const REFERENCE_HP_BASE = 70;
+export function referenceHp(level) {
+  const lvl = normalizeLevel(level);
+  return Math.floor(((2 * REFERENCE_HP_BASE + 31) * lvl) / 100) + lvl + 10;
+}
+
+// True damage of fixed/fractional moves at a level. These ignore the user's
+// stats, STAB, and items in-game, so faking them as base-power equivalents
+// (the old FIXED_DAMAGE_EFFECTIVE_POWER table) overrated them wildly at low
+// caps — a lvl-25 Seismic Toss deals exactly 25, not "60 BP with STAB" (=90).
+// Returns null when the move isn't one of these.
+export function fixedMoveDamage(moveId, level) {
+  const lvl = normalizeLevel(level);
+  switch (moveId) {
+    case "seismictoss":
+    case "nightshade":
+      return lvl;
+    case "psywave":
+      return Math.round(lvl * 0.75); // uniform 0.5x–1.5x the user's level
+    case "sonicboom":
+      return 20;
+    case "dragonrage":
+      return 40;
+    case "superfang":
+    case "naturemadness":
+      return Math.round(referenceHp(lvl) / 2); // half a typical body's HP
+    case "guardianofalola":
+      return Math.round(referenceHp(lvl) * 0.75);
+    case "finalgambit":
+      return referenceHp(lvl); // ≈ the user's own full HP
+    default:
+      return null;
+  }
+}
+
 export function normalizeLevel(levelCap) {
   const parsed = Number.parseInt(levelCap, 10);
   if (!Number.isFinite(parsed)) return DEFAULT_LEVEL;
@@ -123,11 +161,11 @@ export function getAttackingStats({ pokemonId, levelCap, spread }) {
 }
 
 // Estimated unresisted damage for one move. Fixed-damage moves (Seismic Toss,
-// Night Shade, ...) deliberately skip stat scaling — they ignore the user's
-// offensive stat, so a weak attacker still gets full value from them.
+// Night Shade, ...) use their REAL in-game damage at the attacker's level —
+// no stats, no STAB, no item boosts, exactly as the games compute them.
 export function estimateMoveDamage({
+  moveId = null,
   basePower,
-  effectivePower,
   category,
   type,
   attackerTypes = [],
@@ -139,13 +177,11 @@ export function estimateMoveDamage({
   const stab = abilityStab(ability, attackerTypes, type);
   const lvl = normalizeLevel(level ?? attackerStats?.level);
 
-  // No real base power -> fixed-damage move: treat its effective power as a flat
-  // damage proxy (stat-independent) so it stays comparable without being tanked
-  // by a low offensive stat. Item boosts (Life Orb, type items, ...) don't apply
-  // to fixed-damage moves like Seismic Toss in-game, so they're skipped here too.
-  if (!basePower) {
-    return Math.round((effectivePower || 0) * stab);
-  }
+  const fixed = fixedMoveDamage(moveId, lvl);
+  if (fixed != null) return fixed;
+
+  // No base power and not a known fixed-damage move: nothing to estimate.
+  if (!basePower) return 0;
 
   if (!attackerStats) return Math.round(basePower * stab * itemMultiplier);
 

@@ -908,11 +908,13 @@ function getEstimatedDamage(move, member, attackerStats) {
 
 function computeEstimatedDamage(move, member, attackerStats) {
   const perHit = estimateMoveDamage({
+    // Fixed-damage moves (Seismic Toss, Super Fang, ...) are resolved by id
+    // inside the model at their REAL in-game damage for the attacker's level.
+    moveId: move.id,
     // Scale base power by the move's effective-hit factor (multi-hit average,
     // recharge amortization, escalating-move weighting), so ranking and the
     // shown estimate reflect a turn's real output, not a single hit.
     basePower: move.basePower * getEffectiveHitMultiplier(move),
-    effectivePower: getMovePower(move),
     category: move.category,
     type: move.type,
     attackerTypes: member.types,
@@ -943,7 +945,9 @@ function getAccuracyFactor(move) {
 }
 
 function getMovePower(move) {
-  return move.basePower || FIXED_DAMAGE_EFFECTIVE_POWER[move.id] || 0;
+  // Fixed-damage moves have no base power; their real damage lives in the
+  // estimatedDamage field (damageModel.fixedMoveDamage), not here.
+  return move.basePower || 0;
 }
 
 // Escalating multi-turn moves whose effective power isn't a simple multi-hit or
@@ -1288,15 +1292,4 @@ const UTILITY_MOVE_WEIGHTS = {
   lightscreen: 65,
 };
 
-const FIXED_DAMAGE_EFFECTIVE_POWER = {
-  dragonrage: 80,
-  finalgambit: 80,
-  guardianofalola: 80,
-  naturemadness: 80,
-  nightshade: 60,
-  psywave: 60,
-  seismictoss: 60,
-  sonicboom: 40,
-  superfang: 90,
-};
 

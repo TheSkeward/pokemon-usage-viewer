@@ -105,3 +105,59 @@ test("Libero is inert (Gen-8 ability; vanilla Reborn is Gen-7)", () => {
   });
   assert.equal(libero, plain);
 });
+
+// --- Fixed-damage moves: real in-game damage, not base-power fictions --------
+// (User-reported: a lvl-25 Mankey was recommended Seismic Toss because the old
+// model priced it as a 60-BP STAB attack — 90 flat at any level.)
+test("Seismic Toss / Night Shade deal exactly the user's level, no STAB", async () => {
+  const { fixedMoveDamage } = await import("../src/reborn/damageModel.js");
+  assert.equal(fixedMoveDamage("seismictoss", 25), 25);
+  assert.equal(fixedMoveDamage("nightshade", 25), 25);
+  const viaEstimate = estimateMoveDamage({
+    moveId: "seismictoss",
+    basePower: 0,
+    category: "Physical",
+    type: "Fighting",
+    attackerTypes: ["Fighting"], // STAB must NOT apply
+    attackerStats: { level: 25, atk: 999, spa: 999 }, // stats must NOT apply
+    itemMultiplier: 1.3, // items must NOT apply
+  });
+  assert.equal(viaEstimate, 25);
+});
+
+test("Super Fang halves a typical body at the level; flat moves stay flat", async () => {
+  const { fixedMoveDamage, referenceHp } = await import(
+    "../src/reborn/damageModel.js"
+  );
+  // Reference defender at 25: floor(171*25/100) + 25 + 10 = 77 HP → 39 (rounded).
+  assert.equal(referenceHp(25), 77);
+  assert.equal(fixedMoveDamage("superfang", 25), 39);
+  // Scales with level, unlike the old flat "90 BP" fiction.
+  assert.ok(fixedMoveDamage("superfang", 75) > 2 * fixedMoveDamage("superfang", 25));
+  assert.equal(fixedMoveDamage("dragonrage", 25), 40);
+  assert.equal(fixedMoveDamage("sonicboom", 25), 20);
+  assert.equal(fixedMoveDamage("tackle", 25), null);
+});
+
+test("a real STAB attack outdamages Seismic Toss on a decent attacker at low caps", () => {
+  // Mankey-ish at 25: Karate Chop (50 BP, Fighting STAB) vs Seismic Toss (25).
+  const karateChop = estimateMoveDamage({
+    basePower: 50,
+    category: "Physical",
+    type: "Fighting",
+    attackerTypes: ["Fighting"],
+    attackerStats: { level: 25, atk: 60, spa: 30 },
+  });
+  const seismicToss = estimateMoveDamage({
+    moveId: "seismictoss",
+    basePower: 0,
+    category: "Physical",
+    type: "Fighting",
+    attackerTypes: ["Fighting"],
+    attackerStats: { level: 25, atk: 60, spa: 30 },
+  });
+  assert.ok(
+    karateChop > seismicToss,
+    `Karate Chop ${karateChop} should beat Seismic Toss ${seismicToss} at cap 25 on a real attacker`,
+  );
+});
