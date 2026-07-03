@@ -3,6 +3,20 @@ name: Build and deploy Pokémon usage viewer
 on:
   push:
     branches: [main]
+    # Only redeploy when the published site can actually change. Every deploy
+    # re-syncs the full multi-GB data payload to Pages (the flaky part), so
+    # test-only / docs-only commits shouldn't roll those dice.
+    paths:
+      - "src/**"
+      - "public/**"
+      - "site-data/**"
+      - "scripts/**"
+      - "index.html"
+      - "pool.html"
+      - "vite.config.js"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
     inputs:
       refresh_data:
