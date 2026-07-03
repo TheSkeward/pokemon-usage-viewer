@@ -2,6 +2,7 @@ import { escapeHtml, escapeAttr } from "../utils/html.js";
 import { renderMovesetPanel } from "../views/movesetView";
 import { renderRebornLegalMovesPanel } from "../reborn/legalMovesView";
 import { renderRebornProgressionPanel } from "../reborn/progressionView";
+import { detailsStateAttrs } from "../utils/detailsState.js";
 import { renderRebornTeamAnalysisPanel } from "../reborn/teamAnalysisView";
 import { getCurrentRebornSpeciesForChoice } from "../reborn/currentSpecies.js";
 import { teamMemberKey } from "./itemRecommendations";
@@ -476,7 +477,7 @@ function renderTelemetryDetails() {
     lastRunLine = "";
   }
   return `
-    <details class="muted" style="font-size: 0.85em">
+    <details class="muted" style="font-size: 0.85em" ${detailsStateAttrs("telemetry", false)}>
       <summary>Performance (${summary.total} run${summary.total === 1 ? "" : "s"} on this build${summary.cores ? `, ${summary.cores} cores` : ""})</summary>
       <table>
         <thead>

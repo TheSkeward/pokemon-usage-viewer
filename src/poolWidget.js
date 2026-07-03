@@ -30,6 +30,7 @@ import {
   updateRebornProgressionOption,
 } from "./reborn/progression";
 import { toId } from "./utils/ids.js";
+import { bindPersistentDetails } from "./utils/detailsState.js";
 import { GEN7_HELD_ITEMS_BY_ID } from "./generated/gen7HeldItems.generated.js";
 import {
   REBORN_EXTRA_INVENTORY_ITEMS,
@@ -365,6 +366,10 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 
   function bindEvents() {
+    // <details> groups (evolution access, TMs, items…) re-render on every
+    // optimizer run; persist the user's open/closed toggles across renders.
+    bindPersistentDetails(app);
+
     app
       .querySelector("#family-input")
       ?.addEventListener("change", async (event) => {

@@ -708,10 +708,12 @@ input {
   max-width: 12rem;
 }
 
+/* Checkbox stays beside its label; long labels wrap WITHIN the text span
+   instead of dropping the box onto its own line. */
 .progression-grid .checkbox-label {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
+  align-items: flex-start;
+  flex-wrap: nowrap;
   gap: 0.55rem;
   align-self: end;
   min-height: 2.4rem;
@@ -719,6 +721,17 @@ input {
 
 .progression-grid .checkbox-label input {
   width: auto;
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+}
+
+.progression-grid .checkbox-label > span {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.progression-grid .checkbox-label > .info-tip {
+  flex: 0 0 auto;
 }
 
 /* Evolution-access toggles: checkbox stays beside its label, long labels wrap
@@ -740,10 +753,11 @@ input {
   min-width: 0;
 }
 
-.progression-grid .checkbox-label small {
-  flex-basis: 100%;
-  margin-left: 1.45rem;
+/* Hover marker for controls whose explanation lives in a title tooltip. */
+.info-tip {
   color: var(--muted);
+  cursor: help;
+  font-size: 0.85em;
 }
 
 .progression-rules {

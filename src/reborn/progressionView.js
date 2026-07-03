@@ -1,4 +1,5 @@
 import { escapeHtml, escapeAttr } from "../utils/html.js";
+import { detailsStateAttrs } from "../utils/detailsState.js";
 import {
   REBORN_MOVE_LEGALITY_BASE,
   REBORN_PROGRESSION_NOTES,
@@ -55,40 +56,44 @@ export function renderRebornProgressionPanel(progression) {
           <span>Move relearner unlocked</span>
         </label>
 
-        <label class="checkbox-label">
+        <label class="checkbox-label" title="Egg moves need breeding-chain checks before they count as legal.">
           <input
             data-progression-field="daycareUnlocked"
             type="checkbox"
             ${progression.daycareUnlocked ? "checked" : ""}
           />
           <span>Daycare unlocked</span>
-          <small>Egg moves need breeding-chain checks before they count as legal.</small>
+          <span class="info-tip" aria-hidden="true">ⓘ</span>
         </label>
 
-        <label class="checkbox-label">
+        <label class="checkbox-label" title="Until the Type Changer, Hidden Power's type is random per caught mon, so it isn't recommended; once unlocked every type is evaluated and the best one is picked.">
           <input
             data-progression-field="hiddenPowerTypeChangerUnlocked"
             type="checkbox"
             ${progression.hiddenPowerTypeChangerUnlocked ? "checked" : ""}
           />
           <span>Hidden Power Type Changer unlocked</span>
-          <small>Until then Hidden Power's type is random per mon, so it isn't recommended; once unlocked every type is evaluated and the best one is picked.</small>
+          <span class="info-tip" aria-hidden="true">ⓘ</span>
         </label>
 
-        <details class="progression-option-group evo-access-group">
-          <summary>Evolution access <span class="muted">(checked = you can use it)</span></summary>
-          <p class="muted">Checked means you can use that method now, so evolutions through it count as reachable. Uncheck what you can't use yet — those evolutions become blocked, and each pick lists the forms it lost.</p>
-          ${EVOLUTION_ACCESS_FIELDS.map(
-            (field) => `
-              <label class="checkbox-label">
-                <input
-                  data-progression-field="${escapeAttr(field.key)}"
-                  type="checkbox"
-                  ${progression[field.key] === false ? "" : "checked"}
-                />
-                <span>${escapeHtml(field.label)}</span>
-              </label>`,
-          ).join("")}
+        <details class="progression-option-group wide-control evo-access-group" ${detailsStateAttrs("evo-access", false)}>
+          <summary title="Checked means you can use that method now, so evolutions through it count as reachable. Uncheck what you can't use yet — those evolutions become blocked, and each pick lists the forms it lost.">
+            <span>Evolution access <span class="muted">(checked = you can use it)</span></span>
+            <span class="info-tip" aria-hidden="true">ⓘ</span>
+          </summary>
+          <div class="progression-checklist evo-access-checklist">
+            ${EVOLUTION_ACCESS_FIELDS.map(
+              (field) => `
+                <label class="checkbox-label">
+                  <input
+                    data-progression-field="${escapeAttr(field.key)}"
+                    type="checkbox"
+                    ${progression[field.key] === false ? "" : "checked"}
+                  />
+                  <span>${escapeHtml(field.label)}</span>
+                </label>`,
+            ).join("")}
+          </div>
         </details>
 
         ${renderOptionGroup({
@@ -96,6 +101,7 @@ export function renderRebornProgressionPanel(progression) {
           options: REBORN_TM_OPTIONS,
           selectedIds: progression.availableTmIds,
           summary: "Available TMs",
+          detailsId: "tms",
         })}
 
         ${renderOptionGroup({
@@ -103,6 +109,7 @@ export function renderRebornProgressionPanel(progression) {
           options: REBORN_TMX_OPTIONS,
           selectedIds: progression.availableTmxIds,
           summary: "Available TMXs",
+          detailsId: "tmxs",
         })}
 
         ${renderOptionGroup({
@@ -110,6 +117,7 @@ export function renderRebornProgressionPanel(progression) {
           groups: REBORN_TUTOR_GROUPS,
           selectedIds: progression.availableTutorMoveIds,
           summary: "Available tutors",
+          detailsId: "tutors",
         })}
 
         ${renderItemInventory(progression.ownedItems || {})}
@@ -117,7 +125,7 @@ export function renderRebornProgressionPanel(progression) {
         ${renderOpponentTypeBias(progression.opponentTypeBias || {})}
       </div>
 
-      <details class="progression-rules">
+      <details class="progression-rules" ${detailsStateAttrs("rules", false)}>
         <summary>Reborn legality assumptions</summary>
         <ul>
           <li>Base: ${escapeHtml(REBORN_MOVE_LEGALITY_BASE.baseGames)} learnsets.</li>
@@ -142,7 +150,7 @@ function renderOpponentTypeBias(bias) {
   ).length;
 
   return `
-    <details class="progression-option-group wide-control opponent-bias-group">
+    <details class="progression-option-group wide-control opponent-bias-group" ${detailsStateAttrs("bias", false)}>
       <summary>
         <span>Opponent type bias</span>
         <span class="progression-option-count">${activeCount} active</span>
@@ -204,7 +212,7 @@ function renderItemInventory(ownedItems) {
     : '<p class="muted">No held items added yet. Search above to add what you own.</p>';
 
   return `
-    <details class="progression-option-group wide-control" open>
+    <details class="progression-option-group wide-control" ${detailsStateAttrs("items", true)}>
       <summary>
         <span>Held items owned</span>
         <span class="progression-option-count">${ownedIds.length} tracked</span>
@@ -262,6 +270,7 @@ function renderOptionGroup({
   options = [],
   selectedIds = [],
   summary,
+  detailsId,
 }) {
   const selected = new Set(selectedIds);
   const uniqueOptions = groups ? getUniqueGroupOptions(groups) : options;
@@ -271,7 +280,7 @@ function renderOptionGroup({
   );
 
   return `
-    <details class="progression-option-group wide-control" open>
+    <details class="progression-option-group wide-control" ${detailsStateAttrs(detailsId || field, true)}>
       <summary>
         <span>${escapeHtml(summary)}</span>
         <span class="progression-option-count">${selectedCount}/${uniqueOptions.length} selected</span>
