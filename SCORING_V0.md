@@ -256,13 +256,21 @@ Invariants the shape encodes (each guarded by fixtures):
 - **Sweep form-collapse: the actual whale** (CPU profile after the trims above
   barely moved the needle): 97% of sweep time was `bestAssignmentForLines` ×
   `fastTeamFit` — the per-combination cartesian re-assignment of every line's
-  FORM options, paid on all C(20,6) combinations of every setting. The sweep's
-  question is which INPUT mons seat, and each line's per-setting form is
-  already re-picked by rescoring — so sweep lines now collapse to their
-  rescored best (+ the non-mega fallback), removing the cartesian product.
-  Measured: 24-mon sweep 339s → 2.8s in Node (121×); fidelity cost is that a
-  sweep setting can no longer switch a line's form for team-context reasons —
-  acceptable inside an approximation that already runs exact-on-shortlist-20.
-  Confidence-investment fixture and committed tiers unchanged. The production
-  search keeps full per-combination form assignment (exactness there is a
-  promise).
+  FORM options, paid on all C(20,6) combinations of every setting. Sweep lines
+  now hand the search ONE form, removing the cartesian product. Measured:
+  24-mon sweep 339s → 2.8s, 65-mon 816s → 8.5s in Node (~100×). The
+  production search keeps full per-combination form assignment (exactness
+  there is a promise).
+  CORRECTION caught by re-tiering the real 65-mon pool: the first version
+  fixed each line to its BASELINE best form rescored, so settings that perturb
+  form choice — friction above all — read as "the line drops" instead of "the
+  line downgrades a form" (Gastly went core→fragile because friction-heavy
+  could no longer field Haunter instead of Link-Stone Gengar). The collapse
+  therefore re-picks the representative form PER SETTING across all rescored
+  form options (deterministic: teamScore, then pokemonId); what the sweep
+  gives up is only per-TEAM-CONTEXT form switching. On the 65-mon pool this
+  recovers the friction distortion (Gastly core again; sweep 4.5s); residual
+  one-tier drift remains vs the full-form sweep on near-threshold mons
+  (Eevee likely→flex, Poliwag core→likely, Magikarp flex→fragile, Cottonee
+  likely→fragile) — raw seat-frequency comparison pending, recorded in the
+  next entry. Fixture green.

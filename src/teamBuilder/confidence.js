@@ -170,12 +170,15 @@ export async function computeTeamConfidence({
 // carry the line. Clones everything it touches so sweep state never leaks.
 function rescoreLine(line, context) {
   const clone = { ...line, _choiceOptions: undefined };
-  // The sweep collapses each line to its rescored best form (+ the non-mega
-  // fallback getLineChoiceOptions derives from best/bestNonMega): per-team
-  // form re-assignment is the search's cartesian hot loop (profiled at ~97%
-  // of sweep time — bestAssignmentForLines × fastTeamFit over every form
-  // product of every combination), and the sweep's question is which INPUT
-  // mons seat, with the per-setting form choice already made by rescoring.
+  // The sweep collapses each line to ONE form for the search: per-team form
+  // re-assignment is the search's cartesian hot loop (profiled at ~97% of
+  // sweep time — bestAssignmentForLines × fastTeamFit over every form product
+  // of every combination), and the sweep's question is which INPUT mons seat.
+  // But the form is re-picked PER SETTING from the rescored options below —
+  // under "friction-heavy" a line must be able to field Haunter instead of
+  // Link-Stone Gengar and keep its seat, or friction-ish settings read as
+  // "drops the line" and the tier collapses to fragile (observed on a real
+  // 65-mon pool when the collapse fixed the baseline form instead).
   clone.choiceOptions = undefined;
   const rescoreChoice = (choice) => {
     if (!choice || !choice.legalityProfile) return choice;
@@ -211,7 +214,28 @@ function rescoreLine(line, context) {
     }
     return rescored;
   };
-  clone.best = rescoreChoice(line.best);
-  clone.bestNonMega = rescoreChoice(line.bestNonMega);
+  // Re-pick the representative FORM under this setting across every rescored
+  // form option (deterministic: teamScore, then score, then pokemonId).
+  const rescoredForms = new Map();
+  for (const option of [line.best, line.bestNonMega, ...(line.choiceOptions || [])]) {
+    if (option && !rescoredForms.has(option.pokemonId)) {
+      rescoredForms.set(option.pokemonId, rescoreChoice(option));
+    }
+  }
+  const better = (a, b) => {
+    if (!b) return true;
+    const aScore = a.teamScore ?? a.score ?? -Infinity;
+    const bScore = b.teamScore ?? b.score ?? -Infinity;
+    if (aScore !== bScore) return aScore > bScore;
+    return String(a.pokemonId) < String(b.pokemonId);
+  };
+  let best = null;
+  let bestNonMega = null;
+  for (const option of rescoredForms.values()) {
+    if (better(option, best)) best = option;
+    if (!option.isMega && better(option, bestNonMega)) bestNonMega = option;
+  }
+  clone.best = best;
+  clone.bestNonMega = bestNonMega;
   return clone;
 }
