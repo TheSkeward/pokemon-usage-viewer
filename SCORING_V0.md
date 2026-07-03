@@ -291,3 +291,18 @@ Invariants the shape encodes (each guarded by fixtures):
   — candidateScoring now reads it from the constants module instead of a
   hardcoded duplicate), and the new `TRACE_USAGE_PERCENT` (1) drives only the
   row-note "trace usage" label. Zero golden drift.
+- **Evolution-method access gates** (user request — Probopass was recommended
+  while the magnetic field area is locked behind Shade's gym / the Yureyal
+  key): seven flat progression booleans (`evoAccess*`: friendship/affection,
+  stones & held items, Link Stone, magnetic field, Moss Rock, Ice Rock, other
+  special locations) gate `getEvolutionRequirement`. An explicit `false`
+  makes the evolution BLOCKED — surfaced in blockedEvolutions and the
+  explanation layer, never silent — instead of legal-with-friction; absent
+  fields mean accessible, so old saved progressions and every existing
+  fixture behave identically (zero golden drift). Trade-with-item evolutions
+  require both the Link Stone and the item gate. Access rides the progression
+  object, so cache keys (contextSig) separate gated and ungated runs
+  automatically. UI: an "Evolution access" checkbox group in the Reborn
+  Progression panel. Committed test: Nosepass fields Probopass by default and
+  Nosepass (with Probopass listed as blocked, reason naming the gate) when
+  magnetic-field access is off, end-to-end through the optimizer.

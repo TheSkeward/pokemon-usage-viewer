@@ -15,11 +15,12 @@ export function getCurrentRebornSpeciesForChoice(choice, progression = {}) {
     inputId,
     levelCap: normalizeLevelCap(progression.levelCap),
     representativeId,
+    access: progression,
   });
 
   if (!current) return null;
 
-  const proof = evolutionChainProof(current.id);
+  const proof = evolutionChainProof(current.id, progression);
   // "The representative lies AHEAD of the current form" — true only when the
   // current form is an ancestor of the representative (Frogadier → Greninja).
   // When the representative is a PRE-evolution of the current form (a Noivern
@@ -54,6 +55,7 @@ export function getCurrentRebornSpecies(pokemonId, progression = {}) {
     inputId,
     levelCap: normalizeLevelCap(progression.levelCap),
     representativeId: "",
+    access: progression,
   });
 
   if (!current) return null;
@@ -67,11 +69,11 @@ export function getCurrentRebornSpecies(pokemonId, progression = {}) {
   };
 }
 
-function getBestLevelReachableSpecies({ inputId, levelCap, representativeId }) {
+function getBestLevelReachableSpecies({ inputId, levelCap, representativeId, access = null }) {
   const input = GEN7_PROGRESSION_SPECIES[inputId];
   if (!input) return null;
 
-  const { reachable, blocked } = collectReachableSpecies(input.id, levelCap);
+  const { reachable, blocked } = collectReachableSpecies(input.id, levelCap, access);
   if (!reachable.length) return { ...input, blockedEvolutions: blocked };
 
   const representativeLine = representativeId
@@ -91,7 +93,7 @@ function getBestLevelReachableSpecies({ inputId, levelCap, representativeId }) {
 // Every form reachable from the input under the evolution-requirement rules
 // (legal-with-friction), plus the evolutions that were NOT taken because their
 // requirements are unknown — kept for surfacing, never silently dropped.
-function collectReachableSpecies(inputId, levelCap) {
+function collectReachableSpecies(inputId, levelCap, access = null) {
   const input = GEN7_PROGRESSION_SPECIES[inputId];
   if (!input) return { reachable: [], blocked: [] };
 
@@ -109,7 +111,7 @@ function collectReachableSpecies(inputId, levelCap) {
     for (const evoId of current.evos || []) {
       const evo = GEN7_PROGRESSION_SPECIES[evoId];
       if (!evo || evo.isMega) continue;
-      const requirement = getEvolutionRequirement(evo);
+      const requirement = getEvolutionRequirement(evo, access);
       if (requirement.status !== "legal") {
         blocked.push({ from: current.id, to: evo.id, reason: requirement.reason });
         continue;

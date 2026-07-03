@@ -24,11 +24,53 @@ import { tunable } from "../teamBuilder/scoringConstants.js";
 
 const TEDIOUS_MULTIPLIER = 1.5;
 
+// Player-facing access gates: which SPECIAL evolution methods the player can
+// currently use (Reborn locks them behind story/area unlocks — the magnetic
+// field lives behind Shade's gym via the Yureyal key, stones drip in over
+// badges, the Link Stone is a mid-game purchase). Each maps a requirement to
+// a flat boolean progression field; an ABSENT field means accessible (so old
+// saved progressions and tests behave exactly as before), an explicit `false`
+// blocks the evolution — surfaced in blockedEvolutions, never silent.
+export const EVOLUTION_ACCESS_FIELDS = Object.freeze([
+  { key: "evoAccessFriendship", label: "Friendship / affection evolutions" },
+  { key: "evoAccessStones", label: "Evolution stones & held items" },
+  { key: "evoAccessLinkStone", label: "Link Stone (trade evolutions)" },
+  { key: "evoAccessMagneticField", label: "Magnetic field area (Probopass, Magnezone, Vikavolt)" },
+  { key: "evoAccessMossyRock", label: "Moss Rock (Leafeon)" },
+  { key: "evoAccessIcyRock", label: "Ice Rock (Glaceon)" },
+  { key: "evoAccessOtherLocations", label: "Other special locations (Crabominable)" },
+]);
+
+// The access gate a requirement depends on, or null when none applies.
+function requiredAccessKeys(evoType, condition, species) {
+  if (evoType === "levelFriendship") return ["evoAccessFriendship"];
+  if (evoType === "trade") {
+    // Trade-with-item (Metal Coat Scizor) needs the item too.
+    return species.evoItem
+      ? ["evoAccessLinkStone", "evoAccessStones"]
+      : ["evoAccessLinkStone"];
+  }
+  if (evoType === "useItem" || evoType === "levelHold") {
+    return ["evoAccessStones"];
+  }
+  if (evoType === "levelExtra") {
+    if (/affection/i.test(condition)) return ["evoAccessFriendship"];
+    if (/magnetic field/i.test(condition)) return ["evoAccessMagneticField"];
+    if (/moss rock/i.test(condition)) return ["evoAccessMossyRock"];
+    if (/ice rock/i.test(condition)) return ["evoAccessIcyRock"];
+    if (/party/i.test(condition)) return []; // trivial, no unlock involved
+    return ["evoAccessOtherLocations"];
+  }
+  return [];
+}
+
 // The requirement for evolving INTO `species` from its direct pre-evolution.
-// Returns { status: "legal" | "unknown", levelRequired, friction, method,
-// reason } — `levelRequired` still needs checking against the level cap by the
-// caller; `friction` is in score points (K).
-export function getEvolutionRequirement(species) {
+// Returns { status: "legal" | "unknown" | "blocked", levelRequired, friction,
+// method, reason } — `levelRequired` still needs checking against the level
+// cap by the caller; `friction` is in score points (K). `access` is the
+// progression object (flat evoAccess* booleans); omitted = everything
+// accessible.
+export function getEvolutionRequirement(species, access = null) {
   if (!species) return null;
   if (!species.prevoId) {
     return { status: "legal", levelRequired: null, friction: 0, method: "base", reason: "base form" };
@@ -45,6 +87,27 @@ export function getEvolutionRequirement(species) {
 
   const evoType = species.evoType || "";
   const condition = species.evoCondition || "";
+
+  // Access gate first: a method the player can't use yet is BLOCKED — a
+  // concrete, user-stated fact that outranks the friction model. Surfaced,
+  // never silent.
+  if (access) {
+    const denied = requiredAccessKeys(evoType, condition, species).find(
+      (key) => access[key] === false,
+    );
+    if (denied) {
+      const label =
+        EVOLUTION_ACCESS_FIELDS.find((field) => field.key === denied)?.label ||
+        denied;
+      return {
+        status: "blocked",
+        levelRequired: null,
+        friction: 0,
+        method: evoType || "level",
+        reason: `${label} not yet accessible (Reborn Progression setting)`,
+      };
+    }
+  }
 
   if (evoType === "") {
     // Plain level evolution; a trivial rider (day/night, gender) adds minor
@@ -186,7 +249,7 @@ export function getEvolutionRequirement(species) {
 // Walks the chain from the line's input form to `fieldedId`, summing friction
 // and collecting a human-auditable proof of each evolution step. Assumes the
 // fielded form was already validated as reachable.
-export function evolutionChainProof(fieldedId) {
+export function evolutionChainProof(fieldedId, access = null) {
   const steps = [];
   let friction = 0;
   let id = fieldedId;
@@ -195,7 +258,7 @@ export function evolutionChainProof(fieldedId) {
     seen.add(id);
     const species = GEN7_PROGRESSION_SPECIES[id];
     if (!species || !species.prevoId) break;
-    const requirement = getEvolutionRequirement(species);
+    const requirement = getEvolutionRequirement(species, access);
     steps.unshift({
       from: species.prevoId,
       to: species.id,

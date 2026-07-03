@@ -10,6 +10,7 @@ import {
   REBORN_TM_OPTIONS,
   REBORN_TMX_OPTIONS,
 } from "./progressionOptions";
+import { EVOLUTION_ACCESS_FIELDS } from "./evolutionRequirements.js";
 import { MAX_TRACKED_ITEM_COUNT, MAX_OPPONENT_TYPE_BIAS } from "./progression";
 import { HIDDEN_INVENTORY_ITEM_IDS } from "./rebornSeeds";
 import { REBORN_ANALYSIS_TYPES } from "./typeChart.js";
@@ -62,6 +63,22 @@ export function renderRebornProgressionPanel(progression) {
           <span>Daycare unlocked</span>
           <small>Egg moves need breeding-chain checks before they count as legal.</small>
         </label>
+
+        <details class="progression-option-group">
+          <summary>Evolution access</summary>
+          <p class="muted">Uncheck methods you can't use yet — affected evolutions become blocked (each pick says which forms it lost) instead of silently assumed. Checked is the default.</p>
+          ${EVOLUTION_ACCESS_FIELDS.map(
+            (field) => `
+              <label class="checkbox-label">
+                <input
+                  data-progression-field="${escapeAttr(field.key)}"
+                  type="checkbox"
+                  ${progression[field.key] === false ? "" : "checked"}
+                />
+                <span>${escapeHtml(field.label)}</span>
+              </label>`,
+          ).join("")}
+        </details>
 
         ${renderOptionGroup({
           field: "availableTmIds",

@@ -10,6 +10,7 @@ import {
 } from "./progressionOptions";
 import { TERRAIN_SEED_MIGRATION } from "./rebornSeeds";
 import { REBORN_ANALYSIS_TYPES } from "./typeChart.js";
+import { EVOLUTION_ACCESS_FIELDS } from "./evolutionRequirements.js";
 
 const PROGRESSION_STORAGE_KEY = "pokemon-usage-viewer:reborn-progression:v1";
 
@@ -77,7 +78,19 @@ export function normalizeRebornProgression(progression = {}) {
     ),
     ownedItems: normalizeOwnedItems(progression.ownedItems),
     opponentTypeBias: normalizeOpponentTypeBias(progression.opponentTypeBias),
+    // Evolution-method access: only explicit `false` (not yet accessible) is
+    // stored — absent means accessible, so old saved progressions keep their
+    // exact behavior and cache signatures.
+    ...normalizeEvolutionAccess(progression),
   };
+}
+
+function normalizeEvolutionAccess(progression) {
+  const access = {};
+  for (const field of EVOLUTION_ACCESS_FIELDS) {
+    if (progression[field.key] === false) access[field.key] = false;
+  }
+  return access;
 }
 
 export function setRebornOpponentTypeBias(progression, type, level) {

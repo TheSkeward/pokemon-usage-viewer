@@ -1,0 +1,96 @@
+// Evolution-method access gates (user request): Reborn locks special
+// evolution methods behind story unlocks — the magnetic field sits behind
+// Shade's gym via the Yureyal key — so the optimizer must not assume them.
+// An access field set to false BLOCKS the evolution (surfaced in
+// blockedEvolutions); absent fields keep the old behavior exactly.
+import test from "node:test";
+import assert from "node:assert/strict";
+import { runPool, loadShared, progressionAt } from "../helpers/harness.mjs";
+
+const { getCurrentRebornSpeciesForChoice } = await import(
+  "../../src/reborn/currentSpecies.js"
+);
+const { optimizeTeamFromPool } = await import(
+  "../../src/teamBuilder/teamOptimizer.js"
+);
+
+test("magnetic-field access gate blocks Probopass, surfaces the block", async () => {
+  // Default: magnetic field assumed available — Nosepass fields Probopass.
+  const withAccess = getCurrentRebornSpeciesForChoice(
+    { inputPokemonId: "nosepass", pokemonId: "probopass", name: "Probopass" },
+    { levelCap: "50" },
+  );
+  assert.equal(withAccess.id, "probopass");
+
+  // Access denied: fields Nosepass, and the lost form is SURFACED.
+  const withoutAccess = getCurrentRebornSpeciesForChoice(
+    { inputPokemonId: "nosepass", pokemonId: "probopass", name: "Probopass" },
+    { levelCap: "50", evoAccessMagneticField: false },
+  );
+  assert.equal(withoutAccess.id, "nosepass");
+  const blocked = withoutAccess.blockedEvolutions.find(
+    (entry) => entry.to === "probopass",
+  );
+  assert.ok(blocked, "Probopass must appear in blockedEvolutions");
+  assert.match(blocked.reason, /Magnetic field/i);
+});
+
+test("other access gates: friendship, link stone, stones", async () => {
+  // Golbat → Crobat is friendship.
+  const noFriendship = getCurrentRebornSpeciesForChoice(
+    { inputPokemonId: "zubat", pokemonId: "crobat", name: "Crobat" },
+    { levelCap: "50", evoAccessFriendship: false },
+  );
+  assert.equal(noFriendship.id, "golbat");
+
+  // Haunter → Gengar is trade (Link Stone).
+  const noLink = getCurrentRebornSpeciesForChoice(
+    { inputPokemonId: "gastly", pokemonId: "gengar", name: "Gengar" },
+    { levelCap: "50", evoAccessLinkStone: false },
+  );
+  assert.equal(noLink.id, "haunter");
+
+  // Gloom → Vileplume is a Leaf Stone.
+  const noStones = getCurrentRebornSpeciesForChoice(
+    { inputPokemonId: "oddish", pokemonId: "vileplume", name: "Vileplume" },
+    { levelCap: "50", evoAccessStones: false },
+  );
+  assert.equal(noStones.id, "gloom");
+});
+
+test("optimizer respects the gate end-to-end (fielded form + cache key)", async () => {
+  const { availability, pokemonIndex } = await loadShared();
+  const pool = ["Nosepass", "Froakie", "Pichu", "Mudkip", "Zubat", "Shuckle"];
+  const base = progressionAt({ badge: 8, levelCap: 45 });
+
+  const open = await optimizeTeamFromPool({
+    availability,
+    family: "singles",
+    pokemonIndex,
+    progression: base,
+    query: pool.join("\n"),
+    selection: "all",
+  });
+  const gated = await optimizeTeamFromPool({
+    availability,
+    family: "singles",
+    pokemonIndex,
+    progression: { ...base, evoAccessMagneticField: false },
+    query: pool.join("\n"),
+    selection: "all",
+  });
+
+  const fieldedForm = (result) => {
+    const line = result.lines.find(
+      (entry) => (entry.best || entry.bestNonMega)?.inputName === "Nosepass",
+    );
+    const choice = line.best || line.bestNonMega;
+    return choice.legalityProfile?.currentId || choice.pokemonId;
+  };
+  assert.equal(fieldedForm(open), "probopass");
+  assert.equal(
+    fieldedForm(gated),
+    "nosepass",
+    "gated run must field Nosepass — and differing results prove the cache key separates the two progressions",
+  );
+});
