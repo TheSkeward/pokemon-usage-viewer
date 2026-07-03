@@ -43,7 +43,10 @@ export function renderMovesetPanel(container, options = {}) {
 
   const notes = [];
 
-  if (aggregate) notes.push("This is an all-period view.");
+  if (aggregate)
+    notes.push(
+      "Aggregated across all available months, weighted by each month's sample size.",
+    );
   if (stitched)
     notes.push(
       "Additional set options are shown with source tags instead of misleading percentages.",

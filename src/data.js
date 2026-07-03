@@ -120,9 +120,14 @@ export function getLatestMonth(dataset) {
 export function getMovesetLookupContext(dataset, formatsIndex, state) {
   if (!state.selectedPokemon) return null;
   if (state.month === 'all') {
-    const latestMonth = getLatestMonth(dataset);
-    if (!latestMonth) return null;
-    return { formatId: state.format, month: latestMonth, label: `latest available month (${latestMonth})`, aggregate: true };
+    // Real aggregate built by scripts/build-aggregate-movesets.mjs — the pane
+    // used to silently fall back to the latest month here, which for thin
+    // formats meant one player's single set shown at 100%.
+    const months = dataset.months || [];
+    const label = months.length
+      ? `all available months (${months[0]} → ${months[months.length - 1]})`
+      : 'all available months';
+    return { formatId: state.format, month: 'all', label, aggregate: true };
   }
   if (isSyntheticFormat(state.format, formatsIndex)) {
     const resolvedFormatId = dataset.resolvedMonths?.[state.month];
