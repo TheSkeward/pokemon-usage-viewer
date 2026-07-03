@@ -31,23 +31,19 @@ const CODED_UTILITY_MOVES = new Set([
   "grasspledge", "waterpledge", "round",
 ]);
 
-// Status moves that do NOTHING in a Gen 7 trainer battle — no boost, no status,
-// no field effect, nothing the model could ever value (Teleport's only Gen 7
-// effect is fleeing a wild battle; Happy Hour just doubles prize money). They
-// exist in real usage data as meme sets (Splash Lopunny), so without this list
-// the blanket "status ⇒ utility" rule below would let usage alone seat them.
-const NO_EFFECT_STATUS_MOVES = new Set([
-  "splash", "celebrate", "holdhands", "happyhour", "teleport",
-]);
-
 // A move carries utility beyond raw damage if it's a status move, or a damaging
 // move with a *beneficial* rider: self-heal (drain), a secondary that inflicts
 // status / flinch / confusion / lowers a foe's stat / raises the user's stat, a
 // guaranteed positive self-boost, a target effect (bind / trap / grounds /
 // phaze / pivot), or a curated coded effect. Pure downside riders (recoil,
 // crash, recharge, lock-in, self-stat-drops) do NOT count.
+// NOTE (settled after a Splash-Lopunny bug hunt): status moves with no
+// structured effect are deliberately NOT excluded here. In Gen 7 every status
+// move has a Z-effect (Z-Splash = +3 Atk — a real fringe ZU Lopunny set), so
+// "does nothing" can't be decided from the dex; real usage is the arbiter.
+// The recommender's usage>0-or-weight>0 filters already keep unused filler
+// out of every utility-ranked path.
 function isUtilityMove(move) {
-  if (NO_EFFECT_STATUS_MOVES.has(move.id)) return false;
   if (move.category === "Status") return true;
   if (CODED_UTILITY_MOVES.has(move.id)) return true;
   if (move.drain || move.heal) return true;

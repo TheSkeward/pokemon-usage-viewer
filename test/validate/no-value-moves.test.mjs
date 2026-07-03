@@ -1,25 +1,21 @@
-// User report: Lopunny was recommended Splash. The ACTUAL cause (established
-// by reproduction, not the first theory): base Lopunny's stitched set index is
-// primary-sourced from Gen 7 ZU @ 1500, where meme Splash sets are real enough
-// for 17.7% usage; the move-meta generator blanket-flagged every status move
-// as utility; and the UTILITY-preference build ranks utility moves by usage —
-// so Splash out-ranked real role moves into the utility build. It was never in
-// the canonical top-4 (Switcheroo / Return / High Jump Kick / Fake Out).
-//
-// The fix is generator truth: a reviewed do-nothing list (Splash, Celebrate,
-// Hold Hands, Happy Hour, Gen-7 Teleport) is no longer utility, so no
-// utility-ranked path can seat those moves. The canonical top-4 is
-// deliberately NOT gated (user decision): if the meaningful tier's real sets
-// run a move, the recommendation may too — usage is sovereign for the
-// canonical set.
+// The Splash-Lopunny case, settled after two rounds with the user:
+//   - Splash on ZU Lopunny is a REAL fringe set (Z-Splash = +3 Atk in Gen 7),
+//     not a meme artifact — and in Gen 7 every status move has a Z-effect, so
+//     "does nothing" cannot be decided from the dex. Usage is the arbiter:
+//     a status move with real usage is recommendable, in the canonical top-4
+//     AND as a usage-ranked utility pick.
+//   - What actually keeps filler out: every utility-ranked path (utility
+//     build, utility-slot guarantee, bonus fill) requires usage > 0 or a
+//     curated utility weight — a move nobody runs is never recommended.
+// The same investigation restored fixed-damage moves (Seismic Toss et al.,
+// base power 0) as first-class attacks: they count as damage and contribute
+// flat typeless coverage, but never claim an attack type, STAB, or a
+// super-effective target.
 import test from "node:test";
 import assert from "node:assert/strict";
 // Side effect: installs the fetch/env/localStorage shims the app modules need.
 import "../helpers/harness.mjs";
 
-const { MOVE_META } = await import(
-  "../../src/generated/gen7MoveMeta.generated.js"
-);
 const { getAvailableRebornMoves, loadRebornLegalMoveData } = await import(
   "../../src/reborn/legalMoves.js"
 );
@@ -30,8 +26,8 @@ const { REBORN_ANALYSIS_TYPES } = await import(
   "../../src/reborn/typeChart.js"
 );
 
-// The reported scenario's shape: Splash carries real meme usage, but is NOT in
-// the canonical top-4.
+// The reported scenario's shape: base Lopunny's stitched index (primary source
+// Gen 7 ZU @ 1500) — Splash carries real usage but is NOT in the top-4.
 const ZU_LIKE_USAGE = new Map([
   ["switcheroo", 53.3],
   ["return", 43.9],
@@ -50,43 +46,50 @@ async function lopunnyMoves() {
   });
 }
 
-test("do-nothing status moves are not utility; real ones still are", () => {
-  for (const id of ["splash", "celebrate", "holdhands", "happyhour", "teleport"]) {
-    assert.equal(MOVE_META[id]?.utility, false, `${id} must not be utility`);
-  }
-  for (const id of ["protect", "recover", "toxic", "stealthrock", "swordsdance"]) {
-    assert.equal(MOVE_META[id]?.utility, true, `${id} must stay utility`);
-  }
+test("usage-backed Splash IS a legitimate utility pick (Z-Splash is a real set)", async () => {
+  const moves = await lopunnyMoves();
+  const profile = buildCandidateLegalityProfile({
+    member: { id: "lopunny", name: "Lopunny", types: ["Normal"] },
+    moves,
+    levelCap: 75,
+    moveUsage: ZU_LIKE_USAGE,
+    movePreference: "utility",
+  });
+  assert.ok(
+    profile.recommendedMoves.some((move) => move.id === "splash"),
+    `the utility build should keep usage-ranked Splash, got: ${profile.recommendedMoves
+      .map((move) => move.id)
+      .join(", ")}`,
+  );
 });
 
-test("the utility build cannot seat Splash on usage alone (the reported bug)", async () => {
+test("zero-usage status filler is never recommended", async () => {
   const moves = await lopunnyMoves();
-  assert.ok(
-    moves.some((move) => move.id === "splash"),
-    "sanity: Splash is still a LEGAL move — it just carries no value",
-  );
   const member = { id: "lopunny", name: "Lopunny", types: ["Normal"] };
+  // Usage that mentions only real moves: Splash (and every other unused
+  // status move) has no usage entry, so no utility-ranked path may pick it.
+  const usage = new Map([
+    ["return", 60],
+    ["highjumpkick", 55],
+  ]);
   for (const movePreference of ["default", "utility", "coverage"]) {
     const profile = buildCandidateLegalityProfile({
       member,
       moves,
       levelCap: 75,
-      moveUsage: ZU_LIKE_USAGE,
+      moveUsage: usage,
       movePreference,
     });
-    assert.ok(profile.recommendedMoves.length > 0);
     assert.ok(
       profile.recommendedMoves.every((move) => move.id !== "splash"),
-      `${movePreference} build recommended Splash: ${profile.recommendedMoves
+      `${movePreference} build recommended zero-usage Splash: ${profile.recommendedMoves
         .map((move) => move.id)
         .join(", ")}`,
     );
   }
 });
 
-test("the canonical top-4 stays sovereign — even a do-nothing move in it is kept", async () => {
-  // User decision: the recommender must not second-guess the meaningful
-  // tier's real sets. If Splash IS canonical, it is recommendable.
+test("the canonical top-4 stays sovereign — a top-4 Splash is kept", async () => {
   const moves = await lopunnyMoves();
   const profile = buildCandidateLegalityProfile({
     member: { id: "lopunny", name: "Lopunny", types: ["Normal"] },

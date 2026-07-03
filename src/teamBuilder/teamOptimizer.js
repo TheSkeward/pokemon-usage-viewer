@@ -59,7 +59,10 @@ const MAX_RESULT_CACHE = 400;
 // fixed-damage moves count as attacks with live flat coverage — output
 // changes again with no data-signature change. (Hidden Power gating needed
 // no bump: its new progression field changes the progression key itself.)
-const RESULT_CACHE_VERSION = "11";
+// v12: the v11 utility-flag demotion is reverted (usage-backed status moves
+// like Z-Splash are legitimate; the zero-usage filter is the real guard), so
+// utility builds change back.
+const RESULT_CACHE_VERSION = "12";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the

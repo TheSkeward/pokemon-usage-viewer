@@ -472,3 +472,25 @@ Invariants the shape encodes (each guarded by fixtures):
   under the real ZU-shaped usage, canonical sovereignty (a top-4 Splash IS
   kept), and the fixed-damage profile semantics (counts as attack, no attack
   type, no SE targets, no STAB, flat coverage with Ghost immunity at zero).
+- **Splash verdict reversed (user decision), and canonical sets now source
+  from the eventual form** (follow-ups to the Lopunny/Splash entry above):
+  1. *Do-nothing list deleted*: Splash on ZU Lopunny is a real fringe set
+     (Z-Splash = +3 Atk), not a meme artifact — and in Gen 7 every status
+     move has a Z-effect, so "does nothing" cannot be decided from the dex.
+     The generator's blanket "status ⇒ utility" rule is restored; usage is
+     the arbiter. What actually keeps filler out is unchanged and now
+     tested: every utility-ranked path requires usage > 0 or a curated
+     utility weight, so a move nobody runs is never recommended. Result
+     cache bumped to v12 (utility builds change back).
+  2. *Set sourcing follows the ultimate eventual form* (user decision:
+     Venusaur, not Bulbasaur; FEAR Rattata stays Rattata because its OWN
+     meaningful AG usage makes it the representative): the Team Analysis
+     pane sourced its displayed set from the FIELDED form's stitched index,
+     while the optimizer scored with the CHOSEN CANDIDATE's — a
+     Lopunny-Mega pick (meaningful at AG 1760) displayed base Lopunny's
+     ZU-primary sets, which is where the Splash sighting actually came
+     from. The analysis now sources spread/ability/item/move usage from the
+     representative id, exactly what the score was built on (fielded-form
+     fallback when a representative has no set data). Committed tests
+     cover both directions (mega rep → AG set, Scrappy, Lopunnite; base
+     rep → ZU set, Klutz) plus the zero-usage-filler guard.

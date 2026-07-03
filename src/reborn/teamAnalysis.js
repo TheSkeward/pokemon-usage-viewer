@@ -116,9 +116,25 @@ async function buildMemberLegalMoveEntry({
   };
   const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
 
-  // Pull the member's most-used competitive set (top spread / ability / item)
-  // so damage uses the real EVs + nature and we can show a full set.
-  const topSet = await loadTopSet({ family, pokemonId: member.id, selection });
+  // Pull the most-used competitive set (top spread / ability / item / move
+  // usage) from the CHOSEN CANDIDATE (the line's usage representative, e.g.
+  // Lopunny-Mega at AG 1760) — the same source the optimizer scored with —
+  // NOT the fielded form. Sourcing by the fielded form showed a different
+  // tier's sets than the score was built on (a Lopunny-Mega pick displayed
+  // base Lopunny's ZU sets). Falls back to the fielded form for rows with no
+  // representative data.
+  let topSet = await loadTopSet({
+    family,
+    pokemonId: member.representativeId || member.id,
+    selection,
+  });
+  if (
+    !topSet.moveUsage?.size &&
+    member.representativeId &&
+    member.representativeId !== member.id
+  ) {
+    topSet = await loadTopSet({ family, pokemonId: member.id, selection });
+  }
   const attackerStats = getAttackingStats({
     pokemonId: member.id,
     levelCap: progression.levelCap,
