@@ -155,6 +155,39 @@ test("cancelled runs are stored, counted, and kept out of percentiles", () => {
   assert.equal(stored.cancelledPhase, "resolve");
 });
 
+test("pipeline phases and totals flow into summary and report", () => {
+  clearTelemetry();
+  recordOptimizerSample({
+    cache: "cold",
+    resolveMs: 300,
+    searchMs: 2500,
+    poolSize: 65,
+    builds: 79,
+    dataSignature: "sig",
+    phases: {
+      setup: 120,
+      resolve: 300,
+      search: 2500,
+      items: 1800,
+      render: 39_000,
+      confidence: 14_000,
+      investment: 5_000,
+    },
+    totalMs: 44_000,
+    fullMs: 63_000,
+  });
+  const summary = getTelemetrySummary();
+  const segment = summary.segments[0];
+  assert.equal(segment.totalMs.p50, 44_000);
+  assert.equal(segment.phaseP50.render, 39_000);
+  assert.equal(segment.phaseP50.confidence, 14_000);
+
+  const report = buildPerformanceReport();
+  assert.equal(report.lastRun.totalMs, 44_000);
+  assert.equal(report.lastRun.fullMs, 63_000);
+  assert.equal(report.lastRun.phases.items, 1800);
+});
+
 test("performance report is redacted and self-describing", () => {
   clearTelemetry();
   recordOptimizerSample({

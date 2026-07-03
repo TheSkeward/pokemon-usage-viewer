@@ -386,6 +386,18 @@ input {
   transition: width 0.15s ease;
 }
 
+/* Indeterminate pulse for optimization phases without countable units
+   (team search, item loading) — set via inline animation by poolWidget. */
+@keyframes pool-progress-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
 .bench-line {
   display: flex;
   flex-wrap: wrap;

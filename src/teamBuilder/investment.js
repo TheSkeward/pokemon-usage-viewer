@@ -58,9 +58,6 @@ export async function computeInvestmentPlan({
         progression: { ...progression, levelCap: String(cap) },
         query,
         selection,
-        // Background projection work, not an interactive run — keep it out of
-        // the latency telemetry the provenance footer reports.
-        telemetry: false,
       }),
     });
   }

@@ -10,7 +10,10 @@ import { optimizeTeamFromPool } from "./teamBuilder/teamOptimizer";
 import { computeTeamConfidence } from "./teamBuilder/confidence.js";
 import { computeInvestmentPlan } from "./teamBuilder/investment.js";
 import { setScoringOverrides } from "./teamBuilder/scoringConstants.js";
-import { buildPerformanceReport } from "./teamBuilder/telemetry.js";
+import {
+  buildPerformanceReport,
+  recordOptimizerSample,
+} from "./teamBuilder/telemetry.js";
 import { loadManifest } from "./manifest.js";
 import { renderRebornLegalMovesPanel } from "./reborn/legalMovesView";
 import { renderRebornTeamAnalysisPanel } from "./reborn/teamAnalysisView";
@@ -116,6 +119,13 @@ export function mountPoolOptimizer(container, options = {}) {
     render();
     await waitForPaint();
 
+    // User-perceived pipeline clock: everything between "click" and the team
+    // being on screen counts, not just the optimizer core (a 44s wait once
+    // reported itself as 2.9s because item loading and rendering were
+    // unmeasured). Recorded into telemetry when post-analysis completes.
+    const pipelineStart = Date.now();
+    const phases = {};
+
     try {
       state.query = normalizePoolText(state.query, pokemonIndex);
 
@@ -135,10 +145,18 @@ export function mountPoolOptimizer(container, options = {}) {
         exhaustive,
       });
       state.resultProgressionKey = getProgressionKey(state.progression);
+      const meta = state.result.telemetryMeta;
+      if (meta) {
+        phases.setup = meta.setupMs;
+        phases.resolve = meta.resolveMs;
+        phases.search = meta.searchMs;
+      }
 
       // Resolve each member's recommended-move types + real top-set ability once,
       // so gem item recommendations can be gated (type must match a recommended
       // move; Unburden boost only when Unburden is actually the set's ability).
+      updateOptimizeProgress({ phase: "items" });
+      const itemsStart = Date.now();
       state.teamItemContext = await getTeamItemContext(
         state.result.team,
         state.progression,
@@ -156,6 +174,7 @@ export function mountPoolOptimizer(container, options = {}) {
         itemContext: state.teamItemContext,
       });
       recomputeItemRecommendations();
+      phases.items = Date.now() - itemsStart;
 
       setDetails.cancel();
 
@@ -168,12 +187,15 @@ export function mountPoolOptimizer(container, options = {}) {
         : `${getOptimizationSummary(state.result)}${approxNote} Pool could not be saved locally; browser storage is full.`;
 
       writeUrl();
+      const renderStart = Date.now();
       render();
+      phases.render = Date.now() - renderStart;
+      const totalMs = Date.now() - pipelineStart;
 
       // First-class confidence + investment analysis, computed AFTER the team
       // renders so "click optimize" stays snappy; each re-renders when it lands
       // (guarded against a newer optimize having replaced the result).
-      void runPostAnalysis(state.result);
+      void runPostAnalysis(state.result, { pipelineStart, phases, totalMs });
     } catch (error) {
       console.error("Team Builder optimization failed", error);
 
@@ -190,22 +212,29 @@ export function mountPoolOptimizer(container, options = {}) {
   // global scoring overrides around synchronous blocks only; still, a user
   // optimize started mid-sweep aborts the sweep (checked between settings via
   // the result-identity guard) and clears overrides defensively.
-  async function runPostAnalysis(forResult) {
+  async function runPostAnalysis(forResult, pipeline = null) {
     state.confidence = null;
     state.investment = null;
     state.analysisPending = true;
     render();
+    let superseded = false;
     try {
+      const confidenceStart = Date.now();
       const confidence = await computeTeamConfidence({
         result: forResult,
         availability,
         family: state.family,
         progression: state.progression,
       });
-      if (state.result !== forResult) return; // superseded by a newer optimize
+      if (state.result !== forResult) {
+        superseded = true; // superseded by a newer optimize
+        return;
+      }
+      if (pipeline) pipeline.phases.confidence = Date.now() - confidenceStart;
       state.confidence = confidence;
       render();
 
+      const investmentStart = Date.now();
       const investment = await computeInvestmentPlan({
         availability,
         family: state.family,
@@ -215,7 +244,11 @@ export function mountPoolOptimizer(container, options = {}) {
         selection: state.selection,
         result: forResult,
       });
-      if (state.result !== forResult) return;
+      if (state.result !== forResult) {
+        superseded = true;
+        return;
+      }
+      if (pipeline) pipeline.phases.investment = Date.now() - investmentStart;
       state.investment = investment;
     } catch (error) {
       console.warn("Post-analysis failed", error);
@@ -223,6 +256,29 @@ export function mountPoolOptimizer(container, options = {}) {
       setScoringOverrides(null);
       if (state.result === forResult) {
         state.analysisPending = false;
+        // One telemetry sample per completed interactive pipeline: optimizer
+        // phases from telemetryMeta, item/render/analysis phases measured
+        // here. Superseded runs are dropped — partial timings would skew the
+        // distributions. Recorded before the final render so the footer's
+        // numbers include this run.
+        if (pipeline && !superseded && forResult.telemetryMeta) {
+          const meta = forResult.telemetryMeta;
+          try {
+            recordOptimizerSample({
+              cache: meta.cache,
+              resolveMs: meta.resolveMs,
+              searchMs: meta.searchMs,
+              poolSize: meta.poolSize,
+              builds: meta.builds,
+              dataSignature: meta.dataSignature,
+              phases: pipeline.phases,
+              totalMs: pipeline.totalMs,
+              fullMs: Date.now() - pipeline.pipelineStart,
+            });
+          } catch {
+            // Telemetry must never break the pipeline.
+          }
+        }
         render();
       }
     }
@@ -658,19 +714,36 @@ export function mountPoolOptimizer(container, options = {}) {
 
   // Updates the loading panel's progress bar in place during optimization,
   // without re-rendering (which would only ever show completed results).
-  function updateOptimizeProgress({ completed, total }) {
+  // Phase-aware: line resolution is often the FAST part (warm caches finish it
+  // in milliseconds), after which the bar used to sit at 65/65 through the
+  // search, item loading, and render — the actual wait. Now each phase names
+  // itself, and the bar pulses (indeterminate) once the countable part is done.
+  function updateOptimizeProgress({ phase = "resolve", completed, total }) {
     const label = app.querySelector("[data-optimize-progress-label]");
     const bar = app.querySelector("[data-optimize-progress-bar]");
 
     if (label) {
-      label.textContent = total
-        ? `Resolving ${completed}/${total} Pokémon...`
-        : "Optimizing pool...";
+      label.textContent =
+        phase === "search"
+          ? "Searching team combinations..."
+          : phase === "items"
+            ? "Loading item usage for the team..."
+            : total
+              ? `Scoring ${completed}/${total} Pokémon...`
+              : "Optimizing pool...";
     }
     if (bar) {
-      bar.style.width = total
-        ? `${Math.round((completed / total) * 100)}%`
-        : "0%";
+      if (phase === "resolve") {
+        bar.style.animation = "";
+        bar.style.width = total
+          ? `${Math.round((completed / total) * 100)}%`
+          : "0%";
+      } else {
+        // Post-resolve phases have no countable units; pulse instead of
+        // pretending to be done.
+        bar.style.width = "100%";
+        bar.style.animation = "pool-progress-pulse 1.2s ease-in-out infinite";
+      }
     }
   }
 

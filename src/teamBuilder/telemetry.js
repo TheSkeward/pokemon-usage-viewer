@@ -29,7 +29,14 @@ import { SCORING_VERSION } from "./scoringConstants.js";
 
 const STORE_KEY = "teamOptimizerTelemetryV1";
 const MAX_SAMPLES = 500;
-export const TELEMETRY_SCHEMA = 2;
+// Schema 3: samples cover the FULL user-perceived pipeline, not just the
+// optimizer core. `phases` breaks the wait down (setup / resolve / search /
+// items / render / confidence / investment), `totalMs` is click →
+// team-and-movesets rendered, `fullMs` is click → post-analysis (stability +
+// investment) done. Schema 2 measured only resolve+search and understated a
+// 44-second wait as 2.9s — the schema bump retires those samples via the env
+// signature.
+export const TELEMETRY_SCHEMA = 3;
 
 // Cache temperature of a run:
 //   "result" — layer-3 hit, no resolution and no search;
@@ -100,6 +107,20 @@ function saveTelemetrySamples(samples) {
   }
 }
 
+const PHASE_KEYS = Object.freeze([
+  "setup", // optimizer: input groups, cache hydration, breeding context, keys
+  "resolve", // optimizer: per-line scoring/builds
+  "search", // optimizer: team search + realization
+  "items", // item context + usage loading for the chosen team
+  "render", // full page render (team, movesets, analysis panel, bench)
+  "confidence", // post-analysis: robustness sweep
+  "investment", // post-analysis: level-cap projection
+]);
+
+function roundMs(value) {
+  return Math.max(0, Math.round(value || 0));
+}
+
 export function recordOptimizerSample({
   cache,
   resolveMs,
@@ -107,6 +128,9 @@ export function recordOptimizerSample({
   poolSize,
   builds,
   dataSignature,
+  phases = null,
+  totalMs = null,
+  fullMs = null,
   cancelled = false,
   cancelledPhase = null,
 }) {
@@ -114,13 +138,25 @@ export function recordOptimizerSample({
     t: Date.now(),
     env: envKey(telemetryEnv(dataSignature)),
     cache: CACHE_STATES.includes(cache) ? cache : "cold",
-    resolveMs: Math.max(0, Math.round(resolveMs || 0)),
-    searchMs: Math.max(0, Math.round(searchMs || 0)),
+    resolveMs: roundMs(resolveMs),
+    searchMs: roundMs(searchMs),
     poolSize: poolSize || 0,
     builds: builds || 0,
     cores:
       (typeof navigator !== "undefined" && navigator.hardwareConcurrency) ||
       null,
+    ...(phases
+      ? {
+          phases: Object.fromEntries(
+            PHASE_KEYS.filter((key) => phases[key] != null).map((key) => [
+              key,
+              roundMs(phases[key]),
+            ]),
+          ),
+        }
+      : {}),
+    ...(totalMs != null ? { totalMs: roundMs(totalMs) } : {}),
+    ...(fullMs != null ? { fullMs: roundMs(fullMs) } : {}),
     cancelled: Boolean(cancelled),
     ...(cancelled ? { cancelledPhase } : {}),
   };
@@ -172,12 +208,32 @@ export function getTelemetrySummary(samples = loadTelemetrySamples()) {
         (sample) => poolBucket(sample.poolSize) === bucket,
       );
       if (!group.length) continue;
+      const withTotals = group.filter((sample) => sample.totalMs != null);
       segments.push({
         cache: state,
         poolBucket: bucket,
         n: group.length,
         resolveMs: distribution(group.map((sample) => sample.resolveMs)),
         searchMs: distribution(group.map((sample) => sample.searchMs)),
+        // Click → team-and-movesets rendered (the wait the user feels), and
+        // per-phase medians so a report attributes it without raw samples.
+        ...(withTotals.length
+          ? {
+              totalMs: distribution(withTotals.map((sample) => sample.totalMs)),
+              phaseP50: Object.fromEntries(
+                PHASE_KEYS.map((key) => [
+                  key,
+                  percentile(
+                    withTotals
+                      .map((sample) => sample.phases?.[key])
+                      .filter((value) => value != null)
+                      .sort((a, b) => a - b),
+                    50,
+                  ),
+                ]).filter(([, value]) => value != null),
+              ),
+            }
+          : {}),
         builds: range(group.map((sample) => sample.builds)),
         buildBucket: buildBucket(
           Math.round(
@@ -224,6 +280,9 @@ export function buildPerformanceReport() {
           cache: last.cache,
           resolveMs: last.resolveMs,
           searchMs: last.searchMs,
+          ...(last.phases ? { phases: last.phases } : {}),
+          ...(last.totalMs != null ? { totalMs: last.totalMs } : {}),
+          ...(last.fullMs != null ? { fullMs: last.fullMs } : {}),
           poolSize: last.poolSize,
           builds: last.builds,
           cancelled: last.cancelled || false,

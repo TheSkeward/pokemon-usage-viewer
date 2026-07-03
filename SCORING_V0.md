@@ -208,3 +208,18 @@ Invariants the shape encodes (each guarded by fixtures):
      on every line and `builds` always equalled pool size (the report's 61/61
      giveaway). Now counts the real kept-variant total (e.g. 27 builds across
      a 12-line pool at badge 8).
+- **Full-pipeline telemetry** (schema 3; a real 65-mon report showed a 44s
+  user wait while telemetry claimed 2.9s — it measured only the optimizer
+  core): the optimizer no longer records samples; it stamps
+  `result.telemetryMeta` (cache temperature, pool size, builds, data
+  signature, setup/resolve/search ms) and the pool widget records ONE sample
+  per completed interactive pipeline with a `phases` breakdown — setup,
+  resolve, search, items (team item context + usage), render (full page incl.
+  the analysis panel), confidence, investment — plus `totalMs` (click → team
+  on screen) and `fullMs` (click → post-analysis done). Summary segments gain
+  a totalMs distribution and per-phase medians; the footer shows the last
+  run's phase attribution. Superseded runs (a newer optimize started
+  mid-analysis) are dropped, not recorded partially. The progress bar is
+  phase-aware: line resolution shows a real fraction, then the label walks
+  search → item loading with an indeterminate pulse instead of sitting at
+  100% (N/N) through the actual wait.

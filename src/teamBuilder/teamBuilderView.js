@@ -9,7 +9,7 @@ import {
   explainSeatedChoice,
   explainExcludedChoice,
 } from "./explanations.js";
-import { getTelemetrySummary } from "./telemetry.js";
+import { getTelemetrySummary, loadTelemetrySamples } from "./telemetry.js";
 
 export function renderTeamBuilderPage({
   app,
@@ -439,6 +439,7 @@ function renderTelemetryDetails() {
           <td>${segment.n}</td>
           <td>${dist(segment.resolveMs)}</td>
           <td>${dist(segment.searchMs)}</td>
+          <td>${segment.totalMs ? dist(segment.totalMs) : "–"}</td>
           <td>${range(segment.builds)} (${escapeHtml(segment.buildBucket)})</td>
         </tr>`,
     )
@@ -446,15 +447,37 @@ function renderTelemetryDetails() {
   const staleNote = summary.stale
     ? ` · ${summary.stale} run${summary.stale === 1 ? "" : "s"} from previous builds excluded`
     : "";
+  // Phase attribution of the most recent completed run: the "where did my
+  // wait actually go" line.
+  let lastRunLine = "";
+  try {
+    const samples = loadTelemetrySamples();
+    const last = samples[samples.length - 1];
+    if (last?.phases) {
+      const parts = Object.entries(last.phases)
+        .map(([key, value]) => `${key} ${ms(value)}`)
+        .join(" · ");
+      const totals = [
+        last.totalMs != null ? `team on screen ${ms(last.totalMs)}` : "",
+        last.fullMs != null ? `everything ${ms(last.fullMs)}` : "",
+      ]
+        .filter(Boolean)
+        .join(", ");
+      lastRunLine = `<p>Last run: ${escapeHtml(parts)}${totals ? ` — ${escapeHtml(totals)}` : ""}</p>`;
+    }
+  } catch {
+    lastRunLine = "";
+  }
   return `
     <details class="muted" style="font-size: 0.85em">
       <summary>Performance (${summary.total} run${summary.total === 1 ? "" : "s"} on this build${summary.cores ? `, ${summary.cores} cores` : ""})</summary>
       <table>
         <thead>
-          <tr><th>cache</th><th>pool</th><th>n</th><th>resolve p50/p90/p95</th><th>search p50/p90/p95</th><th>builds</th></tr>
+          <tr><th>cache</th><th>pool</th><th>n</th><th>resolve p50/p90/p95</th><th>search p50/p90/p95</th><th>total p50/p90/p95</th><th>builds</th></tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
+      ${lastRunLine}
       <p>
         <button id="copy-perf-report-button" type="button">Copy performance report</button>
         — redacted JSON (timings, workload sizes, versions; no pool or team content)${staleNote}.

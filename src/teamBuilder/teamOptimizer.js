@@ -23,7 +23,6 @@ import {
 import { resolveRepresentativeLightBundle } from "./representativeBundle";
 import { choosePoolTeam } from "./teamSelection";
 import { loadPersistedResults, persistResult } from "./resultCacheStore.js";
-import { recordOptimizerSample } from "./telemetry.js";
 import { getDataSignature } from "../manifest.js";
 
 // --- Incremental caches ----------------------------------------------------
@@ -86,12 +85,12 @@ export async function optimizeTeamFromPool({
   selection,
   onProgress,
   exhaustive = true,
-  telemetry = true,
 }) {
+  const setupStart = Date.now();
   const groups = buildInputGroups(query, pokemonIndex);
   const total = groups.length;
   let completed = 0;
-  onProgress?.({ completed, total });
+  onProgress?.({ phase: "resolve", completed, total });
 
   // Restore any persisted results before checking the memo, so a pool computed in
   // a previous session (e.g. before a reload) is answered without recomputing.
@@ -137,26 +136,22 @@ export async function optimizeTeamFromPool({
     .map((group) => group.input?.id ?? group.token)
     .sort()
     .join(",")}`;
-  // Interactive runs feed the performance telemetry; sweep/test runs (active
-  // scoring overrides) and background callers that opt out (the investment
-  // projection's future-cap re-runs) don't — either would corrupt the latency
-  // distribution the footer reports.
-  const interactive = telemetry && scoringOverridesSignature() === "base";
-
   const memoized = resultCache.get(poolKey);
   if (memoized) {
-    onProgress?.({ completed: total, total });
+    onProgress?.({ phase: "resolve", completed: total, total });
     seedSearchCache(memoized, memoized.lines, contextSig);
-    if (interactive) {
-      recordOptimizerSample({
-        cache: "result",
-        resolveMs: 0,
-        searchMs: 0,
-        poolSize: total,
-        builds: countKeptBuilds(memoized.lines),
-        dataSignature,
-      });
-    }
+    // Telemetry facts for the caller (poolWidget records the full pipeline
+    // sample — optimizer, item loading, render, post-analysis — so this only
+    // DESCRIBES the run; it never records). Overwritten fresh on every hit.
+    memoized.telemetryMeta = {
+      cache: "result",
+      poolSize: total,
+      builds: countKeptBuilds(memoized.lines),
+      dataSignature,
+      setupMs: Date.now() - setupStart,
+      resolveMs: 0,
+      searchMs: 0,
+    };
     return memoized;
   }
 
@@ -181,7 +176,7 @@ export async function optimizeTeamFromPool({
           hitLineKeys,
         }).then((line) => {
           completed += 1;
-          onProgress?.({ completed, total });
+          onProgress?.({ phase: "resolve", completed, total });
           return line;
         }),
       ),
@@ -207,6 +202,7 @@ export async function optimizeTeamFromPool({
       : null;
 
   const searchStart = Date.now();
+  onProgress?.({ phase: "search", completed: total, total });
   const result = await choosePoolTeam(lines, progression.opponentTypeBias, {
     exhaustive,
     incremental,
@@ -220,19 +216,19 @@ export async function optimizeTeamFromPool({
     resolveMs: searchStart - resolveStart,
     searchMs: Date.now() - searchStart,
   };
-  if (interactive) {
-    recordOptimizerSample({
-      // Warm = anything short of from-scratch: line-cache hits and/or an
-      // incremental (grown) search. Cold = every line resolved fresh AND a
-      // full search.
-      cache: hitLineKeys.size > 0 || incremental ? "warm" : "cold",
-      resolveMs: result.timings.resolveMs,
-      searchMs: result.timings.searchMs,
-      poolSize: lines.length,
-      builds: countKeptBuilds(lines),
-      dataSignature,
-    });
-  }
+  // Telemetry facts for the caller (poolWidget records the full pipeline
+  // sample; the optimizer only describes its own slice). Warm = anything short
+  // of from-scratch: line-cache hits and/or an incremental (grown) search.
+  // Cold = every line resolved fresh AND a full search.
+  result.telemetryMeta = {
+    cache: hitLineKeys.size > 0 || incremental ? "warm" : "cold",
+    poolSize: lines.length,
+    builds: countKeptBuilds(lines),
+    dataSignature,
+    setupMs: resolveStart - setupStart,
+    resolveMs: result.timings.resolveMs,
+    searchMs: result.timings.searchMs,
+  };
 
   seedSearchCache(result, lines, searchKey);
   storeResult(poolKey, result);
