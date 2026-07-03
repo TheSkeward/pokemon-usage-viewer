@@ -48,11 +48,20 @@ export const SCORING_DEFAULTS = Object.freeze({
   FUTURE_CAP: 300,
 
   // --- K: investment friction -------------------------------------------------
-  FRIENDSHIP_FRICTION: 180, // friendship grind per evolution step
-  ITEM_FRICTION: 260, // held-item / use-item evolution (farmable item)
-  TRADE_FRICTION: 260, // Reborn trades via Link Stone (mining) — item-like
-  TIME_FRICTION: 60, // day/night or minor special condition
-  DELAYED_EVO_FRICTION: 200, // build uses a move that requires delaying evolution
+  // Evolution K is a TIEBREAKER, not a price (user decision, after the
+  // Kadabra/Alakazam case): obtainability is modeled explicitly by the
+  // evolution-access gates and owned evolution items, so charging the BETTER
+  // mon hundreds of points for a purchasable stone double-counted the cost
+  // and let a pre-evolution outscore its own evolution. These values only
+  // break near-exact ties toward the cheaper line; they can never outweigh a
+  // real stat gap. (Owned items still zero them; blocked access still blocks.)
+  FRIENDSHIP_FRICTION: 15, // friendship grind per evolution step
+  ITEM_FRICTION: 20, // held-item / use-item evolution (farmable item)
+  TRADE_FRICTION: 20, // Reborn trades via Link Stone — item-like
+  TIME_FRICTION: 5, // day/night or minor special condition
+  // Build friction is NOT a tiebreaker — delaying evolution to learn a move
+  // is a real in-run cost the access model doesn't express.
+  DELAYED_EVO_FRICTION: 200,
   FRICTION_SCALE: 1, // sweep multiplier over all K components
 
   // --- Opponent-type bias ------------------------------------------------------

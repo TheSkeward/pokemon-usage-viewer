@@ -1,23 +1,23 @@
 {
   "team": [
-    "Abra -> kadabra",
+    "Abra -> alakazam",
     "Doduo -> dodrio",
-    "Eevee -> sylveon",
-    "Gastly -> haunter",
-    "Magnemite -> magneton",
-    "Mareep -> ampharos"
+    "Eevee -> jolteon",
+    "Growlithe -> arcanine",
+    "Machop -> machamp",
+    "Magnemite -> magnezone"
   ],
   "searchExact": true,
   "lines": {
     "Machop": {
-      "fielded": "machoke",
-      "score": 1184,
+      "fielded": "machamp",
+      "score": 1444,
       "role": "bulky_attacker",
       "online": 1
     },
     "Growlithe": {
       "fielded": "arcanine",
-      "score": 1201,
+      "score": 1561,
       "role": "fast_attacker",
       "online": 1
     },
@@ -28,10 +28,10 @@
       "online": 1
     },
     "Abra": {
-      "fielded": "kadabra",
-      "score": 1681,
+      "fielded": "alakazam",
+      "score": 1758,
       "role": "fast_attacker",
-      "online": 1
+      "online": 0.65
     },
     "Tentacool": {
       "fielded": "tentacruel",
@@ -46,9 +46,9 @@
       "online": 1
     },
     "Magnemite": {
-      "fielded": "magneton",
-      "score": 1237,
-      "role": "fast_attacker",
+      "fielded": "magnezone",
+      "score": 1436,
+      "role": "bulky_attacker",
       "online": 1
     },
     "Doduo": {
@@ -58,10 +58,10 @@
       "online": 1
     },
     "Gastly": {
-      "fielded": "haunter",
-      "score": 1480,
+      "fielded": "gengar",
+      "score": 1615,
       "role": "fast_attacker",
-      "online": 1
+      "online": 0.35
     },
     "Rhyhorn": {
       "fielded": "rhydon",
@@ -70,9 +70,9 @@
       "online": 0.65
     },
     "Horsea": {
-      "fielded": "seadra",
-      "score": 1225,
-      "role": "fast_attacker",
+      "fielded": "kingdra",
+      "score": 1232,
+      "role": "bulky_attacker",
       "online": 1
     },
     "Scyther": {
@@ -83,14 +83,14 @@
     },
     "Eevee": {
       "fielded": "espeon",
-      "score": 1529,
+      "score": 1694,
       "role": "fast_attacker",
       "online": 1
     },
     "Dratini": {
       "fielded": "dragonair",
-      "score": 1282,
-      "role": "fast_attacker",
+      "score": 1254,
+      "role": "fast_utility",
       "online": 0.65
     },
     "Mareep": {

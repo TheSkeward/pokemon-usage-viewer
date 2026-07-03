@@ -1,18 +1,44 @@
 {
   "name": "item-friendship-evos",
   "category": "pool with item/friendship evolutions",
-  "notes": "Cap 25, badge 1. Exercises the evolution-legality matrix: the Pichu line may field Pichu or Pikachu (friendship evolution is LEGAL with K; at badge 1 the tiny movepool makes the grind-vs-value call a genuine near-tie — the confidence layer flags it); Abra fields Kadabra (level 16) or Alakazam (Link Stone, farmable-tedious friction); Gastly fields Haunter (25); Machop stays Machop (Machoke is level 28 > cap). Happiny's line may field Chansey (Oval Stone wild-held/farmable + day, item friction) or stay Happiny when the friction-free baby representative scores the near-tie higher — the LEGALITY is pinned by unit tests (evolution-legality); which candidate wins is a scoring outcome. Fielded-form assertions pin the legality engine; no seating assertions — the pool is deliberately mixed.",
-  "pool": ["Pichu","Happiny","Abra","Machop","Onix","Eevee","Poliwag","Slowpoke","Gastly","Rattata","Pidgey","Growlithe"],
+  "notes": "Cap 25, badge 1. Exercises the evolution-legality matrix under TIEBREAKER evolution K (obtainability lives in the access gates / owned items, not in K): accessible evolutions field their best form on score — Pichu's line may reach Raichu-Alola (Thunder Stone, farmable), Abra fields Kadabra/Alakazam (Link Stone), Gastly fields Haunter (25), Machop stays Machop (Machoke is level 28 > cap). Happiny's line may field Chansey (Oval Stone + day) or stay Happiny — but the CHANSEY LINE MUST NOT SEAT at cap 25 (invariant 2; asserted via mustNotSeat below is not possible since seating isn't asserted here — the weak-shell/happiny-swap fixtures own that guard). Fielded-form assertions pin the legality engine; no seating assertions — the pool is deliberately mixed.",
+  "pool": [
+    "Pichu",
+    "Happiny",
+    "Abra",
+    "Machop",
+    "Onix",
+    "Eevee",
+    "Poliwag",
+    "Slowpoke",
+    "Gastly",
+    "Rattata",
+    "Pidgey",
+    "Growlithe"
+  ],
   "badge": 1,
   "levelCap": 25,
   "golden": true,
   "expectations": {
     "fieldedForm": {
-      "Pichu": ["pichu", "pikachu"],
-      "Abra": ["kadabra", "alakazam"],
-      "Gastly": ["haunter", "gengar"],
+      "Pichu": [
+        "pikachu",
+        "raichualola"
+      ],
+      "Abra": [
+        "kadabra",
+        "alakazam"
+      ],
+      "Gastly": [
+        "haunter",
+        "gengar"
+      ],
       "Machop": "machop",
-      "Happiny": ["happiny", "chansey"]
+      "Happiny": [
+        "happiny",
+        "chansey",
+        "blissey"
+      ]
     },
     "searchExact": true
   }

@@ -348,3 +348,43 @@ Invariants the shape encodes (each guarded by fixtures):
   ≥1%-tier set sourcing and the U-ranking floor. Every fixture's own
   invariant expectations (must-seat / must-not-seat / role / form arrays)
   passed before regeneration.
+- **Fixed-damage honesty** (user report: lvl-25 Mankey recommended Seismic
+  Toss; distrust of Super Fang's number): the old model faked fixed-damage
+  moves as base-power equivalents run through the stat/STAB formula — Seismic
+  Toss priced as "60 BP with STAB" (90 flat at ANY level), Super Fang as "90
+  BP" (135 with STAB). `damageModel.fixedMoveDamage` now returns real in-game
+  damage: Seismic Toss / Night Shade = the user's level; Psywave = 0.75×level;
+  Sonic Boom 20 / Dragon Rage 40 flat; Super Fang / Nature's Madness = half a
+  typical body's HP at that level (`referenceHp`: median base-70 HP, IV 31 —
+  the same neutral-wall convention as defenses; 77 HP at 25 → 39); no stats,
+  no STAB, no item boosts. Verified: Mankey at cap 25 now headlines Cross
+  Chop (47) with Seismic Toss unpicked; Watchog drops Super Fang. Improves
+  invariant 3 (chip and fiction are not coverage). Unit tests added.
+- **Evolution K demoted to a tiebreaker** (user decision, closing the
+  Kadabra/Alakazam case): with evolution ACCESS modeled explicitly (gates +
+  owned items), charging acquisition friction on top double-counted
+  obtainability and let a pre-evolution outscore its own evolution (Kadabra
+  1681 vs Alakazam 1398 at K=390). Ground truth — Alakazam is better — is now
+  restored through score itself: FRIENDSHIP/ITEM/TRADE/TIME friction drop to
+  15/20/20/5 (tiebreak toward the cheaper line among near-equals, never
+  outweighing a real stat gap; measured: Alakazam 1758 vs Kadabra 1681,
+  fielded again). The score-first comparators stay — Kadabra never traded on
+  Alakazam's reputation, because C and the O gate score the fielded form's
+  own body; the removed usage boolean was protecting nothing.
+  DELAYED_EVO_FRICTION (200) is unchanged: delaying evolution for a move is a
+  real in-run cost the access model doesn't express. Goldens regenerated for
+  both entries in one audited pass.
+  Fixture consequences of the K demotion, each audited: item-friendship-evos
+  now accepts Raichu-Alola for the Pichu line (the stone is farmable and
+  accessible, so the better final form fielding IS the new model working — the
+  old expectation encoded price-K reasoning); the incremental-exactness trap
+  was re-tuned (the old Sandshrew/Ground-Rock reshuffle relied on
+  friction-heavy dynamics; grid search found a fresh verified trap — waterfly
+  pool + Gastly under Flying bias, Surskit entering from outside the old
+  optimum — and the fixture's own anti-decay guard is what caught the stale
+  trap). Invariant-2 guards (Chansey line must not seat at cap 25) passed
+  throughout the K change untouched.
+  (Also accepted after the same audit: the Happiny line may field Blissey —
+  Oval Stone + friendship are both accessible chains under tiebreaker K. The
+  seating guard is untouched: weak-shell / happiny-swap still assert the line
+  cannot SEAT at cap 25, and they pass.)
