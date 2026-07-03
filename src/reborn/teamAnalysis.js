@@ -12,8 +12,10 @@ import {
   REBORN_ANALYSIS_TYPES,
 } from "./typeChart.js";
 import {
+  coverageDamageIntoType,
   estimateMoveDamage,
   getAttackingStats,
+  isFixedDamageMove,
   normalizeLevel,
   parseSpread,
 } from "./damageModel.js";
@@ -247,6 +249,9 @@ export function buildCandidateLegalityProfile({
   const superEffectiveTargetTypes = new Set();
 
   for (const move of recommendedDamagingMoves) {
+    // Fixed-damage moves are never super effective (they ignore effectiveness
+    // multipliers in-game), so they claim no super-effective targets.
+    if (isFixedDamageMove(move.id)) continue;
     for (const defenseType of REBORN_ANALYSIS_TYPES) {
       if (getTypeMultiplier(move.type, [defenseType]) > 1) {
         superEffectiveTargetTypes.add(defenseType);
@@ -261,13 +266,16 @@ export function buildCandidateLegalityProfile({
   // Beam into Ground/Dragon contributes a lot. Consumed by the team coverage term.
   const coverageRef = stageReferenceDamage(levelCap) || 1;
   const recommendedMoveDamage = recommendedDamagingMoves.map((move) => ({
+    id: move.id,
     type: move.type,
     damage: getEstimatedDamage(move, member, stats),
   }));
   const coverageVector = REBORN_ANALYSIS_TYPES.map((defenseType) => {
     let best = 0;
     for (const md of recommendedMoveDamage) {
-      const dealt = md.damage * getTypeMultiplier(md.type, [defenseType]);
+      // Fixed-damage moves land flat into everything their type can touch —
+      // never boosted, never resisted, zero only into immunities.
+      const dealt = coverageDamageIntoType(md.id, md.type, md.damage, defenseType);
       if (dealt > best) best = dealt;
     }
     return Math.min(1, best / coverageRef);
@@ -444,6 +452,8 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
       attackTypes.set(move.type, entry);
 
       for (const defenseType of REBORN_ANALYSIS_TYPES) {
+        // Fixed-damage moves can't be super effective.
+        if (isFixedDamageMove(move.id)) break;
         const multiplier = getTypeMultiplier(move.type, [defenseType]);
         if (multiplier <= 1) continue;
 
@@ -772,6 +782,10 @@ function summarizeAttackTypes(member, damagingMoves, attackerStats) {
   const byType = new Map();
 
   for (const move of damagingMoves) {
+    // Fixed-damage moves are effectively typeless offense (their type only
+    // decides immunities) — they don't make the member "a Fighting attacker",
+    // can't be super effective, and must not satisfy bias-counter checks.
+    if (isFixedDamageMove(move.id)) continue;
     const option = formatProfileMove(move, member, attackerStats);
     const entry = byType.get(move.type) || {
       type: move.type,
@@ -824,7 +838,9 @@ function formatRecommendedMove(move, member, attackerStats) {
     availableSources: move.availableSources || [],
     category: move.category,
     sourceLabel: formatBestSource(move),
-    superEffectiveTargetCount: countSuperEffectiveTargets(move.type),
+    superEffectiveTargetCount: isFixedDamageMove(move.id)
+      ? 0 // fixed damage is never super effective
+      : countSuperEffectiveTargets(move.type),
   };
 }
 
@@ -1150,7 +1166,9 @@ function decorateMove(
       opponentTypeBias,
     ),
     sourcePriority: getBestSourcePriority(move),
-    superEffectiveTargetCount: countSuperEffectiveTargets(move.type),
+    superEffectiveTargetCount: isFixedDamageMove(move.id)
+      ? 0 // fixed damage is never super effective
+      : countSuperEffectiveTargets(move.type),
     utilityWeight: UTILITY_MOVE_WEIGHTS[move.id] || 0,
     usage: moveUsage.get(move.id) || 0,
   };

@@ -1,4 +1,5 @@
 import { GEN7_BASE_STATS } from "../generated/gen7BaseStats.generated.js";
+import { getTypeMultiplier } from "./typeChart.js";
 import { toId } from "../utils/ids.js";
 
 // A naive, defender-agnostic damage model. We can't know the real opponent's
@@ -70,6 +71,21 @@ const REFERENCE_HP_BASE = 70;
 export function referenceHp(level) {
   const lvl = normalizeLevel(level);
   return Math.floor(((2 * REFERENCE_HP_BASE + 31) * lvl) / 100) + lvl + 10;
+}
+
+// Membership derives from fixedMoveDamage itself, so the two can never drift.
+export function isFixedDamageMove(moveId) {
+  return fixedMoveDamage(moveId, 1) != null;
+}
+
+// Damage a move actually lands into a defensive type, for coverage purposes.
+// Fixed-damage moves ignore effectiveness multipliers but NOT immunities
+// (Gen 7 rules): Seismic Toss deals its flat damage to anything Fighting can
+// touch and zero to Ghosts — it is never "super effective" and never resisted.
+export function coverageDamageIntoType(moveId, moveType, damage, defenseType) {
+  const multiplier = getTypeMultiplier(moveType, [defenseType]);
+  if (isFixedDamageMove(moveId)) return multiplier === 0 ? 0 : damage;
+  return damage * multiplier;
 }
 
 // True damage of fixed/fractional moves at a level. These ignore the user's

@@ -161,3 +161,22 @@ test("a real STAB attack outdamages Seismic Toss on a decent attacker at low cap
     `Karate Chop ${karateChop} should beat Seismic Toss ${seismicToss} at cap 25 on a real attacker`,
   );
 });
+
+test("fixed-damage coverage: flat into everything its type can touch, zero into immunities", async () => {
+  const { coverageDamageIntoType, isFixedDamageMove } = await import(
+    "../src/reborn/damageModel.js"
+  );
+  // Seismic Toss (Fighting): never super effective, never resisted...
+  assert.equal(coverageDamageIntoType("seismictoss", "Fighting", 25, "Normal"), 25);
+  assert.equal(coverageDamageIntoType("seismictoss", "Fighting", 25, "Flying"), 25);
+  // ...but Ghosts are immune.
+  assert.equal(coverageDamageIntoType("seismictoss", "Fighting", 25, "Ghost"), 0);
+  // Night Shade (Ghost) can't touch Normals.
+  assert.equal(coverageDamageIntoType("nightshade", "Ghost", 25, "Normal"), 0);
+  assert.equal(coverageDamageIntoType("nightshade", "Ghost", 25, "Psychic"), 25);
+  // Ordinary moves keep full effectiveness scaling.
+  assert.equal(coverageDamageIntoType("karatechop", "Fighting", 30, "Normal"), 60);
+  assert.equal(coverageDamageIntoType("karatechop", "Fighting", 30, "Flying"), 15);
+  assert.ok(isFixedDamageMove("superfang"));
+  assert.ok(!isFixedDamageMove("karatechop"));
+});
