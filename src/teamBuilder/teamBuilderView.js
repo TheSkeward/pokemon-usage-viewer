@@ -35,21 +35,28 @@ export function renderTeamBuilderPage({
   `;
 
   renderSelectedSetDetails({ app, pokemonIndex, setDetails, state });
-  renderRebornTeamAnalysisPanel(app.querySelector("#reborn-team-analysis-root"), {
-    family: state.family,
-    itemAssignments: state.itemRecommendations,
-    lines: state.result?.lines || [],
-    pokemonIndex,
-    poolQuery: state.query,
-    progression: state.progression,
-    selection: state.selection,
-    team: getSortedTeam(
-      state.result?.team || [],
-      state.teamSort,
-      state.teamSortDir,
-      state.progression,
-    ),
-  });
+  const analysisPanelReady = renderRebornTeamAnalysisPanel(
+    app.querySelector("#reborn-team-analysis-root"),
+    {
+      family: state.family,
+      itemAssignments: state.itemRecommendations,
+      lines: state.result?.lines || [],
+      pokemonIndex,
+      poolQuery: state.query,
+      progression: state.progression,
+      selection: state.selection,
+      team: getSortedTeam(
+        state.result?.team || [],
+        state.teamSort,
+        state.teamSortDir,
+        state.progression,
+      ),
+    },
+  );
+  // The Team Analysis (movesets) panel fills asynchronously; callers that
+  // schedule heavy post-analysis work wait for this so the sweep never starves
+  // the panel the user is actually watching.
+  return { analysisPanelReady };
 }
 
 function renderStandaloneHeader({ baseUrl }) {
@@ -459,6 +466,7 @@ function renderTelemetryDetails() {
         .join(" · ");
       const totals = [
         last.totalMs != null ? `team on screen ${ms(last.totalMs)}` : "",
+        last.movesetMs != null ? `movesets ${ms(last.movesetMs)}` : "",
         last.fullMs != null ? `everything ${ms(last.fullMs)}` : "",
       ]
         .filter(Boolean)

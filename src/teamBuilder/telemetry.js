@@ -130,6 +130,7 @@ export function recordOptimizerSample({
   dataSignature,
   phases = null,
   totalMs = null,
+  movesetMs = null,
   fullMs = null,
   cancelled = false,
   cancelledPhase = null,
@@ -156,6 +157,9 @@ export function recordOptimizerSample({
         }
       : {}),
     ...(totalMs != null ? { totalMs: roundMs(totalMs) } : {}),
+    // Click → movesets (Team Analysis panel) on screen: the wait users
+    // actually stopwatch, distinct from totalMs (team rows rendered).
+    ...(movesetMs != null ? { movesetMs: roundMs(movesetMs) } : {}),
     ...(fullMs != null ? { fullMs: roundMs(fullMs) } : {}),
     cancelled: Boolean(cancelled),
     ...(cancelled ? { cancelledPhase } : {}),
@@ -220,6 +224,15 @@ export function getTelemetrySummary(samples = loadTelemetrySamples()) {
         ...(withTotals.length
           ? {
               totalMs: distribution(withTotals.map((sample) => sample.totalMs)),
+              ...(withTotals.some((sample) => sample.movesetMs != null)
+                ? {
+                    movesetMs: distribution(
+                      withTotals
+                        .filter((sample) => sample.movesetMs != null)
+                        .map((sample) => sample.movesetMs),
+                    ),
+                  }
+                : {}),
               phaseP50: Object.fromEntries(
                 PHASE_KEYS.map((key) => [
                   key,
@@ -282,6 +295,7 @@ export function buildPerformanceReport() {
           searchMs: last.searchMs,
           ...(last.phases ? { phases: last.phases } : {}),
           ...(last.totalMs != null ? { totalMs: last.totalMs } : {}),
+          ...(last.movesetMs != null ? { movesetMs: last.movesetMs } : {}),
           ...(last.fullMs != null ? { fullMs: last.fullMs } : {}),
           poolSize: last.poolSize,
           builds: last.builds,

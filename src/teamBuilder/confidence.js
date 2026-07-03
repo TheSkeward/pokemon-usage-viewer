@@ -113,6 +113,12 @@ export async function computeTeamConfidence({
     } finally {
       setScoringOverrides(null);
     }
+    // Yield a real macrotask between settings. Each setting's search resolves
+    // synchronously (shortlist path, no worker round-trip), so without this
+    // the whole 21-setting sweep runs inside ONE task — no paints, no fetch
+    // callbacks, and the async Team Analysis (movesets) panel starves behind
+    // it (measured: the panel landed ~40s late on a 65-mon pool).
+    await new Promise((resolve) => setTimeout(resolve, 0));
   }
 
   const totalSettings = CONFIDENCE_GRID.length + 1;

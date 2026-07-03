@@ -223,3 +223,17 @@ Invariants the shape encodes (each guarded by fixtures):
   phase-aware: line resolution shows a real fraction, then the label walks
   search → item loading with an indeterminate pulse instead of sitting at
   100% (N/N) through the actual wait.
+- **Moveset starvation fix** (found by the schema-3 phase data on the same
+  65-mon report: "44s to the moveset" while the optimizer core took ~3s): the
+  confidence sweep's 21 settings each resolve synchronously, so the whole
+  sweep ran inside ONE browser task — no paints, no fetch callbacks — and the
+  async Team Analysis (movesets) panel starved behind it. Three changes:
+  (1) the sweep yields a macrotask between settings; (2) post-analysis waits
+  (bounded, 20s) for the movesets panel to be on screen before the sweep
+  starts, and records that moment as `movesetMs` in telemetry; (3) the panel
+  build is memoized by input signature — it used to be recomputed 4–5× per
+  optimize (result render, pending render, confidence render, investment
+  render), which also flashed the placeholder each time. Verified in headless
+  Chromium on the 65-mon pool: movesets land WITH the team (+33s on a slow
+  4-core container, sweep still running) instead of minutes behind it.
+  Scoring-neutral: no golden impact.

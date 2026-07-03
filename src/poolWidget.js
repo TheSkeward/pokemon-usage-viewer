@@ -188,14 +188,21 @@ export function mountPoolOptimizer(container, options = {}) {
 
       writeUrl();
       const renderStart = Date.now();
-      render();
+      const handle = render();
       phases.render = Date.now() - renderStart;
       const totalMs = Date.now() - pipelineStart;
 
       // First-class confidence + investment analysis, computed AFTER the team
       // renders so "click optimize" stays snappy; each re-renders when it lands
       // (guarded against a newer optimize having replaced the result).
-      void runPostAnalysis(state.result, { pipelineStart, phases, totalMs });
+      void runPostAnalysis(state.result, {
+        pipelineStart,
+        phases,
+        totalMs,
+        // The Team Analysis (movesets) panel fills asynchronously — the sweep
+        // must not start until it's on screen (it starves the main thread).
+        analysisPanelReady: handle?.analysisPanelReady || null,
+      });
     } catch (error) {
       console.error("Team Builder optimization failed", error);
 
@@ -216,9 +223,34 @@ export function mountPoolOptimizer(container, options = {}) {
     state.confidence = null;
     state.investment = null;
     state.analysisPending = true;
-    render();
+    const pendingHandle = render();
     let superseded = false;
     try {
+      // Wait for the movesets (Team Analysis panel) to land before starting
+      // the sweep: its settings run as long synchronous blocks that starve
+      // every pending async continuation — measured on a 65-mon pool, the
+      // panel the user is actually reading appeared ~40s late behind the
+      // sweep. The panel build is memoized, so awaiting THIS render's handle
+      // is the same build computeAndRender kicked off. Bounded so a wedged
+      // panel can never block the analysis.
+      const panelReady =
+        pendingHandle?.analysisPanelReady ||
+        pipeline?.analysisPanelReady ||
+        null;
+      if (panelReady) {
+        await Promise.race([
+          panelReady.catch(() => {}),
+          new Promise((resolve) => setTimeout(resolve, 20_000)),
+        ]);
+        if (pipeline) {
+          pipeline.movesetMs = Date.now() - pipeline.pipelineStart;
+        }
+        if (state.result !== forResult) {
+          superseded = true;
+          return;
+        }
+      }
+
       const confidenceStart = Date.now();
       const confidence = await computeTeamConfidence({
         result: forResult,
@@ -273,6 +305,7 @@ export function mountPoolOptimizer(container, options = {}) {
               dataSignature: meta.dataSignature,
               phases: pipeline.phases,
               totalMs: pipeline.totalMs,
+              movesetMs: pipeline.movesetMs ?? null,
               fullMs: Date.now() - pipeline.pipelineStart,
             });
           } catch {
@@ -307,7 +340,7 @@ export function mountPoolOptimizer(container, options = {}) {
   function render() {
     state.resultProgressionStale = markResultProgressionStale();
 
-    renderTeamBuilderPage({
+    const handle = renderTeamBuilderPage({
       app,
       baseUrl: baseUrl(),
       embedded,
@@ -320,6 +353,7 @@ export function mountPoolOptimizer(container, options = {}) {
     });
 
     bindEvents();
+    return handle;
   }
 
   function bindEvents() {

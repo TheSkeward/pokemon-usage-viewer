@@ -6,6 +6,14 @@ import {
   REBORN_ANALYSIS_TYPES,
 } from "./teamAnalysis";
 
+// The page re-renders several times per optimize (result render, analysis-
+// pending render, confidence render, investment render) with IDENTICAL panel
+// inputs, and the underlying analysis (per-member legal-move entries, damage
+// tables, bench swaps) is the most expensive thing on the page — so memo the
+// build by input signature and re-paint from it. This also stops the panel
+// flashing back to its "Checking..." placeholder on every re-render.
+let analysisMemo = { key: null, promise: null };
+
 export function renderRebornTeamAnalysisPanel(root, {
   family,
   itemAssignments,
@@ -23,38 +31,68 @@ export function renderRebornTeamAnalysisPanel(root, {
     return;
   }
 
-  root.innerHTML = `
-    <section class="panel reborn-team-analysis-panel">
-      <div class="panel-header">
-        <div>
-          <h2>Team Analysis</h2>
-          <p class="muted">Checking defensive profile and legal attacking coverage...</p>
-        </div>
-      </div>
-    </section>
-  `;
+  const memoKey = JSON.stringify([
+    team.map((member) => `${member.pokemonId}|${member.buildKey || ""}`),
+    itemAssignments || null,
+    progression || null,
+    family || "",
+    selection || "",
+    poolQuery,
+  ]);
 
-  buildRebornTeamAnalysis(team, progression, {
-    family,
-    itemAssignments,
-    lines,
-    pokemonIndex,
-    query: poolQuery,
-    selection,
-  })
-    .then((analysis) => {
+  if (analysisMemo.key !== memoKey) {
+    const memo = {
+      key: memoKey,
+      settled: false,
+      promise: buildRebornTeamAnalysis(team, progression, {
+        family,
+        itemAssignments,
+        lines,
+        pokemonIndex,
+        query: poolQuery,
+        selection,
+      })
+        .catch((error) => {
+          console.error("Failed to build Reborn team analysis", error);
+          return null;
+        })
+        .then((analysis) => {
+          memo.settled = true;
+          return analysis;
+        }),
+    };
+    analysisMemo = memo;
+  }
+  if (!analysisMemo.settled) {
+    root.innerHTML = `
+      <section class="panel reborn-team-analysis-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Team Analysis</h2>
+            <p class="muted">Checking defensive profile and legal attacking coverage...</p>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  // Returned so callers can sequence heavy background work (the confidence
+  // sweep) AFTER the movesets are actually on screen. Resolves on failure too —
+  // it signals "the panel is settled", not "the analysis succeeded".
+  return analysisMemo.promise.then((analysis) => {
+    if (!root.isConnected) return; // this render was superseded by a newer one
+    if (analysis) {
       root.innerHTML = renderAnalysis(analysis);
       wirePokepasteCopy(root, analysis);
-    })
-    .catch((error) => {
-      console.error("Failed to build Reborn team analysis", error);
+    } else {
       root.innerHTML = `
         <section class="panel reborn-team-analysis-panel">
           <h2>Team Analysis</h2>
           <p class="muted">Team analysis could not be loaded.</p>
         </section>
       `;
-    });
+    }
+  });
 }
 
 function wirePokepasteCopy(root, analysis) {

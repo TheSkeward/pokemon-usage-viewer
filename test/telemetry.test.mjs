@@ -174,16 +174,19 @@ test("pipeline phases and totals flow into summary and report", () => {
       investment: 5_000,
     },
     totalMs: 44_000,
+    movesetMs: 46_500,
     fullMs: 63_000,
   });
   const summary = getTelemetrySummary();
   const segment = summary.segments[0];
   assert.equal(segment.totalMs.p50, 44_000);
+  assert.equal(segment.movesetMs.p50, 46_500);
   assert.equal(segment.phaseP50.render, 39_000);
   assert.equal(segment.phaseP50.confidence, 14_000);
 
   const report = buildPerformanceReport();
   assert.equal(report.lastRun.totalMs, 44_000);
+  assert.equal(report.lastRun.movesetMs, 46_500);
   assert.equal(report.lastRun.fullMs, 63_000);
   assert.equal(report.lastRun.phases.items, 1800);
 });
