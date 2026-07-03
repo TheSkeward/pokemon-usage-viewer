@@ -388,3 +388,32 @@ Invariants the shape encodes (each guarded by fixtures):
   Oval Stone + friendship are both accessible chains under tiebreaker K. The
   seating guard is untouched: weak-shell / happiny-swap still assert the line
   cannot SEAT at cap 25, and they pass.)
+- **Fixed-damage coverage semantics** (follow-up to the fixed-damage fix; the
+  residual inaccuracy was called out and the user asked for it closed): a
+  fixed-damage move's coverage contribution was still multiplied by type
+  effectiveness. Gen 7 rules now apply everywhere: flat damage into everything
+  the move's type can touch — never super effective, never resisted — and
+  zero into immunities (Seismic Toss can't touch Ghosts, Night Shade can't
+  touch Normals). `damageModel.coverageDamageIntoType` is the single rule;
+  fixed moves also stopped claiming super-effective targets in the offense
+  summaries and no longer make a member "a Fighting attacker" for
+  attack-type/bias-counter purposes (their type only decides immunities).
+  Improves invariant 3. Unit-tested.
+- **Mantyke/Mantine pair of fixes** (user report: an owned Mantyke was
+  recommended Mantine despite no Remoraid in the party):
+  1. *Party-condition access gate — the reported bug*: "with a Remoraid in
+     party" was mapped as a trivial condition (no gate); it now has its own
+     evolution-access checkbox — a Mantyke input without Remoraid access
+     stays Mantyke, with Mantine surfaced as blocked.
+  2. *Pre-evolution representatives excluded — a latent bug found while
+     chasing the report*: a line's usage representative could be a strict
+     PRE-evolution of the input (an owned Mantine name-badged and set-sourced
+     as Eviolite Mantyke because Mantyke owns the LC tier), boosting the
+     line's U with a tier the fielded form can never inhabit again.
+     Candidates that are strict ancestors of the input are now dropped at
+     line resolution (descendants and megas stay — those are real futures).
+     Persisted result cache bumped to v10 (this plus the fixed-damage and
+     tiebreaker-K changes all altered optimizer output without a
+     data-signature change).
+  Committed tests cover both: the gate in both directions, and that an owned
+  Mantine's line never carries a Mantyke candidate.

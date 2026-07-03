@@ -3,7 +3,10 @@ import {
   applyBreedingContextToProgression,
   buildRebornBreedingContext,
 } from "../reborn/breeding.js";
-import { getCurrentRebornSpeciesForChoice } from "../reborn/currentSpecies.js";
+import {
+  getCurrentRebornSpeciesForChoice,
+  isStrictPreEvolutionOf,
+} from "../reborn/currentSpecies.js";
 import {
   getAvailableRebornMoves,
   loadRebornLegalMoveData,
@@ -49,7 +52,10 @@ const MAX_RESULT_CACHE = 400;
 // search, or the legality/damage model): a mismatched version retires the stored
 // results so a reload after such a deploy recomputes rather than showing stale
 // teams. UI-only deploys keep the version, so results survive them.
-const RESULT_CACHE_VERSION = "9";
+// v10: fixed-damage honesty, tiebreaker K, pre-evo representative exclusion —
+// three output-changing fixes shipped without a data-signature change, so
+// persisted results from older builds must retire.
+const RESULT_CACHE_VERSION = "10";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the
@@ -343,7 +349,14 @@ async function resolvePoolLine({
   }
 
   const input = group.input;
-  const candidates = getLineRepresentativeCandidates(input.id, pokemonIndex);
+  // Strict pre-evolutions of the INPUT are excluded: an owned Mantine can
+  // never be a Mantyke again, so Mantyke's LC usage must not name, set-source,
+  // or ceiling-boost the line. (Descendants and megas stay — those are real
+  // futures.)
+  const candidates = getLineRepresentativeCandidates(
+    input.id,
+    pokemonIndex,
+  ).filter((candidate) => !isStrictPreEvolutionOf(candidate.id, input.id));
   const abilityOverride =
     abilityAnnotations?.get(normalizeName(input.name)) || null;
 

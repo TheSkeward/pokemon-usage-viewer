@@ -94,3 +94,43 @@ test("optimizer respects the gate end-to-end (fielded form + cache key)", async 
     "gated run must field Nosepass — and differing results prove the cache key separates the two progressions",
   );
 });
+
+test("party-condition gate: Mantyke needs a Remoraid to become Mantine", async () => {
+  const withAccess = getCurrentRebornSpeciesForChoice(
+    { inputPokemonId: "mantyke", pokemonId: "mantine", name: "Mantine" },
+    { levelCap: "50" },
+  );
+  assert.equal(withAccess.id, "mantine");
+
+  const withoutRemoraid = getCurrentRebornSpeciesForChoice(
+    { inputPokemonId: "mantyke", pokemonId: "mantine", name: "Mantine" },
+    { levelCap: "50", evoAccessPartyCondition: false },
+  );
+  assert.equal(withoutRemoraid.id, "mantyke");
+  const blocked = withoutRemoraid.blockedEvolutions.find(
+    (entry) => entry.to === "mantine",
+  );
+  assert.ok(blocked, "Mantine must appear in blockedEvolutions");
+  assert.match(blocked.reason, /Party-condition/i);
+});
+
+test("an owned Mantine is never represented as its own pre-evolution", async () => {
+  const { availability, pokemonIndex } = await loadShared();
+  const result = await optimizeTeamFromPool({
+    availability,
+    family: "singles",
+    pokemonIndex,
+    progression: progressionAt({ badge: 4, levelCap: 45 }),
+    query: ["Mantine", "Froakie", "Pichu", "Mudkip", "Zubat"].join("\n"),
+    selection: "all",
+  });
+  const line = result.lines.find(
+    (entry) => (entry.best || entry.bestNonMega)?.inputName === "Mantine",
+  );
+  const best = line.best || line.bestNonMega;
+  assert.equal(best.pokemonId, "mantine", "representative must be Mantine, not Mantyke");
+  assert.ok(
+    line.candidates.every((candidate) => (candidate.candidate?.id ?? candidate.pokemonId) !== "mantyke"),
+    "Mantyke must not be a candidate for an owned Mantine at all",
+  );
+});

@@ -47,6 +47,17 @@ export function getCurrentRebornSpeciesForChoice(choice, progression = {}) {
   };
 }
 
+// True when `candidateId` is a strict PRE-evolution of `inputId` — a form the
+// owned mon can never be again. Used to keep a line's usage representative
+// from being a baby the player already evolved past (an owned Mantine must
+// not be presented as an Eviolite Mantyke because Mantyke owns the LC tier).
+export function isStrictPreEvolutionOf(candidateId, inputId) {
+  const candidate = toId(candidateId);
+  const input = toId(inputId);
+  if (!candidate || !input || candidate === input) return false;
+  return getAncestorIds(input).includes(candidate);
+}
+
 export function getCurrentRebornSpecies(pokemonId, progression = {}) {
   const inputId = toId(pokemonId);
   if (!inputId) return null;

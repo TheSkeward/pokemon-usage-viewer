@@ -35,6 +35,7 @@ export const EVOLUTION_ACCESS_FIELDS = Object.freeze([
   { key: "evoAccessFriendship", label: "Friendship / affection evolutions" },
   { key: "evoAccessStones", label: "Evolution stones & held items" },
   { key: "evoAccessLinkStone", label: "Link Stone (trade evolutions)" },
+  { key: "evoAccessPartyCondition", label: "Party-condition evolutions (Mantyke needs a Remoraid)" },
   { key: "evoAccessMagneticField", label: "Magnetic field area (Probopass, Magnezone, Vikavolt)" },
   { key: "evoAccessMossyRock", label: "Moss Rock (Leafeon)" },
   { key: "evoAccessIcyRock", label: "Ice Rock (Glaceon)" },
@@ -69,7 +70,9 @@ function requiredAccessKeys(evoType, condition, species) {
     if (/magnetic field/i.test(condition)) return ["evoAccessMagneticField"];
     if (/moss rock/i.test(condition)) return ["evoAccessMossyRock"];
     if (/ice rock/i.test(condition)) return ["evoAccessIcyRock"];
-    if (/party/i.test(condition)) return []; // trivial, no unlock involved
+    // "with a Remoraid in party" is NOT trivial — it needs a specific mon the
+    // player may not own; gate it like the other special methods.
+    if (/party/i.test(condition)) return ["evoAccessPartyCondition"];
     return ["evoAccessOtherLocations"];
   }
   return [];
