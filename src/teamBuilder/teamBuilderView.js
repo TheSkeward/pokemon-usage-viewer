@@ -573,6 +573,12 @@ function renderBenchLine(result) {
     groups.get(key).entries.push(entry);
   }
 
+  // Box-position numbering: the first 24 chips in display order (a PC box's
+  // worth) get 1–24, so sorting a box by descending usage tier is a matter of
+  // reading the numbers off, not re-deriving the order by hand.
+  const BOX_SIZE = 24;
+  let benchPosition = 0;
+
   const segments = [...groups.values()]
     .sort((a, b) => a.tierRank - b.tierRank)
     .map((group) => {
@@ -588,6 +594,11 @@ function renderBenchLine(result) {
 
       const chips = group.entries
         .map(({ representative, ceiling }) => {
+          benchPosition += 1;
+          const boxIndex =
+            benchPosition <= BOX_SIZE
+              ? `<span class="bench-index">${benchPosition}.</span> `
+              : "";
           const isWorst = worstInputIds.has(representative.inputPokemonId);
           const bestForm =
             ceiling?.name && ceiling.name !== representative.name
@@ -607,7 +618,7 @@ function renderBenchLine(result) {
           const worstNote = isWorst
             ? " · flagged: worst fit for the current team right now (bottom 10% by best swap-in score at this level cap — not a judgement of eventual value)"
             : "";
-          return `<span class="${classes}" title="from input ${escapeHtml(representative.inputName)}${escapeHtml(bestForm)}${escapeHtml(worstNote)}">${escapeHtml(chipName)}${usage}</span>`;
+          return `<span class="${classes}" title="from input ${escapeHtml(representative.inputName)}${escapeHtml(bestForm)}${escapeHtml(worstNote)}">${boxIndex}${escapeHtml(chipName)}${usage}</span>`;
         })
         .join("");
 
