@@ -6,7 +6,6 @@ import {
   renderOpponentTypeBias,
 } from "../reborn/progressionView";
 import { detailsStateAttrs } from "../utils/detailsState.js";
-import { getPoolLayout } from "../utils/layoutPreference.js";
 import { EVOLUTION_ACCESS_FIELDS } from "../reborn/evolutionRequirements.js";
 import { renderRebornTeamAnalysisPanel } from "../reborn/teamAnalysisView";
 import { getCurrentRebornSpeciesForChoice } from "../reborn/currentSpecies.js";
@@ -29,40 +28,28 @@ export function renderTeamBuilderPage({
   setDetails,
   state,
 }) {
-  // Two compositions, A/B-switchable (persisted): "classic" is the original
-  // order (inputs first, analysis last); "modern" reorders for playthrough
-  // cadence — results and set cards first, the episodic progression panel
-  // collapsed at the bottom, a gamestate strip making every result
-  // self-describing, and the per-fight opponent bias next to Optimize.
-  const layout = getPoolLayout();
-  app.innerHTML =
-    layout === "classic"
-      ? `
+  // Ordered for playthrough cadence: results and set cards first, the
+  // episodic progression panel collapsed at the bottom, the gamestate strip
+  // making every result self-describing, the per-fight opponent bias next to
+  // Optimize, and the provenance/performance footer dead last — the average
+  // player never needs it.
+  app.innerHTML = `
     ${embedded ? "" : renderStandaloneHeader({ baseUrl })}
 
-    ${renderPoolControls({ embedded, poolStats, state, layout })}
-
-    ${renderRebornProgressionPanel(state.progression)}
-
-    ${state.loading ? renderLoading(state) : ""}
-
-    ${state.result ? renderResult({ familyLabel, formatsIndex, setDetails, state, layout }) : renderEmpty(state)}
-  `
-      : `
-    ${embedded ? "" : renderStandaloneHeader({ baseUrl })}
-
-    ${renderPoolControls({ embedded, poolStats, state, layout })}
+    ${renderPoolControls({ embedded, poolStats, state })}
 
     ${renderGamestateStrip(state.progression)}
 
     ${state.loading ? renderLoading(state) : ""}
 
-    ${state.result ? renderResult({ familyLabel, formatsIndex, setDetails, state, layout }) : renderEmpty(state)}
+    ${state.result ? renderResult({ familyLabel, formatsIndex, setDetails, state }) : renderEmpty(state)}
 
     <details class="progression-collapse" ${detailsStateAttrs("progression-panel", false)}>
       <summary>Reborn Progression <span class="muted">(level cap, TMs, evolution access, items — the save-file settings)</span></summary>
       ${renderRebornProgressionPanel(state.progression, { includeBias: false })}
     </details>
+
+    ${state.result?.team?.length ? renderProvenanceFooter(state.manifest, state.result?.timings) : ""}
   `;
 
   renderSelectedSetDetails({ app, pokemonIndex, setDetails, state });
@@ -152,19 +139,7 @@ export function renderGamestateStrip(progression = {}) {
   `;
 }
 
-function renderLayoutToggle(layout) {
-  return `
-    <label class="layout-toggle" title="A/B: 'New' puts results first with the progression panel collapsed below; 'Classic' is the original order.">
-      <span>Layout</span>
-      <select id="layout-select">
-        <option value="modern" ${layout === "classic" ? "" : "selected"}>New</option>
-        <option value="classic" ${layout === "classic" ? "selected" : ""}>Classic</option>
-      </select>
-    </label>
-  `;
-}
-
-function renderPoolControls({ embedded, poolStats, state, layout = "classic" }) {
+function renderPoolControls({ embedded, poolStats, state }) {
   return `
     <section class="panel">
       <div class="panel-header">
@@ -172,7 +147,6 @@ function renderPoolControls({ embedded, poolStats, state, layout = "classic" }) 
           <h2>Owned Pokémon Pool</h2>
           <p>${poolStats.uniqueCount} unique entries${poolStats.duplicateCount ? ` · ${poolStats.duplicateCount} duplicates ignored` : ""}. Autosaved in this browser.</p>
         </div>
-        ${renderLayoutToggle(layout)}
       </div>
 
       <div class="toolbar pool-toolbar">
@@ -210,12 +184,9 @@ function renderPoolControls({ embedded, poolStats, state, layout = "classic" }) 
       </div>
 
       ${
-        layout === "classic"
-          ? ""
-          : // Per-fight lever, so it lives with the per-fight button: set a
-            // bias, optimize, fight, clear it. (Classic keeps it in the
-            // progression panel.)
-            renderOpponentTypeBias(state.progression?.opponentTypeBias || {})
+        // Per-fight lever, so it lives with the per-fight button: set a
+        // bias, optimize, fight, clear it.
+        renderOpponentTypeBias(state.progression?.opponentTypeBias || {})
       }
 
       ${renderAvailabilityOutput(state.availabilityText)}
@@ -270,7 +241,7 @@ function renderEmpty(state) {
   `;
 }
 
-function renderResult({ familyLabel, formatsIndex, setDetails, state, layout = "classic" }) {
+function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
   const result = state.result;
 
   if (!result.team.length) {
@@ -305,11 +276,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state, layout = "
           <p>Scored at level cap ${escapeHtml(String(state.progression?.levelCap || "?"))}: each pick's current-form value plus a readiness-gated competitive ceiling, minus evolution/build friction; the team is chosen with damage-aware coverage and shared-weakness fit, at most one Mega, one build realized per line. Displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its set.</p>
           <p class="muted" data-progression-stale-warning ${progressionStale ? "" : "hidden"}>Progression changed after this team was optimized. Re-optimize before trusting row scores or legal move notes.</p>
         </div>
-        ${
-          layout === "classic"
-            ? ""
-            : `<button type="button" class="view-tab" data-copy-pokepaste title="Copies once the Team Analysis below has finished loading">Copy team as poképaste</button>`
-        }
+        <button type="button" class="view-tab" data-copy-pokepaste title="Copies once the Team Analysis below has finished loading">Copy team as poképaste</button>
       </div>
 
       <div class="table-wrap">
@@ -326,7 +293,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state, layout = "
             </tr>
           </thead>
           <tbody>
-            ${sortedTeam.map((row, index) => renderTeamRow({ formatsIndex, index, itemRecommendations: state.itemRecommendations, layout, progression: state.progression, progressionStale, row, setDetails })).join("")}
+            ${sortedTeam.map((row, index) => renderTeamRow({ formatsIndex, index, itemRecommendations: state.itemRecommendations, progression: state.progression, progressionStale, row, setDetails })).join("")}
           </tbody>
         </table>
       </div>
@@ -335,24 +302,9 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state, layout = "
     </section>
   `;
 
-  if (layout === "classic") {
-    return `
-      ${teamPanel}
-
-      ${renderConfidenceSection(state)}
-      ${renderExplanationsSection(state)}
-      ${renderInvestmentSection(state)}
-
-      <div id="reborn-team-analysis-root"></div>
-
-      ${renderUnresolved(result.unresolved)}
-
-      ${renderProvenanceFooter(state.manifest, state.result?.timings)}
-    `;
-  }
-
-  // Modern order: the constantly-read outputs first (team, then the set cards
-  // you act on at the PC), planning views after, diagnostics last.
+  // The constantly-read outputs first (team, then the set cards you act on at
+  // the PC), planning views after, diagnostics last. The provenance/perf
+  // footer renders at page level, below the progression panel.
   return `
     ${teamPanel}
 
@@ -363,8 +315,6 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state, layout = "
     ${renderExplanationsSection(state)}
 
     ${renderUnresolved(result.unresolved)}
-
-    ${renderProvenanceFooter(state.manifest, state.result?.timings)}
   `;
 }
 
@@ -915,7 +865,6 @@ function renderTeamRow({
   formatsIndex,
   index,
   itemRecommendations,
-  layout = "classic",
   progression,
   progressionStale,
   row,
@@ -950,11 +899,7 @@ function renderTeamRow({
       <td>${index + 1}</td>
       <td>
         <strong>${escapeHtml(currentName)}</strong>
-        ${
-          layout === "classic"
-            ? ""
-            : `<button type="button" class="set-card-jump" data-jump-set-card="${escapeAttr(currentSpecies?.id || row.pokemonId)}" title="Jump to this pick's recommended set below">moves ↓</button>`
-        }
+        <button type="button" class="set-card-jump" data-jump-set-card="${escapeAttr(currentSpecies?.id || row.pokemonId)}" title="Jump to this pick's recommended set below">moves ↓</button>
         ${
           row.inputName && row.inputName !== currentName
             ? `<div class="representative-note">from ${escapeHtml(row.inputName)}${escapeHtml(evolutionNote)}</div>`

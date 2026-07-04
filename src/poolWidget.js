@@ -32,7 +32,6 @@ import {
 } from "./reborn/progression";
 import { toId } from "./utils/ids.js";
 import { bindPersistentDetails } from "./utils/detailsState.js";
-import { setPoolLayout } from "./utils/layoutPreference.js";
 import { GEN7_HELD_ITEMS_BY_ID } from "./generated/gen7HeldItems.generated.js";
 import {
   REBORN_EXTRA_INVENTORY_ITEMS,
@@ -371,13 +370,6 @@ export function mountPoolOptimizer(container, options = {}) {
     // <details> groups (evolution access, TMs, items…) re-render on every
     // optimizer run; persist the user's open/closed toggles across renders.
     bindPersistentDetails(app);
-
-    // A/B layout switch (persisted): re-render the same state in the other
-    // composition.
-    app.querySelector("#layout-select")?.addEventListener("change", (event) => {
-      setPoolLayout(event.target.value);
-      render();
-    });
 
     // Gamestate-strip chips: open (and scroll to) the control that changes
     // the clicked assumption — the collapsed progression panel, one of its

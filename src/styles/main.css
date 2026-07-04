@@ -769,8 +769,7 @@ input {
   font-size: 0.85em;
 }
 
-/* --- Modern layout (A/B) ---------------------------------------------------
-   Gamestate strip: one read-only line of what the recommendation assumes;
+/* Gamestate strip: one read-only line of what the recommendation assumes;
    each chip opens the control that changes it. */
 .gamestate-strip {
   display: flex;
@@ -795,20 +794,7 @@ input {
   color: #e8ecf3;
 }
 
-.layout-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.85rem;
-  color: #aab5c3;
-  white-space: nowrap;
-}
-
-.layout-toggle select {
-  width: auto;
-}
-
-/* Collapsed progression panel at the bottom of the modern layout. */
+/* Collapsed progression panel at the bottom of the page. */
 .progression-collapse {
   border: 1px solid #2b3645;
   border-radius: 10px;
