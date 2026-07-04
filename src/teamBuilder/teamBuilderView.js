@@ -547,12 +547,19 @@ function renderBenchLine(result) {
   // ranking when there's no optimal team to swap against.
   const worstInputIds = pickWorstBench(bench, result.benchSwapScores);
 
-  // Two different input lines can share a fielded form (Tranquill and Unfezant
-  // both benching as Unfezant) — disambiguate with the input name instead of
-  // rendering two identical chips.
+  // The chip names the form that EARNED the group's tier and usage — the
+  // line's best-ranked form — not the representative you'd field. A Rattata
+  // line fields Raticate, but its meaningful tier is Rattata's own AG 1500
+  // 1.3% (FEAR); printing "Raticate 1.3%" there attributed one form's numbers
+  // to another. The fielded representative moves to the tooltip.
+  const chipFormName = (entry) =>
+    entry.ceiling?.name || entry.representative.name;
+
+  // Two different input lines can share a chip form — disambiguate with the
+  // input name instead of rendering two identical chips.
   const nameCounts = new Map();
   for (const entry of bench) {
-    const name = entry.representative.name;
+    const name = chipFormName(entry);
     nameCounts.set(name, (nameCounts.get(name) || 0) + 1);
   }
 
@@ -585,7 +592,7 @@ function renderBenchLine(result) {
       group.entries.sort(
         (a, b) =>
           (b.ceiling?.value || 0) - (a.ceiling?.value || 0) ||
-          a.representative.name.localeCompare(b.representative.name),
+          chipFormName(a).localeCompare(chipFormName(b)),
       );
 
       const label = group.hasSignal
@@ -593,32 +600,34 @@ function renderBenchLine(result) {
         : "no usage data";
 
       const chips = group.entries
-        .map(({ representative, ceiling }) => {
+        .map((entry) => {
+          const { representative, ceiling } = entry;
           benchPosition += 1;
           const boxIndex =
             benchPosition <= BOX_SIZE
               ? `<span class="bench-index">${benchPosition}.</span> `
               : "";
           const isWorst = worstInputIds.has(representative.inputPokemonId);
-          const bestForm =
-            ceiling?.name && ceiling.name !== representative.name
-              ? ` · best form ${ceiling.name}`
+          const formName = chipFormName(entry);
+          const fieldsAs =
+            representative.name !== formName
+              ? ` · fields as ${representative.name}`
               : "";
           const usage = ceiling
             ? ` <em>${truncatePercent(ceiling.value)}</em>`
             : "";
           const classes = `bench-chip${isWorst ? " worst" : ""}`;
           const collides =
-            (nameCounts.get(representative.name) || 0) > 1 &&
+            (nameCounts.get(formName) || 0) > 1 &&
             representative.inputName &&
-            representative.inputName !== representative.name;
+            representative.inputName !== formName;
           const chipName = collides
-            ? `${representative.name} (${representative.inputName})`
-            : representative.name;
+            ? `${formName} (${representative.inputName})`
+            : formName;
           const worstNote = isWorst
             ? " · flagged: worst fit for the current team right now (bottom 10% by best swap-in score at this level cap — not a judgement of eventual value)"
             : "";
-          return `<span class="${classes}" title="from input ${escapeHtml(representative.inputName)}${escapeHtml(bestForm)}${escapeHtml(worstNote)}">${boxIndex}${escapeHtml(chipName)}${usage}</span>`;
+          return `<span class="${classes}" title="from input ${escapeHtml(representative.inputName)}${escapeHtml(fieldsAs)}${escapeHtml(worstNote)}">${boxIndex}${escapeHtml(chipName)}${usage}</span>`;
         })
         .join("");
 
