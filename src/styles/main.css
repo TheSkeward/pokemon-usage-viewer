@@ -769,6 +769,82 @@ input {
   font-size: 0.85em;
 }
 
+/* --- Modern layout (A/B) ---------------------------------------------------
+   Gamestate strip: one read-only line of what the recommendation assumes;
+   each chip opens the control that changes it. */
+.gamestate-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.2rem 0 0.8rem;
+}
+
+.gamestate-chip {
+  border: 1px solid #344355;
+  border-radius: 999px;
+  background: #1a222d;
+  color: #c4ccd8;
+  font-size: 0.82rem;
+  padding: 0.22rem 0.7rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.gamestate-chip:hover {
+  background: #243141;
+  color: #e8ecf3;
+}
+
+.layout-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: #aab5c3;
+  white-space: nowrap;
+}
+
+.layout-toggle select {
+  width: auto;
+}
+
+/* Collapsed progression panel at the bottom of the modern layout. */
+.progression-collapse {
+  border: 1px solid #2b3645;
+  border-radius: 10px;
+  background: #151c24;
+  margin-top: 1rem;
+}
+
+.progression-collapse > summary {
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0.85rem 1rem;
+}
+
+.progression-collapse[open] > summary {
+  border-bottom: 1px solid #2b3645;
+}
+
+.progression-collapse .progression-panel {
+  border: none;
+  margin: 0;
+}
+
+/* "moves ↓" jump from a team row to its set card. */
+.set-card-jump {
+  border: none;
+  background: none;
+  color: #8fb8e8;
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0 0.3rem;
+}
+
+.set-card-jump:hover {
+  text-decoration: underline;
+}
+
 .progression-rules {
   margin-top: 0.9rem;
 }

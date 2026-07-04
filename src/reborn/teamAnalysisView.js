@@ -98,24 +98,31 @@ export function renderRebornTeamAnalysisPanel(root, {
 }
 
 function wirePokepasteCopy(root, analysis) {
-  const button = root.querySelector("[data-copy-pokepaste]");
-  if (!button) return;
+  // Bind every copy button on the page, not just the one inside this panel —
+  // the modern layout puts a second one in the team-table header.
+  const scope = root.ownerDocument || document;
+  const buttons = scope.querySelectorAll("[data-copy-pokepaste]");
+  if (!buttons.length) return;
 
   const pokepaste = formatTeamPokepaste(
     analysis.profiles.map((profile) => profile.recommendedSet),
   );
 
-  button.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(pokepaste);
-      button.textContent = "Copied!";
-    } catch {
-      button.textContent = "Copy failed";
-    }
-    setTimeout(() => {
-      button.textContent = "Copy team as poképaste";
-    }, 2000);
-  });
+  for (const button of buttons) {
+    if (button.dataset.pokepasteWired) continue;
+    button.dataset.pokepasteWired = "1";
+    button.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(pokepaste);
+        button.textContent = "Copied!";
+      } catch {
+        button.textContent = "Copy failed";
+      }
+      setTimeout(() => {
+        button.textContent = "Copy team as poképaste";
+      }, 2000);
+    });
+  }
 }
 
 function renderAnalysis(analysis) {
@@ -279,7 +286,7 @@ function renderSetCard(profile) {
   const moves = profile.recommendedMoves?.length ? profile.recommendedMoves : [];
 
   return `
-    <div class="team-set-card ${profile.bestStabMove ? "" : "warning"}">
+    <div class="team-set-card ${profile.bestStabMove ? "" : "warning"}" data-set-card="${escapeHtml(profile.currentId || "")}">
       <div class="team-set-head">
         <strong>${escapeHtml(profile.currentName)}</strong>
         ${subParts.length ? `<small>${escapeHtml(subParts.join(" · "))}</small>` : ""}

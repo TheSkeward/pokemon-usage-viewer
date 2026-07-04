@@ -1,8 +1,13 @@
 import { escapeHtml, escapeAttr } from "../utils/html.js";
 import { renderMovesetPanel } from "../views/movesetView";
 import { renderRebornLegalMovesPanel } from "../reborn/legalMovesView";
-import { renderRebornProgressionPanel } from "../reborn/progressionView";
+import {
+  renderRebornProgressionPanel,
+  renderOpponentTypeBias,
+} from "../reborn/progressionView";
 import { detailsStateAttrs } from "../utils/detailsState.js";
+import { getPoolLayout } from "../utils/layoutPreference.js";
+import { EVOLUTION_ACCESS_FIELDS } from "../reborn/evolutionRequirements.js";
 import { renderRebornTeamAnalysisPanel } from "../reborn/teamAnalysisView";
 import { getCurrentRebornSpeciesForChoice } from "../reborn/currentSpecies.js";
 import { describeEvolutionPath } from "../reborn/evolutionRequirements.js";
@@ -24,16 +29,40 @@ export function renderTeamBuilderPage({
   setDetails,
   state,
 }) {
-  app.innerHTML = `
+  // Two compositions, A/B-switchable (persisted): "classic" is the original
+  // order (inputs first, analysis last); "modern" reorders for playthrough
+  // cadence — results and set cards first, the episodic progression panel
+  // collapsed at the bottom, a gamestate strip making every result
+  // self-describing, and the per-fight opponent bias next to Optimize.
+  const layout = getPoolLayout();
+  app.innerHTML =
+    layout === "classic"
+      ? `
     ${embedded ? "" : renderStandaloneHeader({ baseUrl })}
 
-    ${renderPoolControls({ embedded, poolStats, state })}
+    ${renderPoolControls({ embedded, poolStats, state, layout })}
 
     ${renderRebornProgressionPanel(state.progression)}
 
     ${state.loading ? renderLoading(state) : ""}
 
-    ${state.result ? renderResult({ familyLabel, formatsIndex, setDetails, state }) : renderEmpty(state)}
+    ${state.result ? renderResult({ familyLabel, formatsIndex, setDetails, state, layout }) : renderEmpty(state)}
+  `
+      : `
+    ${embedded ? "" : renderStandaloneHeader({ baseUrl })}
+
+    ${renderPoolControls({ embedded, poolStats, state, layout })}
+
+    ${renderGamestateStrip(state.progression)}
+
+    ${state.loading ? renderLoading(state) : ""}
+
+    ${state.result ? renderResult({ familyLabel, formatsIndex, setDetails, state, layout }) : renderEmpty(state)}
+
+    <details class="progression-collapse" ${detailsStateAttrs("progression-panel", false)}>
+      <summary>Reborn Progression <span class="muted">(level cap, TMs, evolution access, items — the save-file settings)</span></summary>
+      ${renderRebornProgressionPanel(state.progression, { includeBias: false })}
+    </details>
   `;
 
   renderSelectedSetDetails({ app, pokemonIndex, setDetails, state });
@@ -73,7 +102,69 @@ function renderStandaloneHeader({ baseUrl }) {
   `;
 }
 
-function renderPoolControls({ embedded, poolStats, state }) {
+// One-line, read-only summary of the gamestate a recommendation assumes.
+// Every chip opens (and scrolls to) the control that changes it, so "where do
+// I change X" is one click, and a stale assumption is visible at a glance.
+// Exported so light progression edits (level cap typing, bias drags — which
+// deliberately don't re-render the page) can refresh the strip in place.
+export function renderGamestateStrip(progression = {}) {
+  const chips = [];
+  const chip = (label, targetId) =>
+    chips.push(
+      `<button type="button" class="gamestate-chip" data-open-progression="${escapeAttr(targetId || "")}">${escapeHtml(label)}</button>`,
+    );
+
+  chip(progression.levelCap ? `Cap ${progression.levelCap}` : "No level cap", "");
+  chip(`TMs ${(progression.availableTmIds || []).length}`, "tms");
+  chip(`TMXs ${(progression.availableTmxIds || []).length}`, "tmxs");
+  chip(`Tutors ${(progression.availableTutorMoveIds || []).length}`, "tutors");
+
+  const blocked = EVOLUTION_ACCESS_FIELDS.filter(
+    (field) => progression[field.key] === false,
+  );
+  chip(
+    blocked.length
+      ? `Evo access: ${blocked.length} blocked`
+      : "Evo access: all",
+    "evo-access",
+  );
+
+  chip(`Items ${Object.keys(progression.ownedItems || {}).length}`, "items");
+
+  const bias = Object.entries(progression.opponentTypeBias || {}).filter(
+    ([, level]) => level > 0,
+  );
+  chip(
+    bias.length
+      ? `Bias: ${bias.map(([type, level]) => `${type} ${level}`).join(", ")}`
+      : "Bias: —",
+    "bias",
+  );
+
+  if (progression.moveRelearnerUnlocked) chip("Relearner ✓", "");
+  if (progression.daycareUnlocked) chip("Daycare ✓", "");
+  if (progression.hiddenPowerTypeChangerUnlocked) chip("HP Changer ✓", "");
+
+  return `
+    <div class="gamestate-strip" title="The gamestate this page's scores and legality assume. Click a chip to edit it.">
+      ${chips.join("")}
+    </div>
+  `;
+}
+
+function renderLayoutToggle(layout) {
+  return `
+    <label class="layout-toggle" title="A/B: 'New' puts results first with the progression panel collapsed below; 'Classic' is the original order.">
+      <span>Layout</span>
+      <select id="layout-select">
+        <option value="modern" ${layout === "classic" ? "" : "selected"}>New</option>
+        <option value="classic" ${layout === "classic" ? "selected" : ""}>Classic</option>
+      </select>
+    </label>
+  `;
+}
+
+function renderPoolControls({ embedded, poolStats, state, layout = "classic" }) {
   return `
     <section class="panel">
       <div class="panel-header">
@@ -81,6 +172,7 @@ function renderPoolControls({ embedded, poolStats, state }) {
           <h2>Owned Pokémon Pool</h2>
           <p>${poolStats.uniqueCount} unique entries${poolStats.duplicateCount ? ` · ${poolStats.duplicateCount} duplicates ignored` : ""}. Autosaved in this browser.</p>
         </div>
+        ${renderLayoutToggle(layout)}
       </div>
 
       <div class="toolbar pool-toolbar">
@@ -116,6 +208,15 @@ function renderPoolControls({ embedded, poolStats, state }) {
         <button class="view-tab danger-button" id="clear-pool-button">Clear saved pool</button>
         <span class="muted" data-pool-status>${escapeHtml(state.statusMessage)}</span>
       </div>
+
+      ${
+        layout === "classic"
+          ? ""
+          : // Per-fight lever, so it lives with the per-fight button: set a
+            // bias, optimize, fight, clear it. (Classic keeps it in the
+            // progression panel.)
+            renderOpponentTypeBias(state.progression?.opponentTypeBias || {})
+      }
 
       ${renderAvailabilityOutput(state.availabilityText)}
     </section>
@@ -169,7 +270,7 @@ function renderEmpty(state) {
   `;
 }
 
-function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
+function renderResult({ familyLabel, formatsIndex, setDetails, state, layout = "classic" }) {
   const result = state.result;
 
   if (!result.team.length) {
@@ -195,7 +296,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
   );
   const progressionStale = Boolean(state.resultProgressionStale);
 
-  return `
+  const teamPanel = `
     <section class="panel">
       <div class="panel-header">
         <div>
@@ -204,6 +305,11 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
           <p>Scored at level cap ${escapeHtml(String(state.progression?.levelCap || "?"))}: each pick's current-form value plus a readiness-gated competitive ceiling, minus evolution/build friction; the team is chosen with damage-aware coverage and shared-weakness fit, at most one Mega, one build realized per line. Displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its set.</p>
           <p class="muted" data-progression-stale-warning ${progressionStale ? "" : "hidden"}>Progression changed after this team was optimized. Re-optimize before trusting row scores or legal move notes.</p>
         </div>
+        ${
+          layout === "classic"
+            ? ""
+            : `<button type="button" class="view-tab" data-copy-pokepaste title="Copies once the Team Analysis below has finished loading">Copy team as poképaste</button>`
+        }
       </div>
 
       <div class="table-wrap">
@@ -220,19 +326,41 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
             </tr>
           </thead>
           <tbody>
-            ${sortedTeam.map((row, index) => renderTeamRow({ formatsIndex, index, itemRecommendations: state.itemRecommendations, progression: state.progression, progressionStale, row, setDetails })).join("")}
+            ${sortedTeam.map((row, index) => renderTeamRow({ formatsIndex, index, itemRecommendations: state.itemRecommendations, layout, progression: state.progression, progressionStale, row, setDetails })).join("")}
           </tbody>
         </table>
       </div>
 
       ${renderBenchLine(result)}
     </section>
+  `;
 
-    ${renderConfidenceSection(state)}
-    ${renderExplanationsSection(state)}
-    ${renderInvestmentSection(state)}
+  if (layout === "classic") {
+    return `
+      ${teamPanel}
+
+      ${renderConfidenceSection(state)}
+      ${renderExplanationsSection(state)}
+      ${renderInvestmentSection(state)}
+
+      <div id="reborn-team-analysis-root"></div>
+
+      ${renderUnresolved(result.unresolved)}
+
+      ${renderProvenanceFooter(state.manifest, state.result?.timings)}
+    `;
+  }
+
+  // Modern order: the constantly-read outputs first (team, then the set cards
+  // you act on at the PC), planning views after, diagnostics last.
+  return `
+    ${teamPanel}
 
     <div id="reborn-team-analysis-root"></div>
+
+    ${renderInvestmentSection(state)}
+    ${renderConfidenceSection(state)}
+    ${renderExplanationsSection(state)}
 
     ${renderUnresolved(result.unresolved)}
 
@@ -787,6 +915,7 @@ function renderTeamRow({
   formatsIndex,
   index,
   itemRecommendations,
+  layout = "classic",
   progression,
   progressionStale,
   row,
@@ -821,6 +950,11 @@ function renderTeamRow({
       <td>${index + 1}</td>
       <td>
         <strong>${escapeHtml(currentName)}</strong>
+        ${
+          layout === "classic"
+            ? ""
+            : `<button type="button" class="set-card-jump" data-jump-set-card="${escapeAttr(currentSpecies?.id || row.pokemonId)}" title="Jump to this pick's recommended set below">moves ↓</button>`
+        }
         ${
           row.inputName && row.inputName !== currentName
             ? `<div class="representative-note">from ${escapeHtml(row.inputName)}${escapeHtml(evolutionNote)}</div>`

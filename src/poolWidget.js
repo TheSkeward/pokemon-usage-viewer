@@ -2,6 +2,7 @@ import { escapeHtml } from "./utils/html.js";
 import { loadAvailability, loadFormatsIndex, loadPokemonIndex } from "./data";
 import {
   getSortedTeam,
+  renderGamestateStrip,
   renderTeamBuilderPage,
 } from "./teamBuilder/teamBuilderView";
 import { createTeamBuilderSetDetailsLoader } from "./teamBuilder/setDetailsLoader";
@@ -31,6 +32,7 @@ import {
 } from "./reborn/progression";
 import { toId } from "./utils/ids.js";
 import { bindPersistentDetails } from "./utils/detailsState.js";
+import { setPoolLayout } from "./utils/layoutPreference.js";
 import { GEN7_HELD_ITEMS_BY_ID } from "./generated/gen7HeldItems.generated.js";
 import {
   REBORN_EXTRA_INVENTORY_ITEMS,
@@ -370,6 +372,54 @@ export function mountPoolOptimizer(container, options = {}) {
     // optimizer run; persist the user's open/closed toggles across renders.
     bindPersistentDetails(app);
 
+    // A/B layout switch (persisted): re-render the same state in the other
+    // composition.
+    app.querySelector("#layout-select")?.addEventListener("change", (event) => {
+      setPoolLayout(event.target.value);
+      render();
+    });
+
+    // Gamestate-strip chips: open (and scroll to) the control that changes
+    // the clicked assumption — the collapsed progression panel, one of its
+    // groups, or the bias group wherever the layout put it. Delegated (bound
+    // once per widget) because light progression edits replace the strip's
+    // DOM in place without a full re-render.
+    if (!app.__gamestateChipsDelegated) {
+      app.__gamestateChipsDelegated = true;
+      app.addEventListener("click", (event) => {
+        const chipButton = event.target.closest("[data-open-progression]");
+        if (!chipButton || !app.contains(chipButton)) return;
+        const targetId = chipButton.dataset.openProgression;
+        const wrapper = app.querySelector(
+          'details[data-details-id="progression-panel"]',
+        );
+        const target = targetId
+          ? app.querySelector(`details[data-details-id="${targetId}"]`)
+          : null;
+        if (wrapper && (!target || wrapper.contains(target))) {
+          wrapper.open = true;
+        }
+        if (target) target.open = true;
+        (target || wrapper)?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    }
+
+    // "moves ↓" on a team row: jump to that pick's set card in Team Analysis
+    // (the row's own click keeps opening the inline usage-set details).
+    app.querySelectorAll("[data-jump-set-card]").forEach((jumpButton) => {
+      jumpButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const card =
+          app.querySelector(
+            `[data-set-card="${jumpButton.dataset.jumpSetCard}"]`,
+          ) || app.querySelector("#reborn-team-analysis-root");
+        card?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    });
+
     app
       .querySelector("#family-input")
       ?.addEventListener("change", async (event) => {
@@ -440,6 +490,7 @@ export function mountPoolOptimizer(container, options = {}) {
         refreshSelectedLegalMovesPanel();
         refreshTeamAnalysisPanel();
         refreshOptimizedTeamProgressionState(stale);
+        refreshGamestateStrip();
         scheduleAutoReoptimize(stale);
       });
     });
@@ -707,7 +758,17 @@ export function mountPoolOptimizer(container, options = {}) {
     // Bias only affects optimization, so flag the current team stale; no
     // re-render (keeps slider focus during a drag).
     refreshOptimizedTeamProgressionState(stale);
+    refreshGamestateStrip();
     scheduleAutoReoptimize(stale);
+  }
+
+  // Light progression edits (level cap typing, bias drags) deliberately skip
+  // the full re-render; keep the modern layout's gamestate strip honest by
+  // rebuilding just its chips in place. Chip clicks stay live because their
+  // handler is delegated to the widget root.
+  function refreshGamestateStrip() {
+    const strip = app.querySelector(".gamestate-strip");
+    if (strip) strip.outerHTML = renderGamestateStrip(state.progression);
   }
 
   function recomputeItemRecommendations() {

@@ -22,7 +22,10 @@ import {
   GEN7_HELD_ITEMS_BY_ID,
 } from "../generated/gen7HeldItems.generated.js";
 
-export function renderRebornProgressionPanel(progression) {
+// `includeBias: false` lets the modern layout render the opponent-bias group
+// next to the Optimize button instead (it changes per-fight, unlike the
+// save-file settings here); classic keeps it in this panel.
+export function renderRebornProgressionPanel(progression, { includeBias = true } = {}) {
   return `
     <section class="panel progression-panel">
       <div class="panel-header">
@@ -122,7 +125,7 @@ export function renderRebornProgressionPanel(progression) {
 
         ${renderItemInventory(progression.ownedItems || {})}
 
-        ${renderOpponentTypeBias(progression.opponentTypeBias || {})}
+        ${includeBias ? renderOpponentTypeBias(progression.opponentTypeBias || {}) : ""}
       </div>
 
       <details class="progression-rules" ${detailsStateAttrs("rules", false)}>
@@ -144,7 +147,7 @@ export function renderRebornProgressionPanel(progression) {
   `;
 }
 
-function renderOpponentTypeBias(bias) {
+export function renderOpponentTypeBias(bias) {
   const activeCount = REBORN_ANALYSIS_TYPES.filter(
     (type) => (bias[type] || 0) > 0,
   ).length;
