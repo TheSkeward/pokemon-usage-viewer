@@ -449,10 +449,11 @@ input {
   font-style: normal;
 }
 
-/* Box-position number on the first 24 bench chips (one PC box, in display
-   order), so sorting a box by descending usage tier is copy-down work. */
+/* Box-position number on the first 30 bench chips (one PC box, in display
+   order), so sorting a box by descending usage tier is copy-down work. Gold,
+   so it can't be confused with the gray uppercase tier labels beside it. */
 .bench-index {
-  color: #8b97a5;
+  color: #f1d887;
   font-size: 0.85em;
   font-variant-numeric: tabular-nums;
 }

@@ -573,10 +573,10 @@ function renderBenchLine(result) {
     groups.get(key).entries.push(entry);
   }
 
-  // Box-position numbering: the first 24 chips in display order (a PC box's
-  // worth) get 1–24, so sorting a box by descending usage tier is a matter of
+  // Box-position numbering: the first 30 chips in display order (a PC box's
+  // worth) get 1–30, so sorting a box by descending usage tier is a matter of
   // reading the numbers off, not re-deriving the order by hand.
-  const BOX_SIZE = 24;
+  const BOX_SIZE = 30;
   let benchPosition = 0;
 
   const segments = [...groups.values()]
