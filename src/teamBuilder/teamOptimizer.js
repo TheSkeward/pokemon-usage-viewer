@@ -62,7 +62,10 @@ const MAX_RESULT_CACHE = 400;
 // v12: the v11 utility-flag demotion is reverted (usage-backed status moves
 // like Z-Splash are legitimate; the zero-usage filter is the real guard), so
 // utility builds change back.
-const RESULT_CACHE_VERSION = "12";
+// v13: Snore's sleep gate became set-conditional (Rest in the legal pool no
+// longer makes Snore a usable attack in a Rest-less set), changing
+// recommended sets and their coverage.
+const RESULT_CACHE_VERSION = "13";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the

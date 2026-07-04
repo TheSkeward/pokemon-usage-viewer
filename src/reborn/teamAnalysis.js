@@ -792,8 +792,10 @@ function isDamagingMove(move) {
 }
 
 // Snore only deals damage while the user is asleep, so it's a dead move unless
-// the set can also put the user to sleep. Rest is the only reliable self-sleep
-// move, so gate Snore on having it available.
+// its own SET can put the user to sleep (Rest is the only reliable self-sleep
+// move). Callers pass the relevant context: the recommender passes the set
+// being built — Rest merely existing in the legal pool doesn't make Snore
+// usable in a set that didn't take Rest.
 const SLEEP_GATED_DAMAGING_MOVE_IDS = new Set(["snore"]);
 const SELF_SLEEP_MOVE_IDS = new Set(["rest"]);
 
@@ -1075,14 +1077,20 @@ function recommendCurrentMoves(
     decorateMove(move, member, attackerStats, moveUsage, opponentTypeBias),
   );
   const byId = new Map(decorated.map((move) => [move.id, move]));
-  const usableDamaging = decorated.filter((move) =>
-    isUsableDamagingMove(move, moves),
-  );
+  const selected = [];
+  // Set-conditional usability: Snore only deals damage if THIS SET can put
+  // its user to sleep, so the sleep context is the set being built — not the
+  // legal pool (Dedenne has Rest in its pool, but a Sub/Nuzzle/Volt Switch
+  // set has no way to sleep, so recommending Snore beside them is a dead
+  // slot). Evaluated live as the set grows: once Rest is selected, Snore
+  // becomes a real attack.
+  const usableInSet = (move) => isUsableDamagingMove(move, selected);
+  const usableDamaging = () =>
+    decorated.filter((move) => usableInSet(move));
   const usableUtility = decorated.filter(
-    (move) => move.utility && isSelectableMove(move, moves),
+    (move) => move.utility && isSelectableMove(move, selected),
   );
 
-  const selected = [];
   const coveredTypes = new Set();
   const isHiddenPower = (id) => String(id).startsWith("hiddenpower");
   const add = (move) => {
@@ -1098,7 +1106,7 @@ function recommendCurrentMoves(
     }
     selected.push(move);
     // Fixed damage is typeless offense — it never claims a coverage type.
-    if (isUsableDamagingMove(move, moves) && !isFixedDamageMove(move.id)) {
+    if (usableInSet(move) && !isFixedDamageMove(move.id)) {
       coveredTypes.add(move.type);
     }
     return true;
@@ -1110,7 +1118,7 @@ function recommendCurrentMoves(
     // A build the team optimizer can pick when it needs THIS mon's off-type
     // answers rather than its canonical competitive set.
     add(
-      usableDamaging
+      usableDamaging()
         .filter(
           (move) =>
             member.types.includes(move.type) && !isFixedDamageMove(move.id),
@@ -1133,7 +1141,7 @@ function recommendCurrentMoves(
       .map(([id]) => id);
     for (const id of canonicalIds) {
       const move = byId.get(id);
-      if (move && isSelectableMove(move, moves)) add(move);
+      if (move && isSelectableMove(move, selected)) add(move);
     }
   }
 
@@ -1142,9 +1150,9 @@ function recommendCurrentMoves(
   // its utility) is left as-is; we don't shove its hardest hitter on top.
   if (
     selected.length < 4 &&
-    !selected.some((move) => isUsableDamagingMove(move, moves))
+    !selected.some((move) => usableInSet(move))
   ) {
-    add([...usableDamaging].sort(compareByDamage)[0]);
+    add(usableDamaging().sort(compareByDamage)[0]);
   }
 
   // 3. One utility move, if none is present yet (a damage+utility move counts).
@@ -1154,7 +1162,7 @@ function recommendCurrentMoves(
 
   // 4. Fill by damage with type diversity, then bonus utility, then any attack.
   while (selected.length < 4) {
-    const freshType = usableDamaging
+    const freshType = usableDamaging()
       .filter(
         (move) =>
           !coveredTypes.has(move.type) &&
@@ -1164,7 +1172,7 @@ function recommendCurrentMoves(
       .sort(compareByDamage)[0];
     if (add(freshType)) continue;
     if (add(bestUtility(usableUtility, selected))) continue;
-    const anyAttack = usableDamaging
+    const anyAttack = usableDamaging()
       .filter((move) => !isSelected(move, selected))
       .sort(compareByDamage)[0];
     if (add(anyAttack)) continue;
@@ -1180,11 +1188,12 @@ function isSelected(move, selected) {
 
 // A move is selectable if it's a usable damaging move, or any non-damaging
 // (status/utility) move — the sleep-gating only restricts attacks like Snore
-// that need the user asleep. A mon's canonical top-4 is deliberately NOT
-// second-guessed here: if the meaningful tier's real sets run a move, the
-// recommendation may too.
-function isSelectableMove(move, moves) {
-  return isDamagingMove(move) ? isUsableDamagingMove(move, moves) : true;
+// that need the user asleep, judged against the SET being built. A mon's
+// canonical top-4 is otherwise deliberately NOT second-guessed: if the
+// meaningful tier's real sets run a move, the recommendation may too (a
+// canonical Rest earlier in usage order re-enables a canonical Snore).
+function isSelectableMove(move, sleepContext) {
+  return isDamagingMove(move) ? isUsableDamagingMove(move, sleepContext) : true;
 }
 
 // Highest-usage utility move not already chosen. Falls back to the static

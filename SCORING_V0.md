@@ -494,3 +494,15 @@ Invariants the shape encodes (each guarded by fixtures):
      fallback when a representative has no set data). Committed tests
      cover both directions (mega rep → AG set, Scrappy, Lopunnite; base
      rep → ZU set, Klutz) plus the zero-usage-filler guard.
+- **Snore's sleep gate is set-conditional** (user report: a Sub/Nuzzle/Volt
+  Switch Dedenne was recommended Snore): Snore only deals damage while its
+  user sleeps, but the gate asked whether Rest was in the LEGAL POOL —
+  Dedenne's pool has Rest, so Snore counted as a usable attack (and, with
+  SpA investment, out-ranked Facade as the "best Normal hit") in a set with
+  no way to sleep. The recommender now judges the sleep context against the
+  SET BEING BUILT, re-evaluated as it grows: Snore is dead until Rest is
+  actually selected, and a canonical Rest earlier in usage order still
+  re-enables a canonical Snore (RestSnore sets stay real). Pool-level
+  counts (legalDamagingMoveCount) keep constructibility semantics.
+  Improves invariant 3 (chip and fiction are not coverage). Result cache
+  v13. Committed tests cover both directions.
