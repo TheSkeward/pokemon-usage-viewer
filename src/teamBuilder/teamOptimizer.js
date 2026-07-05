@@ -13,10 +13,15 @@ import {
 } from "../reborn/legalMoves";
 import { buildCandidateLegalityProfile } from "../reborn/teamAnalysis";
 import { loadTopSet } from "../reborn/topSpread.js";
+import { computeSetReadiness } from "../reborn/setReadiness.js";
 import { buildInputGroups } from "./inputGroups";
 import { parseAbilityAnnotations } from "./poolParsing";
 import { normalizeName } from "./nameUtils";
-import { tunable, scoringOverridesSignature } from "./scoringConstants.js";
+import {
+  tunable,
+  scoringOverridesSignature,
+  setActiveUsageModel,
+} from "./scoringConstants.js";
 import { utilityTagVector } from "./currentFormValue.js";
 import {
   MIN_MEANINGFUL_USAGE_PERCENT,
@@ -101,7 +106,13 @@ export async function optimizeTeamFromPool({
   selection,
   onProgress,
   exhaustive = true,
+  // "v1" opts this run into the usage-convergence blend (SCORING_V1); the
+  // frozen defaults stay V0 so goldens and tests are untouched unless a test
+  // opts in itself. Folded into every cache signature via
+  // scoringOverridesSignature().
+  scoringModel = null,
 }) {
+  setActiveUsageModel(scoringModel);
   const setupStart = Date.now();
   const groups = buildInputGroups(query, pokemonIndex);
   const total = groups.length;
@@ -665,6 +676,9 @@ function makeChoice(input, result, note) {
     ceiling: result.ceiling,
     online: result.online,
     futureValue: result.futureValue,
+    usagePercent: result.usagePercent,
+    tierRank: result.tierRank,
+    usageWeight: result.usageWeight ?? 0,
     buildKey: result.buildKey || "default",
     buildLabel: result.buildLabel || null,
     abilitySensitivity: result.abilitySensitivity || 0,
@@ -778,6 +792,15 @@ async function resolveCandidateBuilds({
       }
     : { friction: 0, steps: [], blocked: [] };
 
+  // Canonical-set readiness (Phase 1) — a property of the LINE, shared by
+  // every build variant. Display-only under V0; SCORING_V1's w ramp reads it.
+  const setReadiness = computeSetReadiness({
+    legalMoveData,
+    availableMoves: moves,
+    topSet,
+    progression: memberProgression,
+  });
+
   const makeProfile = ({ movePreference, buildMoves, buildFriction = 0, ability }) => {
     const profile = buildCandidateLegalityProfile({
       member,
@@ -792,6 +815,7 @@ async function resolveCandidateBuilds({
     });
     profile.abilityKnown = abilityKnown;
     profile.abilityOptions = abilityChoices;
+    profile.setReadiness = setReadiness;
     return profile;
   };
 

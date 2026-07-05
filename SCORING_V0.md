@@ -681,3 +681,30 @@ Invariants the shape encodes (each guarded by fixtures):
   usage blend: L* only becomes a scoring input once these badges survive
   gameplay. No golden drift — readiness is computed in the analysis path
   and never feeds V.
+- **SCORING_V1: the usage-convergence blend (Phase 2)** — opt-in per run
+  (UI toggle next to Optimize, default V1 in the app; the frozen DEFAULTS
+  stay V0 so every existing golden is byte-stable and tests opt in
+  explicitly). User-ratified design:
+  `V1 = C + w_up·[U−C]₊ − w_down·[C−U]₊ + bias − (1−w_down)·(K + ability)`
+  with `w_up = max(α·O, ramp)`, `w_down = ramp`,
+  `ramp = O_rep · min((cap/L*)², r_now)`. The α·O floor keeps V0's
+  upside-only shape early; only the EARNED ramp can drag an
+  over-performing C down toward the usage prior or melt friction — at
+  ramp = 1 the score IS the usage prior (+ bias). O_rep: the ramp applies
+  only when the fielded form is the line's usage representative
+  (a deliberately-unevolved pre-evo keeps V0 treatment). L* from the
+  Phase 1 readiness schedule; r_now (canonical moves actually assembled)
+  caps the ramp so reachable-but-unclicked never scores as done; items
+  reach w only through L* (endgame items are purchasable at will).
+  U is redefined as the tier-dominant rank scalar
+  `U_rank = 101·tierIndex + quantize(usage%, 0.001) + ε·C` (user design;
+  101 strictly exceeds any usage% — the user's proposed 50 fails on
+  >50%-usage mons), monotonically rescaled to C's scale. ε·C is a PROVABLE
+  tiebreak: ε·C_max < one usage quantum, asserted by a validate test.
+  Invariants (revised per user: team composition stays coverage-driven,
+  early-cap byte-identity dropped — FEAR-class mons legitimately converge
+  early): pairwise endgame rank agreement among fully-converged lines,
+  w monotone in cap at a fixed schedule, pre-evo never ramps, plus a V1
+  golden (v1-midgame-broad: Dodrio 1536→1117 dragged to its honest prior,
+  Arcanine +156, Magnezone +124 — the blend working as intended).
+  V0 goldens untouched; model choice folded into every cache signature.

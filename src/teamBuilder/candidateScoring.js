@@ -82,6 +82,36 @@ export function scoreCandidate({
   const headroom = Math.max(0, ceiling - currentValue);
   const usagePull = alpha * online * headroom;
 
+  // --- SCORING_V1 (usage-convergence blend, Phase 2) ------------------------
+  // w ramps with how far the canonical competitive set is toward complete:
+  //   w = max(α·O, O_rep · min((cap/L*)^k, r_now))
+  // O_rep: the ramp only applies when the fielded form IS the line's usage
+  // representative — the usage prior describes THAT form, and a deliberately
+  // unevolved pre-evo must keep the V0 α·O treatment. L* comes from the
+  // Phase 1 readiness schedule; r_now (canonical moves actually assembled)
+  // caps it so "reachable but not picked up yet" never scores as done.
+  // Items influence w only through L* — endgame items are purchasable at
+  // will, so an unowned Eviolite shouldn't hold w below 1 at cap 100.
+  const model = tunable("USAGE_MODEL");
+  const readiness = legalityProfile?.setReadiness || null;
+  const isRepresentative =
+    !legalityProfile?.representativeId ||
+    legalityProfile?.currentId === legalityProfile?.representativeId;
+  let ramp = 0;
+  if (model === "v1" && readiness && isRepresentative) {
+    const cap = Math.max(1, Math.min(100, levelCap || 0));
+    const lStar = readiness.fullAtCap;
+    const schedule =
+      lStar == null
+        ? 1
+        : Math.min(1, Math.pow(cap / lStar, tunable("USAGE_RAMP_EXPONENT")));
+    const totalMoves = readiness.moves?.length || 0;
+    const rNow = totalMoves
+      ? (readiness.readyMoveCount || 0) / totalMoves
+      : 0;
+    ramp = Math.min(schedule, rNow);
+  }
+
   // F — display-only near-future value; NOT added to V. The investment view
   // (Phase 9) owns "worth training toward"; selection judges the present.
   const onlineFloor = tunable("ONLINE_MIDEVO");
@@ -114,8 +144,30 @@ export function scoreCandidate({
       ? Math.max(0, legalityProfile?.abilitySensitivity || 0)
       : 0;
 
-  const value =
-    currentValue + usagePull + biasScore - friction - abilityPenalty;
+  // V0: V = C + α·O·[U−C]₊ + bias − K (usage upside-only, friction always).
+  // V1 generalizes it: the α·O floor stays upside-only, but the EARNED part of
+  // w (the ramp) blends fully — it can drag an over-performing C down toward
+  // the usage prior, and it melts friction/ability caution away, so at
+  // w_down = 1 the score IS the usage prior (+ bias):
+  //   V1 = C + w_up·[U−C]₊ − w_down·[C−U]₊ + bias − (1−w_down)·(K + ability)
+  // At ramp = 0 this is exactly the V0 shape (with U redefined to the
+  // tier-dominant rank scalar).
+  let value;
+  let usageWeight = 0;
+  if (model === "v1") {
+    const uRank = usageRankScore(rank, currentValue);
+    const wUp = Math.max(alpha * online, ramp);
+    const wDown = ramp;
+    usageWeight = wDown;
+    value =
+      currentValue +
+      wUp * Math.max(0, uRank - currentValue) -
+      wDown * Math.max(0, currentValue - uRank) +
+      biasScore -
+      (1 - wDown) * (friction + abilityPenalty);
+  } else {
+    value = currentValue + usagePull + biasScore - friction - abilityPenalty;
+  }
 
   const meaningfulUsage =
     (usagePercent >= MIN_MEANINGFUL_USAGE_PERCENT && online >= onlineFloor) ||
@@ -136,7 +188,36 @@ export function scoreCandidate({
     usagePercent,
     rawCount,
     leadPercent,
+    // First-meaningful-tier rank (lower = shallower tier), for consumers that
+    // need the usage-prior ordering itself (V1 convergence tests, displays).
+    tierRank: rank.tierRank,
+    // V1 only: how much of the score is the usage prior (0 = pure V0 shape,
+    // 1 = fully converged). Exposed for the convergence/monotonicity tests
+    // and the explanation layer; always 0 under V0.
+    usageWeight,
   };
+}
+
+// SCORING_V1's U: a tier-dominant rank scalar on C's scale (user design).
+//   U_rank = TIER_STEP·tierIndex + quantize(usage%) + ε·C
+// TIER_STEP (101) strictly exceeds any usage %, so a shallower
+// first-meaningful tier ALWAYS dominates within-tier usage; usage is
+// quantized so ε·C (bounded below the quantum by a tested invariant) can
+// only break exact ties. Monotonically rescaled onto CURRENT_VALUE_SCALE —
+// any monotone rescale preserves the ordering guarantees.
+export function usageRankScore(rank, currentValue = 0) {
+  const totalTiers = Math.max(1, rank.totalTiers || 1);
+  const tierIndex = Math.max(0, totalTiers - rank.tierRank);
+  const quantum = tunable("USAGE_QUANTUM");
+  const usageQuantized =
+    Math.floor(Math.max(0, rank.value || 0) / quantum) * quantum;
+  const step = tunable("TIER_STEP");
+  const raw =
+    step * tierIndex +
+    usageQuantized +
+    tunable("EPSILON_C") * Math.max(0, currentValue);
+  const rawMax = step * (totalTiers + 1);
+  return CURRENT_VALUE_SCALE * (raw / rawMax);
 }
 
 // Collapses the ~40 usage buckets into one competitive-ceiling number on C's

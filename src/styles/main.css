@@ -1237,6 +1237,14 @@ input {
   margin-top: 0.1rem;
 }
 
+.scoring-model-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: 0.5rem;
+  font-size: 0.85rem;
+}
+
 /* Phase 1 readiness line: gold while the competitive set is still assembling,
    muted once complete. Hover for the per-element breakdown. */
 .team-set-readiness {

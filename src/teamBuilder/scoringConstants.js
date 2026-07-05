@@ -82,6 +82,23 @@ export const SCORING_DEFAULTS = Object.freeze({
   // --- Ability assumption (when the caught mon's ability is unknown) ----------
   ABILITY_ASSUMPTION: "primary", // "secondary" flips unknown mons for the sweep
 
+  // --- SCORING_V1: usage-convergence blend (Phase 2; see SCORING_V0.md) -------
+  // Selected per run (UI toggle → setActiveUsageModel), never a default:
+  // the frozen defaults keep every V0 golden byte-stable.
+  USAGE_MODEL: "v0",
+  USAGE_RAMP_EXPONENT: 2, // w ramps as (cap/L*)^k — back-loaded handoff
+  // Tier dominance: strictly greater than any possible usage % (100), so a
+  // shallower first-meaningful tier ALWAYS outranks any within-tier usage.
+  // (User proposed 50/100; 50 fails on >50%-usage mons, 100 ties at exactly
+  // 100% — 101 is airtight.)
+  TIER_STEP: 101,
+  // Usage % is quantized to this step inside U_rank so the ε·C tiebreak has a
+  // provable gap to live in: EPSILON_C × CURRENT_VALUE_SCALE < USAGE_QUANTUM,
+  // asserted by a validate test — ε-C can NEVER override a real usage
+  // difference, it only breaks exact (quantized) ties.
+  USAGE_QUANTUM: 0.001,
+  EPSILON_C: 2.5e-7,
+
   // --- Search ------------------------------------------------------------------
   SHORTLIST_MAX: 28,
   SHORTLIST_CORE: 14,
@@ -96,7 +113,17 @@ export const SCORING_DEFAULTS = Object.freeze({
 export function tunable(key) {
   const overrides = globalThis.__SCORING_OVERRIDES__;
   if (overrides && key in overrides) return overrides[key];
+  // The scoring model is a SESSION selection (UI toggle), deliberately outside
+  // the overrides object so the confidence sweep's setScoringOverrides calls
+  // can't silently reset it mid-run.
+  if (key === "USAGE_MODEL" && activeUsageModel) return activeUsageModel;
   return SCORING_DEFAULTS[key];
+}
+
+let activeUsageModel = null;
+
+export function setActiveUsageModel(model) {
+  activeUsageModel = model === "v1" ? "v1" : null;
 }
 
 export function setScoringOverrides(overrides) {
@@ -112,9 +139,12 @@ export function getScoringOverrides() {
 // a sweep or a test never poisons the production caches (and vice versa).
 export function scoringOverridesSignature() {
   const overrides = globalThis.__SCORING_OVERRIDES__;
-  if (!overrides) return "base";
-  return Object.keys(overrides)
-    .sort()
-    .map((key) => `${key}=${overrides[key]}`)
-    .join(",");
+  const model = activeUsageModel ? `|model=${activeUsageModel}` : "";
+  if (!overrides) return `base${model}`;
+  return (
+    Object.keys(overrides)
+      .sort()
+      .map((key) => `${key}=${overrides[key]}`)
+      .join(",") + model
+  );
 }

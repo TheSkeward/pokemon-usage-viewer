@@ -189,6 +189,13 @@ function renderPoolControls({ embedded, poolStats, state }) {
 
       <div class="toolbar">
         <button class="view-tab primary-action" id="optimize-button">${state.loading ? "Optimizing..." : "Normalize + optimize team"}</button>
+        <label class="scoring-model-toggle" title="V1 slides each mon's score toward its competitive usage as its canonical set nears completion (full usage prior once assembled). V0 is the frozen model: usage capped at 30% influence forever.">
+          <span class="muted">Scoring</span>
+          <select id="scoring-model-select">
+            <option value="v1" ${state.scoringModel === "v0" ? "" : "selected"}>V1 · usage-convergent</option>
+            <option value="v0" ${state.scoringModel === "v0" ? "selected" : ""}>V0 · frozen</option>
+          </select>
+        </label>
         <button class="view-tab" id="copy-pool-button">Copy pool</button>
         <button class="view-tab" id="generate-availability-button" ${state.result?.lines?.length ? "" : "disabled"} title="${state.result?.lines?.length ? "Generate a pasteable list of every available Pokémon, its current move pool, and your held items" : "Optimize the team first to resolve your pool"}">Generate availability list</button>
         <button class="view-tab danger-button" id="clear-pool-button">Clear saved pool</button>

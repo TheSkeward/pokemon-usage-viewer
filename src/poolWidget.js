@@ -54,6 +54,7 @@ import {
 const POOL_STORAGE_KEY = "pokemon-usage-viewer:owned-pool:v1";
 const TEAM_SORT_STORAGE_KEY = "pokemon-usage-viewer:pool-team-sort:v1";
 const TEAM_SORT_DIR_STORAGE_KEY = "pokemon-usage-viewer:pool-team-sort-dir:v1";
+const SCORING_MODEL_STORAGE_KEY = "pokemon-usage-viewer:scoring-model:v1";
 
 export function mountPoolOptimizer(container, options = {}) {
   const app = container;
@@ -73,6 +74,9 @@ export function mountPoolOptimizer(container, options = {}) {
     progression: loadSavedRebornProgression(),
     teamSort: getParam("teamSort") || loadSavedTeamSort() || "lead",
     teamSortDir: getParam("teamSortDir") || loadSavedTeamSortDir() || "desc",
+    // A/B: "v1" = usage-convergence blend (default), "v0" = frozen model.
+    scoringModel:
+      readLocalStorage(SCORING_MODEL_STORAGE_KEY, "") === "v0" ? "v0" : "v1",
     result: null,
     resultProgressionKey: "",
     loading: false,
@@ -152,8 +156,12 @@ export function mountPoolOptimizer(container, options = {}) {
         // search; only background auto-reoptimize accepts the fast approximation
         // when the pool is too large to enumerate exactly.
         exhaustive,
+        scoringModel: state.scoringModel,
       });
-      state.resultProgressionKey = getProgressionKey(state.progression);
+      state.resultProgressionKey = getProgressionKey(
+        state.progression,
+        state.scoringModel,
+      );
       const meta = state.result.telemetryMeta;
       if (meta) {
         phases.setup = meta.setupMs;
@@ -672,6 +680,19 @@ export function mountPoolOptimizer(container, options = {}) {
       });
 
     app
+      .querySelector("#scoring-model-select")
+      ?.addEventListener("change", (event) => {
+        state.scoringModel = event.target.value === "v0" ? "v0" : "v1";
+        writeLocalStorage(SCORING_MODEL_STORAGE_KEY, state.scoringModel);
+        const stale = markResultProgressionStale();
+        updateProgressionStatusMessage(
+          `Scoring model: ${state.scoringModel === "v0" ? "V0 (frozen)" : "V1 (usage-convergent)"}.`,
+        );
+        render();
+        scheduleAutoReoptimize(stale);
+      });
+
+    app
       .querySelector("#copy-pool-button")
       ?.addEventListener("click", async () => {
         await copyPool();
@@ -1044,7 +1065,8 @@ export function mountPoolOptimizer(container, options = {}) {
     return Boolean(
       state.result &&
         state.resultProgressionKey &&
-        state.resultProgressionKey !== getProgressionKey(state.progression),
+        state.resultProgressionKey !==
+          getProgressionKey(state.progression, state.scoringModel),
     );
   }
 
@@ -1116,17 +1138,18 @@ function waitForPaint() {
   });
 }
 
-function getProgressionKey(progression) {
+function getProgressionKey(progression, scoringModel = "") {
   // Ordinary owned items drive item recommendations (recomputed every render),
   // not the team optimization, so they must not flag an optimized team as
   // stale. Owned EVOLUTION items are the exception: they zero evolution
   // friction and override access gates, so adding/removing one must
-  // re-optimize.
+  // re-optimize. The scoring-model choice (V0/V1) re-scores everything, so it
+  // is part of the key.
   const { ownedItems, ...rest } = progression || {};
   const evolutionItems = {};
   for (const id of getEvolutionItemIds()) {
     if (ownedItems?.[id] > 0) evolutionItems[id] = true;
   }
-  return JSON.stringify({ ...rest, evolutionItems });
+  return JSON.stringify({ ...rest, evolutionItems, scoringModel });
 }
 
