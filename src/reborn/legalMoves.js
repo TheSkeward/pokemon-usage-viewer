@@ -62,28 +62,51 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
   const evolvedSpecies = Boolean(speciesRecord?.prevoId);
   // Each ancestor's NATURAL departure level (evolve-as-soon-as-possible path):
   // the level at which it evolves toward this form. A pre-evo level-up move
-  // above ITS OWN form's departure is only obtainable by deliberately delaying
-  // that specific evolution — legal, but a real cost, so it's split out and
-  // labelled with the form being delayed (Slaking's Play Rough is Slakoth@38,
-  // delay Slakoth past 18; its Focus Punch is Vigoroth@37, delay Vigoroth past
-  // 36). Null/non-level evolutions (friendship, item) can be taken at any
-  // level, so nothing is "delayed" for them.
+  // above ITS OWN form's departure is only obtainable by deliberately keeping
+  // that form unevolved — legal, but a real cost, so it's split out and
+  // labelled (Slaking's Play Rough is Slakoth@38, keep Slakoth to 38).
+  // Departure depends on the HOP's evolution type:
+  //   - level:      the recorded evolution level (Slakoth departs at 18).
+  //   - friendship / affection: Infinity — the grind builds gradually while
+  //     training, so the pre-evo naturally spans levels; nothing is delayed.
+  //   - item / trade / location / party (elective triggers): 0 — the default
+  //     path takes them the moment they're available, so EVERY pre-evo
+  //     level-up move requires deliberately keeping the form unevolved
+  //     (Musharna via Moon Stone learns nothing itself; Munna's Moonlight@17
+  //     / Calm Mind@35 / Psychic@37 are all classic stone-gated moves).
+  //   - level-while-knowing-a-move: the move's own learn level.
+  const hopDeparture = (child) => {
+    const evoType = child?.evoType || "";
+    if (evoType === "") {
+      return Number.isFinite(child?.evoLevel) ? child.evoLevel : Infinity;
+    }
+    if (evoType === "levelFriendship") return Infinity;
+    if (
+      evoType === "levelExtra" &&
+      /affection/i.test(child?.evoCondition || "")
+    ) {
+      return Infinity;
+    }
+    if (evoType === "levelMove") {
+      return Number.isFinite(child?.evoMoveLevel)
+        ? child.evoMoveLevel
+        : Infinity;
+    }
+    // useItem / levelHold / trade / remaining levelExtra (locations, party
+    // conditions): elective, taken ASAP on the default path.
+    return 0;
+  };
   const departureByAncestor = new Map();
   {
     let current = speciesRecord;
     const walked = new Set();
     while (current?.prevoId && !walked.has(current.id)) {
       walked.add(current.id);
-      departureByAncestor.set(
-        current.prevoId,
-        Number.isFinite(current.evoLevel) ? current.evoLevel : Infinity,
-      );
+      departureByAncestor.set(current.prevoId, hopDeparture(current));
       current = GEN7_PROGRESSION_SPECIES[current.prevoId];
     }
   }
-  const directDeparture = Number.isFinite(speciesRecord?.evoLevel)
-    ? speciesRecord.evoLevel
-    : Infinity;
+  const directDeparture = hopDeparture(speciesRecord);
   const departureOf = (fromId) =>
     fromId ? (departureByAncestor.get(fromId) ?? directDeparture) : directDeparture;
   const ancestorName = (fromId) =>
@@ -151,10 +174,11 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       // Legal, but flagged with the form being delayed: the default build
       // avoids it, and a build that uses it pays DELAYED_EVO_FRICTION.
       const best = delayedEntries[0];
-      const who = best.from ? ` ${ancestorName(best.from)}` : "";
+      // Terse by request: "Level 38 (Slakoth)" = requires keeping Slakoth
+      // unevolved to 38.
       sources.push({
         kind: "level-up",
-        label: `Level ${best.level} (requires keeping${who ? who : " the pre-evolution"} unevolved to ${best.level})`,
+        label: `Level ${best.level} (${best.from ? ancestorName(best.from) : "pre-evolution"})`,
         delayedEvolution: true,
       });
     } else if (isEvolutionMove) {
@@ -167,6 +191,15 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         kind: "relearner",
         label: "Move relearner",
       });
+    }
+
+    // Sketch: Smeargle copies any move ever used in battle, so the whole
+    // move universe is legal at any level, no unlock required.
+    if (
+      move.sources?.sketch &&
+      !sources.some((source) => source.kind === "level-up")
+    ) {
+      sources.push({ kind: "level-up", label: "Sketch" });
     }
 
     // Reborn-only relearner moves (its expanded move-relearner pool) are

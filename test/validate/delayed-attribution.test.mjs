@@ -19,8 +19,8 @@ test("delayed moves name the form being kept unevolved (Slaking chain)", async (
   const label = (id) =>
     moves.find((m) => m.id === id)?.availableSources?.[0]?.label || "";
 
-  assert.match(label("focuspunch"), /keeping Vigoroth unevolved to 37/);
-  assert.match(label("playrough"), /keeping Slakoth unevolved to 38/);
+  assert.equal(label("focuspunch"), "Level 37 (Vigoroth)");
+  assert.equal(label("playrough"), "Level 38 (Slakoth)");
   assert.ok(moves.find((m) => m.id === "focuspunch")?.delayedEvolution);
   assert.ok(moves.find((m) => m.id === "playrough")?.delayedEvolution);
 });
@@ -34,4 +34,30 @@ test("a level is judged against ITS ancestor's departure, not the direct pre-evo
   const chipAway = moves.find((m) => m.id === "chipaway");
   assert.equal(chipAway?.availableSources?.[0]?.label, "Level 27");
   assert.ok(!chipAway?.delayedEvolution);
+});
+
+test("elective hops (stones/trades) gate EVERY pre-evo move (Musharna report)", async () => {
+  // Musharna (Munna + Moon Stone) learns almost nothing itself; Munna's
+  // Moonlight@17 / Calm Mind@35 / Psychic@37 are classic stone-gated moves —
+  // the default evolve-ASAP path never has them.
+  const data = await loadRebornLegalMoveData("musharna");
+  const moves = getAvailableRebornMoves(data, { levelCap: "40" });
+  for (const id of ["moonlight", "calmmind", "psychic"]) {
+    const move = moves.find((m) => m.id === id);
+    assert.ok(move?.delayedEvolution, `${id} should be delayed-gated`);
+    assert.match(move.availableSources[0].label, /^Level \d+ \(Munna\)$/);
+  }
+});
+
+test("friendship hops stay natural (the grind spans levels)", async () => {
+  // Azumarill: Azurill evolves by friendship, so Azurill's level-up moves
+  // are reachable on the natural path; Marill departs at a LEVEL (18), so
+  // its later moves gate normally.
+  const data = await loadRebornLegalMoveData("azumarill");
+  const moves = getAvailableRebornMoves(data, { levelCap: "40" });
+  const anyDelayedFromAzurill = moves.some(
+    (m) =>
+      m.delayedEvolution && /Azurill/.test(m.availableSources[0]?.label || ""),
+  );
+  assert.ok(!anyDelayedFromAzurill, "no Azurill move should be delay-gated");
 });

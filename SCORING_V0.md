@@ -581,3 +581,30 @@ Invariants the shape encodes (each guarded by fixtures):
      "coarse — only a boolean utility flag"; the role-aware, accuracy-
      weighted system has long since landed. Header corrected.
   Golden drift audited and regenerated: score-only, no seating changes.
+- **Smeargle sketches the whole move universe** (user note, extending the
+  no-TM-species fix): Smeargle's legal pool was literally [Sketch]. Sketch
+  copies any move ever used in battle, so its practical pool is every move
+  in Reborn's data (691 moves), at any level, with no unlock — now emitted
+  with a `sketch` source rendered as "Sketch". Gen 7 exceptions honored:
+  Chatter and Struggle cannot be sketched. Smeargle stays on the
+  no-universal-TM list (its machine list is genuinely empty; the moves come
+  from Sketch, not TMs). No golden drift — Smeargle is in no fixture pool.
+- **Elective evolutions gate every pre-evolution move** (user report: a
+  Musharna card listed Munna's Moonlight@17 / Calm Mind@35 / Psychic@37 as
+  plain naturals — "a classic stone evolution where many moves are
+  permanently gated behind the pre-evo"): the attribution fix had classified
+  ALL no-forced-level hops as "nothing is delayed", which is right for
+  friendship (the grind builds gradually while training, so the pre-evo
+  naturally spans levels) but wrong for elective triggers. Departure is now
+  per hop TYPE: level hops use their recorded level; friendship/affection
+  hops stay Infinity (natural); item / trade / location / party hops are 0 —
+  the default evolve-ASAP path takes them the moment they're available, so
+  EVERY pre-evo level-up move requires deliberately keeping the form
+  unevolved, priced as the delayed build. Improves invariant 6.
+  Golden drift audited and regenerated — the classic stone-gated bodies drop
+  to their honest evolve-ASAP value: Growlithe/Arcanine 1561→1361 (Arcanine
+  learns almost nothing itself), Shellder/Cloyster 1214→1091, Igglybuff/
+  Wigglytuff 1165→1030, Crabrawler/Crabominable −5; item-friendship-evos
+  reseats Steelix over the deflated Arcanine. All fixture invariants held.
+  Committed tests pin Musharna's three moves as delay-gated and Azurill's
+  friendship chain as natural.

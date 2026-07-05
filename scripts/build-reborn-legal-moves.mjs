@@ -57,6 +57,11 @@ const UNIVERSAL_TM_MOVES = new Set(
 // empty in the data).
 const LEARNS_ALL_MACHINES = new Set(["mew"]);
 
+// Sketch copies any move ever used in battle, so Smeargle's practical legal
+// pool is the entire Reborn move universe, at any level. Gen 7 exceptions:
+// Chatter and Struggle cannot be sketched.
+const UNSKETCHABLE_MOVES = new Set(["chatter", "struggle"]);
+
 const { learnsets } = JSON.parse(
   readFileSync(
     path.join(projectRoot, "scripts", "reborn", "reborn-learnsets.generated.json"),
@@ -66,6 +71,22 @@ const { learnsets } = JSON.parse(
 const pokemonIndex = JSON.parse(
   readFileSync(path.join(dataDir, "pokemon-index.json"), "utf8"),
 );
+
+// The sketchable universe: every move that exists anywhere in Reborn's data
+// (any learnset, machine, or tutor), minus the unsketchables.
+const SKETCH_UNIVERSE = new Set([
+  ...rebornTmMoveIds,
+  ...rebornTmxMoveIds,
+  ...rebornTutorMoveIds,
+]);
+for (const learnset of Object.values(learnsets)) {
+  for (const [, moveId] of learnset.levelUp) SKETCH_UNIVERSE.add(moveId);
+  for (const moveId of learnset.evolutionMoves) SKETCH_UNIVERSE.add(moveId);
+  for (const moveId of learnset.eggMoves) SKETCH_UNIVERSE.add(moveId);
+  for (const moveId of learnset.relearnerMoves) SKETCH_UNIVERSE.add(moveId);
+  for (const moveId of learnset.compatibleMoves) SKETCH_UNIVERSE.add(moveId);
+}
+for (const moveId of UNSKETCHABLE_MOVES) SKETCH_UNIVERSE.delete(moveId);
 
 await fs.rm(outputDir, { recursive: true, force: true });
 await fs.mkdir(outputDir, { recursive: true });
@@ -150,6 +171,11 @@ for (const pokemon of pokemonIndex) {
   // vanished instead of appearing as preEvolutionLevelUp.
   for (const moveId of preEvoLevelUp.keys()) get(moveId);
 
+  // Smeargle: Sketch makes the entire move universe legal at any level.
+  if (pokemon.id === "smeargle") {
+    for (const moveId of SKETCH_UNIVERSE) get(moveId).sketch = true;
+  }
+
   const moves = [];
   for (const [moveId, sources] of sourcesByMove) {
     if (!dex.moves.get(moveId)?.exists) continue;
@@ -198,7 +224,7 @@ function getPreEvolutionIds(pokemonId) {
 }
 
 function normalizeSources(sources, preEvolutionLevels) {
-  const { evolutionMove, rebornRelearner, ...base } = sources;
+  const { evolutionMove, rebornRelearner, sketch, ...base } = sources;
   const normalized = {
     ...base,
     levelUp: [...new Set(sources.levelUp)].sort((a, b) => a - b),
@@ -220,6 +246,7 @@ function normalizeSources(sources, preEvolutionLevels) {
   if (preEvolutionLevelUp.length) normalized.preEvolutionLevelUp = preEvolutionLevelUp;
   if (evolutionMove) normalized.evolutionMove = true;
   if (rebornRelearner) normalized.rebornRelearner = true;
+  if (sketch) normalized.sketch = true;
 
   return normalized;
 }

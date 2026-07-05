@@ -37,3 +37,19 @@ test("ordinary mons keep their universal TMs (positive control)", async () => {
     assert.ok(pikachu.includes(id), `pikachu should learn ${id}`);
   }
 });
+
+test("Smeargle: Sketch makes the whole move universe legal at any level", async () => {
+  const { getAvailableRebornMoves } = await import(
+    "../../src/reborn/legalMoves.js"
+  );
+  const data = await loadRebornLegalMoveData("smeargle");
+  // Even at a tiny cap with nothing unlocked, everything is available.
+  const moves = getAvailableRebornMoves(data, { levelCap: "10" });
+  assert.ok(moves.length > 500, `expected the move universe, got ${moves.length}`);
+  const spore = moves.find((move) => move.id === "spore");
+  assert.equal(spore?.availableSources?.[0]?.label, "Sketch");
+  assert.ok(!moves.some((move) => move.id === "chatter"), "Chatter is unsketchable");
+  // Sketch itself stays a real level-up move, not a Sketch-of-Sketch.
+  const sketch = moves.find((move) => move.id === "sketch");
+  assert.equal(sketch?.availableSources?.[0]?.label, "Level 1");
+});
