@@ -14,12 +14,34 @@ export const PARALLEL_THRESHOLD = 150_000;
 let workerPool = null;
 let workerPoolBroken = false;
 let messageSeq = 0;
+// Injected by non-browser hosts (the Node test harness) to supply a pool of
+// Web-Worker-shaped objects backed by worker_threads, so the exact-search
+// fixtures parallelize exactly like the browser does. Also lets the host set
+// a timeout matched to its hardware (the 30s browser default assumes a fast
+// machine; a CI box splitting a 2M-combo range can legitimately need longer).
+let injectedPoolFactory = null;
+
+export function setSearchWorkerPoolFactory(factory, { timeoutMs } = {}) {
+  injectedPoolFactory = factory;
+  workerPoolBroken = false;
+  workerPool = null;
+  if (timeoutMs) workerTimeoutMs = timeoutMs;
+}
 // Serialize parallel searches so they never contend for the same workers; optimize
 // calls are normally serial anyway, this just makes overlap safe.
 let chain = Promise.resolve();
 
 function getWorkerPool() {
   if (workerPool || workerPoolBroken) return workerPool;
+  if (injectedPoolFactory) {
+    try {
+      workerPool = injectedPoolFactory();
+    } catch {
+      workerPoolBroken = true;
+      workerPool = null;
+    }
+    return workerPool;
+  }
   if (typeof Worker === "undefined" || typeof navigator === "undefined") {
     workerPoolBroken = true;
     return null;
@@ -90,8 +112,9 @@ async function dispatch(compactLines, targetSize, bias, total, topCount) {
 
 // Backstop for a worker that loads but never answers (e.g. a bad production URL
 // that silently fails): bounded well above any real search (3M-combo cap / cores
-// is a few seconds) so it only ever fires on a genuine hang.
-const WORKER_TIMEOUT_MS = 30_000;
+// is a few seconds) so it only ever fires on a genuine hang. Injected hosts may
+// raise it to match slower hardware.
+let workerTimeoutMs = 30_000;
 
 function runOnWorker(worker, compactLines, targetSize, bias, start, end, topCount) {
   const id = ++messageSeq;
@@ -99,7 +122,7 @@ function runOnWorker(worker, compactLines, targetSize, bias, start, end, topCoun
     const timer = setTimeout(() => {
       cleanup();
       reject(new Error("worker timeout"));
-    }, WORKER_TIMEOUT_MS);
+    }, workerTimeoutMs);
     const onMessage = (event) => {
       if (event.data?.id !== id) return;
       cleanup();

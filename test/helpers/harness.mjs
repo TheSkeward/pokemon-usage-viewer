@@ -35,6 +35,50 @@ const { loadAvailability, loadPokemonIndex } = await import("../../src/data.js")
 const { optimizeTeamFromPool } = await import(
   "../../src/teamBuilder/teamOptimizer.js"
 );
+// Wire the exact-search worker pool to node worker_threads, mirroring the
+// browser's Web Worker pool: each big search splits its combination range
+// across cores. Web-Worker-shaped shim over worker_threads' EventEmitter API.
+// Generous timeout: a CI box splitting a 2M-combo range is legitimately slow.
+{
+  const { Worker: NodeWorker } = await import("node:worker_threads");
+  const { setSearchWorkerPoolFactory } = await import(
+    "../../src/teamBuilder/parallelSearch.js"
+  );
+  const os = await import("node:os");
+  const workerUrl = new URL("./searchWorker.node.mjs", import.meta.url);
+  const shim = () => {
+    const worker = new NodeWorker(workerUrl);
+    worker.unref();
+    const wrapped = new Map();
+    return {
+      addEventListener(type, fn) {
+        const handler =
+          type === "message"
+            ? (data) => fn({ data })
+            : (err) => fn({ message: err?.message || String(err) });
+        wrapped.set(fn, [type, handler]);
+        worker.on(type, handler);
+      },
+      removeEventListener(type, fn) {
+        const entry = wrapped.get(fn);
+        if (entry) worker.off(entry[0], entry[1]);
+        wrapped.delete(fn);
+      },
+      postMessage(msg) {
+        worker.postMessage(msg);
+      },
+      terminate() {
+        void worker.terminate();
+      },
+    };
+  };
+  const size = Math.max(1, Math.min(8, (os.availableParallelism?.() || 4) - 1));
+  setSearchWorkerPoolFactory(
+    () => Array.from({ length: size }, shim),
+    { timeoutMs: 300_000 },
+  );
+}
+
 const { setScoringOverrides } = await import(
   "../../src/teamBuilder/scoringConstants.js"
 );

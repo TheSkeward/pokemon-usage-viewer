@@ -1,7 +1,8 @@
 // Shortlist regret validation (roadmap Phase 6 acceptance): on a pool where the
 // TRUE exact optimum is computable, force the shortlist path at several sizes and
 // require it to recover the exact team. "Exact-on-shortlist" earns the word
-// "exact" only while this stays at (near-)zero regret.
+// "exact" only while this stays at (near-)zero regret. One file on purpose: the
+// three sizes share one exact baseline (the expensive part).
 import test from "node:test";
 import assert from "node:assert/strict";
 import { loadFixture, runFixture } from "../helpers/fixtureRunner.mjs";

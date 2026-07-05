@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "validate": "node --test --import ./test/helpers/register.mjs test/validate/*.test.mjs",
-    "update-goldens": "UPDATE_GOLDENS=1 node --test --import ./test/helpers/register.mjs test/validate/scenarios-canonical.test.mjs test/validate/scenarios-swap.test.mjs test/validate/scenarios-small-a.test.mjs test/validate/scenarios-small-b.test.mjs",
+    "update-goldens": "UPDATE_GOLDENS=1 node --test --import ./test/helpers/register.mjs test/validate/*.test.mjs",
     "dev": "vite --port 5173 --strictPort",
     "build": "vite build",
     "preview": "vite preview",
