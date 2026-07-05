@@ -40,7 +40,16 @@ export const EVOLUTION_ACCESS_FIELDS = Object.freeze([
   { key: "evoAccessMossyRock", label: "Moss Rock (Leafeon)" },
   { key: "evoAccessIcyRock", label: "Ice Rock (Glaceon)" },
   { key: "evoAccessOtherLocations", label: "Other special locations (Crabominable)" },
+  { key: "evoAccessApophyll", label: "Apophyll area (Alolan evolutions: Raichu-A, Exeggutor-A)" },
 ]);
+
+// Region-locked evolutions (dex evoRegion "Alola") need Reborn's Alola
+// equivalent, Apophyll — the stone alone isn't enough (user-verified).
+// Exception: Reborn removed Marowak-Alola's location requirement — Cubone
+// picks the form by time of day (Kanto by day, Alolan by night).
+function needsApophyll(species) {
+  return species?.evoRegion === "Alola" && species?.id !== "marowakalola";
+}
 
 // How many of `itemName` the player tracked as owned (progression.ownedItems,
 // keyed by normalized id). An owned evolution item removes BOTH the access
@@ -55,18 +64,20 @@ function ownedItemCount(access, itemName) {
 
 // The access gate a requirement depends on, or null when none applies.
 function requiredAccessKeys(evoType, condition, species) {
-  if (evoType === "levelFriendship") return ["evoAccessFriendship"];
+  const regionKeys = needsApophyll(species) ? ["evoAccessApophyll"] : [];
+  if (evoType === "levelFriendship") return ["evoAccessFriendship", ...regionKeys];
   if (evoType === "trade") {
     // Trade-with-item (Metal Coat Scizor) needs the item too.
     return species.evoItem
-      ? ["evoAccessLinkStone", "evoAccessStones"]
-      : ["evoAccessLinkStone"];
+      ? ["evoAccessLinkStone", "evoAccessStones", ...regionKeys]
+      : ["evoAccessLinkStone", ...regionKeys];
   }
   if (evoType === "useItem" || evoType === "levelHold") {
-    return ["evoAccessStones"];
+    return ["evoAccessStones", ...regionKeys];
   }
+  if (evoType === "") return regionKeys;
   if (evoType === "levelExtra") {
-    if (/affection/i.test(condition)) return ["evoAccessFriendship"];
+    if (/affection/i.test(condition)) return ["evoAccessFriendship", ...regionKeys];
     if (/magnetic field/i.test(condition)) return ["evoAccessMagneticField"];
     if (/moss rock/i.test(condition)) return ["evoAccessMossyRock"];
     if (/ice rock/i.test(condition)) return ["evoAccessIcyRock"];
@@ -235,12 +246,15 @@ export function getEvolutionRequirement(species, access = null) {
           : `${part.item} (${part.status}: ${part.source})`,
       )
       .join(" + ");
+    const riders = [condition, needsApophyll(species) ? "in Apophyll" : ""]
+      .filter(Boolean)
+      .join(", ");
     return {
       status: "legal",
       levelRequired: null,
       friction,
       method: evoType === "trade" ? "trade" : "item",
-      reason: condition ? `${how}, ${condition}` : how,
+      reason: riders ? `${how}, ${riders}` : how,
     };
   }
 
@@ -287,6 +301,8 @@ export function getEvolutionRequirement(species, access = null) {
 // Form-split requirements the dex has no structured fields for (gender locks
 // and Burmy's cloak-by-location). Reviewed by hand; display-only.
 const FORM_EVOLUTION_NOTES = Object.freeze({
+  // Reborn-specific: Cubone picks Marowak's form by time of day.
+  marowak: "during the day",
   wormadam: "Female, in grass",
   wormadamsandy: "Female, in caves",
   wormadamtrash: "Female, in buildings",
@@ -306,8 +322,9 @@ function shortStepRequirement(species) {
   const note = FORM_EVOLUTION_NOTES[species.id];
   const condition = species.evoCondition || "";
   const evoType = species.evoType || "";
+  const region = needsApophyll(species) ? "in Apophyll" : "";
   const extras = (base) =>
-    [base, note || condition || ""].filter(Boolean).join(", ");
+    [base, note || condition || "", region].filter(Boolean).join(", ");
 
   if (evoType === "") {
     return {

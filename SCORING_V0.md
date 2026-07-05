@@ -608,3 +608,16 @@ Invariants the shape encodes (each guarded by fixtures):
   reseats Steelix over the deflated Arcanine. All fixture invariants held.
   Committed tests pin Musharna's three moves as delay-gated and Azurill's
   friendship chain as natural.
+- **Alolan evolutions require Apophyll** (user report: "friendship, then a
+  Thunder Stone is insufficient to get Raichu-Alola. You need friendship,
+  then a Thunder Stone *in Apophyll*" — Reborn's Alola-equivalent area):
+  the dex's `evoRegion` field now flows into the progression species table,
+  and species whose evolution is region-locked to Alola gate on a new
+  `evoAccessApophyll` toggle (default open, like every access gate).
+  Affected: Raichu-Alola, Exeggutor-Alola. User-verified exception:
+  Reborn removed Marowak-Alola's location requirement — Cubone picks the
+  form by time of day (Kanto Marowak by day at 28, Alolan at night at 28),
+  so `marowakalola` is exempt and both Marowak paths note the time-of-day
+  rider instead. Evolution notes and legality reasons name the rider
+  ("friendship, then Thunder Stone, in Apophyll"). No golden drift
+  expected: the gate defaults to accessible and no friction changed.

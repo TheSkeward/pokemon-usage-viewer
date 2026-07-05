@@ -58,6 +58,9 @@ for (const pokemon of pokemonIndex) {
         ? levelMoveLearnLevel(toId(species.prevo), species.evoMove)
         : null,
     evoCondition: species.evoCondition || "",
+    // Region-locked evolutions (Gen 7: the three Alolan-region ones). Reborn's
+    // equivalent of Alola is Apophyll; legality gates on reaching it.
+    evoRegion: species.evoRegion || "",
     baseSpeciesId: toId(species.baseSpecies),
     eggGroups: species.eggGroups || [],
     isMega: Boolean(species.isMega),
