@@ -723,3 +723,22 @@ Invariants the shape encodes (each guarded by fixtures):
   audited (near-tie midgame reseats: Dragonair/Poliwhirl in, Arcanine/
   Ampharos out, Eevee flips Vaporeon→Sylveon; per-line deltas ≤ 13 points,
   amplified by team coverage). V0 goldens untouched.
+- **Full held-item timeline** (user request + user-supplied community item
+  guide): item readiness previously knew only 16 hand-curated headline
+  items; the timeline now times 352 of the 370 known held items. Sources,
+  earliest wins: (1) the community "Ep19 Items & Services Guide"
+  spreadsheet (All Items Locations + Shops + Arcade Lottery), its fight
+  order mapped to badge counts (Corey/Kiki/Saphira award no badge;
+  post-game collapses to 18) — extracted to
+  site-data/data/reborn-item-availability.extracted.json and compiled by
+  scripts/build-item-timeline.mjs; (2) the Mining Items tab, all unlocked
+  with the Mining Kit at badge 3 (Grand Stairway, right after Shelly);
+  (3) a user-curated wild-held table ("available when the holder is
+  catchable"): Black Sludge @0 (Grimer immediate), Metronome @0
+  (Kricketot), King's Rock @1 (Poliwag line — beats the sheet's badge-13
+  pickup), etc. Hand-curated checkpoint entries stay authoritative and
+  cross-validated against the sheet (Eviolite 9, Focus Sash 2, Choice
+  Band 14 all agree). V0 goldens untouched (readiness never feeds V0);
+  V1 golden regenerated and audited — canonical items that were
+  "timing untracked" now resolve, so L* firms up and the midgame team
+  reseats toward Dodrio/Gengar/Ampharos (Dodrio 1117→1423).

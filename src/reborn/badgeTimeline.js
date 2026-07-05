@@ -25,6 +25,8 @@
 //   - Strike, Gravity, and Torrent do not raise the level cap.
 //   - Post-game raises the cap in ten silent steps of 5, to 150.
 
+import { REBORN_ITEM_UNLOCK_BADGES } from "../generated/rebornItemTimeline.generated.js";
+
 export const REBORN_PROGRESSION_CHECKPOINTS = [
   { id: "start", badges: 0, label: "No badges", detail: "Game start", levelCap: 20, unlocks: {} },
   {
@@ -167,16 +169,18 @@ export function getUnlockBadge(key) {
   return null;
 }
 
-// The badge count at which a headline held item first becomes obtainable;
-// null when the timeline doesn't track it (treat as timing-unknown, not
-// unobtainable).
+// The badge count at which a held item first becomes obtainable; null when
+// nothing tracks it (treat as timing-unknown, not unobtainable). The
+// hand-curated checkpoint entries above (walkthrough-verified) win; the
+// generated table (community item guide: locations, shops, arcade, mining,
+// user-curated wild holders) covers the other ~350 held items.
 export function getItemUnlockBadge(itemId) {
   for (const checkpoint of REBORN_PROGRESSION_CHECKPOINTS) {
     if ((checkpoint.unlocks.items || []).includes(itemId)) {
       return checkpoint.badges;
     }
   }
-  return null;
+  return REBORN_ITEM_UNLOCK_BADGES[itemId]?.badge ?? null;
 }
 
 // Short chip text: "9 badges" / "Post 3".

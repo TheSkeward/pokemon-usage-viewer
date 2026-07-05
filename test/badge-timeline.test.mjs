@@ -132,6 +132,40 @@ test("panel ↔ timeline consistency: every TM/TMX/tutor availability names a ba
   }
 });
 
+test("item timeline: sheet + mining + wild-held sources merge to earliest badge", async () => {
+  const { getItemUnlockBadge } = await import(
+    "../src/reborn/badgeTimeline.js"
+  );
+  const { REBORN_ITEM_UNLOCK_BADGES } = await import(
+    "../src/generated/rebornItemTimeline.generated.js"
+  );
+
+  // Broad coverage: the generated table times most of the held-item catalog.
+  assert.ok(
+    Object.keys(REBORN_ITEM_UNLOCK_BADGES).length > 300,
+    "expected 300+ timed items",
+  );
+
+  // User-verified pins.
+  assert.equal(getItemUnlockBadge("blacksludge"), 0); // wild Grimer, immediate
+  assert.equal(getItemUnlockBadge("wikiberry"), 13); // "first pops up in Episode 16"
+  assert.equal(getItemUnlockBadge("eviolite"), 9); // curated (Agate shop) still wins
+  assert.equal(getItemUnlockBadge("lightclay"), 2); // Dept. Store 3F
+  assert.equal(getItemUnlockBadge("kingsrock"), 1); // wild Poliwag line beats the badge-13 pickup
+  assert.equal(getItemUnlockBadge("choicescarf"), 18);
+
+  // Mining items unlock with the Mining Kit (badge 3, after Shelly).
+  assert.ok((REBORN_ITEM_UNLOCK_BADGES.hardstone?.badge ?? 99) <= 3);
+
+  // Every generated badge is a sane checkpoint value.
+  for (const [id, entry] of Object.entries(REBORN_ITEM_UNLOCK_BADGES)) {
+    assert.ok(
+      entry.badge >= 0 && entry.badge <= 18,
+      `${id}: badge ${entry.badge} out of range`,
+    );
+  }
+});
+
 test("applyRebornCheckpoint derives the cap; normalization keeps the field honest", () => {
   const nine = applyRebornCheckpoint(DEFAULT_REBORN_PROGRESSION, "badge-9");
   assert.equal(nine.checkpoint, "badge-9");
