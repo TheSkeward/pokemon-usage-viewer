@@ -24,16 +24,19 @@ export async function buildRebornBreedingContext({
         const legalMoveData = await loadRebornLegalMoveData(species.id);
         if (!legalMoveData) return null;
 
-        return {
-          legalMoveData,
-          moveIds: new Set(
-            getAvailableRebornMoves(legalMoveData, {
-              ...progression,
-              availableEggMoveIdsForPokemon: [],
-            }).map((move) => move.id),
-          ),
-          species,
-        };
+        // Acquisition cost of each move the species can get WITHOUT breeding:
+        // the lowest level any source demands (TM/tutor/etc. count as 0 — they
+        // are teachable the moment they're unlocked, which availability has
+        // already checked). Drives donor ranking below.
+        const costs = new Map();
+        for (const move of getAvailableRebornMoves(legalMoveData, {
+          ...progression,
+          availableEggMoveIdsForPokemon: [],
+        })) {
+          costs.set(move.id, { level: acquisitionLevel(move), hops: 0 });
+        }
+
+        return { legalMoveData, costs, species };
       }),
     )
   ).filter(Boolean);
@@ -48,30 +51,49 @@ export async function buildRebornBreedingContext({
     ]),
   );
 
+  // Cheapest-chain relaxation: among every legal donor, prefer the one that
+  // gets the move EARLIEST (lowest acquisition level), then the shortest
+  // chain, then name for determinism — instead of the old "first in pool
+  // order" pick. Multi-hop chains inherit the upstream donor's level and add
+  // a hop. Costs only ever improve, so this terminates.
   let changed = true;
   while (changed) {
     changed = false;
 
     for (const target of entries) {
       for (const move of target.legalMoveData.moves || []) {
-        if (!move.sources?.egg || target.moveIds.has(move.id)) continue;
+        if (!move.sources?.egg) continue;
+        const intrinsic = target.costs.get(move.id);
+        if (intrinsic && intrinsic.hops === 0) continue; // has it without breeding
 
-        const donor = entries.find(
-          (candidate) =>
-            candidate.species.id !== target.species.id &&
-            candidate.moveIds.has(move.id) &&
-            canBreed(candidate.species.id, target.species.id),
-        );
+        let best = null;
+        for (const donor of entries) {
+          if (donor.species.id === target.species.id) continue;
+          const donorCost = donor.costs.get(move.id);
+          if (!donorCost || !canBreed(donor.species.id, target.species.id)) {
+            continue;
+          }
+          const candidate = {
+            level: donorCost.level,
+            hops: donorCost.hops + 1,
+            donor,
+          };
+          if (!best || compareCosts(candidate, best) < 0) best = candidate;
+        }
+        if (!best) continue;
 
-        if (!donor) continue;
+        const current = target.costs.get(move.id);
+        if (current && compareCosts(best, current) >= 0) continue;
 
-        target.moveIds.add(move.id);
+        target.costs.set(move.id, { level: best.level, hops: best.hops });
         const targetBreeding = byPokemonId.get(target.species.id);
         targetBreeding.moveIds.add(move.id);
         targetBreeding.sources[move.id] = {
           label: "Egg",
-          detail: `${donor.species.name} breeding chain`,
-          donorName: donor.species.name,
+          detail: `${best.donor.species.name} breeding chain${
+            best.level > 0 ? ` (@${best.level})` : ""
+          }${best.hops > 1 ? `, ${best.hops}-step` : ""}`,
+          donorName: best.donor.species.name,
         };
         changed = true;
       }
@@ -90,6 +112,26 @@ export async function buildRebornBreedingContext({
     ),
     ownedSpecies,
   };
+}
+
+// Lowest level any available source demands; non-level sources (TM, tutor,
+// relearner, Sketch) are teachable outright and count as 0. Delayed-evolution
+// level-ups ("Level 38 (Slakoth)") still parse to their level.
+function acquisitionLevel(move) {
+  let min = Infinity;
+  for (const source of move.availableSources || []) {
+    const match = /^Level (\d+)/.exec(source.label || "");
+    min = Math.min(min, match ? Number.parseInt(match[1], 10) : 0);
+  }
+  return Number.isFinite(min) ? min : 0;
+}
+
+function compareCosts(a, b) {
+  if (a.level !== b.level) return a.level - b.level;
+  if (a.hops !== b.hops) return a.hops - b.hops;
+  const nameA = a.donor?.species?.name || "";
+  const nameB = b.donor?.species?.name || "";
+  return nameA.localeCompare(nameB);
 }
 
 export function applyBreedingContextToProgression(

@@ -645,3 +645,12 @@ Invariants the shape encodes (each guarded by fixtures):
   fast_attacker (new Sludge Wave/Venoshock re-pick its set and displace
   utility moves — set selection is not monotone in pool size). All fixture
   invariants held.
+- **Breeding chains prefer the earliest-acquisition donor** (user request):
+  among multiple legal donors the old chain took whichever sat first in
+  pool order. Donors are now ranked by the lowest level at which they can
+  have the move (non-level sources — TM/tutor/Sketch — count as 0), then
+  by fewest breeding hops, then name; multi-hop chains inherit the
+  upstream donor's level. The egg-source detail names the pick tersely:
+  "Quagsire breeding chain (@24)". No golden drift — every fixture has the
+  daycare locked. Pinned by a real-data test (Azumarill's Amnesia:
+  Quagsire@24 over Golduck@41/Slowbro@43; Body Slam: Lapras@18).
