@@ -21,6 +21,7 @@ import { renderRebornLegalMovesPanel } from "./reborn/legalMovesView";
 import { renderRebornTeamAnalysisPanel } from "./reborn/teamAnalysisView";
 import { getCurrentRebornSpeciesForChoice } from "./reborn/currentSpecies.js";
 import {
+  applyRebornCheckpoint,
   clearSavedRebornProgression,
   loadSavedRebornProgression,
   saveRebornProgression,
@@ -486,6 +487,30 @@ export function mountPoolOptimizer(container, options = {}) {
         scheduleAutoReoptimize(stale);
       });
     });
+
+    app.querySelector("[data-progression-checkpoint]")?.addEventListener(
+      "change",
+      (event) => {
+        state.progression = applyRebornCheckpoint(
+          state.progression,
+          event.target.value,
+        );
+
+        const saved = saveRebornProgression(state.progression);
+        const stale = markResultProgressionStale();
+
+        updateProgressionStatusMessage(
+          saved
+            ? getProgressionSavedMessage(stale)
+            : "Progression could not be saved locally; browser storage is full.",
+        );
+
+        // Full re-render: the derived cap note, the "obtainable now" option
+        // annotations, and the gamestate strip all follow the badge count.
+        render();
+        scheduleAutoReoptimize(stale);
+      },
+    );
 
     app.querySelectorAll("[data-progression-option-list]").forEach((control) => {
       control.addEventListener("change", () => {

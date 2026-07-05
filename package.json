@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test test/*.test.mjs",
+    "test": "node --test --import ./test/helpers/register.mjs test/*.test.mjs",
     "validate": "node --test --import ./test/helpers/register.mjs test/validate/*.test.mjs",
     "update-goldens": "UPDATE_GOLDENS=1 node --test --import ./test/helpers/register.mjs test/validate/*.test.mjs",
     "dev": "vite --port 5173 --strictPort",

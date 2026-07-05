@@ -11,6 +11,7 @@ import {
 import { TERRAIN_SEED_MIGRATION } from "./rebornSeeds";
 import { REBORN_ANALYSIS_TYPES } from "./typeChart.js";
 import { EVOLUTION_ACCESS_FIELDS } from "./evolutionRequirements.js";
+import { getRebornCheckpoint } from "./badgeTimeline.js";
 
 const PROGRESSION_STORAGE_KEY = "pokemon-usage-viewer:reborn-progression:v1";
 
@@ -21,9 +22,11 @@ export const MAX_TRACKED_ITEM_COUNT = 6;
 export const MAX_OPPONENT_TYPE_BIAS = 6;
 
 export const DEFAULT_REBORN_PROGRESSION = {
+  checkpoint: "",
   levelCap: "",
   moveRelearnerUnlocked: false,
   daycareUnlocked: false,
+  hiddenPowerTypeChangerUnlocked: false,
   availableTmIds: [],
   availableTmxIds: [],
   availableTutorMoveIds: [],
@@ -58,6 +61,12 @@ export function clearSavedRebornProgression() {
 
 export function normalizeRebornProgression(progression = {}) {
   return {
+    // The badge/post-game checkpoint the player selected (badgeTimeline.js).
+    // The level cap it derives is written into levelCap, which stays the
+    // single field every consumer reads.
+    checkpoint: getRebornCheckpoint(progression.checkpoint)
+      ? String(progression.checkpoint)
+      : "",
     levelCap: normalizeLevelCap(progression.levelCap),
     moveRelearnerUnlocked: Boolean(progression.moveRelearnerUnlocked),
     daycareUnlocked: Boolean(progression.daycareUnlocked),
@@ -129,6 +138,20 @@ export function setRebornOwnedItemCount(progression, itemId, count) {
   return normalizeRebornProgression({ ...progression, ownedItems: owned });
 }
 
+// Selecting a badge/post-game checkpoint derives the level cap from the
+// timeline — the player deals in badges; the cap is a consequence.
+export function applyRebornCheckpoint(progression, checkpointId) {
+  const checkpoint = getRebornCheckpoint(checkpointId);
+  if (!checkpoint) {
+    return normalizeRebornProgression({ ...progression, checkpoint: "" });
+  }
+  return normalizeRebornProgression({
+    ...progression,
+    checkpoint: checkpoint.id,
+    levelCap: String(checkpoint.levelCap),
+  });
+}
+
 export function updateRebornProgressionField(progression, field, value) {
   return normalizeRebornProgression({
     ...progression,
@@ -171,7 +194,9 @@ function normalizeLevelCap(value) {
 
   if (!Number.isFinite(parsed)) return "";
   if (parsed < 1) return "1";
-  if (parsed > 100) return "100";
+  // Reborn's post-game raises the cap past 100 (to 150). Damage/stat math
+  // still clamps levels to 100 internally; the cap only widens legality.
+  if (parsed > 150) return "150";
 
   return String(parsed);
 }

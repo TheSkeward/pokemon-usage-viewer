@@ -12,6 +12,11 @@ import {
   REBORN_TMX_OPTIONS,
 } from "./progressionOptions";
 import { EVOLUTION_ACCESS_FIELDS } from "./evolutionRequirements.js";
+import {
+  REBORN_PROGRESSION_CHECKPOINTS,
+  getRebornCheckpoint,
+  getUnlockBadge,
+} from "./badgeTimeline.js";
 import { REBORN_EXTRA_INVENTORY_ITEMS } from "./itemAvailability.js";
 import { MAX_TRACKED_ITEM_COUNT, MAX_OPPONENT_TYPE_BIAS } from "./progression";
 import { HIDDEN_INVENTORY_ITEM_IDS } from "./rebornSeeds";
@@ -36,19 +41,7 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
       </div>
 
       <div class="progression-grid">
-        <label class="progression-level-control">
-          <span>Level cap</span>
-          <input
-            id="progression-level-cap"
-            data-progression-field="levelCap"
-            type="number"
-            min="1"
-            max="100"
-            inputmode="numeric"
-            value="${escapeAttr(progression.levelCap)}"
-            placeholder="e.g. 45"
-          />
-        </label>
+        ${renderCheckpointControl(progression)}
 
         <label class="checkbox-label">
           <input
@@ -85,17 +78,18 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
             <span class="info-tip" aria-hidden="true">ⓘ</span>
           </summary>
           <div class="progression-checklist evo-access-checklist">
-            ${EVOLUTION_ACCESS_FIELDS.map(
-              (field) => `
+            ${EVOLUTION_ACCESS_FIELDS.map((field) => {
+              const badge = getUnlockBadge(field.key);
+              return `
                 <label class="checkbox-label">
                   <input
                     data-progression-field="${escapeAttr(field.key)}"
                     type="checkbox"
                     ${progression[field.key] === false ? "" : "checked"}
                   />
-                  <span>${escapeHtml(field.label)}</span>
-                </label>`,
-            ).join("")}
+                  <span>${escapeHtml(field.label)}${badge != null ? ` <small class="muted">(~${badge} badge${badge === 1 ? "" : "s"})</small>` : ""}</span>
+                </label>`;
+            }).join("")}
           </div>
         </details>
 
@@ -105,6 +99,7 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
           selectedIds: progression.availableTmIds,
           summary: "Available TMs",
           detailsId: "tms",
+          badges: getRebornCheckpoint(progression.checkpoint)?.badges ?? null,
         })}
 
         ${renderOptionGroup({
@@ -113,6 +108,7 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
           selectedIds: progression.availableTmxIds,
           summary: "Available TMXs",
           detailsId: "tmxs",
+          badges: getRebornCheckpoint(progression.checkpoint)?.badges ?? null,
         })}
 
         ${renderOptionGroup({
@@ -121,6 +117,7 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
           selectedIds: progression.availableTutorMoveIds,
           summary: "Available tutors",
           detailsId: "tutors",
+          badges: getRebornCheckpoint(progression.checkpoint)?.badges ?? null,
         })}
 
         ${renderItemInventory(progression.ownedItems || {})}
@@ -144,6 +141,35 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
         <span class="muted" data-progression-status></span>
       </div>
     </section>
+  `;
+}
+
+// The badge picker: the atomic unit of progression the player deals with.
+// The level cap is derived from the walkthrough timeline, never typed.
+function renderCheckpointControl(progression) {
+  const selected = getRebornCheckpoint(progression.checkpoint);
+  const options = REBORN_PROGRESSION_CHECKPOINTS.map(
+    (checkpoint) => `
+      <option value="${escapeAttr(checkpoint.id)}" ${selected?.id === checkpoint.id ? "selected" : ""}>
+        ${escapeHtml(`${checkpoint.label} — cap ${checkpoint.levelCap}`)}
+      </option>`,
+  ).join("");
+
+  const capNote = selected
+    ? `Level cap ${selected.levelCap} (from badges)`
+    : progression.levelCap
+      ? `Level cap ${progression.levelCap} (saved before the badge picker; pick your badges to keep it in sync)`
+      : "Pick your badges to set the level cap.";
+
+  return `
+    <label class="progression-level-control wide-control" title="Level caps, per BIGJRA's walkthrough. Post-game tiers keep raising the cap after the 18th badge.">
+      <span>Badges earned</span>
+      <select data-progression-checkpoint>
+        <option value="" ${selected ? "" : "selected"}>— choose —</option>
+        ${options}
+      </select>
+      <span class="muted" data-checkpoint-cap-note>${escapeHtml(capNote)}</span>
+    </label>
   `;
 }
 
@@ -267,6 +293,12 @@ function renderOwnedItemRow(item, count) {
   `;
 }
 
+// "After Badge NN" (possibly with a sidequest rider) → NN, else null.
+function parseAvailabilityBadge(available) {
+  const match = /Badge\s+(\d+)/i.exec(String(available || ""));
+  return match ? Number.parseInt(match[1], 10) : null;
+}
+
 function renderOptionGroup({
   field,
   groups = null,
@@ -274,6 +306,7 @@ function renderOptionGroup({
   selectedIds = [],
   summary,
   detailsId,
+  badges = null,
 }) {
   const selected = new Set(selectedIds);
   const uniqueOptions = groups ? getUniqueGroupOptions(groups) : options;
@@ -281,12 +314,37 @@ function renderOptionGroup({
     (count, option) => count + (selected.has(option.id) ? 1 : 0),
     0,
   );
+  // With a badge checkpoint chosen, count what the schedule says should be
+  // obtainable but isn't checked yet — the "go pick these up" signal.
+  // Tutor options inherit their group's availability.
+  const availabilityById = new Map();
+  if (groups) {
+    for (const group of groups) {
+      for (const option of group.options) {
+        if (!availabilityById.has(option.id)) {
+          availabilityById.set(option.id, option.available || group.available);
+        }
+      }
+    }
+  } else {
+    for (const option of options) availabilityById.set(option.id, option.available);
+  }
+  const missableCount =
+    badges == null
+      ? 0
+      : uniqueOptions.reduce((count, option) => {
+          const badge = parseAvailabilityBadge(availabilityById.get(option.id));
+          return (
+            count +
+            (badge != null && badge <= badges && !selected.has(option.id) ? 1 : 0)
+          );
+        }, 0);
 
   return `
     <details class="progression-option-group wide-control" ${detailsStateAttrs(detailsId || field, true)}>
       <summary>
         <span>${escapeHtml(summary)}</span>
-        <span class="progression-option-count">${selectedCount}/${uniqueOptions.length} selected</span>
+        <span class="progression-option-count">${selectedCount}/${uniqueOptions.length} selected${missableCount ? ` · ${missableCount} obtainable now` : ""}</span>
       </summary>
       <div class="progression-option-actions">
         <button
@@ -307,14 +365,14 @@ function renderOptionGroup({
       </div>
       ${
         groups
-          ? renderOptionSubgroups({ field, groups, selected })
-          : `<div class="progression-checklist">${options.map((option) => renderOptionCheckbox({ field, option, selected })).join("")}</div>`
+          ? renderOptionSubgroups({ field, groups, selected, badges })
+          : `<div class="progression-checklist">${options.map((option) => renderOptionCheckbox({ field, option, selected, badges })).join("")}</div>`
       }
     </details>
   `;
 }
 
-function renderOptionSubgroups({ field, groups, selected }) {
+function renderOptionSubgroups({ field, groups, selected, badges = null }) {
   return `
     <div class="progression-subgroups">
       ${groups
@@ -328,7 +386,13 @@ function renderOptionSubgroups({ field, groups, selected }) {
               <div class="progression-checklist compact">
                 ${group.options
                   .map((option) =>
-                    renderOptionCheckbox({ field, option, selected }),
+                    renderOptionCheckbox({
+                      field,
+                      option,
+                      selected,
+                      badges,
+                      fallbackAvailable: group.available,
+                    }),
                   )
                   .join("")}
               </div>
@@ -340,9 +404,18 @@ function renderOptionSubgroups({ field, groups, selected }) {
   `;
 }
 
-function renderOptionCheckbox({ field, option, selected }) {
+function renderOptionCheckbox({
+  field,
+  option,
+  selected,
+  badges = null,
+  fallbackAvailable = "",
+}) {
+  const badge = parseAvailabilityBadge(option.available || fallbackAvailable);
+  const obtainable =
+    badges != null && badge != null && badge <= badges && !selected.has(option.id);
   return `
-    <label class="progression-option">
+    <label class="progression-option${obtainable ? " option-obtainable" : ""}"${obtainable ? ' title="The walkthrough says this is obtainable at your badge count."' : ""}>
       <input
         type="checkbox"
         data-progression-option-list="${escapeAttr(field)}"

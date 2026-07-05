@@ -621,3 +621,27 @@ Invariants the shape encodes (each guarded by fixtures):
   rider instead. Evolution notes and legality reasons name the rider
   ("friendship, then Thunder Stone, in Apophyll"). No golden drift
   expected: the gate defaults to accessible and no friction changed.
+- **Badge-keyed progression timeline (usage-convergence Phase 0)** — UI/data
+  only, NO scoring change: the atomic unit the player deals with is now
+  badges earned (or post-game tier), not a hand-typed level cap. A curated
+  timeline (`src/reborn/badgeTimeline.js`, from BIGJRA's walkthrough — the
+  project's canonical progression source) maps each of the 19 badge
+  checkpoints and 10 post-game tiers to its level cap (20→150; Strike,
+  Gravity, and Torrent are flat; Corey and Kiki award no badge) plus the
+  badge at which scheduled unlocks are reached (daycare @1, Link Stone and
+  magnetic field @3, Apophyll @4, Mossy Rock + relearner @5, Icy Rock @7,
+  HP Type Changer @9, headline items like Eviolite @9). The picker derives
+  `levelCap`; user clicks stay the sole authority for what is available NOW
+  — the timeline only schedules ("N obtainable now" hints). 14 TMs missing
+  badge availability (caught by the new panel↔timeline consistency test)
+  were filled from the walkthrough. `levelCap` normalization now allows
+  post-game caps up to 150 (stat/damage math still clamps to 100
+  internally). Golden drift audited and regenerated: badge-derived fixture
+  progressions now GRANT the 14 previously-invisible TMs (the harness
+  derives TM sets from these very availability strings), so legal pools
+  grew at badge >= 4 — Slaking 1648→1695 and Swirlix 932→1061 (TM44 Rest:
+  full-weight recovery), Butterfree reroles to fast_utility, Slaking seats
+  over Forretress in a near-tie; Tentacruel 1388→1362 reroles to
+  fast_attacker (new Sludge Wave/Venoshock re-pick its set and displace
+  utility moves — set selection is not monotone in pool size). All fixture
+  invariants held.

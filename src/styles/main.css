@@ -714,7 +714,24 @@ input {
 }
 
 .progression-level-control {
-  max-width: 12rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-width: 28rem;
+}
+
+.progression-level-control select {
+  width: 100%;
+}
+
+.progression-level-control [data-checkpoint-cap-note] {
+  font-size: 0.85em;
+}
+
+/* The walkthrough schedule says this unlock is reachable at the chosen badge
+   count but it hasn't been checked yet — a gentle "go pick it up" nudge. */
+.progression-option.option-obtainable > span {
+  color: #f1d887;
 }
 
 /* Checkbox stays beside its label; long labels wrap WITHIN the text span
