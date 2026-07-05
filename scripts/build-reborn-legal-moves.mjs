@@ -125,7 +125,10 @@ for (const pokemon of pokemonIndex) {
     for (const moveId of preLearnset.eggMoves) get(moveId).egg = true;
     for (const [level, moveId] of preLearnset.levelUp) {
       if (!preEvoLevelUp.has(moveId)) preEvoLevelUp.set(moveId, []);
-      preEvoLevelUp.get(moveId).push(level);
+      // Attributed: WHICH ancestor learns it decides which evolution must be
+      // delayed (Slaking's Play Rough is Slakoth@38 — delay Slakoth — while
+      // its Focus Punch is Vigoroth@37 — delay Vigoroth).
+      preEvoLevelUp.get(moveId).push({ level, from: preEvoId });
     }
   }
   // A pre-evo-only level-up move (Zigzagoon's Pin Missile — dropped from
@@ -188,9 +191,19 @@ function normalizeSources(sources, preEvolutionLevels) {
     levelUp: [...new Set(sources.levelUp)].sort((a, b) => a - b),
   };
 
-  const preEvolutionLevelUp = [...new Set(preEvolutionLevels || [])].sort(
-    (a, b) => a - b,
-  );
+  // Attributed entries { level, from }, deduped and sorted by level. The
+  // ancestor id lets legality judge each level against THAT form's own
+  // natural departure level, and lets the UI say which evolution a delayed
+  // move actually delays.
+  const seen = new Set();
+  const preEvolutionLevelUp = (preEvolutionLevels || [])
+    .filter((entry) => {
+      const key = `${entry.level}|${entry.from}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => a.level - b.level || a.from.localeCompare(b.from));
   if (preEvolutionLevelUp.length) normalized.preEvolutionLevelUp = preEvolutionLevelUp;
   if (evolutionMove) normalized.evolutionMove = true;
   if (rebornRelearner) normalized.rebornRelearner = true;

@@ -41,7 +41,7 @@ test("delayed-evolution moves: excluded from the default build, priced in the de
   );
   const proof = delayed.legalityProfile?.legalityProof?.delayedMoves || [];
   assert.ok(
-    proof.some((entry) => /delayed evolution/i.test(entry.source)),
-    "the explanation says the move requires delaying evolution",
+    proof.some((entry) => /keeping .+ unevolved to \d+/i.test(entry.source)),
+    "the explanation names the form kept unevolved and the level required",
   );
 });

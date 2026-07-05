@@ -528,3 +528,28 @@ Invariants the shape encodes (each guarded by fixtures):
   - Score-only drifts (Slakoth −37, Crabrawler +5, Shellder +11): set
     recomposition under the wider pools; the greedy set builder is
     deliberately not monotone in pool size.
+- **Delayed evolutions name the form being delayed, judged per-ancestor**
+  (user report: Slaking's set said "requires delayed evolution" on both
+  Focus Punch and Play Rough, hiding that they delay DIFFERENT evolutions —
+  Focus Punch is Vigoroth@37, delay Vigoroth→Slaking past 36; Play Rough is
+  Slakoth@38, delay Slakoth→Vigoroth past 18): pre-evolution level-up
+  entries now carry their ancestor id ({ level, from }), each level is
+  judged against THAT form's own natural departure, and the label reads
+  "Level 38 (requires keeping Slakoth unevolved to 38)".
+  This also fixes a latent misclassification the old merged list admitted
+  in a comment — every level was judged against the DIRECT pre-evo's
+  departure only:
+  - Deep-chain moves from the first stage read as natural when the later
+    hop had no level (Machop's late moves on Machamp — trade evo;
+    Gastly's post-25 moves on Gengar; Mareep's 16–30 moves on Ampharos).
+    Now correctly delayed. Slaking's Chip Away headline corrects from a
+    false natural "Level 25" (Slakoth's) to the honest "Level 27".
+  - Friendship-chain first-stage moves read as delayed against the later
+    level hop (Azurill's moves on Azumarill judged against Marill→18).
+    Friendship evolutions have no forced level, so these are natural
+    (weak-shell golden: Azurill 1269→1376).
+  Improves invariant 6. Golden drift audited and regenerated: midgame-broad
+  reseats (Gengar and Ampharos in; Arcanine and Machamp out) as the
+  corrected legality rebalances the pool; all fixture INVARIANTS passed
+  throughout. Data-format change (attributed entries) regenerated across
+  all legal-move files; caches retire via the data signature.

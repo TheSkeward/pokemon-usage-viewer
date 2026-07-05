@@ -60,33 +60,60 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
   const pokemonId = legalMoveData?.pokemonId;
   const speciesRecord = GEN7_PROGRESSION_SPECIES[pokemonId];
   const evolvedSpecies = Boolean(speciesRecord?.prevoId);
-  // The level at which this form's direct pre-evolution NATURALLY evolves into
-  // it (evolve-as-soon-as-possible path). A pre-evo level-up move above this is
-  // only obtainable by deliberately delaying the evolution — legal, but a real
-  // cost, so it's split out and labelled instead of silently assumed. Null/
-  // non-level evolutions (friendship, item) can be taken at any level, so
-  // nothing is "delayed" for them. For deep chains the merged pre-evo level
-  // list can't attribute a level to a specific ancestor; the direct pre-evo's
-  // departure level is the right bound for the overwhelmingly common case.
-  const naturalDeparture = Number.isFinite(speciesRecord?.evoLevel)
+  // Each ancestor's NATURAL departure level (evolve-as-soon-as-possible path):
+  // the level at which it evolves toward this form. A pre-evo level-up move
+  // above ITS OWN form's departure is only obtainable by deliberately delaying
+  // that specific evolution — legal, but a real cost, so it's split out and
+  // labelled with the form being delayed (Slaking's Play Rough is Slakoth@38,
+  // delay Slakoth past 18; its Focus Punch is Vigoroth@37, delay Vigoroth past
+  // 36). Null/non-level evolutions (friendship, item) can be taken at any
+  // level, so nothing is "delayed" for them.
+  const departureByAncestor = new Map();
+  {
+    let current = speciesRecord;
+    const walked = new Set();
+    while (current?.prevoId && !walked.has(current.id)) {
+      walked.add(current.id);
+      departureByAncestor.set(
+        current.prevoId,
+        Number.isFinite(current.evoLevel) ? current.evoLevel : Infinity,
+      );
+      current = GEN7_PROGRESSION_SPECIES[current.prevoId];
+    }
+  }
+  const directDeparture = Number.isFinite(speciesRecord?.evoLevel)
     ? speciesRecord.evoLevel
     : Infinity;
+  const departureOf = (fromId) =>
+    fromId ? (departureByAncestor.get(fromId) ?? directDeparture) : directDeparture;
+  const ancestorName = (fromId) =>
+    GEN7_PROGRESSION_SPECIES[fromId]?.name || "its pre-evolution";
   const moves = [];
 
   for (const move of legalMoveData?.moves || []) {
     const sources = [];
     const allLevelUpLevels = move.sources?.levelUp || [];
-    const preEvolutionLevels = move.sources?.preEvolutionLevelUp || [];
+    // Attributed { level, from } entries; tolerate the old plain-number shape
+    // (judged against the direct pre-evolution bound) during any data skew.
+    const preEvolutionEntries = (move.sources?.preEvolutionLevelUp || []).map(
+      (entry) =>
+        typeof entry === "number" ? { level: entry, from: null } : entry,
+    );
     const naturalLevelUpLevels = [
       ...allLevelUpLevels.filter(
         (level) =>
           !isEvolvedLevelOneMove(level, evolvedSpecies),
       ),
-      ...preEvolutionLevels.filter((level) => level <= naturalDeparture),
+      ...preEvolutionEntries
+        .filter((entry) => entry.level <= departureOf(entry.from))
+        .map((entry) => entry.level),
     ];
-    const delayedLevels = preEvolutionLevels.filter(
-      (level) => level > naturalDeparture && level <= levelCap,
-    );
+    const delayedEntries = preEvolutionEntries
+      .filter(
+        (entry) =>
+          entry.level > departureOf(entry.from) && entry.level <= levelCap,
+      )
+      .sort((a, b) => a.level - b.level);
     const levels = naturalLevelUpLevels.filter(
       (level) => level <= levelCap,
     );
@@ -101,7 +128,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     // only obtainable here through the move relearner.
     const hasRelearnerOnlyLevelOne =
       !isEvolutionMove &&
-      preEvolutionLevels.length === 0 &&
+      preEvolutionEntries.length === 0 &&
       allLevelUpLevels.some((level) =>
         isEvolvedLevelOneMove(level, evolvedSpecies),
       );
@@ -118,14 +145,16 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
           label: "Move relearner",
         });
       }
-    } else if (delayedLevels.length > 0) {
-      // Only reachable by delaying evolution past the natural level (e.g. a
-      // cap-60 Greninja running Hydro Pump means staying Frogadier to 56).
-      // Legal, but flagged: the default build avoids it, and a build that uses
-      // it pays DELAYED_EVO_FRICTION and says so.
+    } else if (delayedEntries.length > 0) {
+      // Only reachable by delaying a SPECIFIC evolution past its natural level
+      // (a cap-60 Greninja running Hydro Pump means keeping Frogadier to 56).
+      // Legal, but flagged with the form being delayed: the default build
+      // avoids it, and a build that uses it pays DELAYED_EVO_FRICTION.
+      const best = delayedEntries[0];
+      const who = best.from ? ` ${ancestorName(best.from)}` : "";
       sources.push({
         kind: "level-up",
-        label: `Level ${Math.min(...delayedLevels)} (requires delayed evolution)`,
+        label: `Level ${best.level} (requires keeping${who ? who : " the pre-evolution"} unevolved to ${best.level})`,
         delayedEvolution: true,
       });
     } else if (isEvolutionMove) {
