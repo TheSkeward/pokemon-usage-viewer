@@ -27,13 +27,19 @@ export async function buildRebornBreedingContext({
         // Acquisition cost of each move the species can get WITHOUT breeding:
         // the lowest level any source demands (TM/tutor/etc. count as 0 — they
         // are teachable the moment they're unlocked, which availability has
-        // already checked). Drives donor ranking below.
+        // already checked). `how` keeps the human-readable root acquisition
+        // ("@35", "evo@32", "TM42") for the chain detail. Drives donor
+        // ranking below.
         const costs = new Map();
         for (const move of getAvailableRebornMoves(legalMoveData, {
           ...progression,
           availableEggMoveIdsForPokemon: [],
         })) {
-          costs.set(move.id, { level: acquisitionLevel(move), hops: 0 });
+          costs.set(move.id, {
+            ...acquisitionOf(move, species.id),
+            hops: 0,
+            path: [],
+          });
         }
 
         return { legalMoveData, costs, species };
@@ -51,11 +57,12 @@ export async function buildRebornBreedingContext({
     ]),
   );
 
-  // Cheapest-chain relaxation: among every legal donor, prefer the one that
-  // gets the move EARLIEST (lowest acquisition level), then the shortest
-  // chain, then name for determinism — instead of the old "first in pool
-  // order" pick. Multi-hop chains inherit the upstream donor's level and add
-  // a hop. Costs only ever improve, so this terminates.
+  // Shortest-chain relaxation: among every legal donor, prefer the SHORTEST
+  // chain first (user rule: fewest breeding hops is primary), and only then
+  // the donor that gets the move earliest (lowest acquisition level) as the
+  // tiebreak — instead of the old "first in pool order" pick. Multi-hop
+  // chains inherit the upstream donor's level, root acquisition, and path.
+  // Costs only ever improve, so this terminates.
   let changed = true;
   while (changed) {
     changed = false;
@@ -74,26 +81,29 @@ export async function buildRebornBreedingContext({
             continue;
           }
           const candidate = {
-            level: donorCost.level,
             hops: donorCost.hops + 1,
-            donor,
+            level: donorCost.level,
+            how: donorCost.how,
+            path: [...donorCost.path, donor.species.name],
           };
-          if (!best || compareCosts(candidate, best) < 0) best = candidate;
+          if (!best || compareBreedingCosts(candidate, best) < 0) best = candidate;
         }
         if (!best) continue;
 
         const current = target.costs.get(move.id);
-        if (current && compareCosts(best, current) >= 0) continue;
+        if (current && compareBreedingCosts(best, current) >= 0) continue;
 
-        target.costs.set(move.id, { level: best.level, hops: best.hops });
+        target.costs.set(move.id, best);
         const targetBreeding = byPokemonId.get(target.species.id);
         targetBreeding.moveIds.add(move.id);
+        // The path spells every step; the parenthetical is how the ROOT
+        // learner gets the move: "Azumarill → Granbull breeding chain (@1)".
         targetBreeding.sources[move.id] = {
           label: "Egg",
-          detail: `${best.donor.species.name} breeding chain${
-            best.level > 0 ? ` (@${best.level})` : ""
-          }${best.hops > 1 ? `, ${best.hops}-step` : ""}`,
-          donorName: best.donor.species.name,
+          detail: `${best.path.join(" → ")} breeding chain${
+            best.how ? ` (${best.how})` : ""
+          }`,
+          donorName: best.path[best.path.length - 1],
         };
         changed = true;
       }
@@ -114,24 +124,42 @@ export async function buildRebornBreedingContext({
   };
 }
 
-// Lowest level any available source demands; non-level sources (TM, tutor,
-// relearner, Sketch) are teachable outright and count as 0. Delayed-evolution
-// level-ups ("Level 38 (Slakoth)") still parse to their level.
-function acquisitionLevel(move) {
-  let min = Infinity;
+// The cheapest way a species gets a move without breeding, as
+// {level, how}: level-up sources cost their level ("@35"); evolution moves
+// cost the species' evolution level ("evo@32" — you must evolve to learn
+// it); anything else (TM/tutor/Sketch) is teachable outright at level 0,
+// labelled by its source ("TM42"). Delayed-evolution level-ups
+// ("Level 38 (Slakoth)") still parse to their level.
+export function acquisitionOf(move, speciesId) {
+  let best = null;
   for (const source of move.availableSources || []) {
-    const match = /^Level (\d+)/.exec(source.label || "");
-    min = Math.min(min, match ? Number.parseInt(match[1], 10) : 0);
+    const label = source.label || "";
+    let candidate;
+    const levelMatch = /^Level (\d+)/.exec(label);
+    if (levelMatch) {
+      const level = Number.parseInt(levelMatch[1], 10);
+      candidate = { level, how: `@${level}` };
+    } else if (/evolution/i.test(label)) {
+      const evoLevel = GEN7_PROGRESSION_SPECIES[speciesId]?.evoLevel ?? null;
+      candidate = {
+        level: evoLevel ?? 0,
+        how: evoLevel ? `evo@${evoLevel}` : "on evolution",
+      };
+    } else {
+      // "TM42: After Badge 01" → "TM42"; "Sketch" → "Sketch"; etc.
+      candidate = { level: 0, how: label.split(":")[0].trim() || "taught" };
+    }
+    if (!best || candidate.level < best.level) best = candidate;
   }
-  return Number.isFinite(min) ? min : 0;
+  return best || { level: 0, how: "" };
 }
 
-function compareCosts(a, b) {
-  if (a.level !== b.level) return a.level - b.level;
+// User rule: the shortest possible chain wins; earliest acquisition is only
+// the tiebreak, then path names for determinism.
+export function compareBreedingCosts(a, b) {
   if (a.hops !== b.hops) return a.hops - b.hops;
-  const nameA = a.donor?.species?.name || "";
-  const nameB = b.donor?.species?.name || "";
-  return nameA.localeCompare(nameB);
+  if (a.level !== b.level) return a.level - b.level;
+  return (a.path || []).join("→").localeCompare((b.path || []).join("→"));
 }
 
 export function applyBreedingContextToProgression(

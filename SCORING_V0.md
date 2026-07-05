@@ -645,15 +645,22 @@ Invariants the shape encodes (each guarded by fixtures):
   fast_attacker (new Sludge Wave/Venoshock re-pick its set and displace
   utility moves — set selection is not monotone in pool size). All fixture
   invariants held.
-- **Breeding chains prefer the earliest-acquisition donor** (user request):
-  among multiple legal donors the old chain took whichever sat first in
-  pool order. Donors are now ranked by the lowest level at which they can
-  have the move (non-level sources — TM/tutor/Sketch — count as 0), then
-  by fewest breeding hops, then name; multi-hop chains inherit the
-  upstream donor's level. The egg-source detail names the pick tersely:
-  "Quagsire breeding chain (@24)". No golden drift — every fixture has the
-  daycare locked. Pinned by a real-data test (Azumarill's Amnesia:
-  Quagsire@24 over Golduck@41/Slowbro@43; Body Slam: Lapras@18).
+- **Breeding chains: shortest chain first, earliest acquisition as the
+  tiebreak** (user request, corrected after gameplay): among multiple legal
+  donors the old chain took whichever sat first in pool order. First
+  attempt ranked by acquisition level with hops as tiebreak — wrong: a
+  2-step Granbull chain (Granbull's own Double-Edge is egg-only) beat
+  Zebstrika's direct donors. User rule: FEWEST HOPS is primary, lowest
+  acquisition level breaks ties, then path names for determinism.
+  Multi-hop chains inherit the upstream donor's level/root-acquisition and
+  spell every step ("Azumarill → Granbull breeding chain (@1)"). The
+  parenthetical always demonstrates how the ROOT learner gets the move:
+  "@24" level-up, "evo@32" evolution move (Pangoro's Bullet Punch),
+  "TM42"/"Sketch" for taught sources. No golden drift — every fixture has
+  the daycare locked. Pinned by real-data tests (Azumarill's Amnesia:
+  Quagsire@24 over Golduck@41/Slowbro@43; Zebstrika's Double-Edge:
+  Linoone@35 direct over any 2-step chain; Hariyama's Bullet Punch:
+  "Pangoro breeding chain (evo@32)").
 - **Canonical-set readiness badges (usage-convergence Phase 1)** — display
   only, NO scoring change: every analysis set card now carries one line of
   truth about the represented form's competitive set ("Competitive set: 1/4
