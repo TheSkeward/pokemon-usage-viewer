@@ -1023,8 +1023,9 @@ const SEMI_INVULNERABLE_CHARGE = new Set([
 
 // How many "hits' worth" of base power a move lands per commitment, used to scale
 // the damage estimate so multi-hit and multi-turn moves are ranked by real output:
-//   - multi-hit: a fixed count (Double Kick → 2) or the average of its [min,max]
-//     range (Fury Swipes [2,5] → 3.5);
+//   - multi-hit: a fixed count (Double Kick → 2) or the EXPECTED count of its
+//     [min,max] range — 2–5-hit moves roll 35%/35%/15%/15% for 2/3/4/5 hits
+//     (Gen 5+), so Fury Swipes [2,5] → 3.1, not the naive midpoint 3.5;
 //   - recharge: hit, then a lost turn. Double-weighting the earlier (hit) turn
 //     gives (2·1 + 1·0)/3 = 2/3 of a single hit (Hyper Beam);
 //   - exposed charge: a lost turn, then hit. Same double-weight-the-earlier-turn
@@ -1039,6 +1040,10 @@ function getEffectiveHitMultiplier(move) {
   const multihit = move.multihit;
   if (typeof multihit === "number") return multihit;
   if (Array.isArray(multihit) && multihit.length === 2) {
+    // The standard 2–5 roll is 35/35/15/15 → E[hits] = 3.1; the midpoint 3.5
+    // overrated every Pin Missile-class move by ~13%. Other ranges (none in
+    // Gen 7 data today) fall back to the midpoint.
+    if (multihit[0] === 2 && multihit[1] === 5) return 3.1;
     return (multihit[0] + multihit[1]) / 2;
   }
 

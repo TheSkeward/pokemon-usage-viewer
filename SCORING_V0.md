@@ -553,3 +553,31 @@ Invariants the shape encodes (each guarded by fixtures):
   corrected legality rebalances the pool; all fixture INVARIANTS passed
   throughout. Data-format change (attributed entries) regenerated across
   all legal-move files; caches retire via the data signature.
+- **Confession audit** (user request: find other comments admitting their own
+  misclassifications, after the Slaking case). Full sweep of src/ and the
+  generators; the ability assumption, naive-damage labeling, investment-view
+  scope note, and the charge/recharge tempo weights were re-reviewed and
+  deliberately left alone (surfaced or defensible judgments). Four fixes:
+  1. *Psywave at expected value*: code said 0.75×level while its own comment
+     said "uniform 0.5×–1.5×" (mean 1.0×). The model prices randomness at
+     expected value everywhere else; now here too. Bronzor 853→931 (flat
+     coverage of Psywave).
+  2. *Multi-hit expected count*: "[min,max] average" used the midpoint 3.5,
+     but the Gen 5+ 2–5-hit roll is 35/35/15/15 → E[hits]=3.1; every Pin
+     Missile-class move was overrated ~13%. Hoppip 1433→1383 (Bullet Seed),
+     Shellder 1244→1214 (Icicle Spear).
+  3. *Universal TMs denied to the no-TM species* (user-verified ground truth:
+     Wobbuffet's only machine move is its explicitly-listed Safeguard, as in
+     USUM): the movepool-size guard was nearly a no-op — intrinsic counts
+     egg/compatible moves, so even Caterpie cleared it — and all of
+     Caterpie / Metapod / Weedle / Kakuna / Wurmple / Silcoon / Cascoon /
+     Kricketot / Combee / Magikarp / Ditto / Unown / Wobbuffet / Wynaut /
+     Beldum / Tynamo / Smeargle carried ~15 bogus TMs (Toxic Magikarp,
+     Facade Caterpie). Curated exclusion list; explicit per-species machine
+     listings survive (Wobbuffet keeps Safeguard, Tynamo keeps Reborn's
+     explicit Charge Beam / Thunder Wave). No golden drift — no fixture set
+     leaned on the bogus TMs.
+  4. *Doc rot*: currentFormValue's header still claimed utility_q was
+     "coarse — only a boolean utility flag"; the role-aware, accuracy-
+     weighted system has long since landed. Header corrected.
+  Golden drift audited and regenerated: score-only, no seating changes.

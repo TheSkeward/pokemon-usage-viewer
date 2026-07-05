@@ -100,7 +100,10 @@ export function fixedMoveDamage(moveId, level) {
     case "nightshade":
       return lvl;
     case "psywave":
-      return Math.round(lvl * 0.75); // uniform 0.5x–1.5x the user's level
+      // Uniform 0.5x–1.5x the user's level — expected value 1.0x. The model
+      // prices randomness at expected value everywhere (accuracy weighting,
+      // multi-hit counts); the old 0.75x haircut contradicted its own comment.
+      return lvl;
     case "sonicboom":
       return 20;
     case "dragonrage":

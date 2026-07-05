@@ -33,6 +33,18 @@ const rebornTutorMoveIds = new Set(REBORN_TUTOR_OPTIONS.map((o) => toId(o.move))
 // Reborn TMs listed by 0 species; the next-rarest is in 8). Granted to every mon
 // with a real movepool — the famous TM-locked mons (Ditto/Unown/Smeargle, with
 // a one-move movepool) are excluded by the size check below.
+// Species that cannot learn the code-granted universal TMs (user-verified
+// against USUM / Reborn behavior: their machine list is empty or, like
+// Wobbuffet's Safeguard, entirely explicit in the per-species data). The old
+// movepool-size check (intrinsic.size > 2) was nearly a no-op — intrinsic
+// includes egg/compatible moves, so even Caterpie cleared it and every one of
+// these carried ~15 bogus TMs (Toxic Magikarp, Facade Caterpie).
+const NO_UNIVERSAL_TM_SPECIES = new Set([
+  "caterpie", "metapod", "weedle", "kakuna", "magikarp", "ditto", "unown",
+  "wobbuffet", "wurmple", "silcoon", "cascoon", "wynaut", "smeargle",
+  "beldum", "kricketot", "combee", "tynamo",
+]);
+
 const UNIVERSAL_TM_MOVES = new Set(
   [
     "toxic", "hiddenpower", "facade", "attract", "substitute", "frustration",
@@ -97,7 +109,8 @@ for (const pokemon of pokemonIndex) {
     ...learnset.eggMoves,
     ...learnset.compatibleMoves,
   ]);
-  const learnsUniversalTms = intrinsic.size > 2;
+  const learnsUniversalTms =
+    intrinsic.size > 2 && !NO_UNIVERSAL_TM_SPECIES.has(pokemon.id);
 
   for (const moveId of rebornTmMoveIds) {
     if (

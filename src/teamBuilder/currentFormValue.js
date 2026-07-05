@@ -10,8 +10,10 @@
 //   speed_q    base Speed percentile across the whole species dex
 //   bulk_q     HP+Def+SpD percentile across the whole species dex
 //   reliability_q  does it have a functional attacking kit (a few real options)
-//   utility_q  status/priority access (coarse — the move data has only a boolean
-//              utility flag, no recovery/setup/hazard tags)
+//   utility_q  role-aware utility value — recovery / setup / hazards / speed
+//              control tags from the move meta, accuracy-weighted, saturating
+//              at UTILITY_SATURATION (real infrastructure counts; chip status
+//              barely does)
 //
 // Then a few role scores (geometric means, so a role needs ALL its axes) and
 // C = max(role). A fast frail attacker, a bulky pivot, and a hard hitter each get
