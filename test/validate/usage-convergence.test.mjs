@@ -136,6 +136,38 @@ test("a fielded pre-evolution (not the usage representative) never ramps", async
   }
 });
 
+test("w is line-anchored: a pre-evo can't dodge the drag its real form converges under", async () => {
+  // User report: base Doduo outseated Dodrio at high cap because Dodrio
+  // (line representative: NU, vs Doduo's deeper LC) converged to its prior
+  // while Doduo kept its raw C at w=0. The line's representative — best
+  // first-meaningful tier — anchors ONE w for every form in the line, each
+  // blended against its OWN prior.
+  const { DEFAULT_REBORN_PROGRESSION } = await import(
+    "../../src/reborn/progression.js"
+  );
+  const result = await runPool({
+    pool: ["Doduo"],
+    progression: { ...DEFAULT_REBORN_PROGRESSION, levelCap: "100" },
+    overrides: V1,
+  });
+  const line = result.lines[0];
+  const byId = Object.fromEntries(
+    (line.candidates || []).map((c) => [c.candidate?.id, c]),
+  );
+  assert.ok(byId.dodrio && byId.doduo, "both forms must be scored");
+  assert.equal(
+    byId.doduo.usageWeight,
+    byId.dodrio.usageWeight,
+    "every form in a line shares the representative's w",
+  );
+  assert.ok(
+    byId.dodrio.score > byId.doduo.score,
+    `Dodrio (${Math.round(byId.dodrio.score)}) must outrank Doduo (${Math.round(byId.doduo.score)})`,
+  );
+  const fielded = line.best?.legalityProfile?.currentId || line.best?.pokemonId;
+  assert.equal(fielded, "dodrio");
+});
+
 test("V1 golden: midgame-broad pool under the blend (drift shows up in review)", async () => {
   const result = await runPool({
     pool: ["Machop","Growlithe","Poliwag","Abra","Tentacool","Ponyta","Magnemite","Doduo","Gastly","Rhyhorn","Horsea","Scyther","Eevee","Dratini","Mareep","Hoppip"],

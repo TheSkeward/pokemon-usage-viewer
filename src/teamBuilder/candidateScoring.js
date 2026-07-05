@@ -44,6 +44,8 @@ export function scoreCandidate({
   legalityProfile,
   levelCap = 0,
   opponentTypeBias,
+  // SCORING_V1: the line-anchored usage trust (see comment at the use site).
+  lineRamp = null,
 }) {
   const usage = bundle?.usage;
 
@@ -83,34 +85,22 @@ export function scoreCandidate({
   const usagePull = alpha * online * headroom;
 
   // --- SCORING_V1 (usage-convergence blend, Phase 2) ------------------------
-  // w ramps with how far the canonical competitive set is toward complete:
-  //   w = max(α·O, O_rep · min((cap/L*)^k, r_now))
-  // O_rep: the ramp only applies when the fielded form IS the line's usage
-  // representative — the usage prior describes THAT form, and a deliberately
-  // unevolved pre-evo must keep the V0 α·O treatment. L* comes from the
-  // Phase 1 readiness schedule; r_now (canonical moves actually assembled)
-  // caps it so "reachable but not picked up yet" never scores as done.
-  // Items influence w only through L* — endgame items are purchasable at
-  // will, so an unowned Eviolite shouldn't hold w below 1 at cap 100.
+  // w ramps with how far the canonical competitive set is toward complete.
+  // `lineRamp` (the optimizer's line-anchored w — computed from the LINE's
+  // representative, the form with the best first-meaningful tier) is the
+  // authoritative source: every form in a line blends under the SAME w
+  // against its OWN prior, so a lesser line-mate can't dodge the endgame
+  // drag the real form is subject to (user report: base Doduo outseated
+  // Dodrio by keeping its raw C while Dodrio converged to its NU prior).
+  // Callers without line context (display paths) fall back to this form's
+  // own ramp.
   const model = tunable("USAGE_MODEL");
-  const readiness = legalityProfile?.setReadiness || null;
-  const isRepresentative =
-    !legalityProfile?.representativeId ||
-    legalityProfile?.currentId === legalityProfile?.representativeId;
-  let ramp = 0;
-  if (model === "v1" && readiness && isRepresentative) {
-    const cap = Math.max(1, Math.min(100, levelCap || 0));
-    const lStar = readiness.fullAtCap;
-    const schedule =
-      lStar == null
-        ? 1
-        : Math.min(1, Math.pow(cap / lStar, tunable("USAGE_RAMP_EXPONENT")));
-    const totalMoves = readiness.moves?.length || 0;
-    const rNow = totalMoves
-      ? (readiness.readyMoveCount || 0) / totalMoves
+  const ramp =
+    model === "v1"
+      ? lineRamp != null
+        ? lineRamp
+        : computeUsageRamp(legalityProfile, levelCap)
       : 0;
-    ramp = Math.min(schedule, rNow);
-  }
 
   // F — display-only near-future value; NOT added to V. The investment view
   // (Phase 9) owns "worth training toward"; selection judges the present.
@@ -196,6 +186,33 @@ export function scoreCandidate({
     // and the explanation layer; always 0 under V0.
     usageWeight,
   };
+}
+
+// SCORING_V1's w before the α·O floor:
+//   ramp = O_rep · min((cap/L*)^k, r_now)
+// O_rep: only a fielded form that IS this profile's usage representative can
+// ramp — the usage prior describes THAT form; a deliberately unevolved
+// pre-evo keeps the V0 α·O treatment. L* comes from the Phase 1 readiness
+// schedule; r_now (canonical moves actually assembled) caps it so "reachable
+// but not picked up yet" never scores as done. Items influence w only through
+// L* — endgame items are purchasable at will, so an unowned Eviolite must not
+// hold w below 1 at cap 100.
+export function computeUsageRamp(legalityProfile, levelCap) {
+  const readiness = legalityProfile?.setReadiness || null;
+  const isRepresentativeForm =
+    !legalityProfile?.representativeId ||
+    legalityProfile?.currentId === legalityProfile?.representativeId;
+  if (!readiness || !isRepresentativeForm) return 0;
+
+  const cap = Math.max(1, Math.min(100, levelCap || 0));
+  const lStar = readiness.fullAtCap;
+  const schedule =
+    lStar == null
+      ? 1
+      : Math.min(1, Math.pow(cap / lStar, tunable("USAGE_RAMP_EXPONENT")));
+  const totalMoves = readiness.moves?.length || 0;
+  const rNow = totalMoves ? (readiness.readyMoveCount || 0) / totalMoves : 0;
+  return Math.min(schedule, rNow);
 }
 
 // SCORING_V1's U: a tier-dominant rank scalar on C's scale (user design).

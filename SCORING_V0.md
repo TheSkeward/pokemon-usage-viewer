@@ -708,3 +708,18 @@ Invariants the shape encodes (each guarded by fixtures):
   golden (v1-midgame-broad: Dodrio 1536→1117 dragged to its honest prior,
   Arcanine +156, Magnezone +124 — the blend working as intended).
   V0 goldens untouched; model choice folded into every cache signature.
+- **SCORING_V1 correction: w is line-anchored** (user report, same session:
+  base Doduo outseated Dodrio at high cap): per-candidate w let a pre-evo
+  with a trivially-complete set keep its raw C at w=0 while the line's real
+  form (Dodrio, NU — Doduo is only LC, a deeper tier) converged to its
+  scaled prior and lost to its own pre-evolution. User law: the line's
+  representative is the form with the best FIRST-MEANINGFUL TIER (usage %
+  breaks ties; FEAR-class pre-evos win this legitimately), and its ramp is
+  THE line's w — every form blends under that same w against its OWN
+  prior. Consequences verified: Dodrio 1199 now beats Doduo 507 (both
+  w=0.75); a line whose representative cannot field yet (Dragonite at cap
+  45) carries zero usage trust, so its fieldable mid-form keeps the honest
+  V0 shape — the intended early-game semantics. V1 golden regenerated and
+  audited (near-tie midgame reseats: Dragonair/Poliwhirl in, Arcanine/
+  Ampharos out, Eevee flips Vaporeon→Sylveon; per-line deltas ≤ 13 points,
+  amplified by team coverage). V0 goldens untouched.

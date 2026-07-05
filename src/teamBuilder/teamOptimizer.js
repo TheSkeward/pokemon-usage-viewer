@@ -26,6 +26,8 @@ import { utilityTagVector } from "./currentFormValue.js";
 import {
   MIN_MEANINGFUL_USAGE_PERCENT,
   compareScoredCandidates,
+  computeUsageRamp,
+  getUsageRanking,
   scoreCandidate,
 } from "./candidateScoring";
 import { resolveRepresentativeLightBundle } from "./representativeBundle";
@@ -381,7 +383,8 @@ async function resolvePoolLine({
   const abilityOverride =
     abilityAnnotations?.get(normalizeName(input.name)) || null;
 
-  const scored = await Promise.all(
+  // Pass 1: resolve every candidate form's usage bundle and builds.
+  const prepared = await Promise.all(
     candidates.map(async (candidate) => {
       try {
         const bundle = await resolveRepresentativeLightBundle({
@@ -400,7 +403,64 @@ async function resolvePoolLine({
           selection,
           abilityOverride,
         });
-        const levelCap = Number.parseInt(progression.levelCap, 10) || 0;
+        return { candidate, bundle, builds };
+      } catch (error) {
+        console.warn("Failed to prepare team-builder candidate", {
+          candidate,
+          error,
+          input,
+        });
+        return { candidate, error };
+      }
+    }),
+  );
+
+  // SCORING_V1, user law (Doduo/Dodrio report): usage trust (w) is a property
+  // of the LINE, anchored to its representative — the form with the best
+  // first-meaningful tier (higher usage % breaks ties; FEAR-class pre-evos
+  // win this legitimately). Every form then blends under that SAME w against
+  // its OWN prior, so a lesser line-mate can't dodge the endgame drag by
+  // having a trivially-complete set while the real form converges.
+  const familyConfig = availability?.familyConfigs?.[family] || {};
+  const formatOrder = familyConfig.formatOrder || [];
+  const cutoffPriority = familyConfig.cutoffPriority || [];
+  const levelCap = Number.parseInt(progression.levelCap, 10) || 0;
+  let repRank = null;
+  let repEntry = null;
+  for (const entry of prepared) {
+    if (entry.error || !entry.bundle?.usage) continue;
+    const rank = getUsageRanking(entry.bundle, formatOrder, cutoffPriority);
+    if (
+      !repRank ||
+      rank.tierRank < repRank.tierRank ||
+      (rank.tierRank === repRank.tierRank && rank.value > repRank.value)
+    ) {
+      repRank = rank;
+      repEntry = entry;
+    }
+  }
+  const lineRamp = repEntry
+    ? computeUsageRamp(repEntry.builds?.variants?.[0]?.profile || null, levelCap)
+    : 0;
+
+  // Pass 2: score every build of every form under the line-anchored w.
+  const scored = prepared.map(({ candidate, bundle, builds, error }) => {
+    if (error || !builds) {
+      return {
+        input,
+        candidate,
+        bundle: bundle || { usage: null, leads: null },
+        score: -Infinity,
+        teamScore: -Infinity,
+        meaningfulUsage: false,
+        usagePercent: 0,
+        rawCount: 0,
+        leadPercent: 0,
+        legalityProfile: null,
+        ...(error ? { error } : {}),
+      };
+    }
+    try {
         const scoreOf = (legalityProfile) =>
           scoreCandidate({
             availability,
@@ -410,6 +470,7 @@ async function resolvePoolLine({
             legalityProfile,
             levelCap,
             opponentTypeBias: progression.opponentTypeBias,
+            lineRamp,
           });
 
         const scoredBuilds = builds.variants
@@ -489,8 +550,7 @@ async function resolvePoolLine({
           error,
         };
       }
-    }),
-  );
+  });
 
   const ranked = scored
     .filter((candidate) => Number.isFinite(candidate.score))
