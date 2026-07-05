@@ -20,6 +20,7 @@ import {
   parseSpread,
 } from "./damageModel.js";
 import { loadTopSet } from "./topSpread.js";
+import { computeSetReadiness } from "./setReadiness.js";
 import { teamMemberKey } from "../teamBuilder/itemRecommendations.js";
 import { toId } from "../utils/ids.js";
 import { MAX_OPPONENT_TYPE_BIAS } from "./progression.js";
@@ -158,6 +159,15 @@ async function buildMemberLegalMoveEntry({
     heldItem,
     ability: topSet.ability,
     opponentTypeBias: progression.opponentTypeBias,
+  });
+
+  // Display-only: how much of the represented form's competitive set is
+  // assemblable now, and the cap where it completes (Phase 1 readiness).
+  profile.setReadiness = computeSetReadiness({
+    legalMoveData,
+    availableMoves: moves,
+    topSet,
+    progression: memberProgression,
   });
 
   return { member, moves, profile, topSet, row };

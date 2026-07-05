@@ -167,6 +167,18 @@ export function getUnlockBadge(key) {
   return null;
 }
 
+// The badge count at which a headline held item first becomes obtainable;
+// null when the timeline doesn't track it (treat as timing-unknown, not
+// unobtainable).
+export function getItemUnlockBadge(itemId) {
+  for (const checkpoint of REBORN_PROGRESSION_CHECKPOINTS) {
+    if ((checkpoint.unlocks.items || []).includes(itemId)) {
+      return checkpoint.badges;
+    }
+  }
+  return null;
+}
+
 // Short chip text: "9 badges" / "Post 3".
 export function getRebornCheckpointShortLabel(checkpoint) {
   if (!checkpoint) return "";

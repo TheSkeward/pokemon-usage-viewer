@@ -300,9 +300,53 @@ function renderSetCard(profile) {
             : `<small class="muted">No legal damaging moves available yet.</small>`
         }
       </div>
+      ${renderSetReadiness(profile.setReadiness)}
       <div class="team-set-foot">
         <small>${profile.superEffectiveTargetCount}/${REBORN_ANALYSIS_TYPES.length} types hit super effectively</small>
       </div>
+    </div>
+  `;
+}
+
+// One line of truth about the competitive set: how much of it exists yet and
+// when it completes. Details per element live in the tooltip.
+function renderSetReadiness(readiness) {
+  if (!readiness) return "";
+
+  const parts = [`${readiness.readyMoveCount}/${readiness.moves.length} moves`];
+  if (readiness.item?.name) {
+    if (readiness.item.status === "ready") parts.push("item ✓");
+    else if (readiness.item.status === "later")
+      parts.push(`item ${readiness.item.detail}`);
+    else parts.push("item ?");
+  }
+  parts.push(
+    readiness.pendingPickups
+      ? "pickups pending"
+      : readiness.fullAtCap == null
+        ? "complete now"
+        : `full at cap ${readiness.fullAtCap}`,
+  );
+
+  const tooltip = [
+    ...readiness.moves.map((move) => {
+      const mark =
+        move.status === "ready" ? "✓" : move.status === "scaling" ? "↗" : "✗";
+      return `${mark} ${move.label}${move.detail ? ` — ${move.detail}` : ""}`;
+    }),
+    readiness.item?.name
+      ? `${readiness.item.status === "ready" ? "✓" : "✗"} ${readiness.item.name}${
+          readiness.item.detail ? ` — ${readiness.item.detail}` : ""
+        }`
+      : null,
+    "✓ ability — always selectable in Reborn",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return `
+    <div class="team-set-readiness" title="${escapeHtml(tooltip)}">
+      <small>Competitive set: ${escapeHtml(parts.join(" · "))}</small>
     </div>
   `;
 }

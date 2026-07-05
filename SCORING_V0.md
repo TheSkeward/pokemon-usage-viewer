@@ -654,3 +654,23 @@ Invariants the shape encodes (each guarded by fixtures):
   "Quagsire breeding chain (@24)". No golden drift — every fixture has the
   daycare locked. Pinned by a real-data test (Azumarill's Amnesia:
   Quagsire@24 over Golduck@41/Slowbro@43; Body Slam: Lapras@18).
+- **Canonical-set readiness badges (usage-convergence Phase 1)** — display
+  only, NO scoring change: every analysis set card now carries one line of
+  truth about the represented form's competitive set ("Competitive set: 1/4
+  moves · item ? · full at cap 80", per-element breakdown in the tooltip).
+  Each element of the canonical top-4-usage set plus the canonical item maps
+  to when it becomes assemblable: level-up moves at their level, TM/tutor
+  moves at their unlock badge's cap (from the Phase 0 timeline +
+  availability strings), items at their timeline badge, egg-only moves
+  flagged as daycare/chain-dependent. Definitional rules (user-ratified): a
+  level-scaling move (Seismic Toss class) in the canonical set pins "full
+  at" to cap 100; abilities are ALWAYS ready (user-verified Reborn
+  mechanics: HAs distributed evenly at catch, Ability Capsules switch
+  between all abilities from the start — this also closes the roadmap's
+  HA-availability audit: the optimizer's assumed competitive ability is
+  legitimate in Reborn). When everything missing is already reachable at
+  the current gamestate, the line says "pickups pending" instead of naming
+  an already-passed cap. This is the calibration gate for Phase 2's sliding
+  usage blend: L* only becomes a scoring input once these badges survive
+  gameplay. No golden drift — readiness is computed in the analysis path
+  and never feeds V.

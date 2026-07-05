@@ -1237,6 +1237,19 @@ input {
   margin-top: 0.1rem;
 }
 
+/* Phase 1 readiness line: gold while the competitive set is still assembling,
+   muted once complete. Hover for the per-element breakdown. */
+.team-set-readiness {
+  font-size: 0.75rem;
+  color: #f1d887;
+  margin-top: 0.15rem;
+  cursor: help;
+}
+
+.team-set-readiness small {
+  font-size: inherit;
+}
+
 .team-analysis-explanation {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
