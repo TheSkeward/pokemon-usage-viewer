@@ -506,3 +506,25 @@ Invariants the shape encodes (each guarded by fixtures):
   counts (legalDamagingMoveCount) keep constructibility semantics.
   Improves invariant 3 (chip and fiction are not coverage). Result cache
   v13. Committed tests cover both directions.
+- **Pre-evolution-only level-up moves restored to legality** (user report:
+  Linoone recommended Double-Edge + Headbutt over Pin Missile — Pin Missile
+  was missing from Linoone's legal pool entirely): the legal-moves generator
+  attached pre-evolution level-up LEVELS only to moves the evolved form also
+  knows itself; a move the evolved form dropped (Zigzagoon's Pin Missile 19
+  vs Gen 7 Linoone) never got an entry at all. Pre-evo egg moves were
+  unaffected. One-line generator fix; 181 Pokémon files gained moves
+  (Poliwrath: Hydro Pump / Belly Drum / Body Slam; Kanto Raichu: Nasty
+  Plot / Discharge; Vigoroth: Slack Off; the eeveelutions: Eevee's kit...).
+  Improves invariant 6 (legality honesty) — this is a data-truth fix, so
+  caches retire via the data signature, no result-cache bump.
+  Golden drift audited and regenerated — every fixture INVARIANT passed
+  throughout; only snapshots moved:
+  - unique-immunity: Poliwag fields Poliwrath over Poliwhirl (a stone evo
+    reaches every pre-evo level, and Poliwrath now carries the real kit).
+  - item-friendship-evos: Pichu fields Kanto Raichu over Alolan (Nasty
+    Plot / Discharge flip a near-tie between two stone forms).
+  - midgame-broad: Eevee fields Sylveon over Jolteon (both gained Eevee's
+    moves; a near-tie reshuffled).
+  - Score-only drifts (Slakoth −37, Crabrawler +5, Shellder +11): set
+    recomposition under the wider pools; the greedy set builder is
+    deliberately not monotone in pool size.

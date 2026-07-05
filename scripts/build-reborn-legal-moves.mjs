@@ -128,6 +128,11 @@ for (const pokemon of pokemonIndex) {
       preEvoLevelUp.get(moveId).push(level);
     }
   }
+  // A pre-evo-only level-up move (Zigzagoon's Pin Missile — dropped from
+  // Linoone's own learnset) still needs an entry on the evolved form: the
+  // output loop iterates sourcesByMove, and without this the move silently
+  // vanished instead of appearing as preEvolutionLevelUp.
+  for (const moveId of preEvoLevelUp.keys()) get(moveId);
 
   const moves = [];
   for (const [moveId, sources] of sourcesByMove) {
