@@ -7,6 +7,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { runPool, loadShared, progressionAt } from "../helpers/harness.mjs";
 
+const { normalizeRebornProgression } = await import(
+  "../../src/reborn/progression.js"
+);
 const { getCurrentRebornSpeciesForChoice } = await import(
   "../../src/reborn/currentSpecies.js"
 );
@@ -50,12 +53,33 @@ test("other access gates: friendship, link stone, stones", async () => {
   );
   assert.equal(noLink.id, "haunter");
 
-  // Gloom → Vileplume is a Leaf Stone.
-  const noStones = getCurrentRebornSpeciesForChoice(
+  // Gloom → Vileplume is a Leaf Stone — its OWN gate (user request:
+  // per-stone access), and blocking a DIFFERENT stone must not touch it.
+  const noLeafStone = getCurrentRebornSpeciesForChoice(
+    { inputPokemonId: "oddish", pokemonId: "vileplume", name: "Vileplume" },
+    { levelCap: "50", evoAccessLeafStone: false },
+  );
+  assert.equal(noLeafStone.id, "gloom");
+  const noFireStone = getCurrentRebornSpeciesForChoice(
+    { inputPokemonId: "oddish", pokemonId: "vileplume", name: "Vileplume" },
+    { levelCap: "50", evoAccessFireStone: false },
+  );
+  assert.equal(noFireStone.id, "vileplume");
+
+  // Legacy saves: the old blanket flag still blocks every stone, both raw
+  // and through normalization (which migrates it to the per-stone keys).
+  const legacyRaw = getCurrentRebornSpeciesForChoice(
     { inputPokemonId: "oddish", pokemonId: "vileplume", name: "Vileplume" },
     { levelCap: "50", evoAccessStones: false },
   );
-  assert.equal(noStones.id, "gloom");
+  assert.equal(legacyRaw.id, "gloom");
+  const migrated = normalizeRebornProgression({
+    levelCap: "50",
+    evoAccessStones: false,
+  });
+  assert.equal(migrated.evoAccessLeafStone, false);
+  assert.equal(migrated.evoAccessOtherEvoItems, false);
+  assert.equal(migrated.evoAccessFriendship, undefined, "non-item gates untouched");
 });
 
 test("optimizer respects the gate end-to-end (fielded form + cache key)", async () => {

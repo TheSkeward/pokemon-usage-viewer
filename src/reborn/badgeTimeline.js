@@ -38,10 +38,8 @@ export const REBORN_PROGRESSION_CHECKPOINTS = [
   },
   {
     id: "badge-2", badges: 2, label: "Canopy Badge (Florinia)", levelCap: 35,
-    unlocks: {
-      access: ["evoAccessStones"], // Fire/Water/Leaf Stones surface in the gang quests
-      items: ["focussash"],
-    },
+    // (Stone access is per-stone now, timed by the item timeline.)
+    unlocks: { items: ["focussash"] },
   },
   {
     id: "badge-3", badges: 3, label: "Cocoon Badge (Shelly)", levelCap: 40,

@@ -15,6 +15,7 @@ import { EVOLUTION_ACCESS_FIELDS } from "./evolutionRequirements.js";
 import {
   REBORN_PROGRESSION_CHECKPOINTS,
   getRebornCheckpoint,
+  getItemUnlockBadge,
   getUnlockBadge,
 } from "./badgeTimeline.js";
 import { REBORN_EXTRA_INVENTORY_ITEMS } from "./itemAvailability.js";
@@ -79,7 +80,13 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
           </summary>
           <div class="progression-checklist evo-access-checklist">
             ${EVOLUTION_ACCESS_FIELDS.map((field) => {
-              const badge = getUnlockBadge(field.key);
+              // Stones are timed by the item timeline (the community guide);
+              // area/method gates by the walkthrough schedule.
+              const badge = field.item
+                ? getItemUnlockBadge(
+                    field.item.toLowerCase().replace(/[^a-z0-9]+/g, ""),
+                  )
+                : getUnlockBadge(field.key);
               return `
                 <label class="checkbox-label">
                   <input

@@ -99,8 +99,20 @@ export function normalizeRebornProgression(progression = {}) {
 
 function normalizeEvolutionAccess(progression) {
   const access = {};
+  // Legacy migration: the old blanket "evoAccessStones" gate split into
+  // per-stone keys + evoAccessOtherEvoItems. A saved `false` blocks all of
+  // them unless the new key was set explicitly.
+  const legacyStonesBlocked = progression.evoAccessStones === false;
   for (const field of EVOLUTION_ACCESS_FIELDS) {
-    if (progression[field.key] === false) access[field.key] = false;
+    const isItemGate =
+      field.item !== undefined || field.key === "evoAccessOtherEvoItems";
+    const value =
+      progression[field.key] !== undefined
+        ? progression[field.key]
+        : isItemGate && legacyStonesBlocked
+          ? false
+          : undefined;
+    if (value === false) access[field.key] = false;
   }
   return access;
 }

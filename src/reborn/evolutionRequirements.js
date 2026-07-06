@@ -31,9 +31,28 @@ const TEDIOUS_MULTIPLIER = 1.5;
 // a flat boolean progression field; an ABSENT field means accessible (so old
 // saved progressions and tests behave exactly as before), an explicit `false`
 // blocks the evolution — surfaced in blockedEvolutions, never silent.
+// Each elemental stone gets its own gate (user request: "check individually
+// which stones I have access to at the moment"); the rest of the item-shaped
+// methods (Metal Coat, Razor Claw, ...) share one gate. Legacy saves with the
+// old blanket `evoAccessStones: false` still block all of these (see the
+// denied check below and the migration in progression.js).
+export const EVOLUTION_STONE_FIELDS = Object.freeze([
+  { key: "evoAccessFireStone", label: "Fire Stone", item: "Fire Stone" },
+  { key: "evoAccessWaterStone", label: "Water Stone", item: "Water Stone" },
+  { key: "evoAccessThunderStone", label: "Thunder Stone", item: "Thunder Stone" },
+  { key: "evoAccessLeafStone", label: "Leaf Stone", item: "Leaf Stone" },
+  { key: "evoAccessMoonStone", label: "Moon Stone", item: "Moon Stone" },
+  { key: "evoAccessSunStone", label: "Sun Stone", item: "Sun Stone" },
+  { key: "evoAccessShinyStone", label: "Shiny Stone", item: "Shiny Stone" },
+  { key: "evoAccessDuskStone", label: "Dusk Stone", item: "Dusk Stone" },
+  { key: "evoAccessDawnStone", label: "Dawn Stone", item: "Dawn Stone" },
+  { key: "evoAccessIceStone", label: "Ice Stone", item: "Ice Stone" },
+]);
+
 export const EVOLUTION_ACCESS_FIELDS = Object.freeze([
   { key: "evoAccessFriendship", label: "Friendship / affection evolutions" },
-  { key: "evoAccessStones", label: "Evolution stones & held items" },
+  ...EVOLUTION_STONE_FIELDS,
+  { key: "evoAccessOtherEvoItems", label: "Other evolution items (Metal Coat, Razor Claw, …)" },
   { key: "evoAccessLinkStone", label: "Link Stone (trade evolutions)" },
   { key: "evoAccessPartyCondition", label: "Party-condition evolutions (Mantyke needs a Remoraid)" },
   { key: "evoAccessMagneticField", label: "Magnetic field area (Probopass, Magnezone, Vikavolt)" },
@@ -62,6 +81,26 @@ function ownedItemCount(access, itemName) {
   return id ? access.ownedItems[id] || 0 : 0;
 }
 
+const STONE_KEY_BY_ITEM_ID = new Map(
+  EVOLUTION_STONE_FIELDS.map((field) => [
+    field.item.toLowerCase().replace(/[^a-z0-9]+/g, ""),
+    field.key,
+  ]),
+);
+const ITEM_GATE_KEYS = new Set([
+  ...STONE_KEY_BY_ITEM_ID.values(),
+  "evoAccessOtherEvoItems",
+]);
+
+// The gate for an evolution's required item: its own stone key when it's an
+// elemental stone, else the shared other-items gate.
+function evoItemAccessKey(evoItem) {
+  const id = String(evoItem || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+  return STONE_KEY_BY_ITEM_ID.get(id) || "evoAccessOtherEvoItems";
+}
+
 // The access gate a requirement depends on, or null when none applies.
 function requiredAccessKeys(evoType, condition, species) {
   const regionKeys = needsApophyll(species) ? ["evoAccessApophyll"] : [];
@@ -69,11 +108,11 @@ function requiredAccessKeys(evoType, condition, species) {
   if (evoType === "trade") {
     // Trade-with-item (Metal Coat Scizor) needs the item too.
     return species.evoItem
-      ? ["evoAccessLinkStone", "evoAccessStones", ...regionKeys]
+      ? ["evoAccessLinkStone", evoItemAccessKey(species.evoItem), ...regionKeys]
       : ["evoAccessLinkStone", ...regionKeys];
   }
   if (evoType === "useItem" || evoType === "levelHold") {
-    return ["evoAccessStones", ...regionKeys];
+    return [evoItemAccessKey(species.evoItem), ...regionKeys];
   }
   if (evoType === "") return regionKeys;
   if (evoType === "levelExtra") {
@@ -120,8 +159,14 @@ export function getEvolutionRequirement(species, access = null) {
   if (access) {
     const denied = requiredAccessKeys(evoType, condition, species).find(
       (key) => {
-        if (access[key] !== false) return false;
-        if (key === "evoAccessStones" && ownedItemCount(access, species.evoItem)) {
+        const itemGate = ITEM_GATE_KEYS.has(key);
+        // Legacy saves: the old blanket `evoAccessStones: false` blocks every
+        // item gate whose per-item key hasn't been set explicitly.
+        const blocked =
+          access[key] === false ||
+          (itemGate && access[key] === undefined && access.evoAccessStones === false);
+        if (!blocked) return false;
+        if (itemGate && ownedItemCount(access, species.evoItem)) {
           return false;
         }
         if (key === "evoAccessLinkStone" && ownedItemCount(access, "Link Stone")) {

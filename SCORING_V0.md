@@ -750,3 +750,15 @@ Invariants the shape encodes (each guarded by fixtures):
   items were reading as the LATEST possible gate. Readiness details now
   phrase badge 0 as "from the start". No golden drift. Pinned by a test
   (badge-0 item + badge-13 TM ⇒ full at cap 80).
+- **Per-stone evolution access** (user request: "check individually which
+  stones I have access to at the moment"): the blanket "Evolution stones &
+  held items" gate split into ten per-stone gates (Fire/Water/Thunder/Leaf/
+  Moon/Sun/Shiny/Dusk/Dawn/Ice Stone) plus one "Other evolution items"
+  gate for the Metal Coat class. Each stone's evolution now checks ITS OWN
+  gate (blocking Fire Stone no longer touches Vileplume); the panel
+  annotates each stone with its earliest badge from the item timeline
+  (Moon @1; Fire/Water/Thunder/Leaf/Ice @2; Sun/Shiny/Dusk/Dawn @3, two
+  via mining). Owning the specific stone still overrides its gate. Legacy
+  saves with `evoAccessStones: false` block all item gates, both raw and
+  via a normalization migration to the new keys. No golden drift —
+  fixtures never blocked stones.
