@@ -52,6 +52,37 @@ test("Blissey at badge 5: level-up ready, TM scheduled, egg-only Seismic Toss fo
   assert.equal(readiness.ability.status, "ready"); // abilities are always free
 });
 
+test("a badge-0 item never pins L* to 100 (Roserade / Black Sludge report)", () => {
+  // Black Sludge is obtainable from the start (wild Grimer, badge 0). The
+  // badge-0 checkpoint is "start", not "badge-0" — the failed lookup used to
+  // fall back to cap 100 and Roserade read "full at cap 100" when its only
+  // real gate was a badge-13 TM (cap 80).
+  const progression = progressionAt({ badge: 5, levelCap: 50 });
+  const availableMoves = getAvailableRebornMoves(legalMoveData, progression);
+  const readiness = computeSetReadiness({
+    legalMoveData,
+    availableMoves,
+    topSet: {
+      item: "Black Sludge",
+      ability: "Natural Cure",
+      moveUsage: new Map([
+        ["softboiled", 99],
+        ["toxic", 90], // TM06, badge 13 → cap 80: the real gate
+        ["chargebeam", 85],
+      ]),
+    },
+    progression,
+  });
+
+  assert.equal(readiness.item.status, "later");
+  assert.equal(readiness.item.detail, "from the start");
+  assert.equal(
+    readiness.fullAtCap,
+    80,
+    "the badge-13 TM (cap 80) is the gate — never the badge-0 item",
+  );
+});
+
 test("a set that is complete now (no scaling, everything obtainable) reads complete", () => {
   const progression = progressionAt({ badge: 5, levelCap: 50 });
   const availableMoves = getAvailableRebornMoves(legalMoveData, progression);

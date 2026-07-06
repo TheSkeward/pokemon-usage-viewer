@@ -742,3 +742,11 @@ Invariants the shape encodes (each guarded by fixtures):
   V1 golden regenerated and audited — canonical items that were
   "timing untracked" now resolve, so L* firms up and the midgame team
   reseats toward Dodrio/Gengar/Ampharos (Dodrio 1117→1423).
+- **Badge-0 items no longer pin L* to cap 100** (user report: Roserade read
+  "full at cap 100" when its only real gate was a badge-14 tutor, because
+  its canonical Black Sludge — obtainable immediately via wild Grimer,
+  badge 0 — fell through a `badge-0` checkpoint lookup to the cap-100
+  fallback; the badge-0 checkpoint is named "start"). Earliest-available
+  items were reading as the LATEST possible gate. Readiness details now
+  phrase badge 0 as "from the start". No golden drift. Pinned by a test
+  (badge-0 item + badge-13 TM ⇒ full at cap 80).

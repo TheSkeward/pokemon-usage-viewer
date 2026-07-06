@@ -59,8 +59,15 @@ const MACHINE_BADGE_BY_MOVE = (() => {
   return map;
 })();
 
+// Badge 0 is the "start" checkpoint (cap 20) — user report: Black Sludge
+// (obtainable immediately, badge 0) fell through a `badge-0` lookup to the
+// cap-100 fallback and pinned Roserade's whole set to "full at cap 100".
 const capOfBadge = (badge) =>
-  getRebornCheckpoint(`badge-${badge}`)?.levelCap ?? null;
+  getRebornCheckpoint(badge === 0 ? "start" : `badge-${badge}`)?.levelCap ??
+  null;
+
+const badgePhrase = (badge) =>
+  badge === 0 ? "from the start" : `@${badge} badge${badge === 1 ? "" : "s"}`;
 
 // The canonical competitive set: the top-N usage moves of the represented form.
 export function canonicalMoveIds(moveUsage, size = CANONICAL_SET_SIZE) {
@@ -122,7 +129,7 @@ export function computeSetReadiness({
       if (badge != null) {
         candidates.push({
           cap: capOfBadge(badge) ?? 100,
-          detail: `TM/tutor @${badge} badge${badge === 1 ? "" : "s"}`,
+          detail: `TM/tutor ${badgePhrase(badge)}`,
         });
       }
     }
@@ -159,7 +166,7 @@ export function computeSetReadiness({
         item = {
           name: itemName,
           status: "later",
-          detail: `@${badge} badge${badge === 1 ? "" : "s"}`,
+          detail: badgePhrase(badge),
         };
       } else {
         item = { name: itemName, status: "unknown", detail: "timing untracked" };
