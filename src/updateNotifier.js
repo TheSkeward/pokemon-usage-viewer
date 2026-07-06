@@ -14,12 +14,21 @@ const CURRENT_BUILD_ID =
 const POLL_INTERVAL_MS = 5 * 60 * 1000;
 const VERSION_URL = `${import.meta.env.BASE_URL || "/"}version.json`;
 
+import { dataUrl } from "./utils/dataUrl.js";
+import { getDataSignature } from "./manifest.js";
+
 export function startUpdateNotifier() {
   // No id means a dev server (no build), where version.json isn't emitted and
   // there's nothing to update to — so don't poll.
   if (!CURRENT_BUILD_ID) return;
 
   let notified = false;
+  // The data signature this page LOADED (whatever the CDN handed it at
+  // startup). A deploy can refresh the bundle while the manifest lags in the
+  // CDN cache — or ship new DATA under an unchanged bundle — so the bundle id
+  // alone misses data-only staleness (user report: no banner while the page
+  // ran a stale manifest and replayed a cache-era result).
+  const loadedSignature = getDataSignature();
 
   const check = async () => {
     if (notified) return;
@@ -28,6 +37,21 @@ export function startUpdateNotifier() {
       if (!response.ok) return;
       const { buildId } = await response.json();
       if (buildId && buildId !== CURRENT_BUILD_ID) {
+        notified = true;
+        showUpdateBanner();
+        return;
+      }
+      const deployed = await fetch(dataUrl("manifest.json"), {
+        cache: "no-store",
+      });
+      if (!deployed.ok) return;
+      const deployedSignature = (await deployed.json())?.dataSignature;
+      const running = await loadedSignature;
+      if (
+        deployedSignature &&
+        running !== "unversioned" &&
+        deployedSignature !== running
+      ) {
         notified = true;
         showUpdateBanner();
       }

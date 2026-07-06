@@ -61,48 +61,49 @@ test("shortest chain is primary: a direct donor beats any multi-hop chain", asyn
   );
 });
 
-test("below-arrival pre-evo levels are relearner-only, never a natural source (Uproar report)", async () => {
-  // Slaking's Uproar is Vigoroth@1/@9 — but Vigoroth only EXISTS from 18
-  // (Slakoth's departure), so those levels are unreachable by leveling.
+test("below-arrival pre-evo levels: candy-down at 2+, relearner-only at 1 (Uproar report)", async () => {
+  // Slaking's Uproar is Vigoroth@1/@9 — Vigoroth only EXISTS from 18, but
+  // Reborn's Common Candy makes @9 reachable (user-verified: candy the
+  // Vigoroth below 9, level back up). The @1 entry stays out of reach by
+  // leveling — you never level UP to 1.
   const { loadRebornLegalMoveData, getAvailableRebornMoves } = await import(
     "../../src/reborn/legalMoves.js"
   );
   const data = await loadRebornLegalMoveData("slaking");
 
-  const locked = getAvailableRebornMoves(data, { levelCap: "40" });
-  assert.ok(
-    !locked.some((move) => move.id === "uproar"),
-    "without the relearner, Slaking must not have Uproar at all",
+  const atForty = getAvailableRebornMoves(data, { levelCap: "40" });
+  const uproar = atForty.find((move) => move.id === "uproar");
+  assert.equal(
+    uproar?.availableSources?.[0]?.label,
+    "Level 9 (Vigoroth, candy down)",
   );
+  assert.ok(!uproar?.delayedEvolution, "candy-down is not a delayed build");
 
-  const unlocked = getAvailableRebornMoves(data, {
-    levelCap: "40",
-    moveRelearnerUnlocked: true,
-  });
-  const uproar = unlocked.find((move) => move.id === "uproar");
-  assert.equal(uproar?.availableSources?.[0]?.label, "Move relearner");
+  // Below Vigoroth's arrival (cap 15 < 18) there is no Vigoroth to candy.
+  const atFifteen = getAvailableRebornMoves(data, { levelCap: "15" });
+  assert.ok(
+    !atFifteen.some((move) => move.id === "uproar"),
+    "no Vigoroth reachable at cap 15 ⇒ no Uproar",
+  );
 });
 
-test("a relearner-only donor never beats a level-up donor (Manectric's Uproar)", async () => {
-  // User report: "Slaking breeding chain (@1)" recommended for Manectric's
-  // Uproar — a relearner-only move masquerading as the cheapest donor.
-  // Exploud learns Uproar by ordinary level-up and must win even when the
-  // relearner IS unlocked.
+test("candy-down donor at @9 beats a level-up donor at @27 (Manectric's Uproar)", async () => {
+  // User ruling: "Available from Vigoroth@9. That's faster than Exploud@27."
   const { pokemonIndex } = await loadShared();
   const context = await buildRebornBreedingContext({
     pokemonIndex,
     progression: {
       levelCap: "60",
       daycareUnlocked: true,
-      moveRelearnerUnlocked: true,
     },
     query: ["Slaking", "Exploud", "Manectric"].join("\n"),
   });
 
   const uproar = context.byPokemonId.manectric?.sources?.uproar;
   assert.ok(uproar, "Manectric must get Uproar from the chain");
-  assert.equal(uproar.donorName, "Exploud");
-  assert.match(uproar.detail, /@27/);
+  assert.equal(uproar.donorName, "Slaking");
+  assert.match(uproar.detail, /@9/);
+  assert.ok(!/@1\b/.test(uproar.detail), "the phantom @1 must be gone");
 });
 
 test("chains name how the root learner gets the move, including evolution moves", async () => {

@@ -158,10 +158,21 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
           entry.level <= levelCap,
       )
       .sort((a, b) => a.level - b.level);
-    // Entries below their form's arrival (Vigoroth's Uproar@1/@9) are
-    // unreachable by leveling on ANY path — relearner-only.
-    const hasBelowArrivalPreEvo = preEvolutionEntries.some(
-      (entry) => entry.level < arrivalOf(entry.from),
+    // Entries below their form's arrival at level 2+ ARE reachable in Reborn
+    // (user-verified): Common Candy the form back below the level, then level
+    // up through it — Vigoroth (exists from 18) candies down to 8 and learns
+    // Uproar at 9. Requires the form to be reachable at the cap. Level-1
+    // entries stay relearner-only: you never level UP to 1.
+    const candyEntries = preEvolutionEntries
+      .filter(
+        (entry) =>
+          entry.level >= 2 &&
+          entry.level < arrivalOf(entry.from) &&
+          arrivalOf(entry.from) <= levelCap,
+      )
+      .sort((a, b) => a.level - b.level);
+    const hasLevelOnePreEvoOnly = preEvolutionEntries.some(
+      (entry) => entry.level === 1 && arrivalOf(entry.from) > 1,
     );
     const levels = naturalLevelUpLevels.filter(
       (level) => level <= levelCap,
@@ -194,6 +205,12 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
           label: "Move relearner",
         });
       }
+    } else if (candyEntries.length > 0) {
+      const best = candyEntries[0];
+      sources.push({
+        kind: "level-up",
+        label: `Level ${best.level} (${best.from ? ancestorName(best.from) : "pre-evolution"}, candy down)`,
+      });
     } else if (delayedEntries.length > 0) {
       // Only reachable by delaying a SPECIFIC evolution past its natural level
       // (a cap-60 Greninja running Hydro Pump means keeping Frogadier to 56).
@@ -213,7 +230,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         label: "On evolution",
       });
     } else if (
-      (hasRelearnerOnlyLevelOne || hasBelowArrivalPreEvo) &&
+      (hasRelearnerOnlyLevelOne || hasLevelOnePreEvoOnly) &&
       moveRelearnerUnlocked
     ) {
       sources.push({

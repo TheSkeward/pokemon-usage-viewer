@@ -800,3 +800,12 @@ Invariants the shape encodes (each guarded by fixtures):
   (@27 level-up) beats Slaking even with the relearner unlocked. No golden
   drift; pinned by two tests (Slaking loses Uproar entirely without the
   relearner; Exploud wins the Manectric chain with it).
+  CORRECTED same session (user): Reborn's Common Candy makes below-arrival
+  levels at 2+ reachable — candy the form below the level, level back up
+  (Vigoroth candies to 8, learns Uproar at 9). Only level-1 entries stay
+  relearner-only (you never level UP to 1). Below-arrival 2+ entries are
+  now a natural source labeled "Level 9 (Vigoroth, candy down)", gated on
+  the form being reachable at the cap (no Uproar at cap 15 — no Vigoroth
+  to candy). Donor pricing follows the user's ruling ("Vigoroth@9 is
+  faster than Exploud@27"): Slaking wins the Manectric chain at @9, and
+  the phantom @1 stays dead. Tests updated to pin the corrected behavior.
