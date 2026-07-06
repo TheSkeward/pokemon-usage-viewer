@@ -109,6 +109,19 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
   const directDeparture = hopDeparture(speciesRecord);
   const departureOf = (fromId) =>
     fromId ? (departureByAncestor.get(fromId) ?? directDeparture) : directDeparture;
+  // A form's ARRIVAL: the level at which it starts existing. A pre-evo
+  // level-up entry BELOW its form's arrival is unreachable by leveling —
+  // Vigoroth "learns" Uproar at 1 and 9 but only exists from 18 (Slakoth's
+  // departure), so those entries are move-relearner-only (user report:
+  // Slaking was recommended as an Uproar breeding donor "@1"). Base forms
+  // arrive at 1 (hatch/catch); non-level evolutions arrive whenever taken.
+  const arrivalOf = (formId) => {
+    const form = GEN7_PROGRESSION_SPECIES[formId];
+    if (!form?.prevoId) return 1;
+    return (form.evoType || "") === "" && Number.isFinite(form.evoLevel)
+      ? form.evoLevel
+      : 1;
+  };
   const ancestorName = (fromId) =>
     GEN7_PROGRESSION_SPECIES[fromId]?.name || "its pre-evolution";
   const moves = [];
@@ -122,21 +135,34 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       (entry) =>
         typeof entry === "number" ? { level: entry, from: null } : entry,
     );
+    // Reachable-by-leveling window per entry: at or above the form's arrival
+    // (it must EXIST at that level) and at or below its natural departure.
     const naturalLevelUpLevels = [
       ...allLevelUpLevels.filter(
         (level) =>
           !isEvolvedLevelOneMove(level, evolvedSpecies),
       ),
       ...preEvolutionEntries
-        .filter((entry) => entry.level <= departureOf(entry.from))
+        .filter(
+          (entry) =>
+            entry.level >= arrivalOf(entry.from) &&
+            entry.level <= departureOf(entry.from),
+        )
         .map((entry) => entry.level),
     ];
     const delayedEntries = preEvolutionEntries
       .filter(
         (entry) =>
-          entry.level > departureOf(entry.from) && entry.level <= levelCap,
+          entry.level >= arrivalOf(entry.from) &&
+          entry.level > departureOf(entry.from) &&
+          entry.level <= levelCap,
       )
       .sort((a, b) => a.level - b.level);
+    // Entries below their form's arrival (Vigoroth's Uproar@1/@9) are
+    // unreachable by leveling on ANY path — relearner-only.
+    const hasBelowArrivalPreEvo = preEvolutionEntries.some(
+      (entry) => entry.level < arrivalOf(entry.from),
+    );
     const levels = naturalLevelUpLevels.filter(
       (level) => level <= levelCap,
     );
@@ -186,7 +212,10 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         kind: "level-up",
         label: "On evolution",
       });
-    } else if (hasRelearnerOnlyLevelOne && moveRelearnerUnlocked) {
+    } else if (
+      (hasRelearnerOnlyLevelOne || hasBelowArrivalPreEvo) &&
+      moveRelearnerUnlocked
+    ) {
       sources.push({
         kind: "relearner",
         label: "Move relearner",

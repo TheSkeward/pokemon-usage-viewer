@@ -139,6 +139,12 @@ export function acquisitionOf(move, speciesId) {
     if (levelMatch) {
       const level = Number.parseInt(levelMatch[1], 10);
       candidate = { level, how: `@${level}` };
+    } else if (/relearner/i.test(label)) {
+      // Relearning costs a Heart Scale + a trip — a real hassle the user
+      // rates above ANY level-up (and it was masquerading as the cheapest
+      // donor at level 0: "Slaking breeding chain (@1)"). Sorted after every
+      // natural level so it's a last resort, never a tiebreak winner.
+      candidate = { level: 200, how: "Relearner" };
     } else if (/evolution/i.test(label)) {
       const evoLevel = GEN7_PROGRESSION_SPECIES[speciesId]?.evoLevel ?? null;
       candidate = {

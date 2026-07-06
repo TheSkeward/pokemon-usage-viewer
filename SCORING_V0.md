@@ -785,3 +785,18 @@ Invariants the shape encodes (each guarded by fixtures):
   (display now rounds to "<2.73%"), and the baked resolver/set indexes
   (regenerated, 384 data files). Golden drift audited and regenerated:
   score-only, 7 fixtures, ±11–28 points, no seats changed. 61/61.
+- **Below-arrival pre-evo levels are relearner-only** (user report: Manectric's
+  Uproar recommended "Slaking breeding chain (@1)" — an invalid donor):
+  Slaking's Uproar is attributed Vigoroth@1/@9, but Vigoroth only EXISTS
+  from level 18 (Slakoth's departure) — levels below a form's ARRIVAL are
+  unreachable by leveling on any path. The natural-path filter checked only
+  the upper bound (level ≤ departure); it now also requires level ≥ arrival
+  (the form's own evolution level; base forms arrive at 1, non-level
+  evolutions any time). Below-arrival entries surface only when the move
+  relearner is unlocked, labeled "Move relearner". Second half (user: "even
+  if I did, much more work than a level-up"): breeding donor pricing now
+  rates relearner sources ABOVE any natural level (cost 200), so a
+  relearner donor can never win the earliest-acquisition tiebreak — Exploud
+  (@27 level-up) beats Slaking even with the relearner unlocked. No golden
+  drift; pinned by two tests (Slaking loses Uproar entirely without the
+  relearner; Exploud wins the Manectric chain with it).

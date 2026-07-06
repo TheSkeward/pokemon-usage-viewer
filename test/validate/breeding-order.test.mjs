@@ -61,6 +61,50 @@ test("shortest chain is primary: a direct donor beats any multi-hop chain", asyn
   );
 });
 
+test("below-arrival pre-evo levels are relearner-only, never a natural source (Uproar report)", async () => {
+  // Slaking's Uproar is Vigoroth@1/@9 — but Vigoroth only EXISTS from 18
+  // (Slakoth's departure), so those levels are unreachable by leveling.
+  const { loadRebornLegalMoveData, getAvailableRebornMoves } = await import(
+    "../../src/reborn/legalMoves.js"
+  );
+  const data = await loadRebornLegalMoveData("slaking");
+
+  const locked = getAvailableRebornMoves(data, { levelCap: "40" });
+  assert.ok(
+    !locked.some((move) => move.id === "uproar"),
+    "without the relearner, Slaking must not have Uproar at all",
+  );
+
+  const unlocked = getAvailableRebornMoves(data, {
+    levelCap: "40",
+    moveRelearnerUnlocked: true,
+  });
+  const uproar = unlocked.find((move) => move.id === "uproar");
+  assert.equal(uproar?.availableSources?.[0]?.label, "Move relearner");
+});
+
+test("a relearner-only donor never beats a level-up donor (Manectric's Uproar)", async () => {
+  // User report: "Slaking breeding chain (@1)" recommended for Manectric's
+  // Uproar — a relearner-only move masquerading as the cheapest donor.
+  // Exploud learns Uproar by ordinary level-up and must win even when the
+  // relearner IS unlocked.
+  const { pokemonIndex } = await loadShared();
+  const context = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression: {
+      levelCap: "60",
+      daycareUnlocked: true,
+      moveRelearnerUnlocked: true,
+    },
+    query: ["Slaking", "Exploud", "Manectric"].join("\n"),
+  });
+
+  const uproar = context.byPokemonId.manectric?.sources?.uproar;
+  assert.ok(uproar, "Manectric must get Uproar from the chain");
+  assert.equal(uproar.donorName, "Exploud");
+  assert.match(uproar.detail, /@27/);
+});
+
 test("chains name how the root learner gets the move, including evolution moves", async () => {
   // User report: "Egg: Pangoro breeding chain" demonstrated nothing —
   // Pangoro's Bullet Punch is an evolution move, so the chain must say so.
