@@ -111,6 +111,13 @@ jobs:
         continue-on-error: true
         uses: actions/deploy-pages@v5
 
+      # Observed 2026-07-06: the attempt AND an immediate retry died in the
+      # same Pages backend incident ("try again later", ~90s apart). Wait out
+      # the bad window before retrying.
+      - name: Wait before retrying Pages deploy
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 300
+
       - name: Retry deploy to GitHub Pages
         id: deployment-retry
         if: steps.deployment.outcome == 'failure'
