@@ -32,6 +32,7 @@ import {
 } from "./candidateScoring";
 import { resolveRepresentativeLightBundle } from "./representativeBundle";
 import { choosePoolTeam } from "./teamSelection";
+import { attachTeammateLift } from "./teammateSynergy.js";
 import { loadPersistedResults, persistResult } from "./resultCacheStore.js";
 import { getDataSignature } from "../manifest.js";
 
@@ -231,6 +232,11 @@ export async function optimizeTeamFromPool({
       : null;
 
   const searchStart = Date.now();
+  // Phase 3: attach competitive teammate lift (first-meaningful-tier co-use)
+  // to every candidate before the search — the kernel blends the hand-built
+  // team fit toward it as pair trust (min of the two lines' w) grows.
+  // Missing index data degrades to trust 0 silently.
+  await attachTeammateLift(lines, family);
   onProgress?.({ phase: "search", completed: total, total });
   const result = await choosePoolTeam(lines, progression.opponentTypeBias, {
     exhaustive,

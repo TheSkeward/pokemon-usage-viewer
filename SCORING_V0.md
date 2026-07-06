@@ -816,3 +816,23 @@ Invariants the shape encodes (each guarded by fixtures):
   down)", "Level 38 (Slakoth)"), the chain's donor step is that form, not
   the fielded species: "Vigoroth breeding chain (@9)". Intermediate hops
   keep species names. No golden drift (fixtures keep daycare locked).
+- **Phase 3 scaffolding: team fit degrades into competitive teams** (user
+  design, extending V1's philosophy): as pair trust grows, the hand-built
+  team-fit judgements fade out and competitive teammate co-use lift fades
+  in. Pair trust t = min(w_a, w_b) × hasData (the two lines' V1 ramps, only
+  where the extracted teammate index has an opinion). Synergy = SYNERGY_SCALE
+  × Σ t·lift fades IN per-pair; the coverage noisy-OR, shared-weakness,
+  uncovered-weakness, and resist-stack judgements all fade OUT with the
+  MEAN pair trust — to ZERO at full convergence with data (user ruling) —
+  EXCEPT the bias-boosted share of coverage, which never fades (bias is the
+  Reborn-specific insurance no ladder prior covers). All-trust-0 (V0 model,
+  incomplete sets, or missing data) reduces EXACTLY to the original
+  formula, so V0 goldens are byte-stable by construction. Data:
+  scripts/build-teammate-index.mjs extracts each mon's FIRST-MEANINGFUL-
+  tier Teammates lift (same tier law as sets) from Smogon text stats,
+  weight-averaged over the 3 highest-volume months, symmetrized, top-24
+  per mon — runs in the data-refresh CI (Smogon unreachable from dev
+  containers); missing files mean trust 0. SYNERGY_SCALE: 3 is
+  PROVISIONAL pending calibration against the extracted lift
+  distributions (0 = kill switch; sweepable). Both team-fit paths
+  (fastTeamFit and the exact fallback) carry the blend in lockstep.

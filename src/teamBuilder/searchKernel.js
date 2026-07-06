@@ -33,6 +33,7 @@ function snapshotFitTunables() {
     sharedWeakPenalty: tunable("SHARED_WEAK_PENALTY"),
     uncoveredWeakPenalty: tunable("UNCOVERED_WEAK_PENALTY"),
     resistStackBonus: tunable("RESIST_STACK_BONUS"),
+    synergyScale: tunable("SYNERGY_SCALE"),
   };
 }
 
@@ -73,6 +74,11 @@ function precomputeFit(choice, opponentTypeBias) {
     weakMask,
     resistMask,
     fitWeight: 1 - biasCounterExemption(profile, opponentTypeBias),
+    // Phase 3: line-anchored usage trust + competitive co-use lift (id -> %).
+    // Pair trust t = min of the two trusts, only where lift data exists.
+    trust: Math.max(0, Math.min(1, choice.usageWeight || 0)),
+    teammates: choice._teammates || null,
+    repId: choice.pokemonId || null,
   };
 }
 
@@ -104,18 +110,52 @@ const MISS_SCRATCH = new Float64Array(TYPE_COUNT);
 
 function fastTeamFit(team) {
   const weights = coverageWeights || computeCoverageWeights(null);
+  // Phase 3 blend: pair trust t = min(trust_a, trust_b) where competitive
+  // co-use data exists. Synergy (lift) fades IN per pair; the hand-built
+  // coverage/defensive judgements fade OUT with the mean pair trust W̄ —
+  // EXCEPT the bias-boosted share of coverage, which never fades (user
+  // ruling: bias is the Reborn-specific insurance no ladder prior covers).
+  // All trusts 0 (V0 model, incomplete sets, no data) ⇒ exactly the
+  // original formula.
+  let synergy = 0;
+  let pairTrustSum = 0;
+  let pairCount = 0;
+  for (let a = 0; a < team.length; a++) {
+    const fa = team[a]._fit;
+    if (!fa) return null;
+    for (let b = a + 1; b < team.length; b++) {
+      const fb = team[b]._fit;
+      if (!fb) return null;
+      pairCount += 1;
+      const lift =
+        (fa.teammates && fb.repId != null
+          ? fa.teammates[fb.repId]
+          : undefined) ??
+        (fb.teammates && fa.repId != null
+          ? fb.teammates[fa.repId]
+          : undefined);
+      if (lift !== undefined) {
+        const t = fa.trust < fb.trust ? fa.trust : fb.trust;
+        pairTrustSum += t;
+        synergy += t * lift;
+      }
+    }
+  }
+  const meanTrust = pairCount ? pairTrustSum / pairCount : 0;
+  const handBuilt = 1 - meanTrust;
+
   // Noisy-OR miss probability per type, accumulated members-outer (each member's
   // vector read sequentially) for cache locality on the hot search path.
   MISS_SCRATCH.fill(1);
   for (const choice of team) {
-    const fit = choice._fit;
-    if (!fit) return null;
-    const cv = fit.coverageVector;
+    const cv = choice._fit.coverageVector;
     for (let j = 0; j < TYPE_COUNT; j++) MISS_SCRATCH[j] *= 1 - cv[j];
   }
-  let score = 0;
+  let score = synergy * ACTIVE.synergyScale;
   for (let j = 0; j < TYPE_COUNT; j++) {
-    score += weights[j] * (1 - MISS_SCRATCH[j]) * ACTIVE.coverageScale;
+    // weights[j] = 1 + biasExtra: the base 1 fades with trust, biasExtra stays.
+    const blendedWeight = handBuilt + (weights[j] - 1);
+    score += blendedWeight * (1 - MISS_SCRATCH[j]) * ACTIVE.coverageScale;
   }
 
   for (let j = 0; j < TYPE_COUNT; j++) {
@@ -128,11 +168,11 @@ function fastTeamFit(team) {
       else if (fit.resistMask & bit) coverCount += 1;
     }
     if (weakWeight >= 2) {
-      score -= (weakWeight - 1) * ACTIVE.sharedWeakPenalty;
-      if (!coverCount) score -= ACTIVE.uncoveredWeakPenalty;
+      score -= handBuilt * (weakWeight - 1) * ACTIVE.sharedWeakPenalty;
+      if (!coverCount) score -= handBuilt * ACTIVE.uncoveredWeakPenalty;
     }
     if (coverCount >= 2)
-      score += Math.min(3, coverCount) * ACTIVE.resistStackBonus;
+      score += handBuilt * Math.min(3, coverCount) * ACTIVE.resistStackBonus;
   }
 
   return score;
@@ -173,11 +213,36 @@ function scoreTeamFit(team, opponentTypeBias = {}) {
   const fitWeights = profiles.map(
     (profile) => 1 - biasCounterExemption(profile, opponentTypeBias),
   );
-  let score = 0;
   const coverageScale = tunable("COVERAGE_SCALE");
   const sharedWeakPenalty = tunable("SHARED_WEAK_PENALTY");
   const uncoveredWeakPenalty = tunable("UNCOVERED_WEAK_PENALTY");
   const resistStackBonus = tunable("RESIST_STACK_BONUS");
+  const synergyScale = tunable("SYNERGY_SCALE");
+
+  // Same Phase 3 blend as fastTeamFit (kept in lockstep): synergy fades in
+  // per-pair, hand-built judgements fade out with mean pair trust, the
+  // bias-boosted share of coverage never fades.
+  let synergy = 0;
+  let pairTrustSum = 0;
+  let pairCount = 0;
+  for (let a = 0; a < team.length; a++) {
+    for (let b = a + 1; b < team.length; b++) {
+      pairCount += 1;
+      const lift =
+        team[a]._teammates?.[team[b].pokemonId] ??
+        team[b]._teammates?.[team[a].pokemonId];
+      if (lift !== undefined) {
+        const t = Math.min(
+          Math.max(0, Math.min(1, team[a].usageWeight || 0)),
+          Math.max(0, Math.min(1, team[b].usageWeight || 0)),
+        );
+        pairTrustSum += t;
+        synergy += t * lift;
+      }
+    }
+  }
+  const handBuilt = 1 - (pairCount ? pairTrustSum / pairCount : 0);
+  let score = synergy * synergyScale;
 
   // Damage-aware coverage: noisy-OR over members' per-type A values. This exact
   // path scores the members' REAL coverage vectors (their concrete builds), not
@@ -188,7 +253,7 @@ function scoreTeamFit(team, opponentTypeBias = {}) {
       const vector = profile.coverageVector || ZERO_COVERAGE;
       miss *= 1 - (vector[j] || 0);
     }
-    score += weights[j] * (1 - miss) * coverageScale;
+    score += (handBuilt + (weights[j] - 1)) * (1 - miss) * coverageScale;
   }
 
   // Defensive shared-weakness term.
@@ -202,10 +267,11 @@ function scoreTeamFit(team, opponentTypeBias = {}) {
       else if (multiplier < 1) coverCount += 1;
     });
     if (weakWeight >= 2) {
-      score -= (weakWeight - 1) * sharedWeakPenalty;
-      if (!coverCount) score -= uncoveredWeakPenalty;
+      score -= handBuilt * (weakWeight - 1) * sharedWeakPenalty;
+      if (!coverCount) score -= handBuilt * uncoveredWeakPenalty;
     }
-    if (coverCount >= 2) score += Math.min(3, coverCount) * resistStackBonus;
+    if (coverCount >= 2)
+      score += handBuilt * Math.min(3, coverCount) * resistStackBonus;
   }
 
   return score;

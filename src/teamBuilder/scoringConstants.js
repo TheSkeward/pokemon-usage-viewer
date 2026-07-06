@@ -103,6 +103,14 @@ export const SCORING_DEFAULTS = Object.freeze({
   // difference, it only breaks exact (quantized) ties.
   USAGE_QUANTUM: 0.001,
   EPSILON_C: 2.5e-7,
+  // --- Phase 3: teammate synergy (team fit degrades into competitive teams) --
+  // Pair trust t = min(w_a, w_b) × hasData: the hand-built pair judgements
+  // (shared weakness etc.) fade out with the mean pair trust while co-use
+  // lift fades in per-pair; bias-driven coverage NEVER fades (user rulings).
+  // Points per percentage point of Smogon teammate lift, applied inside the
+  // team fit (so COVERAGE_WEIGHT scales it too). PROVISIONAL until the
+  // extracted lift distributions are in — 0 disables the term entirely.
+  SYNERGY_SCALE: 3,
 
   // --- Search ------------------------------------------------------------------
   SHORTLIST_MAX: 28,
