@@ -836,3 +836,46 @@ Invariants the shape encodes (each guarded by fixtures):
   PROVISIONAL pending calibration against the extracted lift
   distributions (0 = kill switch; sweepable). Both team-fit paths
   (fastTeamFit and the exact fallback) carry the blend in lockstep.
+- **Phase 3 calibration + plumbing fix; SYNERGY_SCALE 3 → 4** (user:
+  "run the calibration"). The calibration's first A/B found the scaffolding
+  DEAD END-TO-END: attachTeammateLift walked `line.candidates` — the raw
+  scored rows, which carry `candidate.id`, not `pokemonId` — while the
+  search kernel scores the makeChoice clones (best / bestNonMega /
+  choiceOptions / buildAlternatives), so `_teammates` never reached a
+  single choice the search touched; independently, buildCompactLines
+  dropped both `usageWeight` and `_teammates` at the worker boundary, so
+  even a correct attach would have scored trust 0 in parallel searches.
+  Both fixed (the attach now walks exactly the kernel-visible choice
+  objects; compact lines carry the two fields). V0 is untouched by
+  construction — usageWeight is identically 0 under V0, so every pair's
+  trust is 0 and the blend reduces to the original formula (V0 goldens
+  byte-stable; pinned by a test that runs a lift-rich pool under V0 at
+  scales 0 and 4). Calibration, against the shipped index (481 singles
+  mons, 9,222 symmetric pairs, pp = percentage points of co-use lift):
+  overall median 6.8pp / p90 20.2pp / p99 52.5pp; per-tier medians run
+  2.9 (Ubers) to 9.8 (ZU). Effective total points per pair =
+  lift × t × SYNERGY_SCALE × COVERAGE_WEIGHT(0.5). At scale 4 and full
+  trust: median pair 14 pts (noise), p90 pair 40 pts, and a true tier
+  core — Blissey+Quagsire+Alomomola, gen7uu regenerator trio, pair lifts
+  +46.1/+47.7/+58.0 — ≈ 300 pts across its three pairs; reference: one
+  fully-answered coverage type = 55 pts (fades out with trust), one
+  shared-weakness stack = 90 pts (fades), one usage tier step ≈ 49 pts
+  (never fades). Endgame A/B (12-mon gen7uu-era pool, badge 18 / cap 100,
+  daycare + relearner, model v1): the trio seats together at scale 4 and
+  not at ≤ 3.5, displacing Gardevoir + one of Forretress/Swampert-Mega;
+  the flip needs scale 4 here because canonical-set egg moves without a
+  chain parent in the 12-mon pool cap trust at 0.75 — at a realistic
+  full-pool trust of 1.0 the same flip lands at ≈ 3. Scale 4 therefore
+  makes real cores decisive at realistic endgame trust while keeping
+  median-lift pairs at noise level, and stays well under the mega/V gaps
+  (~130–300 pts) that should still dominate seat choices when co-use is
+  ordinary. V1 golden drift audited alongside (this changes v1 team fit
+  everywhere trust > 0: the fade-out of hand-built terms now actually
+  engages). New contracts pinned: zero-trust-with-data keeps the
+  hand-built formula bit-identical at any scale; full-trust + full-pair-
+  data fit is EXACTLY 0.5 × scale × Σlift with hand-built judgements gone;
+  the bias-boosted coverage share survives full convergence (and the fast/
+  exact paths agree to 1e-9 on that team); missing index files stay
+  silent end-to-end; and the regenerator core wins its endgame seats from
+  the synergy term (seated at default scale, never seated together at
+  scale 0).

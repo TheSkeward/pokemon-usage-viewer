@@ -16,31 +16,43 @@ export async function loadTeammateLift({ family, pokemonId }) {
   }
 }
 
+// The search kernel scores the makeChoice clones (line.best / bestNonMega /
+// choiceOptions and their buildAlternatives) — NOT the raw scored rows in
+// line.candidates — so the lift must land on exactly those objects. A choice
+// can appear in several of the collections; the seen-set makes the walk (and
+// the mutation) visit each object once.
+function* lineChoices(line, seen = new Set()) {
+  const stack = [line.best, line.bestNonMega, ...(line.choiceOptions || [])];
+  while (stack.length) {
+    const choice = stack.pop();
+    if (!choice || seen.has(choice)) continue;
+    seen.add(choice);
+    yield choice;
+    if (choice.buildAlternatives) stack.push(...choice.buildAlternatives);
+  }
+}
+
 // Attaches `_teammates` (id -> lift %) to every choice of every line, so the
 // search kernel can build its pair-trust matrix without further IO. Fetches
 // are cached and deduped per representative id.
 export async function attachTeammateLift(lines, family) {
   const byId = new Map();
-  const wanted = new Set();
   for (const line of lines) {
-    for (const choice of line.candidates || []) {
-      if (choice?.pokemonId) wanted.add(choice.pokemonId);
+    for (const choice of lineChoices(line)) {
+      if (choice.pokemonId && !byId.has(choice.pokemonId)) {
+        byId.set(choice.pokemonId, null);
+      }
     }
   }
   await Promise.all(
-    [...wanted].map(async (pokemonId) => {
+    [...byId.keys()].map(async (pokemonId) => {
       byId.set(pokemonId, await loadTeammateLift({ family, pokemonId }));
     }),
   );
   for (const line of lines) {
-    for (const choice of line.candidates || []) {
-      const entry = choice?.pokemonId ? byId.get(choice.pokemonId) : null;
+    for (const choice of lineChoices(line)) {
+      const entry = byId.get(choice.pokemonId);
       if (entry?.teammates) choice._teammates = entry.teammates;
-      if (choice?.buildChoices) {
-        for (const build of choice.buildChoices) {
-          if (entry?.teammates) build._teammates = entry.teammates;
-        }
-      }
     }
   }
 }

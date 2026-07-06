@@ -108,9 +108,15 @@ export const SCORING_DEFAULTS = Object.freeze({
   // (shared weakness etc.) fade out with the mean pair trust while co-use
   // lift fades in per-pair; bias-driven coverage NEVER fades (user rulings).
   // Points per percentage point of Smogon teammate lift, applied inside the
-  // team fit (so COVERAGE_WEIGHT scales it too). PROVISIONAL until the
-  // extracted lift distributions are in — 0 disables the term entirely.
-  SYNERGY_SCALE: 3,
+  // team fit (so COVERAGE_WEIGHT halves it in the total; 0 disables the term).
+  // CALIBRATED against the extracted lift distributions (overall median 6.8pp,
+  // p90 20pp; real cores 40–60pp/pair): at 4, a median pair at full trust is
+  // worth 14 total points (noise-level), a p90 pair 40, and a true tier core
+  // like Blissey+Quagsire+Alomomola (Σlift ≈ 150pp) ≈ 300 — enough to win the
+  // marginal endgame seat from equal-usage strangers at realistic trust
+  // (0.75–1.0), without approaching the ~50/tier-step usage-rank gaps. The
+  // endgame A/B (12-mon UU pool, badge 18): the core seats at 4, not at ≤3.5.
+  SYNERGY_SCALE: 4,
 
   // --- Search ------------------------------------------------------------------
   SHORTLIST_MAX: 28,
