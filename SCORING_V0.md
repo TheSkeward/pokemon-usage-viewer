@@ -775,3 +775,13 @@ Invariants the shape encodes (each guarded by fixtures):
   score-only shifts across 8 fixtures (U ceilings reshuffled as headline
   tiers moved deeper for fringe mons; e.g. early-weak-froakie lines ±20–50
   points); NO fixture team reseated. All invariants held, 61/61.
+- **MIN_MEANINGFUL_USAGE_PERCENT 2 → 2.7345 (derived)** (user judgement,
+  second iteration: "better, but not quite"): the cutoff is now the p
+  solving 1−(1−p)^25 = 0.5 — the usage share at which a mon has even odds
+  of appearing at least once across 25 games — stored as the exact
+  expression `100·(1 − 0.5^(1/25))`, not a magic decimal. Same blast
+  radius as the 1→2 change: first-meaningful-tier ranking (V1 U_rank +
+  line representative), eventual-form law, Usage column, trace notes
+  (display now rounds to "<2.73%"), and the baked resolver/set indexes
+  (regenerated, 384 data files). Golden drift audited and regenerated:
+  score-only, 7 fixtures, ±11–28 points, no seats changed. 61/61.

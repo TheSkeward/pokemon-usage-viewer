@@ -716,7 +716,7 @@ function getChoiceOptionNote(result, best, bestNonMega) {
 function makeChoice(input, result, note) {
   const usageNote = result.meaningfulUsage
     ? note
-    : `${note}; trace usage (<${MIN_MEANINGFUL_USAGE_PERCENT}%)`;
+    : `${note}; trace usage (<${MIN_MEANINGFUL_USAGE_PERCENT.toFixed(2)}%)`;
   const legalityNote = formatLegalityNote(result.legalityProfile);
 
   return {
