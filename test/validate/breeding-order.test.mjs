@@ -101,8 +101,10 @@ test("candy-down donor at @9 beats a level-up donor at @27 (Manectric's Uproar)"
 
   const uproar = context.byPokemonId.manectric?.sources?.uproar;
   assert.ok(uproar, "Manectric must get Uproar from the chain");
-  assert.equal(uproar.donorName, "Slaking");
-  assert.match(uproar.detail, /@9/);
+  // Credited to the form that ACTUALLY learns it — Vigoroth, not the
+  // fielded Slaking (user report: "Slaking doesn't come to it at all").
+  assert.equal(uproar.donorName, "Vigoroth");
+  assert.match(uproar.detail, /^Vigoroth breeding chain \(@9\)$/);
   assert.ok(!/@1\b/.test(uproar.detail), "the phantom @1 must be gone");
 });
 

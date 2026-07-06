@@ -84,7 +84,13 @@ export async function buildRebornBreedingContext({
             hops: donorCost.hops + 1,
             level: donorCost.level,
             how: donorCost.how,
-            path: [...donorCost.path, donor.species.name],
+            // A direct donor is credited as the form that actually learns
+            // the move (Vigoroth, not the fielded Slaking) when the source
+            // names one; intermediate hops keep their species names.
+            path:
+              donorCost.hops === 0
+                ? [donorCost.learner || donor.species.name]
+                : [...donorCost.path, donor.species.name],
           };
           if (!best || compareBreedingCosts(candidate, best) < 0) best = candidate;
         }
@@ -135,10 +141,14 @@ export function acquisitionOf(move, speciesId) {
   for (const source of move.availableSources || []) {
     const label = source.label || "";
     let candidate;
-    const levelMatch = /^Level (\d+)/.exec(label);
+    // "Level 9 (Vigoroth, candy down)" / "Level 38 (Slakoth)": the
+    // parenthetical names the form that ACTUALLY learns the move — the chain
+    // must credit it, not the fielded species (user report: "Slaking
+    // breeding chain (@9)" for a move only Vigoroth learns).
+    const levelMatch = /^Level (\d+)(?:\s*\(([^,)]+)[,)])?/.exec(label);
     if (levelMatch) {
       const level = Number.parseInt(levelMatch[1], 10);
-      candidate = { level, how: `@${level}` };
+      candidate = { level, how: `@${level}`, learner: levelMatch[2] || null };
     } else if (/relearner/i.test(label)) {
       // Relearning costs a Heart Scale + a trip — a real hassle the user
       // rates above ANY level-up (and it was masquerading as the cheapest

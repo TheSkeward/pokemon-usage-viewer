@@ -809,3 +809,10 @@ Invariants the shape encodes (each guarded by fixtures):
   to candy). Donor pricing follows the user's ruling ("Vigoroth@9 is
   faster than Exploud@27"): Slaking wins the Manectric chain at @9, and
   the phantom @1 stays dead. Tests updated to pin the corrected behavior.
+- **Breeding chains credit the form that actually learns the move** (user
+  report, same thread: "Slaking breeding chain (@9)" for a move only
+  Vigoroth learns — "Slaking doesn't come to it at all"): when a donor's
+  acquisition source names the learning form ("Level 9 (Vigoroth, candy
+  down)", "Level 38 (Slakoth)"), the chain's donor step is that form, not
+  the fielded species: "Vigoroth breeding chain (@9)". Intermediate hops
+  keep species names. No golden drift (fixtures keep daycare locked).
