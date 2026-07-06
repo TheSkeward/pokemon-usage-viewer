@@ -19,12 +19,16 @@ export const SCORING_DEFAULTS = Object.freeze({
   USAGE_TIER_WEIGHT: 0.6, // ceiling U leans on tier prestige over raw usage %
   USAGE_REF_PERCENT: 20, // usage % where the usage component of U saturates
   // Usage below this is not "meaningful": the U-ceiling fallback treats it as
-  // floor-tier and row notes call it trace. At 1 (user judgement: sub-1%
-  // appearances in a tier are noise). Safe at 1% ONLY because meaningfulUsage
-  // no longer outranks score in any comparator — it briefly did, and the
-  // boolean silently seated Alakazam over a higher-scoring Kadabra; see the
-  // changelog's "usage sovereignty" entry before making this a gate again.
-  MIN_MEANINGFUL_USAGE_PERCENT: 1,
+  // floor-tier and row notes call it trace. Raised 1 → 2 (user judgement:
+  // with V1 converging to the usage prior, 1% left the model "too tilted in
+  // favor of fringe AG mons" — 1-2% AG appearances are noise, not a
+  // first-meaningful tier). Baked into the resolver/set indexes at build
+  // time: regenerate both in the same commit as any change here. Safe as a
+  // non-gate ONLY because meaningfulUsage no longer outranks score in any
+  // comparator — it briefly did, and the boolean silently seated Alakazam
+  // over a higher-scoring Kadabra; see the changelog's "usage sovereignty"
+  // entry before making this a gate again.
+  MIN_MEANINGFUL_USAGE_PERCENT: 2,
 
   // --- C: current-form value --------------------------------------------------
   CURRENT_VALUE_SCALE: 2000, // points scale shared by C and U

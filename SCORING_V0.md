@@ -762,3 +762,16 @@ Invariants the shape encodes (each guarded by fixtures):
   saves with `evoAccessStones: false` block all item gates, both raw and
   via a normalization migration to the new keys. No golden drift —
   fixtures never blocked stones.
+- **MIN_MEANINGFUL_USAGE_PERCENT 1 → 2** (user judgement, after playing
+  with V1: "a little too tilted in favor of fringe AG mons"): 1–2%
+  appearances in a tier no longer count as that mon's first-meaningful
+  tier. This moves everything the threshold feeds: first-meaningful-tier
+  ranking (and therefore V1's tier-dominant U_rank and the line-anchored
+  representative choice), the eventual-form law (a pre-evo whose only
+  claim was a 1–2% AG showing loses its own-representative status), the
+  Usage column, trace-usage notes, and the resolver/set indexes
+  (regenerated in this commit, 785 data files — set sourcing now skips
+  tiers where usage sits below 2%). Golden drift audited and regenerated:
+  score-only shifts across 8 fixtures (U ceilings reshuffled as headline
+  tiers moved deeper for fringe mons; e.g. early-weak-froakie lines ±20–50
+  points); NO fixture team reseated. All invariants held, 61/61.
