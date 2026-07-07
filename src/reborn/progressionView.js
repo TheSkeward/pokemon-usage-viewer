@@ -38,7 +38,7 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
       <div class="panel-header">
         <div>
           <h2>Reborn Progression</h2>
-          <p>Saved locally. These unlocks will drive legal-move checks; current team picks still use the usage-data prior.</p>
+          <p>Saved locally. These unlocks drive legal-move checks, set readiness, and (under V1) how far each score has converged to its usage prior.</p>
         </div>
       </div>
 

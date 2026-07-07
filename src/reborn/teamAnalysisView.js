@@ -213,36 +213,21 @@ function renderAnalysis(analysis) {
   `;
 }
 
+// Possible Fixes only. "Why This Team?" and "Team Holes" are gone: the first
+// re-derived facts the set cards already state (and could disagree with
+// them), the second restated the Defensive Profile / Team Coverage tables.
 function renderExplanation(explanation) {
-  if (!explanation) return "";
+  if (!explanation?.fixSuggestions?.length) return "";
 
   return `
     <section class="team-analysis-explanation">
       <div>
-        <h3>Why This Team?</h3>
-        ${renderExplanationList(explanation.pickReasons)}
-      </div>
-      <div>
-        <h3>Team Holes</h3>
-        ${renderExplanationList(explanation.holes)}
-      </div>
-      <div>
         <h3>Possible Fixes</h3>
-        ${renderExplanationList(explanation.fixSuggestions)}
+        <ul class="team-analysis-explanation-list">
+          ${explanation.fixSuggestions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+        </ul>
       </div>
     </section>
-  `;
-}
-
-function renderExplanationList(items = []) {
-  if (!items.length) {
-    return `<p class="muted">No major issues found in this slice of the analysis.</p>`;
-  }
-
-  return `
-    <ul class="team-analysis-explanation-list">
-      ${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-    </ul>
   `;
 }
 

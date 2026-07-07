@@ -720,9 +720,22 @@ function getChoiceOptionNote(result, best, bestNonMega) {
 }
 
 function makeChoice(input, result, note) {
-  const usageNote = result.meaningfulUsage
-    ? note
-    : `${note}; trace usage (<${MIN_MEANINGFUL_USAGE_PERCENT.toFixed(2)}%)`;
+  // Row notes carry only what the rest of the page does NOT already show:
+  // the default build label and per-move facts live on the set card, so the
+  // note keeps build labels only when non-default, states WHY the usage
+  // prior is absent (two different reasons — a real trace percentage vs a
+  // readiness gate — used to share one misleading "<2.73%" label), and
+  // keeps genuine warnings (no STAB, damage-defining ability assumption).
+  const parts = [];
+  if (note && note !== "Standard set") parts.push(note);
+  if (!result.meaningfulUsage) {
+    parts.push(
+      (result.usagePercent || 0) >= MIN_MEANINGFUL_USAGE_PERCENT
+        ? `usage ${result.usagePercent.toFixed(1)}% not counted yet: set not ready`
+        : `trace usage (<${MIN_MEANINGFUL_USAGE_PERCENT.toFixed(2)}%)`,
+    );
+  }
+  const usageNote = parts.join("; ");
   const legalityNote = formatLegalityNote(result.legalityProfile);
 
   return {
@@ -753,26 +766,25 @@ function makeChoice(input, result, note) {
       ? { optimisticCoverageVector: result.optimisticCoverageVector }
       : {}),
     bundle: result.bundle,
-    note: legalityNote ? `${usageNote}; ${legalityNote}` : usageNote,
+    note: [usageNote, legalityNote].filter(Boolean).join("; "),
   };
 }
 
+// Warnings only. The pick's actual moves live on its set card — repeating a
+// separately-derived "best legal STAB" here let the two disagree on the same
+// page (user report: notes said Focus Punch while the set showed Close
+// Combat). What stays is what the set card CANNOT show: that no legal STAB
+// exists at all, and that the score leans on a damage-defining ability.
 function formatLegalityNote(profile) {
   if (!profile) return "";
 
-  const bestStab = profile.bestStabMove?.name
-    ? `best legal STAB: ${profile.bestStabMove.name}`
-    : "no current legal STAB";
-
-  // Make the assumed ability visible when it materially changes damage, so the
-  // score isn't silently claiming e.g. Protean without saying so.
+  const notes = [];
+  if (!profile.bestStabMove?.name) notes.push("no current legal STAB");
   const ability = String(profile.assumedAbility || "").toLowerCase();
-  const abilityNote =
-    ability === "protean" || ability === "adaptability"
-      ? `; scored assuming ${profile.assumedAbility}`
-      : "";
-
-  return `${bestStab}; ${profile.attackTypes.length} recommended attack types${abilityNote}`;
+  if (ability === "protean" || ability === "adaptability") {
+    notes.push(`scored assuming ${profile.assumedAbility}`);
+  }
+  return notes.join("; ");
 }
 
 // Generates the candidate's BUILD VARIANTS (roadmap Phase 3): a build is a

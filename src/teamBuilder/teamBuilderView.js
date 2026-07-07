@@ -427,16 +427,23 @@ function renderExplanationsSection(state) {
     ]),
   );
 
+  // Summary lines carry the headline facts (role, seat robustness) so the
+  // collapsed list already says something; the details hold the full audit.
   const seated = result.team
     .map((choice) => {
-      const lines = explainSeatedChoice(
-        choice,
-        result.team,
-        confidenceByInput.get(choice.inputPokemonId),
-      );
+      const confidenceEntry = confidenceByInput.get(choice.inputPokemonId);
+      const lines = explainSeatedChoice(choice, result.team, confidenceEntry);
+      const headline = [
+        choice.currentRole ? String(choice.currentRole).replace(/_/g, " ") : null,
+        confidenceEntry
+          ? `seats in ${Math.round(confidenceEntry.frequency * 100)}% of settings`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
       return `
         <details>
-          <summary><strong>${escapeHtml(choice.inputName)}</strong> — ${escapeHtml(choice.legalityProfile?.currentName || choice.name)}</summary>
+          <summary><strong>${escapeHtml(choice.inputName)}</strong> — ${escapeHtml(choice.legalityProfile?.currentName || choice.name)}${headline ? ` · ${escapeHtml(headline)}` : ""}</summary>
           <ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
         </details>
       `;
@@ -444,6 +451,9 @@ function renderExplanationsSection(state) {
     .join("\n");
 
   const teamIds = new Set(result.team.map((choice) => choice.inputPokemonId));
+  const weakestSeat = [...result.team].sort(
+    (a, b) => (a.teamScore ?? 0) - (b.teamScore ?? 0),
+  )[0];
   const notableBench = (result.lines || [])
     .map((line) => line.best || line.bestNonMega)
     .filter((choice) => choice && !teamIds.has(choice.inputPokemonId))
@@ -456,9 +466,17 @@ function renderExplanationsSection(state) {
         result,
         alternativesByInput.get(choice.inputPokemonId),
       );
+      // The summary states the actual margin, not just "benched".
+      const margin = weakestSeat
+        ? Math.round((weakestSeat.teamScore ?? 0) - (choice.teamScore ?? 0))
+        : 0;
+      const marginNote =
+        margin > 0
+          ? `−${margin} vs the weakest seat`
+          : "lost on team fit, not raw score";
       return `
         <details>
-          <summary>${escapeHtml(choice.inputName)} — benched</summary>
+          <summary>${escapeHtml(choice.inputName)} — benched (${escapeHtml(marginNote)})</summary>
           <ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
         </details>
       `;

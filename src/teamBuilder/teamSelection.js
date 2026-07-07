@@ -56,6 +56,10 @@ export async function choosePoolTeam(
     // the optimal team — used by the bench view to flag the most droppable mon
     // (coverage-aware, not just by usage tier).
     benchSwapScores: bestTeam.benchSwapScores || null,
+    // The chosen team's own realized score — the reference the bench swap
+    // scores are compared against (valid for approximate searches too, where
+    // bestEvaluated below is withheld from the incremental cache).
+    teamScore: evaluated.score ?? null,
     // The raw (pre-note) winning team, so the optimizer can cache it and grow
     // the search incrementally next time. Only exact results are safe to seed.
     bestEvaluated: bestTeam.searchExact ? evaluated : null,
@@ -141,7 +145,9 @@ function addTeamFitNotes(team) {
 
     return {
       ...choice,
-      note: `${choice.note}; team fit: ${reasons.join("; ")}`,
+      note: [choice.note, `team fit: ${reasons.join("; ")}`]
+        .filter(Boolean)
+        .join("; "),
     };
   });
 }

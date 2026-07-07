@@ -106,16 +106,20 @@ export async function computeInvestmentPlan({
   );
   holdOff.sort((a, b) => b.gain - a.gain);
 
-  // Close bench: benched mons whose best swap-in barely trails the chosen team.
+  // Close bench: benched mons whose best swap-in barely trails the chosen
+  // team's OWN score. The old reference — the best swap score on the bench —
+  // measured "close to the best bench mon", so a uniformly weak bench called
+  // everything close (user report: "Azurill nearly seats"). Without a real
+  // reference the section stays empty rather than guessing.
   const closeBench = [];
-  if (result.benchSwapScores) {
-    // The chosen team's own score = the best swap score any seated member has…
-    // not stored directly; approximate with the max swap score seen, which the
-    // optimal team's members trivially dominate.
-    const reference = Math.max(...result.benchSwapScores.values());
+  const teamReference = result.teamScore ?? result.bestEvaluated?.score;
+  if (result.benchSwapScores && teamReference > 0) {
+    const trainSoonIds = new Set(trainSoon.map((entry) => entry.inputPokemonId));
     for (const [inputId, swapScore] of result.benchSwapScores) {
       if (teamIds.has(inputId)) continue;
-      if (swapScore >= reference * CLOSE_BENCH_MARGIN) {
+      // Already called out with a concrete cap gain above — one list per mon.
+      if (trainSoonIds.has(inputId)) continue;
+      if (swapScore >= teamReference * CLOSE_BENCH_MARGIN) {
         closeBench.push({
           inputPokemonId: inputId,
           inputName: nowByInput.get(inputId)?.inputName || inputId,

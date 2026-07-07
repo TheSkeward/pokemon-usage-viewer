@@ -75,7 +75,6 @@ export async function buildRebornTeamAnalysis(
       legalMoveEntries,
       lines: breedingOptions.lines || [],
       offensive,
-      profiles,
     }),
     offensive,
     profiles,
@@ -331,9 +330,6 @@ export function buildCandidateLegalityProfile({
       buildFriction: buildFriction || 0,
     },
     attackTypes: attackingTypes.map((entry) => entry.type),
-    bestCoverageMoves: attackingTypes
-      .filter((entry) => !member.types.includes(entry.type))
-      .slice(0, 3),
     bestDamagingMove: damagingMoves
       .map((move) => formatProfileMove(move, member, stats))
       .sort(compareProfileMove)[0] || null,
@@ -551,35 +547,19 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
   };
 }
 
-function buildTeamExplanation({
-  defensive,
-  legalMoveEntries,
-  lines,
-  offensive,
-  profiles,
-}) {
+// Only the fix suggestions survive here: "Why This Team?" recomputed a
+// second best-STAB that could disagree with the realized set on the same
+// page, and "Team Holes" restated the Defensive Profile / Team Coverage
+// tables (which show names AND answers). One fact, one source, one place.
+function buildTeamExplanation({ defensive, legalMoveEntries, lines, offensive }) {
   const selectedKeys = new Set(
     legalMoveEntries.map(
       ({ row }) => `${row.inputPokemonId || row.inputName}:${row.pokemonId}`,
     ),
   );
-  const attackTypeCounts = countRecommendedAttackTypes(profiles);
   const defensiveHoles = getDefensiveHoles(defensive);
-  const offensiveHoles = getOffensiveHoles(offensive);
 
   return {
-    pickReasons: legalMoveEntries
-      .map(({ profile }) =>
-        formatPickReason(profile, {
-          attackTypeCounts,
-          defensiveHoles,
-        }),
-      )
-      .filter(Boolean)
-      .slice(0, 6),
-    holes: [...defensiveHoles.map(formatDefensiveHole), ...offensiveHoles]
-      .filter(Boolean)
-      .slice(0, 6),
     fixSuggestions: buildFixSuggestions({
       defensiveHoles,
       lines,
@@ -587,46 +567,6 @@ function buildTeamExplanation({
       selectedKeys,
     }).slice(0, 5),
   };
-}
-
-function formatPickReason(profile, { attackTypeCounts, defensiveHoles }) {
-  const reasons = [];
-  const uniqueAttackTypes = (profile.attackTypes || []).filter(
-    (type) => attackTypeCounts.get(type) === 1,
-  );
-  const coveredWeaknesses = defensiveHoles
-    .filter((hole) =>
-      resistsOrImmune(profile.currentTypes, hole.type),
-    )
-    .map((hole) => hole.type);
-
-  if (profile.bestStabMove) {
-    reasons.push(`${profile.bestStabMove.name} STAB`);
-  }
-
-  if (uniqueAttackTypes.length) {
-    reasons.push(`${uniqueAttackTypes.slice(0, 2).join("/")} coverage`);
-  } else if (profile.bestCoverageMoves.length) {
-    reasons.push(
-      `${profile.bestCoverageMoves
-        .slice(0, 2)
-        .map((entry) => entry.type)
-        .join("/")} coverage`,
-    );
-  }
-
-  if (coveredWeaknesses.length) {
-    reasons.push(`covers ${coveredWeaknesses.slice(0, 2).join("/")}`);
-  }
-
-  if (!reasons.length) return "";
-
-  const fromInput =
-    profile.inputName && profile.inputName !== profile.currentName
-      ? ` (from ${profile.inputName})`
-      : "";
-
-  return `${profile.currentName}${fromInput} contributes ${reasons.join(", ")}.`;
 }
 
 function getDefensiveHoles(defensive) {
@@ -643,52 +583,6 @@ function getDefensiveHoles(defensive) {
         a.type.localeCompare(b.type),
     )
     .slice(0, 6);
-}
-
-function formatDefensiveHole(hole) {
-  const weakNames = hole.weak
-    .slice(0, 3)
-    .map(({ member }) => member.name)
-    .join(", ");
-
-  if (hole.coverCount === 0) {
-    return `${hole.type}: ${hole.weak.length} picks are weak and there is no current resist or immunity (${weakNames}).`;
-  }
-
-  return `${hole.type}: ${hole.weak.length} picks are weak; ${hole.coverCount} teammate${hole.coverCount === 1 ? "" : "s"} can switch in.`;
-}
-
-function getOffensiveHoles(offensive) {
-  const holes = [];
-
-  if (offensive.missingStabMembers.length) {
-    holes.push(
-      `No recommended STAB for ${offensive.missingStabMembers
-        .slice(0, 3)
-        .map((entry) => entry.member.name)
-        .join(", ")}.`,
-    );
-  }
-
-  if (offensive.missingSuperEffectiveTargets.length) {
-    holes.push(
-      `No recommended super-effective hit into ${offensive.missingSuperEffectiveTargets
-        .slice(0, 5)
-        .join(", ")}.`,
-    );
-  }
-
-  const weakestHits = offensive.bestCoverageByTarget
-    .filter((entry) => entry.best)
-    .slice(0, 3);
-
-  for (const entry of weakestHits) {
-    holes.push(
-      `Weak ${entry.type} answer: best current hit is ${entry.best.moveName} from ${entry.best.memberName}.`,
-    );
-  }
-
-  return holes;
 }
 
 // Suggests bench (unselected pool) Pokémon that patch a named team hole — a
@@ -770,18 +664,6 @@ function collectBenchOptions(lines, selectedKeys) {
 
 function getChoiceKey(choice) {
   return `${choice.inputPokemonId || choice.inputName}:${choice.pokemonId}`;
-}
-
-function countRecommendedAttackTypes(profiles) {
-  const counts = new Map();
-
-  for (const profile of profiles) {
-    for (const attackType of profile.attackTypes || []) {
-      counts.set(attackType, (counts.get(attackType) || 0) + 1);
-    }
-  }
-
-  return counts;
 }
 
 function resistsOrImmune(defenseTypes, attackType) {

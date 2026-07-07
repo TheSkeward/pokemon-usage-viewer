@@ -72,7 +72,9 @@ export function mountPoolOptimizer(container, options = {}) {
     selection: getParam("selection") || "all",
     query: initialQuery,
     progression: loadSavedRebornProgression(),
-    teamSort: getParam("teamSort") || loadSavedTeamSort() || "lead",
+    // Default sort is the score the seats were actually chosen by — Lead % is
+    // a ladder stat, informative but not the seating order.
+    teamSort: getParam("teamSort") || loadSavedTeamSort() || "score",
     teamSortDir: getParam("teamSortDir") || loadSavedTeamSortDir() || "desc",
     // A/B: "v1" = usage-convergence blend (default), "v0" = frozen model.
     scoringModel:
