@@ -5,8 +5,27 @@
 import { dataUrl } from "../utils/dataUrl.js";
 import { fetchJsonCached } from "../utils/fetchJsonCached.js";
 
+// The per-family listing of which mons HAVE an index file. Consulted before
+// any per-mon fetch so mons without data (a normal state — only mons with a
+// Teammates block in their tier get a file) don't produce a 404 request on
+// every optimize; browsers log those to the console even when caught. A
+// missing/unfetchable listing (older deployed data) returns null and the
+// loader falls back to fetch-and-catch.
+async function loadAvailableIds(family) {
+  try {
+    const ids = await fetchJsonCached(
+      dataUrl(`teammate-index/${family}/all/index.json`),
+    );
+    return Array.isArray(ids) ? new Set(ids) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function loadTeammateLift({ family, pokemonId }) {
   if (!family || !pokemonId) return null;
+  const available = await loadAvailableIds(family);
+  if (available && !available.has(pokemonId)) return null;
   try {
     return await fetchJsonCached(
       dataUrl(`teammate-index/${family}/all/${pokemonId}.json`),

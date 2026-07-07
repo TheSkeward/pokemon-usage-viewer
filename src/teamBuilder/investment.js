@@ -12,18 +12,23 @@
 // future-gamestate simulation.
 
 import { optimizeTeamFromPool } from "./teamOptimizer.js";
-
-// Reborn's badge level caps (vanilla 19.x progression).
-export const REBORN_LEVEL_CAPS = [
-  20, 25, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100,
-];
+import { REBORN_PROGRESSION_CHECKPOINTS } from "../reborn/badgeTimeline.js";
 
 const TRAIN_SOON_GAIN = 250; // score points at the next cap that make a mon worth tracking
 const CLOSE_BENCH_MARGIN = 0.985; // swap score within 1.5% of the team's own score
 
+// The distinct upcoming caps, straight from the badge timeline (the single
+// source of progression truth) — a hardcoded copy here once drifted from it
+// and stopped short of the postgame tiers (105–150).
 export function nextLevelCaps(levelCap, count = 2) {
   const cap = Number.parseInt(levelCap, 10) || 0;
-  return REBORN_LEVEL_CAPS.filter((value) => value > cap).slice(0, count);
+  const upcoming = [];
+  for (const checkpoint of REBORN_PROGRESSION_CHECKPOINTS) {
+    if (checkpoint.levelCap > cap && !upcoming.includes(checkpoint.levelCap)) {
+      upcoming.push(checkpoint.levelCap);
+    }
+  }
+  return upcoming.slice(0, count);
 }
 
 export async function computeInvestmentPlan({

@@ -5,7 +5,7 @@
 // blockedEvolutions); absent fields keep the old behavior exactly.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { runPool, loadShared, progressionAt } from "../helpers/harness.mjs";
+import { loadShared, progressionAt } from "../helpers/harness.mjs";
 
 const { normalizeRebornProgression } = await import(
   "../../src/reborn/progression.js"

@@ -172,6 +172,7 @@ async function buildFamily(family) {
   const outDir = `site-data/data/teammate-index/${family}/all`;
   mkdirSync(outDir, { recursive: true });
   let written = 0;
+  const availableIds = [];
   for (const [monId, { tier, teammates }] of symmetric) {
     const top = [...teammates.entries()]
       .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
@@ -181,8 +182,16 @@ async function buildFamily(family) {
       path.join(outDir, `${monId}.json`),
       `${JSON.stringify({ pokemonId: monId, tier, teammates: Object.fromEntries(top) })}\n`,
     );
+    availableIds.push(monId);
     written += 1;
   }
+  // Listing of which mons HAVE an index file, so the runtime loader can skip
+  // fetches for the rest instead of eating an expected 404 (browsers log
+  // network 404s to the console even when the fetch is caught).
+  writeFileSync(
+    path.join(outDir, "index.json"),
+    `${JSON.stringify(availableIds.sort())}\n`,
+  );
   console.log(`[teammate-index] ${family}/all: ${written} mons`);
 }
 

@@ -70,16 +70,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # refresh:data rewrites BOTH trees (site-data/data JSON and the
+      # src/generated/*.js modules); build:manifest must run after it so the
+      # committed manifest's hashes/dataSignature describe the refreshed data.
+      # Historically this step neither regenerated the manifest nor staged
+      # src/generated, leaving the repo internally inconsistent after every
+      # scheduled run until someone reconciled it by hand (the deployed site
+      # was unaffected — build:site regenerates the manifest fresh).
       - name: Refresh data
         if: github.event_name == 'schedule' || github.event.inputs.refresh_data == 'true'
-        run: npm run refresh:data
+        run: npm run refresh:data && npm run build:manifest
 
       - name: Commit refreshed generated data
         if: github.event_name == 'schedule' || github.event.inputs.refresh_data == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site-data/data
+          git add site-data/data src/generated
           git diff --cached --quiet || git commit -m "Refresh generated Smogon data"
           git push || true
 

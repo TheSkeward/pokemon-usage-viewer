@@ -73,7 +73,10 @@ const MAX_RESULT_CACHE = 400;
 // v13: Snore's sleep gate became set-conditional (Rest in the legal pool no
 // longer makes Snore a usable attack in a Rest-less set), changing
 // recommended sets and their coverage.
-const RESULT_CACHE_VERSION = "13";
+// v14: results carry teamScore (the chosen team's realized score — the
+// close-bench reference) and note text was rebuilt; persisted v13 results
+// would render without both.
+const RESULT_CACHE_VERSION = "14";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the

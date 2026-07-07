@@ -59,11 +59,6 @@ function toMoveId(name) {
   return id.startsWith("hiddenpower") ? "hiddenpower" : id;
 }
 
-// Backwards-compatible helper: just the top spread string.
-export async function loadTopSpread(options) {
-  return (await loadTopSet(options)).spread;
-}
-
 // Highest real-usage entry's name; the stitched tail carries usage: null.
 function topUsageName(entries) {
   if (!Array.isArray(entries) || !entries.length) return null;
