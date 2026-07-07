@@ -27,6 +27,7 @@ import {
 import { fixedMoveDamage } from "./damageModel.js";
 import { getMoveMetaById } from "../moveMeta.js";
 import { toId } from "../utils/ids.js";
+import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
 
 export const CANONICAL_SET_SIZE = 4;
 
@@ -88,8 +89,20 @@ export function computeSetReadiness({
   if (!canonical.length) return null;
 
   const availableIds = new Set(availableMoves.map((move) => move.id));
+  // Usage data collapses every Hidden Power variant to the single id
+  // "hiddenpower", but the legal pool carries only expanded per-type ids
+  // (hiddenpowerice, ...) once the Type Changer unlocks — so the canonical
+  // id alone could NEVER read as ready (audit: readiness permanently
+  // undercounted r on any set running Hidden Power).
+  const isMoveAvailable = (id) =>
+    availableIds.has(id) ||
+    (id === "hiddenpower" &&
+      [...availableIds].some((moveId) => moveId.startsWith("hiddenpower")));
   const rawById = new Map(
     (legalMoveData?.moves || []).map((move) => [move.id, move]),
+  );
+  const speciesIsEvolved = Boolean(
+    GEN7_PROGRESSION_SPECIES[legalMoveData?.pokemonId]?.prevoId,
   );
   const capNeeds = []; // cap-equivalents of everything not ready yet
   let scaling = false;
@@ -101,7 +114,7 @@ export function computeSetReadiness({
       id;
     if (isLevelScalingMove(id)) scaling = true;
 
-    if (availableIds.has(id)) {
+    if (isMoveAvailable(id)) {
       return isLevelScalingMove(id)
         ? { id, label, status: "scaling", detail: "level-scaling — full power at 100" }
         : { id, label, status: "ready", detail: "" };
@@ -112,18 +125,24 @@ export function computeSetReadiness({
       return { id, label, status: "blocked", detail: "not learnable in Reborn" };
     }
 
-    // Earliest way to get it, as a cap-equivalent.
+    // Earliest way to get it, as a cap-equivalent. Level-1 entries on an
+    // evolved form are NOT a leveling route (they're relearner-gated — you
+    // never level up to 1), so they can't set the cap-equivalent: Slaking's
+    // Hammer Arm (levelUp [1, 61]) used to report "level-up @1" and claim
+    // the set completes now when the real gates are the relearner or cap 61.
     const candidates = [];
     const levels = [
       ...(raw.sources?.levelUp || []),
       ...(raw.sources?.preEvolutionLevelUp || []).map((entry) =>
         typeof entry === "number" ? entry : entry.level,
       ),
-    ];
+    ].filter((level) => !(speciesIsEvolved && level === 1));
     if (levels.length) {
       const level = Math.min(...levels);
       candidates.push({ cap: level, detail: `level-up @${level}` });
     }
+    const hasLevelOneRelist =
+      speciesIsEvolved && (raw.sources?.levelUp || []).includes(1);
     if (raw.sources?.tm || raw.sources?.tmx || raw.sources?.tutor) {
       const badge = MACHINE_BADGE_BY_MOVE.get(id);
       if (badge != null) {
@@ -142,6 +161,11 @@ export function computeSetReadiness({
           ? "egg move — needs a chain parent in your pool"
           : "egg move — needs the daycare",
       };
+    }
+    if (!candidates.length && hasLevelOneRelist) {
+      // Its only route is the relearner (a level-1 relist on an evolved
+      // form); no cap-equivalent — the gate is the unlock, not a level.
+      return { id, label, status: "later", detail: "needs the move relearner" };
     }
     if (!candidates.length) {
       return { id, label, status: "blocked", detail: "no reachable source yet" };
@@ -179,11 +203,16 @@ export function computeSetReadiness({
 
   // Everything missing is already reachable at the current gamestate — the
   // gate is pickups (unchecked TMs, unclaimed items), not future progression.
+  // "Pending" requires something actually pending: the scaling sentinel alone
+  // (a fully-ready set at cap 100) used to claim pickups were outstanding.
   const currentCap = Number.parseInt(progression.levelCap, 10) || 0;
+  const hasPending =
+    moves.some((move) => move.status === "later") ||
+    (item.name != null && item.status === "later");
   let pendingPickups = false;
   if (fullAtCap != null && fullAtCap <= currentCap) {
     fullAtCap = null;
-    pendingPickups = true;
+    pendingPickups = hasPending;
   }
 
   return {

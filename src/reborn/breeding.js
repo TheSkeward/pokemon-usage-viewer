@@ -228,10 +228,34 @@ function canBreed(donorId, targetId) {
   return donorGroups.some((group) => targetGroups.includes(group));
 }
 
+// Egg-group compatibility is a property of the evolutionary FAMILY, not the
+// fielded form: you daycare Mantine and hatch a Mantyke, so a fielded
+// Mantyke's egg moves come through Mantine's Water 1 — but Mantyke's OWN
+// groups are ["Undiscovered"], as are every baby form's and Nidorina/
+// Nidoqueen's (audit: no fielded baby or Nido could ever receive an egg
+// move). Union the breedable groups across the whole line, walking down to
+// the root and up through every branch.
 function getBreedableEggGroups(pokemonId) {
-  return (GEN7_PROGRESSION_SPECIES[pokemonId]?.eggGroups || []).filter(
-    (group) => !BLOCKED_EGG_GROUPS.has(group),
-  );
+  let rootId = pokemonId;
+  const seen = new Set();
+  while (GEN7_PROGRESSION_SPECIES[rootId]?.prevoId && !seen.has(rootId)) {
+    seen.add(rootId);
+    rootId = GEN7_PROGRESSION_SPECIES[rootId].prevoId;
+  }
+
+  const groups = new Set();
+  const walked = new Set();
+  const visit = (id) => {
+    const record = GEN7_PROGRESSION_SPECIES[id];
+    if (!record || walked.has(id)) return;
+    walked.add(id);
+    for (const group of record.eggGroups || []) {
+      if (!BLOCKED_EGG_GROUPS.has(group)) groups.add(group);
+    }
+    for (const evoId of record.evos || []) visit(evoId);
+  };
+  visit(rootId);
+  return [...groups];
 }
 
 function emptyContext() {

@@ -122,3 +122,23 @@ test("chains name how the root learner gets the move, including evolution moves"
   assert.ok(bulletPunch, "Hariyama must get Bullet Punch from Pangoro");
   assert.equal(bulletPunch.detail, "Pangoro breeding chain (evo@32)");
 });
+
+test("egg-group compatibility resolves over the FAMILY, not the fielded form", async () => {
+  // Mantyke's own egg groups are ["Undiscovered"] — you daycare Mantine
+  // (Water 1) and hatch the Mantyke. A fielded baby form could never receive
+  // an egg move before the family resolution (audit finding: same for every
+  // baby and Nidorina/Nidoqueen).
+  const { pokemonIndex } = await loadShared();
+  const context = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression: { levelCap: "50", daycareUnlocked: true },
+    query: ["Mantyke", "Dratini"].join("\n"),
+  });
+
+  const mantyke = context.byPokemonId.mantyke;
+  assert.ok(
+    (mantyke?.moveIds || []).length > 0,
+    "Mantyke must receive egg moves through Mantine's Water 1",
+  );
+  assert.ok(mantyke.moveIds.includes("twister"), "Dratini passes Twister");
+});

@@ -49,6 +49,44 @@ test("elective hops (stones/trades) gate EVERY pre-evo move (Musharna report)", 
   }
 });
 
+test("elective hops don't gate moves the form knows at ARRIVAL", async () => {
+  // Munna hatches knowing Psywave/Defense Curl; stoning it immediately keeps
+  // them — zero delay, so no delayed-evolution flag (the old empty [1, 0]
+  // window priced every stone-line hatch move as delayed friction).
+  const data = await loadRebornLegalMoveData("musharna");
+  const moves = getAvailableRebornMoves(data, { levelCap: "40" });
+  for (const id of ["psywave", "defensecurl"]) {
+    const move = moves.find((m) => m.id === id);
+    assert.equal(move?.availableSources?.[0]?.label, "Level 1", id);
+    assert.ok(!move?.delayedEvolution, `${id} needs no delay`);
+  }
+});
+
+test("an evolved form's own level-1 relist is relearner-teachable regardless of pre-evo entries", async () => {
+  // Honchkrow's signature Sucker Punch: own learnset [1], Murkrow@55. At cap
+  // 50 the Murkrow route is out of reach — the level-1 relist must still be
+  // teachable via the relearner (it used to vanish entirely: the relearner
+  // rule required NO pre-evolution entries).
+  const data = await loadRebornLegalMoveData("honchkrow");
+  const withRelearner = getAvailableRebornMoves(data, {
+    levelCap: "50",
+    moveRelearnerUnlocked: true,
+  });
+  const suckerPunch = withRelearner.find((m) => m.id === "suckerpunch");
+  assert.ok(
+    suckerPunch?.availableSources?.some((s) => s.kind === "relearner"),
+    "Sucker Punch must have a relearner source at cap 50",
+  );
+  const withoutRelearner = getAvailableRebornMoves(data, {
+    levelCap: "50",
+    moveRelearnerUnlocked: false,
+  });
+  assert.ok(
+    !withoutRelearner.some((m) => m.id === "suckerpunch"),
+    "and no source at all without the relearner",
+  );
+});
+
 test("friendship hops stay natural (the grind spans levels)", async () => {
   // Azumarill: Azurill evolves by friendship, so Azurill's level-up moves
   // are reachable on the natural path; Marill departs at a LEVEL (18), so

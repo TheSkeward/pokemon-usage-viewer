@@ -93,8 +93,19 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         : Infinity;
     }
     // useItem / levelHold / trade / remaining levelExtra (locations, party
-    // conditions): elective, taken ASAP on the default path.
-    return 0;
+    // conditions): elective. The default path takes these ASAP — i.e. the
+    // moment the form ARRIVES — so entries above arrival are delay-gated
+    // (user ruling, the Musharna report: Munna's Calm Mind@35 means fielding
+    // a Munna to 35, a real cost). But the departure is the ARRIVAL level,
+    // not 0: an empty [arrival, 0] window priced even moves the form already
+    // KNOWS at arrival as delayed — hatch moves (Munna's level-1 Psywave)
+    // and moves learned in the same moment the pre-evo becomes eligible
+    // (Kirlia's level-20 moves on Gallade) carry over at zero cost.
+    const departing = GEN7_PROGRESSION_SPECIES[child?.prevoId];
+    if (!departing?.prevoId) return 1;
+    return (departing.evoType || "") === "" && Number.isFinite(departing.evoLevel)
+      ? departing.evoLevel
+      : 1;
   };
   const departureByAncestor = new Map();
   {
@@ -183,12 +194,14 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     // you're fielding that form, not gated behind the move relearner.
     const isEvolutionMove = Boolean(move.sources?.evolutionMove);
     // A level-1 move relisted on an evolved form that ISN'T a genuine evolution
-    // move (a pre-evolution learns it, but only above the level reachable before
-    // evolving — e.g. Blaziken's Flare Blitz, which Combusken learns at 58) is
-    // only obtainable here through the move relearner.
+    // move (e.g. Blaziken's Flare Blitz, Honchkrow's Sucker Punch) is
+    // teachable on this form through the move relearner — REGARDLESS of what
+    // its pre-evolutions do. Requiring "no pre-evolution entries" here erased
+    // the move entirely whenever the pre-evo's own entries were out of reach
+    // (audit: Honchkrow Sucker Punch — Murkrow@55 unreachable at cap 50, so
+    // the signature move had NO source at all; 101 such cases at cap 50).
     const hasRelearnerOnlyLevelOne =
       !isEvolutionMove &&
-      preEvolutionEntries.length === 0 &&
       allLevelUpLevels.some((level) =>
         isEvolvedLevelOneMove(level, evolvedSpecies),
       );

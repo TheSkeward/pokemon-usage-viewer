@@ -836,6 +836,35 @@ Invariants the shape encodes (each guarded by fixtures):
   PROVISIONAL pending calibration against the extracted lift
   distributions (0 = kill switch; sweepable). Both team-fit paths
   (fastTeamFit and the exact fallback) carry the blend in lockstep.
+- **Legality audit fixes (adversarial audit, release hardening)**. Three
+  rule corrections, each repro-verified against the auditor's concrete
+  cases with regression tests added:
+  (1) An evolved form's own level-1 relist is relearner-teachable
+  REGARDLESS of pre-evolution entries — the rule demanded "no pre-evo
+  entries", so whenever the pre-evo's entries were out of reach the move
+  had NO source at all (Honchkrow's Sucker Punch at cap 50; ~101 such
+  cases). The Blaziken Flare Blitz semantics are unchanged.
+  (2) Elective evolution hops (stones/trades/hold/location) depart at the
+  pre-evo's ARRIVAL level, not 0: the empty [arrival, 0] window priced
+  even moves the form already knows at arrival — hatch moves (Munna's
+  level-1 Psywave on Musharna, stone-Eeveelution level-1s) and
+  same-moment moves (Kirlia@20 on Gallade) — as DELAYED_EVO_FRICTION.
+  The Musharna ruling stands: above-arrival entries (Calm Mind@35) stay
+  delay-gated, because fielding a Munna to 35 is a real cost.
+  (3) Egg-group compatibility resolves over the evolutionary FAMILY, not
+  the fielded form: babies and Nidorina/Nidoqueen are ["Undiscovered"]
+  themselves, so no fielded Mantyke/Riolu/Azurill could ever receive an
+  egg move — you daycare Mantine and hatch the Mantyke.
+  Golden drift (audited): item-friendship-evos Growlithe 1157→1186,
+  unique-fast-attacker Cloyster 1102→1114 / Exeggutor 1428→1442 — the
+  three stone lines shedding phantom hatch-move delay friction; no seat
+  changes. Display readiness also hardened (same audit): Hidden Power
+  variants now satisfy the canonical "hiddenpower" id (readiness could
+  never mark it ready, understating V1 trust); level-1 relists on evolved
+  forms no longer set a phantom "@1" cap-equivalent (Slaking Hammer Arm
+  claimed the set completes now when the gate is the relearner or cap
+  61); the level-scaling sentinel alone no longer reports "pickups
+  pending" on a complete set at cap 100.
 - **Phase 3 calibration + plumbing fix; SYNERGY_SCALE 3 → 4** (user:
   "run the calibration"). The calibration's first A/B found the scaffolding
   DEAD END-TO-END: attachTeammateLift walked `line.candidates` — the raw
