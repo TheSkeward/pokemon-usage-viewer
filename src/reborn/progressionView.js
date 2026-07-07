@@ -1,5 +1,6 @@
 import { escapeHtml, escapeAttr } from "../utils/html.js";
 import { detailsStateAttrs } from "../utils/detailsState.js";
+import { getMoveMeta, describeMoveMeta } from "../moveMeta";
 import {
   REBORN_MOVE_LEGALITY_BASE,
   REBORN_PROGRESSION_NOTES,
@@ -53,30 +54,27 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
           <span>Move relearner unlocked</span>
         </label>
 
-        <label class="checkbox-label" title="Egg moves need breeding-chain checks before they count as legal.">
+        <label class="checkbox-label">
           <input
             data-progression-field="daycareUnlocked"
             type="checkbox"
             ${progression.daycareUnlocked ? "checked" : ""}
           />
           <span>Daycare unlocked</span>
-          <span class="info-tip" aria-hidden="true">ⓘ</span>
         </label>
 
-        <label class="checkbox-label" title="Until the Type Changer, Hidden Power's type is random per caught mon, so it isn't recommended; once unlocked every type is evaluated and the best one is picked.">
+        <label class="checkbox-label">
           <input
             data-progression-field="hiddenPowerTypeChangerUnlocked"
             type="checkbox"
             ${progression.hiddenPowerTypeChangerUnlocked ? "checked" : ""}
           />
           <span>Hidden Power Type Changer unlocked</span>
-          <span class="info-tip" aria-hidden="true">ⓘ</span>
         </label>
 
         <details class="progression-option-group wide-control evo-access-group" ${detailsStateAttrs("evo-access", false)}>
-          <summary title="Checked means you can use that method now, so evolutions through it count as reachable. Uncheck what you can't use yet — those evolutions become blocked, and each pick lists the forms it lost.">
+          <summary>
             <span>Evolution access <span class="muted">(checked = you can use it)</span></span>
-            <span class="info-tip" aria-hidden="true">ⓘ</span>
           </summary>
           <div class="progression-checklist evo-access-checklist">
             ${EVOLUTION_ACCESS_FIELDS.map((field) => {
@@ -168,8 +166,20 @@ function renderCheckpointControl(progression) {
       ? `Level cap ${progression.levelCap} (saved before the badge picker; pick your badges to keep it in sync)`
       : "Pick your badges to set the level cap.";
 
+  // Hover answers "what's next": the following checkpoint and its cap.
+  const selectedIndex = selected
+    ? REBORN_PROGRESSION_CHECKPOINTS.findIndex((c) => c.id === selected.id)
+    : -1;
+  const next =
+    selectedIndex >= 0 ? REBORN_PROGRESSION_CHECKPOINTS[selectedIndex + 1] : null;
+  const nextTip = selected
+    ? next
+      ? `Next: ${next.label} — cap ${next.levelCap}`
+      : `Final checkpoint — cap ${selected.levelCap}`
+    : "";
+
   return `
-    <label class="progression-level-control wide-control" title="Level caps, per BIGJRA's walkthrough. Post-game tiers keep raising the cap after the 18th badge.">
+    <label class="progression-level-control wide-control"${nextTip ? ` title="${escapeAttr(nextTip)}"` : ""}>
       <span>Badges earned</span>
       <select data-progression-checkpoint>
         <option value="" ${selected ? "" : "selected"}>— choose —</option>
@@ -421,8 +431,11 @@ function renderOptionCheckbox({
   const badge = parseAvailabilityBadge(option.available || fallbackAvailable);
   const obtainable =
     badges != null && badge != null && badge <= badges && !selected.has(option.id);
+  // Hover a TM/tutor option for the move's facts — the availability text is
+  // already printed inline below the name.
+  const facts = describeMoveMeta(getMoveMeta(option.move));
   return `
-    <label class="progression-option${obtainable ? " option-obtainable" : ""}"${obtainable ? ' title="The walkthrough says this is obtainable at your badge count."' : ""}>
+    <label class="progression-option${obtainable ? " option-obtainable" : ""}"${facts ? ` title="${escapeAttr(facts)}"` : ""}>
       <input
         type="checkbox"
         data-progression-option-list="${escapeAttr(field)}"

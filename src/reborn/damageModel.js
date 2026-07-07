@@ -1,6 +1,10 @@
-import { GEN7_BASE_STATS } from "../generated/gen7BaseStats.generated.js";
+import {
+  GEN7_BASE_STATS,
+  GEN7_BASE_HP,
+} from "../generated/gen7BaseStats.generated.js";
 import { getTypeMultiplier } from "./typeChart.js";
 import { toId } from "../utils/ids.js";
+import { natureStatMultiplier } from "../natures.js";
 
 // A naive, defender-agnostic damage model. We can't know the real opponent's
 // stats, so every move is scored as "unresisted output" against a fixed neutral
@@ -177,6 +181,39 @@ export function getAttackingStats({ pokemonId, levelCap, spread }) {
     atk: statValue(baseAtk, physicalIsStronger ? 252 : 0, level, physicalIsStronger ? 1.1 : 1),
     spa: statValue(baseSpa, physicalIsStronger ? 0 : 252, level, physicalIsStronger ? 1 : 1.1),
   };
+}
+
+// The full six-stat line a nature + EV spread produces at a level (31 IVs
+// assumed, matching Smogon spreads). Display-layer only — scoring never calls
+// this. `evs` is the [HP,Atk,Def,SpA,SpD,Spe] array; nature by name or id.
+// Returns null when the species has no base-stat row.
+export function computeFinalStats({ pokemonId, level, nature, evs }) {
+  const id = toId(pokemonId);
+  const stats = GEN7_BASE_STATS[id];
+  const baseHp = GEN7_BASE_HP[id];
+  if (!stats || baseHp == null) return null;
+
+  const at = normalizeLevel(level);
+  const evOf = (index) => {
+    const value = Array.isArray(evs) ? Number.parseInt(evs[index], 10) : 0;
+    return Number.isFinite(value) ? Math.max(0, Math.min(252, value)) : 0;
+  };
+  const hp =
+    baseHp === 1 // Shedinja
+      ? 1
+      : Math.floor(((2 * baseHp + 31 + Math.floor(evOf(EV_INDEX.hp) / 4)) * at) / 100) +
+        at +
+        10;
+  const result = { level: at, hp };
+  for (const key of ["atk", "def", "spa", "spd", "spe"]) {
+    result[key] = statValue(
+      stats[STAT_INDEX[key]],
+      evOf(EV_INDEX[key]),
+      at,
+      natureStatMultiplier(nature, key),
+    );
+  }
+  return result;
 }
 
 // Estimated unresisted damage for one move. Fixed-damage moves (Seismic Toss,

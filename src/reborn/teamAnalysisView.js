@@ -1,6 +1,8 @@
 import { escapeHtml } from "../utils/html.js";
-import { getTypeColor } from "../moveMeta";
+import { getMoveMeta, getTypeColor, describeMoveMeta } from "../moveMeta";
 import { toId } from "../utils/ids.js";
+import { describeNature } from "../natures.js";
+import { computeFinalStats } from "./damageModel.js";
 import { describeEvolutionPath } from "./evolutionRequirements.js";
 import {
   buildRebornTeamAnalysis,
@@ -274,15 +276,29 @@ function renderSetCard(profile) {
       : null,
     eventual ? `→ ${eventual} later` : null,
   ].filter(Boolean);
-  const meta = [
-    set.item || "No item recommended",
-    set.ability,
-    set.level ? `Lv ${set.level}` : null,
-    set.nature ? `${set.nature} nature` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  // Nature and EV chips carry the numbers behind them: hover the nature for
+  // its +/− stats, hover the EV line for the final stat spread it produces.
+  const natureTip = set.nature ? describeNature(set.nature) : "";
+  const metaParts = [
+    escapeHtml(set.item || "No item recommended"),
+    set.ability ? escapeHtml(set.ability) : null,
+    set.level ? escapeHtml(`Lv ${set.level}`) : null,
+    set.nature
+      ? `<span${natureTip ? ` title="${escapeHtml(natureTip)}"` : ""}>${escapeHtml(`${set.nature} nature`)}</span>`
+      : null,
+  ].filter(Boolean);
   const evs = formatEvs(set.evs);
+  const finalStats = evs
+    ? computeFinalStats({
+        pokemonId: profile.currentId,
+        level: set.level || 100,
+        nature: set.nature,
+        evs: set.evs,
+      })
+    : null;
+  const statsTip = finalStats
+    ? `At Lv ${finalStats.level} (31 IVs): HP ${finalStats.hp} · Atk ${finalStats.atk} · Def ${finalStats.def} · SpA ${finalStats.spa} · SpD ${finalStats.spd} · Spe ${finalStats.spe}`
+    : "";
   const moves = profile.recommendedMoves?.length ? profile.recommendedMoves : [];
 
   return `
@@ -291,8 +307,8 @@ function renderSetCard(profile) {
         <strong>${escapeHtml(profile.currentName)}</strong>
         ${subParts.length ? `<small>${escapeHtml(subParts.join(" · "))}</small>` : ""}
       </div>
-      <div class="team-set-meta">${escapeHtml(meta)}</div>
-      ${evs ? `<div class="team-set-evs">${escapeHtml(evs)}</div>` : ""}
+      <div class="team-set-meta">${metaParts.join(" · ")}</div>
+      ${evs ? `<div class="team-set-evs"${statsTip ? ` title="${escapeHtml(statsTip)}"` : ""}>${escapeHtml(evs)}</div>` : ""}
       <div class="team-set-moves">
         ${
           moves.length
@@ -352,10 +368,11 @@ function renderSetReadiness(readiness) {
 }
 
 function renderSetMove(move) {
+  const facts = describeMoveMeta(getMoveMeta(move.name));
   return `
     <div class="team-set-move">
       ${renderTypeBadge(move.type)}
-      <span class="team-set-move-name">${escapeHtml(move.name)}</span>
+      <span class="team-set-move-name"${facts ? ` title="${escapeHtml(facts)}"` : ""}>${escapeHtml(move.name)}</span>
       <span class="team-set-move-dmg">${escapeHtml(formatDamage(move))}</span>
       <span class="team-set-move-src">${escapeHtml(move.sourceLabel || "Legal")}</span>
     </div>

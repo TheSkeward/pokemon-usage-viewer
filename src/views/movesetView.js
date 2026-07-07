@@ -1,5 +1,13 @@
 import { escapeHtml, escapeAttr } from "../utils/html.js";
-import { getMoveMeta, getTypeColor, getCategoryColor } from "../moveMeta";
+import {
+  getMoveMeta,
+  getTypeColor,
+  getCategoryColor,
+  describeMoveMeta,
+} from "../moveMeta";
+import { describeNature } from "../natures.js";
+import { computeFinalStats, parseSpread } from "../reborn/damageModel.js";
+import { toId } from "../utils/ids.js";
 
 const HIDDEN_MOVESET_ENTRY_KEYS = new Set(["other", "nothing"]);
 const SPREAD_STATS = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"];
@@ -40,6 +48,9 @@ export function renderMovesetPanel(container, options = {}) {
   const abilities = cleanEntries(movesetEntry?.abilities || []);
   const spreads = cleanEntries(movesetEntry?.spreads || []);
   const topSpreads = spreads.slice(0, 3);
+  // For spread stat tooltips: Smogon spreads are level-100 lines, so the
+  // display name is enough to key the base stats.
+  const pokemonId = toId(selectedPokemonName);
 
   const notes = [];
 
@@ -81,7 +92,7 @@ export function renderMovesetPanel(container, options = {}) {
               </section>
               <section class="summary-card">
                 <h3>Top spreads</h3>
-                ${renderCompactList(topSpreads, "Spreads")}
+                ${renderCompactList(topSpreads, "Spreads", pokemonId)}
               </section>
             </div>
 
@@ -92,7 +103,7 @@ export function renderMovesetPanel(container, options = {}) {
 
             <details class="spreads-details">
               <summary>Show full spread list (${spreads.length})</summary>
-              ${renderSection("Spreads", spreads, true)}
+              ${renderSection("Spreads", spreads, true, pokemonId)}
             </details>
           `
       }
@@ -127,29 +138,31 @@ function renderStatusLine(status) {
   return `<div class="moveset-status-line"><span class="status-pill ${tone}">${escapeHtml(label)}</span></div>`;
 }
 
-function renderCompactList(entries = [], sectionTitle = "") {
+function renderCompactList(entries = [], sectionTitle = "", pokemonId = "") {
   if (entries.length === 0) return '<p class="muted">No data.</p>';
 
   return `
     <ul class="compact-list">
       ${entries
-        .map(
-          (entry, index) => `
-            <li class="${isAdditionalEntry(entry) ? "tail-entry" : ""}">
+        .map((entry, index) => {
+          const tip =
+            sectionTitle === "Spreads" ? spreadTooltip(entry.name, pokemonId) : "";
+          return `
+            <li class="${isAdditionalEntry(entry) ? "tail-entry" : ""}"${tip ? ` title="${escapeAttr(tip)}"` : ""}>
               <span class="entry-left">
                 <span class="entry-rank">${index + 1}.</span>
                 <span>${renderPlainEntryName(entry.name, sectionTitle)}</span>
               </span>
               ${renderEntryValue(entry)}
             </li>
-          `,
-        )
+          `;
+        })
         .join("")}
     </ul>
   `;
 }
 
-function renderSection(title, entries = [], alreadyExpanded = false) {
+function renderSection(title, entries = [], alreadyExpanded = false, pokemonId = "") {
   if (entries.length === 0) {
     return `
       <section class="moveset-section">
@@ -184,7 +197,7 @@ function renderSection(title, entries = [], alreadyExpanded = false) {
     rows.push(
       title === "Moves"
         ? renderMoveRow(entry, index, moveMeta, moveAttrs)
-        : renderStandardRow(entry, index, title),
+        : renderStandardRow(entry, index, title, pokemonId),
     );
   }
 
@@ -210,10 +223,13 @@ function renderSection(title, entries = [], alreadyExpanded = false) {
 }
 
 function renderMoveRow(entry, index, moveMeta, moveAttrs) {
+  // Hover a move for its facts (type · category · BP · accuracy · priority);
+  // moves missing from the meta table keep the plain name as overflow guard.
+  const facts = describeMoveMeta(moveMeta);
   return `
     <li class="moveset-row move-row ${isTailEntry(entry) ? "tail-entry" : ""} ${moveMeta ? "move-entry" : ""}" ${moveAttrs}>
       <span class="move-row-main">
-        <span class="move-row-name" title="${escapeAttr(entry.name)}">
+        <span class="move-row-name" title="${escapeAttr(facts ? `${entry.name} — ${facts}` : entry.name)}">
           <span class="entry-rank">${index + 1}.</span>
           <span class="entry-name-text">${escapeHtml(entry.name)}</span>
         </span>
@@ -234,9 +250,10 @@ function renderMoveRow(entry, index, moveMeta, moveAttrs) {
   `;
 }
 
-function renderStandardRow(entry, index, sectionTitle) {
+function renderStandardRow(entry, index, sectionTitle, pokemonId = "") {
+  const tip = sectionTitle === "Spreads" ? spreadTooltip(entry.name, pokemonId) : "";
   return `
-    <li class="moveset-row ${isTailEntry(entry) ? "tail-entry" : ""}">
+    <li class="moveset-row ${isTailEntry(entry) ? "tail-entry" : ""}"${tip ? ` title="${escapeAttr(tip)}"` : ""}>
       <span class="entry-left">
         <span class="entry-rank">${index + 1}.</span>
         <span>${renderPlainEntryName(entry.name, sectionTitle)}</span>
@@ -244,6 +261,28 @@ function renderStandardRow(entry, index, sectionTitle) {
       ${renderEntryValue(entry)}
     </li>
   `;
+}
+
+// Hover a spread for what it actually produces: the nature's +/− stats and
+// the final six-stat line at level 100 / 31 IVs (how Smogon spreads are
+// defined). Skipped when the species has no base-stat row.
+function spreadTooltip(spreadName, pokemonId) {
+  const parsed = parseSpread(spreadName);
+  if (!parsed || !pokemonId) return "";
+  const natureName = String(spreadName).split(":")[0];
+  const lines = [describeNature(natureName)].filter(Boolean);
+  const stats = computeFinalStats({
+    pokemonId,
+    level: 100,
+    nature: parsed.nature,
+    evs: parsed.evs,
+  });
+  if (stats) {
+    lines.push(
+      `At Lv 100 (31 IVs): HP ${stats.hp} · Atk ${stats.atk} · Def ${stats.def} · SpA ${stats.spa} · SpD ${stats.spd} · Spe ${stats.spe}`,
+    );
+  }
+  return lines.join("\n");
 }
 
 function renderEntryValue(entry) {

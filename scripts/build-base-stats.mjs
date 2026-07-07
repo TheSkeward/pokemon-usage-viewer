@@ -20,10 +20,12 @@ function main() {
   const dex = Dex.forGen(7);
   const map = {};
   const totals = {};
+  const hp = {};
 
   for (const species of dex.species.all()) {
     if (!species.exists || species.gen > 7 || !species.baseStats) continue;
     map[species.id] = STATS.map((k) => species.baseStats[k]);
+    hp[species.id] = species.baseStats.hp || 0;
     totals[species.id] =
       (species.baseStats.hp || 0) +
       STATS.reduce((sum, k) => sum + (species.baseStats[k] || 0), 0);
@@ -36,6 +38,11 @@ export const GEN7_BASE_STATS = ${JSON.stringify(map)};
 
 // Full base-stat total (including HP) per species id.
 export const GEN7_BASE_STAT_TOTALS = ${JSON.stringify(totals)};
+
+// Base HP per species id (kept out of the positional array above, which the
+// stat-fit seed model indexes as [Atk..Spe]). Used by display-layer stat
+// tooltips that need the full six-stat line.
+export const GEN7_BASE_HP = ${JSON.stringify(hp)};
 `;
 
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });

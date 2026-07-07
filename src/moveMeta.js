@@ -54,7 +54,14 @@ function resolveHiddenPower(name) {
   const type = match[1][0].toUpperCase() + match[1].slice(1).toLowerCase();
   if (!VALID_TYPES.has(type)) return null;
 
-  return { name: `Hidden Power ${type}`, type, category: 'Special' };
+  // Gen 7: Hidden Power is always 60 BP / 100% acc regardless of type.
+  return {
+    name: `Hidden Power ${type}`,
+    type,
+    category: 'Special',
+    basePower: 60,
+    accuracy: 100,
+  };
 }
 
 // Looks up a move's intrinsic properties by id from the central table. This is
@@ -89,6 +96,22 @@ export function hydrateLegalMove(rawMove) {
     charge: meta?.charge ?? false,
     sources: rawMove.sources,
   };
+}
+
+// One-line move facts for tooltips: "Rock · Physical · 100 BP · 80% acc",
+// with priority only when it isn't 0 ("+2 priority"). Status moves skip BP.
+// Empty string for unknown moves so callers can omit the tooltip.
+export function describeMoveMeta(meta) {
+  if (!meta) return "";
+  const parts = [meta.type, meta.category];
+  if (meta.category !== "Status" && meta.basePower > 0) {
+    parts.push(`${meta.basePower} BP`);
+  }
+  parts.push(`${meta.accuracy ?? 100}% acc`);
+  if (meta.priority) {
+    parts.push(`${meta.priority > 0 ? "+" : ""}${meta.priority} priority`);
+  }
+  return parts.filter(Boolean).join(" · ");
 }
 
 export function getTypeColor(type) {

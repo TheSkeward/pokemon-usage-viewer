@@ -93,6 +93,28 @@ function renderStandaloneHeader({ baseUrl }) {
   `;
 }
 
+// Live numbers instead of a model essay: under V1, hovering the scoring
+// toggle reports how converged THIS run's pool is — the spread of usage
+// trust (w, the share of each line's score taken by the usage prior) and
+// how many lines are fully there. Before a run (or under V0) there's
+// nothing to report, so no tooltip.
+function scoringModelTooltip(state) {
+  if (state.scoringModel === "v0") return "";
+  const weights = (state.result?.lines || [])
+    .map((line) => (line.best || line.bestNonMega)?.usageWeight)
+    .filter((weight) => typeof weight === "number")
+    .sort((a, b) => a - b);
+  if (!weights.length) return "";
+  const fmt = (value) => value.toFixed(2);
+  const median = weights[Math.floor(weights.length / 2)];
+  const converged = weights.filter((weight) => weight >= 0.99).length;
+  return (
+    `Usage trust (w) this run: median ${fmt(median)}, ` +
+    `range ${fmt(weights[0])}–${fmt(weights[weights.length - 1])} · ` +
+    `${converged}/${weights.length} lines fully converged`
+  );
+}
+
 // One-line, read-only summary of the gamestate a recommendation assumes.
 // Every chip opens (and scrolls to) the control that changes it, so "where do
 // I change X" is one click, and a stale assumption is visible at a glance.
@@ -189,7 +211,7 @@ function renderPoolControls({ embedded, poolStats, state }) {
 
       <div class="toolbar">
         <button class="view-tab primary-action" id="optimize-button">${state.loading ? "Optimizing..." : "Normalize + optimize team"}</button>
-        <label class="scoring-model-toggle" title="V1 slides each mon's score toward its competitive usage as its canonical set nears completion (full usage prior once assembled). V0 is the frozen model: usage capped at 30% influence forever.">
+        <label class="scoring-model-toggle"${scoringModelTooltip(state) ? ` title="${escapeAttr(scoringModelTooltip(state))}"` : ""}>
           <span class="muted">Scoring</span>
           <select id="scoring-model-select">
             <option value="v1" ${state.scoringModel === "v0" ? "" : "selected"}>V1 · usage-convergent</option>
