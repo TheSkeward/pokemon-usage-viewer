@@ -371,20 +371,25 @@ async function selectTeamByFit(
     let candidates;
     let searchExact;
 
-    if (incApplies) {
-      // Reuse the cached optimum: instant for a pure deletion, or enumerate the
-      // teams that include a newly-added line (small pools; big adds went parallel).
-      const top = createTopTeams(realizationPool);
-      selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, null, top);
-      candidates = top.items;
-      searchExact = true;
-    } else if (isStoreCovered) {
+    if (isStoreCovered) {
+      // The team store answers any SUBSET of a fully-enumerated pool exactly,
+      // including the realization top-N — so it outranks the incremental
+      // seed for pure deletions (the seed-only path returns just the cached
+      // winner, missing stored teams that newly enter the top-N when a
+      // deletion frees their slots).
       candidates = queryTeamStoreTop(
         lines,
         targetSize,
         opponentTypeBias,
         realizationPool,
       );
+      searchExact = true;
+    } else if (incApplies) {
+      // Reuse the cached optimum: instant for a pure deletion, or enumerate the
+      // teams that include a newly-added line (small pools; big adds went parallel).
+      const top = createTopTeams(realizationPool);
+      selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, null, top);
+      candidates = top.items;
       searchExact = true;
     } else if (combinations <= budget && !forceShortlist) {
       // Sequential full enumeration: record every team so later subsets of this
@@ -556,6 +561,29 @@ function computeBenchSwapScores(lines, team, opponentTypeBias) {
   return scores;
 }
 
+// Maps a realized team back onto the prepared per-line choice objects by
+// (input, form) identity. Null if any member can't be found among the current
+// choice options (defensive — the incremental context signature guarantees
+// lines resolved identically).
+function remapToPreparedChoices(team, lines) {
+  const byKey = new Map();
+  for (const line of lines) {
+    for (const choice of getLineChoiceOptions(line)) {
+      byKey.set(`${choice.inputPokemonId}|${choice.pokemonId}`, choice);
+    }
+  }
+  const remapped = [];
+  for (const member of team) {
+    const choice = byKey.get(`${member.inputPokemonId}|${member.pokemonId}`);
+    if (!choice) return null;
+    remapped.push(choice);
+  }
+  return {
+    team: remapped,
+    megaUsed: remapped.find((choice) => choice.isMega) || null,
+  };
+}
+
 // Incremental is valid when the cached optimum is a full team of the same target
 // size and all of the cached TEAM's lines are still present. Non-team lines may
 // have been removed — the optimum is invariant to unused mons, so a deletion
@@ -581,10 +609,23 @@ function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, 
   };
 
   if (incremental) {
+    // The cached optimum is a REALIZED team (post-build-assignment wrappers:
+    // no _fit, real coverage vectors), while every enumerated challenger is
+    // scored on the prepared choices' optimistic relaxation. Re-map the seed
+    // onto the CURRENT prepared choices so it competes on the same scale —
+    // offered as-is it entered the top-N tournament systematically deflated
+    // and could be evicted by challengers that realize WORSE, ratcheting the
+    // optimum downward across pool edits (audit finding). The context
+    // signature is unchanged whenever incremental applies, so the mapping
+    // only fails defensively; the realized seed is still offered then.
+    const remapped = remapToPreparedChoices(
+      incremental.previousBest.team,
+      lines,
+    );
     offer(
       evaluateTeam(
-        incremental.previousBest.team,
-        incremental.previousBest.megaUsed,
+        remapped?.team || incremental.previousBest.team,
+        remapped ? remapped.megaUsed : incremental.previousBest.megaUsed,
         targetSize,
         opponentTypeBias,
       ),

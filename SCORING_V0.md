@@ -836,6 +836,28 @@ Invariants the shape encodes (each guarded by fixtures):
   PROVISIONAL pending calibration against the extracted lift
   distributions (0 = kill switch; sweepable). Both team-fit paths
   (fastTeamFit and the exact fallback) carry the blend in lockstep.
+- **V1 mega-representative convergence + incremental-search integrity**
+  (same audit). (1) A mega usage representative could never satisfy the
+  O_rep gate: currentSpecies never fields mega ids, so `currentId ===
+  representativeId` was unsatisfiable and every mega-anchored line kept
+  the V0 shape FOREVER — no convergence at cap 100 with a complete set
+  (the calibration's endgame w=0.00 megas, previously misattributed to
+  mega-stone gating). A mega representative is now "fielded" through its
+  base form (megas happen in battle; availability stays ungated per the
+  owner's ruling). Golden drift (audited): v1-midgame-broad only — Abra
+  1758→1714 (Mega-Alakazam anchor now drags the inflated C down), Gastly
+  1671→1677; V0 byte-stable. Endgame A/B re-run post-fix: Swampert-Mega
+  converges to w=1.00 (1602→1564), Altaria-Mega's trace-usage inflation
+  collapses (1456→1372, benched on merit), and the calibrated
+  SYNERGY_SCALE 4 behavior stands (regenerator core still seats at 4,
+  not at 0 — pinned by the validate test). (2) The incremental search
+  seeded the tournament with the REALIZED cached team (real vectors, no
+  fit precompute) while challengers scored on the optimistic relaxation
+  — the known optimum competed deflated and could be evicted by
+  challengers that realize worse, ratcheting the optimum downward across
+  pool edits. The seed is re-mapped onto the current prepared choices;
+  the team store (complete for subsets) now outranks the seed-only path
+  for pure deletions. No golden drift (pinned by incremental-exactness).
 - **Legality audit fixes (adversarial audit, release hardening)**. Three
   rule corrections, each repro-verified against the auditor's concrete
   cases with regression tests added:

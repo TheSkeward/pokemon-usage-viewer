@@ -1,5 +1,6 @@
 import { getTypeMultiplier } from "../reborn/typeChart.js";
 import { evolutionChainProof } from "../reborn/evolutionRequirements.js";
+import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
 import {
   currentFormValue,
   formReadinessRatio,
@@ -199,9 +200,22 @@ export function scoreCandidate({
 // hold w below 1 at cap 100.
 export function computeUsageRamp(legalityProfile, levelCap) {
   const readiness = legalityProfile?.setReadiness || null;
+  // A mega representative is "fielded" by fielding its BASE form — the mega
+  // happens in battle, and currentSpecies never walks onto mega ids, so
+  // currentId can never literally equal a mega representativeId. Without the
+  // base-form equivalence a mega-anchored line could NEVER converge under V1
+  // (audit: Mega Lopunny anchors its line per the spec, so the whole line
+  // silently kept the V0 shape forever, even at cap 100 with a full set).
+  const representativeId = legalityProfile?.representativeId;
+  const representativeRecord = representativeId
+    ? GEN7_PROGRESSION_SPECIES[representativeId]
+    : null;
+  const fieldableRepresentativeId = representativeRecord?.isMega
+    ? representativeRecord.baseSpeciesId || representativeId
+    : representativeId;
   const isRepresentativeForm =
-    !legalityProfile?.representativeId ||
-    legalityProfile?.currentId === legalityProfile?.representativeId;
+    !representativeId ||
+    legalityProfile?.currentId === fieldableRepresentativeId;
   if (!readiness || !isRepresentativeForm) return 0;
 
   const cap = Math.max(1, Math.min(100, levelCap || 0));
