@@ -22,6 +22,13 @@ import { scoreCandidate } from "./candidateScoring.js";
 import { choosePoolTeam } from "./teamSelection.js";
 import { setScoringOverrides } from "./scoringConstants.js";
 
+// CONSTRAINT for new settings: overrides are process-globals on THIS thread.
+// Web Workers never receive them, so a setting that perturbs a constant read
+// inside the search kernel (COVERAGE_WEIGHT, SYNERGY_SCALE, penalties, ...)
+// must keep its search under PARALLEL_THRESHOLD combinations (SHORTLIST_MAX
+// ≤ ~24 → C(24,6) ≈ 135k) so it runs synchronously on the main thread. Only
+// shortlist-36 exceeds the threshold today, and it perturbs main-thread-read
+// knobs only.
 export const CONFIDENCE_GRID = [
   { key: "usage-low", overrides: { USAGE_INFLUENCE: 0.15 } },
   { key: "usage-high", overrides: { USAGE_INFLUENCE: 0.45 } },
@@ -72,6 +79,12 @@ export async function computeTeamConfidence({
   availability,
   family,
   progression,
+  // Checked before every grid setting; truthy abandons the sweep (returns
+  // null). The caller uses this to guarantee a NEW optimize never executes
+  // inside a setting's scoring-override window — overrides are process
+  // globals, and a concurrent optimize scored under them would be cached
+  // and persisted under the base signature.
+  shouldAbort = () => false,
 }) {
   const lines = (result?.lines || []).filter(
     (line) => line.best || line.bestNonMega,
@@ -102,6 +115,7 @@ export async function computeTeamConfidence({
   record(baseTeamIds, "baseline");
 
   for (const setting of CONFIDENCE_GRID) {
+    if (shouldAbort()) return null;
     setScoringOverrides({
       ...setting.overrides,
       FORCE_SHORTLIST: true,
@@ -185,6 +199,11 @@ function rescoreLine(line, context) {
         legalityProfile: choice.legalityProfile,
         levelCap: context.levelCap,
         opponentTypeBias: context.opponentTypeBias,
+        // Same line-anchored usage trust as the production run — without it
+        // scoreCandidate falls back to a PER-FORM ramp, so every setting
+        // re-scored under a different w regime than the baseline it's
+        // compared against (the pre-evo-dodges-the-drag bug, resurrected).
+        lineRamp: line.lineRamp ?? 0,
       }),
     };
     if (choice.buildAlternatives?.length) {

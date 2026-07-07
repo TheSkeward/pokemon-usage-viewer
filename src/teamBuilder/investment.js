@@ -39,6 +39,10 @@ export async function computeInvestmentPlan({
   query,
   selection,
   result,
+  // MUST match the model `result` was scored under: gain compares a future
+  // score against result's now-score, and optimizeTeamFromPool resets the
+  // session-global usage model to its argument on every call.
+  scoringModel = null,
 }) {
   const caps = nextLevelCaps(progression.levelCap, 2);
   if (!caps.length || !result?.team?.length) return null;
@@ -63,6 +67,7 @@ export async function computeInvestmentPlan({
         progression: { ...progression, levelCap: String(cap) },
         query,
         selection,
+        scoringModel,
       }),
     });
   }

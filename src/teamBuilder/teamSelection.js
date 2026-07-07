@@ -4,14 +4,10 @@ import {
   prepareFitScoring,
   resetFitScoring,
   getLineChoiceOptions,
-  getTeamScore,
-  getUsagePercent,
-  compareChoices,
   bestAssignmentForLines,
   evaluateTeam,
   betterEvaluated,
   teamIdentityKey,
-  getTeamSizePriority,
   forEachCombination,
   createTopTeams,
   offerTopTeam,
@@ -191,24 +187,20 @@ function getDefensiveCoverTypes(profile, team) {
 
 // A team's score is intrinsic to its own members, so the optimum is the argmax
 // over all teams of the target size — which means it must NOT depend on what
-// else is sitting unused in the pool. The old beam (keep the top-N partial teams
-// each step) was lossy and order-coupled, so adding an unused mon could perturb
-// which partial teams survived and flip a near-tie. We now enumerate teams
-// exactly whenever that's affordable, and only fall back to a (wide,
-// deterministic) beam for pools too large to enumerate.
+// else is sitting unused in the pool. Teams are enumerated exactly whenever
+// affordable; pools beyond the budget reduce to a coverage-preserving
+// shortlist that is itself enumerated exactly (see below — there is no lossy
+// beam anymore).
 //
-// Budgets are in number of team combinations C(N, size). The explicit Optimize
-// button enumerates up to a high ceiling; background auto-reoptimize uses a
-// budget that now matches it for the pools people actually build, falling back
-// to the fast beam only beyond that. After the deferred-identity + memoized-
-// options speedup, both cover a full 36-line pool exactly: 2M ≈ a 36-line pool
-// (C(36,6) ≈ 1.95M), and the explicit ceiling adds headroom to ~38 lines
-// (C(38,6) ≈ 2.76M). Big searches run across Web Workers, so they're off the main
-// thread and core-count faster; most edits never hit them anyway — the incremental
-// path is exact regardless of budget; the budget only gates a from-scratch search.
+// Budgets are in number of team combinations C(N, size). After the
+// deferred-identity + memoized-options speedup, both budgets cover a full
+// 36-line pool exactly: 2M ≈ a 36-line pool (C(36,6) ≈ 1.95M), and the
+// explicit ceiling adds headroom to ~38 lines (C(38,6) ≈ 2.76M). Big searches
+// run across Web Workers, so they're off the main thread and core-count
+// faster; most edits never hit them anyway — the incremental path is exact
+// regardless of budget; the budget only gates a from-scratch search.
 const AUTO_EXHAUSTIVE_BUDGET = 2_000_000;
 const HARD_EXHAUSTIVE_CAP = 3_000_000;
-const BEAM_WIDTH = 2000;
 // For pools too big to enumerate fully (C(N,6) over the cap — roughly N > 38), we
 // reduce to a shortlist and enumerate THAT exactly, instead of a lossy beam. The
 // shortlist keeps the top mons by individual score plus the best provider of
@@ -422,6 +414,11 @@ async function selectTeamByFit(
           shortCombos,
           realizationPool,
         );
+        // parallelFullSearch's SYNCHRONOUS fallback (no worker pool) runs
+        // searchCombinationRange on this thread, whose own prepare/reset
+        // cycle clears the fit state this branch prepared above — re-prepare
+        // so ref mapping and bench swaps stay on the fast prepared path.
+        prepareFitScoring(lines, opponentTypeBias);
         if (refs?.top?.length) {
           candidates = refs.top
             .map((entry) =>
@@ -541,7 +538,14 @@ function computeBenchSwapScores(lines, team, opponentTypeBias) {
         for (const choice of swapped) if (choice.isMega) megaCount += 1;
         if (megaCount > 1) continue;
 
-        const score = getTeamScore(swapped, opponentTypeBias);
+        // Exact path deliberately (not getTeamScore): the team members are
+        // REALIZED builds, and these scores are compared against the team's
+        // realized score (investment's close-bench reference). getTeamScore
+        // would score via prepared `_fit` — optimistic vectors — when every
+        // member is single-build, but fall back to exact when any member is
+        // a build wrapper: same pool, two different scales, chosen by an
+        // unrelated property.
+        const score = getRealizedTeamScore(swapped, opponentTypeBias);
         if (score > best) best = score;
       }
     }
@@ -721,92 +725,7 @@ function buildShortlist(lines) {
   return [...picked.values()];
 }
 
-// Fallback for pools too large to enumerate exactly: the incremental beam, just
-// widened and using the same deterministic comparator.
-function selectTeamByBeam(lines, targetSize, opponentTypeBias) {
-  let states = [{ lineKeys: new Set(), megaUsed: null, team: [] }];
-
-  for (const line of orderLinesForSelection(lines)) {
-    const nextStates = [...states];
-    const options = getLineChoiceOptions(line);
-
-    for (const state of states) {
-      if (state.team.length >= targetSize) continue;
-      if (state.lineKeys.has(line.lineKey)) continue;
-
-      for (const choice of options) {
-        if (choice.isMega && state.megaUsed) continue;
-
-        nextStates.push({
-          lineKeys: new Set([...state.lineKeys, line.lineKey]),
-          megaUsed: choice.isMega ? choice : state.megaUsed,
-          team: [...state.team, choice],
-        });
-      }
-    }
-
-    states = pruneTeamStates(nextStates, targetSize, opponentTypeBias);
-  }
-
-  return (
-    states
-      .filter((state) => state.team.length > 0)
-      .sort((a, b) =>
-        compareCandidateTeams(a, b, targetSize, opponentTypeBias),
-      )[0] || { team: [], megaUsed: null }
-  );
-}
-
-function orderLinesForSelection(lines) {
-  return [...lines].sort((a, b) => {
-    const aBest = getLineChoiceOptions(a)[0];
-    const bBest = getLineChoiceOptions(b)[0];
-
-    return compareChoices(aBest, bBest);
-  });
-}
-
-function pruneTeamStates(states, targetSize, opponentTypeBias = {}) {
-  const seen = new Set();
-  const unique = [];
-
-  for (const state of states) {
-    const key = state.team
-      .map((choice) => `${choice.inputPokemonId}:${choice.pokemonId}`)
-      .sort()
-      .join("|");
-    const megaKey = state.megaUsed?.pokemonId || "none";
-    const stateKey = `${key}:${megaKey}`;
-
-    if (seen.has(stateKey)) continue;
-    seen.add(stateKey);
-    unique.push(state);
-  }
-
-  return unique
-    .sort((a, b) => compareCandidateTeams(a, b, targetSize, opponentTypeBias))
-    .slice(0, BEAM_WIDTH);
-}
-
-// Ranks partial/complete teams for the beam fallback (the exact path uses
-// betterEvaluated). Score is the quality key (matching betterEvaluated, which no
-// longer gates on meaningful-pick count); usage sits just under it so that among
-// similarly-scoring partial teams near the prune cutoff, the ones built from
-// higher-usage Pokémon survive, and a strong pick is less likely to be pruned
-// away before it's completed.
-function compareCandidateTeams(a, b, targetSize = 6, opponentTypeBias = {}) {
-  return (
-    getTeamSizePriority(b.team, targetSize) -
-      getTeamSizePriority(a.team, targetSize) ||
-    getTeamScore(b.team, opponentTypeBias) -
-      getTeamScore(a.team, opponentTypeBias) ||
-    teamUsageSum(b.team) - teamUsageSum(a.team) ||
-    // Deterministic identity tie-break: equal-scoring teams resolve the same way
-    // regardless of enumeration order, so the result is stable.
-    teamIdentityKey(a.team).localeCompare(teamIdentityKey(b.team))
-  );
-}
-
-function teamUsageSum(team) {
-  return team.reduce((sum, choice) => sum + getUsagePercent(choice), 0);
-}
+// (The old beam-search fallback lived here. It became unreachable when the
+// oversized-pool path moved to shortlist-then-exact enumeration — every
+// branch of selectTeamByFit ends in exhaustive, store, or shortlist. Removed
+// as dead code; git history has it if a lossy anytime search is ever wanted.)

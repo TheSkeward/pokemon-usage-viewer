@@ -95,6 +95,13 @@ export function mountPoolOptimizer(container, options = {}) {
     onUpdate: () => render(),
   });
 
+  // Optimize-run serialization (audit findings): the newest run owns the UI,
+  // and no optimizer scoring may execute while a confidence sweep holds the
+  // global scoring overrides.
+  let optimizeRunToken = 0;
+  let sweepAbortRequested = false;
+  let activeAnalysis = Promise.resolve();
+
   init().catch((error) => {
     console.error(error);
     app.innerHTML = `
@@ -128,11 +135,25 @@ export function mountPoolOptimizer(container, options = {}) {
   async function computeAndRender({ exhaustive = true } = {}) {
     setDetails.cancel();
 
+    // Newest-run-wins token: any older in-flight run becomes a no-op the
+    // moment a newer one starts (it must not write state.result — the last
+    // FINISHER used to win, so a slow singles run could overwrite a doubles
+    // result that was already on screen).
+    const runToken = ++optimizeRunToken;
+    // Ask any live confidence sweep to stop at its next setting boundary and
+    // WAIT for it: sweep settings run under global scoring overrides, and an
+    // optimize that executes inside that window would be scored under sweep
+    // constants but cached/persisted under the base signature.
+    sweepAbortRequested = true;
+    await activeAnalysis;
+    if (runToken !== optimizeRunToken) return;
+
     state.loading = true;
     state.statusMessage = "Optimizing pool...";
     render();
     startOptimizeProgress(getPoolStats(state.query, pokemonIndex).uniqueCount);
     await waitForPaint();
+    if (runToken !== optimizeRunToken) return;
 
     // User-perceived pipeline clock: everything between "click" and the team
     // being on screen counts, not just the optimizer core (a 44s wait once
@@ -146,7 +167,16 @@ export function mountPoolOptimizer(container, options = {}) {
 
       const saved = savePool(state.query);
 
-      state.result = await optimizeTeamFromPool({
+      // Snapshot the inputs this run is actually computed against. The key
+      // used to be stamped from live state AFTER the await, so an edit made
+      // mid-optimize marked the old-input result as fresh.
+      const runScoringModel = state.scoringModel;
+      const runProgressionKey = getProgressionKey(
+        state.progression,
+        runScoringModel,
+      );
+
+      const result = await optimizeTeamFromPool({
         availability,
         family: state.family,
         pokemonIndex,
@@ -158,12 +188,11 @@ export function mountPoolOptimizer(container, options = {}) {
         // search; only background auto-reoptimize accepts the fast approximation
         // when the pool is too large to enumerate exactly.
         exhaustive,
-        scoringModel: state.scoringModel,
+        scoringModel: runScoringModel,
       });
-      state.resultProgressionKey = getProgressionKey(
-        state.progression,
-        state.scoringModel,
-      );
+      if (runToken !== optimizeRunToken) return;
+      state.result = result;
+      state.resultProgressionKey = runProgressionKey;
       const meta = state.result.telemetryMeta;
       if (meta) {
         phases.setup = meta.setupMs;
@@ -176,7 +205,7 @@ export function mountPoolOptimizer(container, options = {}) {
       // move; Unburden boost only when Unburden is actually the set's ability).
       updateOptimizeProgress({ phase: "items" });
       const itemsStart = Date.now();
-      state.teamItemContext = await getTeamItemContext(
+      const teamItemContext = await getTeamItemContext(
         state.result.team,
         state.progression,
         {
@@ -186,12 +215,15 @@ export function mountPoolOptimizer(container, options = {}) {
           query: state.query,
         },
       );
+      if (runToken !== optimizeRunToken) return;
+      state.teamItemContext = teamItemContext;
       state.teamItemUsage = await loadTeamItemUsage({
         team: state.result.team,
         family: state.family,
         selection: state.selection,
         itemContext: state.teamItemContext,
       });
+      if (runToken !== optimizeRunToken) return;
       recomputeItemRecommendations();
       phases.items = Date.now() - itemsStart;
 
@@ -199,9 +231,14 @@ export function mountPoolOptimizer(container, options = {}) {
 
       stopOptimizeProgress();
       state.loading = false;
-      const approxNote = state.result.searchExact
-        ? ""
-        : " Pool too large for an exact search — used a fast approximate one.";
+      const approxNote = [
+        state.result.searchExact
+          ? ""
+          : " Pool too large for an exact search — used a fast approximate one.",
+        state.result.degraded
+          ? " Some data failed to load, so parts of the pool were skipped — optimize again to retry."
+          : "",
+      ].join("");
       state.statusMessage = saved
         ? `${getOptimizationSummary(state.result)}${approxNote}`
         : `${getOptimizationSummary(state.result)}${approxNote} Pool could not be saved locally; browser storage is full.`;
@@ -214,16 +251,21 @@ export function mountPoolOptimizer(container, options = {}) {
 
       // First-class confidence + investment analysis, computed AFTER the team
       // renders so "click optimize" stays snappy; each re-renders when it lands
-      // (guarded against a newer optimize having replaced the result).
-      void runPostAnalysis(state.result, {
+      // (guarded against a newer optimize having replaced the result). The
+      // promise is retained so the NEXT optimize can request an abort and
+      // wait out the sweep's override window before it scores anything.
+      activeAnalysis = runPostAnalysis(state.result, {
         pipelineStart,
         phases,
         totalMs,
+        scoringModel: runScoringModel,
         // The Team Analysis (movesets) panel fills asynchronously — the sweep
         // must not start until it's on screen (it starves the main thread).
         analysisPanelReady: handle?.analysisPanelReady || null,
       });
     } catch (error) {
+      // A superseded run's failure is the newer run's business, not the UI's.
+      if (runToken !== optimizeRunToken) return;
       console.error("Team Builder optimization failed", error);
 
       stopOptimizeProgress();
@@ -236,11 +278,13 @@ export function mountPoolOptimizer(container, options = {}) {
     }
   }
 
-  // Confidence sweep + investment plan, run after each optimize. The sweep sets
-  // global scoring overrides around synchronous blocks only; still, a user
-  // optimize started mid-sweep aborts the sweep (checked between settings via
-  // the result-identity guard) and clears overrides defensively.
+  // Confidence sweep + investment plan, run after each optimize. The sweep
+  // sets global scoring overrides per setting; a user optimize started
+  // mid-sweep requests an abort (checked between settings) and WAITS for
+  // this promise, so no optimizer scoring ever executes inside an override
+  // window (overrides poisoned under the base cache signature otherwise).
   async function runPostAnalysis(forResult, pipeline = null) {
+    sweepAbortRequested = false;
     state.confidence = null;
     state.investment = null;
     state.analysisPending = true;
@@ -278,9 +322,10 @@ export function mountPoolOptimizer(container, options = {}) {
         availability,
         family: state.family,
         progression: state.progression,
+        shouldAbort: () => sweepAbortRequested || state.result !== forResult,
       });
-      if (state.result !== forResult) {
-        superseded = true; // superseded by a newer optimize
+      if (!confidence || state.result !== forResult) {
+        superseded = true; // superseded by a newer optimize (or sweep aborted)
         return;
       }
       if (pipeline) pipeline.phases.confidence = Date.now() - confidenceStart;
@@ -296,6 +341,11 @@ export function mountPoolOptimizer(container, options = {}) {
         query: state.query,
         selection: state.selection,
         result: forResult,
+        // The future-cap runs must score under the SAME model as forResult:
+        // omitting this reset the session model to V0 mid-run and compared
+        // V1 now-scores against V0 future-scores (phantom ~+400 "gains" on
+        // converged lines).
+        scoringModel: pipeline?.scoringModel ?? state.scoringModel,
       });
       if (state.result !== forResult) {
         superseded = true;
@@ -776,7 +826,12 @@ export function mountPoolOptimizer(container, options = {}) {
       : "Held items could not be saved locally; browser storage is full.";
 
     recomputeItemRecommendations();
+    // Owned EVOLUTION items change optimizer output (they zero evolution
+    // friction), and the progression key already knows that — this was the
+    // one stale-inducing edit path that never scheduled the re-optimize.
+    const stale = markResultProgressionStale();
     render();
+    scheduleAutoReoptimize(stale);
   }
 
   function applyOpponentBiasChange(type, level) {
@@ -1152,6 +1207,21 @@ function getProgressionKey(progression, scoringModel = "") {
   for (const id of getEvolutionItemIds()) {
     if (ownedItems?.[id] > 0) evolutionItems[id] = true;
   }
-  return JSON.stringify({ ...rest, evolutionItems, scoringModel });
+  // Key-order independent: plain JSON.stringify is insertion-order sensitive,
+  // and progression objects are built by several helpers — two equal
+  // progressions with different field orders would spuriously flag the team
+  // stale (never the reverse, but noise erodes trust in the warning).
+  return stableKeyStringify({ ...rest, evolutionItems, scoringModel });
+}
+
+function stableKeyStringify(value) {
+  if (Array.isArray(value)) return `[${value.map(stableKeyStringify).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableKeyStringify(value[key])}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
 }
 

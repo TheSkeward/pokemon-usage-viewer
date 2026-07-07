@@ -87,16 +87,23 @@ export async function persistResult(version, poolKey, result) {
   try {
     const tx = db.transaction(STORE, "readwrite");
     const store = tx.objectStore(STORE);
-    // put() structured-clones synchronously and throws DataCloneError here if the
-    // result isn't cloneable, so the catch keeps a bad entry from breaking writes.
-    store.put({ poolKey, version, result, ts: Date.now() });
+    // put() structured-clones synchronously and throws DataCloneError here if
+    // the result isn't cloneable, so the catch keeps a bad entry from breaking
+    // writes. Quota errors are different: IndexedDB delivers those via the
+    // request/transaction ERROR EVENTS after this block exits, so without
+    // handlers they surface as unhandled error events in the console. Swallow
+    // them — persistence is best-effort by design.
+    const putRequest = store.put({ poolKey, version, result, ts: Date.now() });
+    putRequest.onerror = (event) => event.preventDefault();
+    tx.onabort = () => {};
+    tx.onerror = (event) => event.preventDefault();
     const countRequest = store.count();
     countRequest.onsuccess = () => {
       const overflow = countRequest.result - MAX_ENTRIES;
       if (overflow > 0) evictOldest(store, overflow);
     };
   } catch {
-    // Non-cloneable result, quota exceeded, or transaction failure — skip.
+    // Non-cloneable result or synchronous transaction failure — skip.
   }
 }
 

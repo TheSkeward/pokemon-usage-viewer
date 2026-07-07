@@ -22,7 +22,12 @@ export function startUpdateNotifier() {
   // there's nothing to update to — so don't poll.
   if (!CURRENT_BUILD_ID) return;
 
-  let notified = false;
+  // Keyed by WHAT was notified (deployed buildId|signature), not a boolean:
+  // a dismissed banner used to disable notification for the tab's lifetime,
+  // so a SECOND, later deploy could never re-notify — the tab silently ran
+  // two-deploys-stale code, the exact failure this module exists to prevent.
+  // Re-notifying about the same deploy after dismissal stays suppressed.
+  let notifiedKey = null;
   // The data signature this page LOADED (whatever the CDN handed it at
   // startup). A deploy can refresh the bundle while the manifest lags in the
   // CDN cache — or ship new DATA under an unchanged bundle — so the bundle id
@@ -31,14 +36,15 @@ export function startUpdateNotifier() {
   const loadedSignature = getDataSignature();
 
   const check = async () => {
-    if (notified) return;
     try {
       const response = await fetch(VERSION_URL, { cache: "no-store" });
       if (!response.ok) return;
       const { buildId } = await response.json();
       if (buildId && buildId !== CURRENT_BUILD_ID) {
-        notified = true;
-        showUpdateBanner();
+        if (notifiedKey !== `build:${buildId}`) {
+          notifiedKey = `build:${buildId}`;
+          showUpdateBanner();
+        }
         return;
       }
       const deployed = await fetch(dataUrl("manifest.json"), {
@@ -50,9 +56,10 @@ export function startUpdateNotifier() {
       if (
         deployedSignature &&
         running !== "unversioned" &&
-        deployedSignature !== running
+        deployedSignature !== running &&
+        notifiedKey !== `data:${deployedSignature}`
       ) {
-        notified = true;
+        notifiedKey = `data:${deployedSignature}`;
         showUpdateBanner();
       }
     } catch {

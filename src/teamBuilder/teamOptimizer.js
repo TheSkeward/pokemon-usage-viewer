@@ -268,10 +268,18 @@ export async function optimizeTeamFromPool({
     searchMs: result.timings.searchMs,
   };
 
-  seedSearchCache(result, lines, searchKey);
-  storeResult(poolKey, result);
-  // Persist for future sessions (fire-and-forget; failures are silent no-ops).
-  persistResult(RESULT_CACHE_VERSION, poolKey, result);
+  // A run degraded by transient fetch failures still renders (best effort),
+  // but its verdict must not outlive the run: caching it would replay a
+  // crippled team on a healthy network until the data signature changed.
+  result.degraded = lines.some(lineIsDegraded);
+  if (result.degraded) {
+    searchCache = null;
+  } else {
+    seedSearchCache(result, lines, searchKey);
+    storeResult(poolKey, result);
+    // Persist for future sessions (fire-and-forget; failures are silent no-ops).
+    persistResult(RESULT_CACHE_VERSION, poolKey, result);
+  }
 
   return result;
 }
@@ -339,9 +347,22 @@ async function resolvePoolLineCached({ args, contextSig, hitLineKeys }) {
   }
 
   const line = await resolvePoolLine(args);
-  if (lineCache.size >= MAX_LINE_CACHE) lineCache.clear();
-  lineCache.set(cacheKey, line);
+  // A line degraded by a TRANSIENT failure (a fetch threw mid-resolve, its
+  // candidate scored -Infinity) must not be cached: fetchJsonCached already
+  // declines to cache errors so a retry can heal, and caching the degraded
+  // VERDICT here would defeat that — the mon would stay excluded on a
+  // perfect network until the signature changed.
+  if (!lineIsDegraded(line)) {
+    if (lineCache.size >= MAX_LINE_CACHE) lineCache.clear();
+    lineCache.set(cacheKey, line);
+  }
   return line;
+}
+
+function lineIsDegraded(line) {
+  // `degraded` is stamped by resolvePoolLine (errored candidates are filtered
+  // out of the ranked list, so the flag is the only surviving trace).
+  return Boolean(line?.degraded);
 }
 
 // Stable, order-independent stringify for cache keys: object keys are sorted and
@@ -564,6 +585,9 @@ async function resolvePoolLine({
   const ranked = scored
     .filter((candidate) => Number.isFinite(candidate.score))
     .sort(compareScoredCandidates);
+  // True when any candidate died on an error (as opposed to being legitimately
+  // unscoreable): the line still renders, but no cache may keep its verdict.
+  const degraded = scored.some((candidate) => candidate.error) || undefined;
 
   if (!ranked.length) {
     return {
@@ -573,6 +597,8 @@ async function resolvePoolLine({
       best: null,
       bestNonMega: null,
       candidates: scored,
+      lineRamp,
+      degraded,
     };
   }
 
@@ -597,6 +623,13 @@ async function resolvePoolLine({
       : null,
     choiceOptions: buildChoiceOptions(input, ranked, best, bestNonMega),
     candidates: ranked,
+    // The line-anchored usage trust (V1): every form of this line was scored
+    // under this ONE ramp. Carried on the line so the confidence sweep's
+    // re-scoring uses the same anchor — its scoreCandidate calls would
+    // otherwise fall back to per-form ramps, re-introducing the exact
+    // pre-evo-dodges-the-drag bug the anchoring exists to prevent.
+    lineRamp,
+    degraded,
   };
 }
 
