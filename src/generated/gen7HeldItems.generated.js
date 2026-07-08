@@ -55,16 +55,16 @@ export const GEN7_HELD_ITEMS = [
     "name": "Quick Claw"
   },
   {
+    "id": "brightpowder",
+    "name": "Bright Powder"
+  },
+  {
     "id": "berryjuice",
     "name": "Berry Juice"
   },
   {
     "id": "expertbelt",
     "name": "Expert Belt"
-  },
-  {
-    "id": "brightpowder",
-    "name": "Bright Powder"
   },
   {
     "id": "iapapaberry",
@@ -107,16 +107,16 @@ export const GEN7_HELD_ITEMS = [
     "name": "Salac Berry"
   },
   {
-    "id": "powerherb",
-    "name": "Power Herb"
-  },
-  {
     "id": "shellbell",
     "name": "Shell Bell"
   },
   {
     "id": "flameorb",
     "name": "Flame Orb"
+  },
+  {
+    "id": "powerherb",
+    "name": "Power Herb"
   },
   {
     "id": "widelens",
@@ -175,12 +175,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Adrenaline Orb"
   },
   {
-    "id": "zoomlens",
-    "name": "Zoom Lens"
-  },
-  {
     "id": "absorbbulb",
     "name": "Absorb Bulb"
+  },
+  {
+    "id": "zoomlens",
+    "name": "Zoom Lens"
   },
   {
     "id": "darkiniumz",
@@ -255,12 +255,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Petaya Berry"
   },
   {
-    "id": "keeberry",
-    "name": "Kee Berry"
-  },
-  {
     "id": "bigroot",
     "name": "Big Root"
+  },
+  {
+    "id": "keeberry",
+    "name": "Kee Berry"
   },
   {
     "id": "starfberry",
@@ -303,12 +303,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Buginium Z"
   },
   {
-    "id": "leppaberry",
-    "name": "Leppa Berry"
-  },
-  {
     "id": "ghostiumz",
     "name": "Ghostium Z"
+  },
+  {
+    "id": "leppaberry",
+    "name": "Leppa Berry"
   },
   {
     "id": "pechaberry",
@@ -319,12 +319,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Lansat Berry"
   },
   {
-    "id": "marangaberry",
-    "name": "Maranga Berry"
-  },
-  {
     "id": "steeliumz",
     "name": "Steelium Z"
+  },
+  {
+    "id": "marangaberry",
+    "name": "Maranga Berry"
   },
   {
     "id": "cellbattery",
@@ -363,24 +363,24 @@ export const GEN7_HELD_ITEMS = [
     "name": "Fairium Z"
   },
   {
-    "id": "lightclay",
-    "name": "Light Clay"
-  },
-  {
     "id": "enigmaberry",
     "name": "Enigma Berry"
+  },
+  {
+    "id": "lightclay",
+    "name": "Light Clay"
   },
   {
     "id": "protectivepads",
     "name": "Protective Pads"
   },
   {
-    "id": "persimberry",
-    "name": "Persim Berry"
-  },
-  {
     "id": "grassyseed",
     "name": "Grassy Seed"
+  },
+  {
+    "id": "persimberry",
+    "name": "Persim Berry"
   },
   {
     "id": "babiriberry",
@@ -395,12 +395,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Psychic Seed"
   },
   {
-    "id": "mistyseed",
-    "name": "Misty Seed"
-  },
-  {
     "id": "earthplate",
     "name": "Earth Plate"
+  },
+  {
+    "id": "mistyseed",
+    "name": "Misty Seed"
   },
   {
     "id": "aloraichiumz",
@@ -415,12 +415,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Poison Barb"
   },
   {
-    "id": "dragoniumz",
-    "name": "Dragonium Z"
-  },
-  {
     "id": "chartiberry",
     "name": "Charti Berry"
+  },
+  {
+    "id": "dragoniumz",
+    "name": "Dragonium Z"
   },
   {
     "id": "occaberry",
@@ -471,12 +471,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Cheri Berry"
   },
   {
-    "id": "shucaberry",
-    "name": "Shuca Berry"
-  },
-  {
     "id": "dreadplate",
     "name": "Dread Plate"
+  },
+  {
+    "id": "shucaberry",
+    "name": "Shuca Berry"
   },
   {
     "id": "pokeball",
@@ -823,12 +823,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Ghost Memory"
   },
   {
-    "id": "parkball",
-    "name": "Park Ball"
-  },
-  {
     "id": "rockmemory",
     "name": "Rock Memory"
+  },
+  {
+    "id": "parkball",
+    "name": "Park Ball"
   },
   {
     "id": "blueorb",
@@ -855,16 +855,16 @@ export const GEN7_HELD_ITEMS = [
     "name": "Medichamite"
   },
   {
+    "id": "goldbottlecap",
+    "name": "Gold Bottle Cap"
+  },
+  {
     "id": "timerball",
     "name": "Timer Ball"
   },
   {
     "id": "armorfossil",
     "name": "Armor Fossil"
-  },
-  {
-    "id": "goldbottlecap",
-    "name": "Gold Bottle Cap"
   },
   {
     "id": "tamatoberry",
@@ -895,12 +895,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Incinium Z"
   },
   {
-    "id": "helixfossil",
-    "name": "Helix Fossil"
-  },
-  {
     "id": "thickclub",
     "name": "Thick Club"
+  },
+  {
+    "id": "helixfossil",
+    "name": "Helix Fossil"
   },
   {
     "id": "deepseatooth",
@@ -919,16 +919,16 @@ export const GEN7_HELD_ITEMS = [
     "name": "Quick Ball"
   },
   {
+    "id": "quickpowder",
+    "name": "Quick Powder"
+  },
+  {
     "id": "abomasite",
     "name": "Abomasite"
   },
   {
     "id": "fastball",
     "name": "Fast Ball"
-  },
-  {
-    "id": "quickpowder",
-    "name": "Quick Powder"
   },
   {
     "id": "levelball",
@@ -971,12 +971,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Venusaurite"
   },
   {
-    "id": "decidiumz",
-    "name": "Decidium Z"
-  },
-  {
     "id": "dawnstone",
     "name": "Dawn Stone"
+  },
+  {
+    "id": "decidiumz",
+    "name": "Decidium Z"
   },
   {
     "id": "absolite",
@@ -1023,12 +1023,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Metagrossite"
   },
   {
-    "id": "tapuniumz",
-    "name": "Tapunium Z"
-  },
-  {
     "id": "sunstone",
     "name": "Sun Stone"
+  },
+  {
+    "id": "tapuniumz",
+    "name": "Tapunium Z"
   },
   {
     "id": "cherishball",
@@ -1039,12 +1039,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Hondew Berry"
   },
   {
-    "id": "whippeddream",
-    "name": "Whipped Dream"
-  },
-  {
     "id": "manectite",
     "name": "Manectite"
+  },
+  {
+    "id": "whippeddream",
+    "name": "Whipped Dream"
   },
   {
     "id": "premierball",
@@ -1163,6 +1163,10 @@ export const GEN7_HELD_ITEMS = [
     "name": "Salamencite"
   },
   {
+    "id": "ultranecroziumz",
+    "name": "Ultranecrozium Z"
+  },
+  {
     "id": "shockdrive",
     "name": "Shock Drive"
   },
@@ -1173,10 +1177,6 @@ export const GEN7_HELD_ITEMS = [
   {
     "id": "steelixite",
     "name": "Steelixite"
-  },
-  {
-    "id": "ultranecroziumz",
-    "name": "Ultranecrozium Z"
   },
   {
     "id": "garchompite",
