@@ -76,7 +76,9 @@ const MAX_RESULT_CACHE = 400;
 // v14: results carry teamScore (the chosen team's realized score — the
 // close-bench reference) and note text was rebuilt; persisted v13 results
 // would render without both.
-const RESULT_CACHE_VERSION = "14";
+// v15: low-usage rows no longer get a noisy "trace usage" note; the Source
+// column already says what tier/usage row the prior came from.
+const RESULT_CACHE_VERSION = "15";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the
@@ -758,18 +760,16 @@ function getChoiceOptionNote(result, best, bestNonMega) {
 function makeChoice(input, result, note) {
   // Row notes carry only what the rest of the page does NOT already show:
   // the default build label and per-move facts live on the set card, so the
-  // note keeps build labels only when non-default, states WHY the usage
-  // prior is absent (two different reasons — a real trace percentage vs a
-  // readiness gate — used to share one misleading "<2.73%" label), and
-  // keeps genuine warnings (no STAB, damage-defining ability assumption).
+  // note keeps build labels only when non-default, states a useful readiness
+  // gate when real usage exists but is not counted yet, and keeps genuine
+  // warnings (no STAB, damage-defining ability assumption).
   const parts = [];
   if (note && note !== "Standard set") parts.push(note);
-  if (!result.meaningfulUsage) {
-    parts.push(
-      (result.usagePercent || 0) >= MIN_MEANINGFUL_USAGE_PERCENT
-        ? `usage ${result.usagePercent.toFixed(1)}% not counted yet: set not ready`
-        : `trace usage (<${MIN_MEANINGFUL_USAGE_PERCENT.toFixed(2)}%)`,
-    );
+  if (
+    !result.meaningfulUsage &&
+    (result.usagePercent || 0) >= MIN_MEANINGFUL_USAGE_PERCENT
+  ) {
+    parts.push(`usage ${result.usagePercent.toFixed(1)}% not counted yet: set not ready`);
   }
   const usageNote = parts.join("; ");
   const legalityNote = formatLegalityNote(result.legalityProfile);

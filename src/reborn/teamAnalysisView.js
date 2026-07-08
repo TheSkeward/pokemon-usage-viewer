@@ -1,4 +1,4 @@
-import { escapeHtml } from "../utils/html.js";
+import { escapeAttr, escapeHtml } from "../utils/html.js";
 import { getMoveMeta, getTypeColor, describeMoveMeta } from "../moveMeta";
 import { toId } from "../utils/ids.js";
 import { describeNature } from "../natures.js";
@@ -354,12 +354,13 @@ function renderSetReadiness(readiness) {
 
 function renderSetMove(move) {
   const facts = describeMoveMeta(getMoveMeta(move.name));
+  const sourceTitle = move.sourceTitle || move.sourceLabel || "Legal";
   return `
     <div class="team-set-move">
       ${renderTypeBadge(move.type)}
       <span class="team-set-move-name"${facts ? ` title="${escapeHtml(facts)}"` : ""}>${escapeHtml(move.name)}</span>
       <span class="team-set-move-dmg">${escapeHtml(formatDamage(move))}</span>
-      <span class="team-set-move-src">${escapeHtml(move.sourceLabel || "Legal")}</span>
+      <span class="team-set-move-src" title="${escapeAttr(sourceTitle)}">${escapeHtml(move.sourceLabel || "Legal")}</span>
     </div>
   `;
 }

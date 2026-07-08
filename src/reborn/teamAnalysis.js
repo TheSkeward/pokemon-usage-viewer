@@ -767,6 +767,7 @@ function formatRecommendedMove(move, member, attackerStats) {
     availableSources: move.availableSources || [],
     category: move.category,
     sourceLabel: formatBestSource(move),
+    sourceTitle: formatBestSourceTitle(move),
     superEffectiveTargetCount: isFixedDamageMove(move.id)
       ? 0 // fixed damage is never super effective
       : countSuperEffectiveTargets(move.type),
@@ -1226,6 +1227,15 @@ function formatBestSource(move) {
 
   if (!source) return "Legal";
   return source.detail ? `${source.label}: ${source.detail}` : source.label;
+}
+
+function formatBestSourceTitle(move) {
+  const source = [...(move.availableSources || [])].sort(
+    (a, b) => getSourcePriority(a) - getSourcePriority(b),
+  )[0];
+
+  if (!source) return "";
+  return source.sourceTitle || source.detail || source.label || "";
 }
 
 function getSourcePriority(source) {

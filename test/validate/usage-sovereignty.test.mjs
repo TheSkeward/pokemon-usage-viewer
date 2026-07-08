@@ -66,3 +66,21 @@ test("owning the Link Stone zeroes trade friction and flips the Abra verdict", a
     "with the stone in hand, Alakazam's C advantage should win the line",
   );
 });
+
+test("low-usage rows do not duplicate the Source column as trace notes", async () => {
+  const result = await runPool({
+    pool: ["Bidoof", "Ekans", "Hoothoot", "Meowth", "Patrat", "Pidgey", "Rattata", "Spinarak"],
+    badge: 1,
+    levelCap: 20,
+  });
+  const notes = result.lines.flatMap((line) =>
+    [line.best, line.bestNonMega, ...(line.choiceOptions || [])]
+      .filter(Boolean)
+      .map((choice) => choice.note || ""),
+  );
+
+  assert.ok(
+    !notes.some((note) => /trace usage/i.test(note)),
+    `trace note should not be emitted; notes were: ${notes.filter(Boolean).join(" | ")}`,
+  );
+});

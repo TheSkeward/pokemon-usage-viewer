@@ -84,6 +84,7 @@ export async function buildRebornBreedingContext({
             hops: donorCost.hops + 1,
             level: donorCost.level,
             how: donorCost.how,
+            sourceTitle: donorCost.sourceTitle || "",
             // A direct donor is credited as the form that actually learns
             // the move (Vigoroth, not the fielded Slaking) when the source
             // names one; intermediate hops keep their species names.
@@ -104,12 +105,19 @@ export async function buildRebornBreedingContext({
         targetBreeding.moveIds.add(move.id);
         // The path spells every step; the parenthetical is how the ROOT
         // learner gets the move: "Azumarill → Granbull breeding chain (@1)".
+        const detail = `${best.path.join(" → ")} breeding chain${
+          best.how ? ` (${best.how})` : ""
+        }`;
         targetBreeding.sources[move.id] = {
           label: "Egg",
-          detail: `${best.path.join(" → ")} breeding chain${
-            best.how ? ` (${best.how})` : ""
-          }`,
+          detail,
           donorName: best.path[best.path.length - 1],
+          sourceTitle: formatBreedingSourceTitle({
+            detail,
+            moveName: move.name,
+            rootSourceTitle: best.sourceTitle,
+            targetName: target.species.name,
+          }),
         };
         changed = true;
       }
@@ -148,26 +156,58 @@ export function acquisitionOf(move, speciesId) {
     const levelMatch = /^Level (\d+)(?:\s*\(([^,)]+)[,)])?/.exec(label);
     if (levelMatch) {
       const level = Number.parseInt(levelMatch[1], 10);
-      candidate = { level, how: `@${level}`, learner: levelMatch[2] || null };
+      candidate = {
+        level,
+        how: `@${level}`,
+        learner: source.learnerName || levelMatch[2] || null,
+        sourceTitle: source.sourceTitle || source.detail || source.label || "",
+      };
     } else if (/relearner/i.test(label)) {
       // Relearning costs a Heart Scale + a trip — a real hassle the user
       // rates above ANY level-up (and it was masquerading as the cheapest
       // donor at level 0: "Slaking breeding chain (@1)"). Sorted after every
       // natural level so it's a last resort, never a tiebreak winner.
-      candidate = { level: 200, how: "Relearner" };
+      candidate = {
+        level: 200,
+        how: "Relearner",
+        learner: source.learnerName || null,
+        sourceTitle: source.sourceTitle || source.detail || source.label || "",
+      };
     } else if (/evolution/i.test(label)) {
       const evoLevel = GEN7_PROGRESSION_SPECIES[speciesId]?.evoLevel ?? null;
       candidate = {
         level: evoLevel ?? 0,
         how: evoLevel ? `evo@${evoLevel}` : "on evolution",
+        learner: source.learnerName || null,
+        sourceTitle: source.sourceTitle || source.detail || source.label || "",
       };
     } else {
       // "TM42: After Badge 01" → "TM42"; "Sketch" → "Sketch"; etc.
-      candidate = { level: 0, how: label.split(":")[0].trim() || "taught" };
+      candidate = {
+        level: 0,
+        how: label.split(":")[0].trim() || "taught",
+        learner: source.learnerName || null,
+        sourceTitle: source.sourceTitle || source.detail || source.label || "",
+      };
     }
     if (!best || candidate.level < best.level) best = candidate;
   }
   return best || { level: 0, how: "" };
+}
+
+function formatBreedingSourceTitle({
+  detail,
+  moveName,
+  rootSourceTitle,
+  targetName,
+}) {
+  return [
+    `${moveName}: egg move for ${targetName}.`,
+    `Breeding route: ${detail}.`,
+    rootSourceTitle ? `Root source: ${rootSourceTitle}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 // User rule: the shortest possible chain wins; earliest acquisition is only

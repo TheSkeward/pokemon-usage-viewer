@@ -148,18 +148,27 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     );
     // Reachable-by-leveling window per entry: at or above the form's arrival
     // (it must EXIST at that level) and at or below its natural departure.
-    const naturalLevelUpLevels = [
-      ...allLevelUpLevels.filter(
-        (level) =>
-          !isEvolvedLevelOneMove(level, evolvedSpecies),
-      ),
+    // Keep the learner form structured; breeding-chain provenance must say
+    // "Skitty @1", not the currently fielded Delcatty that inherited the move.
+    const naturalLevelUpSources = [
+      ...allLevelUpLevels
+        .filter((level) => !isEvolvedLevelOneMove(level, evolvedSpecies))
+        .map((level) => ({
+          level,
+          learnerId: pokemonId,
+          learnerName: speciesRecord?.name || legalMoveData?.name || pokemonId,
+        })),
       ...preEvolutionEntries
         .filter(
           (entry) =>
             entry.level >= arrivalOf(entry.from) &&
             entry.level <= departureOf(entry.from),
         )
-        .map((entry) => entry.level),
+        .map((entry) => ({
+          level: entry.level,
+          learnerId: entry.from,
+          learnerName: ancestorName(entry.from),
+        })),
     ];
     const delayedEntries = preEvolutionEntries
       .filter(
@@ -185,9 +194,13 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     const hasLevelOnePreEvoOnly = preEvolutionEntries.some(
       (entry) => entry.level === 1 && arrivalOf(entry.from) > 1,
     );
-    const levels = naturalLevelUpLevels.filter(
-      (level) => level <= levelCap,
-    );
+    const levelSources = naturalLevelUpSources
+      .filter((source) => source.level <= levelCap)
+      .sort(
+        (a, b) =>
+          a.level - b.level ||
+          String(a.learnerName || "").localeCompare(String(b.learnerName || "")),
+      );
     // A genuine evolution move (flagged by the generator: level-1 on this form,
     // and no pre-evolution learns it by level-up) is gained on evolving into this
     // form — e.g. Combusken's Double Kick — so it's directly available whenever
@@ -206,10 +219,16 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         isEvolvedLevelOneMove(level, evolvedSpecies),
       );
 
-    if (levels.length > 0) {
+    if (levelSources.length > 0) {
+      const best = levelSources[0];
       sources.push({
         kind: "level-up",
-        label: `Level ${Math.min(...levels)}`,
+        label: `Level ${best.level}`,
+        learnerId: best.learnerId || null,
+        learnerName: best.learnerName || null,
+        sourceTitle: best.learnerName
+          ? `${best.learnerName} learns ${move.name} at level ${best.level}.`
+          : "",
       });
 
       if (moveRelearnerUnlocked) {
@@ -220,9 +239,13 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       }
     } else if (candyEntries.length > 0) {
       const best = candyEntries[0];
+      const learner = best.from ? ancestorName(best.from) : "pre-evolution";
       sources.push({
         kind: "level-up",
-        label: `Level ${best.level} (${best.from ? ancestorName(best.from) : "pre-evolution"}, candy down)`,
+        label: `Level ${best.level} (${learner}, candy down)`,
+        learnerId: best.from || null,
+        learnerName: learner,
+        sourceTitle: `${learner} learns ${move.name} at level ${best.level} after being candied down.`,
       });
     } else if (delayedEntries.length > 0) {
       // Only reachable by delaying a SPECIFIC evolution past its natural level
@@ -232,9 +255,13 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       const best = delayedEntries[0];
       // Terse by request: "Level 38 (Slakoth)" = requires keeping Slakoth
       // unevolved to 38.
+      const learner = best.from ? ancestorName(best.from) : "pre-evolution";
       sources.push({
         kind: "level-up",
-        label: `Level ${best.level} (${best.from ? ancestorName(best.from) : "pre-evolution"})`,
+        label: `Level ${best.level} (${learner})`,
+        learnerId: best.from || null,
+        learnerName: learner,
+        sourceTitle: `${learner} learns ${move.name} at level ${best.level} before evolving.`,
         delayedEvolution: true,
       });
     } else if (isEvolutionMove) {
@@ -310,10 +337,12 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       daycareUnlocked &&
       selectedEggMoveIds.has(move.id)
     ) {
+      const eggSource = eggMoveSourceById[move.id] || {};
       sources.push({
         kind: "egg",
-        label: eggMoveSourceById[move.id]?.label || "Egg",
-        detail: eggMoveSourceById[move.id]?.detail || "Breeding chain",
+        label: eggSource.label || "Egg",
+        detail: eggSource.detail || "Breeding chain",
+        sourceTitle: eggSource.sourceTitle || eggSource.detail || "",
       });
     }
 

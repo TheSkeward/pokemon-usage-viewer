@@ -198,7 +198,7 @@ function renderSourcePills(sources) {
           (source) => `
             <span
               class="legal-source-pill ${escapeAttr(SOURCE_TONE[source.kind] || source.kind)}"
-              title="${escapeAttr(source.detail || source.label)}"
+              title="${escapeAttr(source.sourceTitle || source.detail || source.label)}"
             >
               ${escapeHtml(source.label)}
             </span>

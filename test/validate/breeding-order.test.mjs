@@ -108,6 +108,24 @@ test("candy-down donor at @9 beats a level-up donor at @27 (Manectric's Uproar)"
   assert.ok(!/@1\b/.test(uproar.detail), "the phantom @1 must be gone");
 });
 
+test("level-1 pre-evolution carryover credits the pre-evolution learner", async () => {
+  // User report: Lopunny's Fake Out was displayed as "Delcatty breeding
+  // chain (@1)" because Skitty's level-1 carryover collapsed to the fielded
+  // Delcatty. The easiest root learner is Skitty.
+  const { pokemonIndex } = await loadShared();
+  const context = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression: { levelCap: "60", daycareUnlocked: true },
+    query: ["Skitty", "Buneary"].join("\n"),
+  });
+
+  const fakeOut = context.byPokemonId.lopunny?.sources?.fakeout;
+  assert.ok(fakeOut, "Lopunny must get Fake Out from the pool chain");
+  assert.equal(fakeOut.donorName, "Skitty");
+  assert.equal(fakeOut.detail, "Skitty breeding chain (@1)");
+  assert.match(fakeOut.sourceTitle, /Root source: Skitty learns Fake Out at level 1\./);
+});
+
 test("chains name how the root learner gets the move, including evolution moves", async () => {
   // User report: "Egg: Pangoro breeding chain" demonstrated nothing —
   // Pangoro's Bullet Punch is an evolution move, so the chain must say so.
