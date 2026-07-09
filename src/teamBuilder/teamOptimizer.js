@@ -78,7 +78,11 @@ const MAX_RESULT_CACHE = 400;
 // would render without both.
 // v15: low-usage rows no longer get a noisy "trace usage" note; the Source
 // column already says what tier/usage row the prior came from.
-const RESULT_CACHE_VERSION = "15";
+// v16: level-1 relearner relists survive alongside delayed/candy pre-evo
+// routes (Honchkrow Sucker Punch was delayed-only at cap 55+), changing
+// builds/friction for affected mons; breeding donor ties are now total-
+// ordered so provenance no longer varies with pool text order.
+const RESULT_CACHE_VERSION = "16";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the

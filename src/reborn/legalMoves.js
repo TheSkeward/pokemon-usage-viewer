@@ -269,9 +269,20 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         kind: "level-up",
         label: "On evolution",
       });
-    } else if (
+    }
+
+    // A level-1 relist (or an unreachable level-1 pre-evo entry) makes the
+    // move relearner-teachable on this form INDEPENDENTLY of the branches
+    // above — a candy-down or delayed pre-evo route must not swallow it.
+    // As the last else-if it did: Honchkrow's Sucker Punch (own [1],
+    // Murkrow@55) was relearner-only at cap 50, but at cap 55 the delayed
+    // branch won the chain and the zero-cost Heart Scale route VANISHED —
+    // the move got strictly worse by raising the cap (delayed friction on
+    // builds, donor pricing @55 instead of the relearner's last-resort 200).
+    if (
       (hasRelearnerOnlyLevelOne || hasLevelOnePreEvoOnly) &&
-      moveRelearnerUnlocked
+      moveRelearnerUnlocked &&
+      !sources.some((source) => source.kind === "relearner")
     ) {
       sources.push({
         kind: "relearner",

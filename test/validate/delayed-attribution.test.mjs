@@ -62,6 +62,41 @@ test("elective hops don't gate moves the form knows at ARRIVAL", async () => {
   }
 });
 
+test("the relearner route survives when a delayed pre-evo route enters the cap", async () => {
+  // Honchkrow Sucker Punch again, one cap higher: at 55 the Murkrow@55
+  // delayed route exists — but the level-1 relist's Heart Scale route must
+  // ride ALONGSIDE it, not vanish (it used to be the last else-if, so
+  // raising the cap made the move strictly worse: delayed-only friction).
+  const data = await loadRebornLegalMoveData("honchkrow");
+  const withRelearner = getAvailableRebornMoves(data, {
+    levelCap: "55",
+    moveRelearnerUnlocked: true,
+  });
+  const suckerPunch = withRelearner.find((m) => m.id === "suckerpunch");
+  assert.ok(
+    suckerPunch?.availableSources?.some((s) => s.kind === "relearner"),
+    "relearner source must survive the delayed branch",
+  );
+  assert.ok(
+    suckerPunch.availableSources.some(
+      (s) => s.kind === "level-up" && s.delayedEvolution,
+    ),
+    "the delayed Murkrow@55 route is still listed",
+  );
+  assert.equal(
+    suckerPunch.delayedEvolution,
+    false,
+    "with a relearner route the move is NOT delayed-only",
+  );
+  // Without the relearner the delayed route is genuinely the only one.
+  const withoutRelearner = getAvailableRebornMoves(data, {
+    levelCap: "55",
+    moveRelearnerUnlocked: false,
+  });
+  const delayedOnly = withoutRelearner.find((m) => m.id === "suckerpunch");
+  assert.equal(delayedOnly?.delayedEvolution, true);
+});
+
 test("an evolved form's own level-1 relist is relearner-teachable regardless of pre-evo entries", async () => {
   // Honchkrow's signature Sucker Punch: own learnset [1], Murkrow@55. At cap
   // 50 the Murkrow route is out of reach — the level-1 relist must still be

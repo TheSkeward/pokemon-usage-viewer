@@ -160,3 +160,30 @@ test("egg-group compatibility resolves over the FAMILY, not the fielded form", a
   );
   assert.ok(mantyke.moveIds.includes("twister"), "Dratini passes Twister");
 });
+
+test("breeding provenance is independent of pool text order", async () => {
+  // Two donors can tie on (hops, level, path) while differing only in
+  // provenance text — a fielded Vigoroth's "Level 9" vs a fielded Slaking's
+  // "Level 9 (Vigoroth, candy down)" both cost @9 via Vigoroth. With a
+  // partial order the winner was whichever came first in the pool TEXT,
+  // which leaked input ordering into breedingContext and from there into
+  // every stableStringify'd cache signature (a pool reorder recomputed the
+  // whole pool cold) and flipped the Egg tooltip between orderings.
+  const { pokemonIndex } = await loadShared();
+  const progression = { levelCap: "30", daycareUnlocked: true };
+  const orderA = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression,
+    query: ["Vigoroth", "Slaking", "Diglett"].join("\n"),
+  });
+  const orderB = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression,
+    query: ["Slaking", "Vigoroth", "Diglett"].join("\n"),
+  });
+  assert.deepEqual(
+    orderA.byPokemonId,
+    orderB.byPokemonId,
+    "the breeding context must not depend on pool text order",
+  );
+});

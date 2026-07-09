@@ -211,11 +211,23 @@ function formatBreedingSourceTitle({
 }
 
 // User rule: the shortest possible chain wins; earliest acquisition is only
-// the tiebreak, then path names for determinism.
+// the tiebreak, then path names for determinism. The final tiebreaks on how/
+// sourceTitle never reorder anything the user-ratified keys distinguish —
+// they only make the order TOTAL: two donors can tie on (hops, level, path)
+// while differing in provenance text (a fielded Vigoroth's "Level 9" vs a
+// fielded Slaking's "Level 9 (Vigoroth, candy down)" both cost @9 via
+// Vigoroth), and with a partial order the winner was whichever came first in
+// pool TEXT order — which leaked input ordering into breedingContext, hence
+// into stableStringify'd cache signatures (a pool reorder recomputed
+// everything cold) and flipped the Egg tooltip between orderings.
 export function compareBreedingCosts(a, b) {
   if (a.hops !== b.hops) return a.hops - b.hops;
   if (a.level !== b.level) return a.level - b.level;
-  return (a.path || []).join("→").localeCompare((b.path || []).join("→"));
+  return (
+    (a.path || []).join("→").localeCompare((b.path || []).join("→")) ||
+    String(a.how || "").localeCompare(String(b.how || "")) ||
+    String(a.sourceTitle || "").localeCompare(String(b.sourceTitle || ""))
+  );
 }
 
 export function applyBreedingContextToProgression(

@@ -836,7 +836,31 @@ Invariants the shape encodes (each guarded by fixtures):
   PROVISIONAL pending calibration against the extracted lift
   distributions (0 = kill switch; sweepable). Both team-fit paths
   (fastTeamFit and the exact fallback) carry the blend in lockstep.
-- **V1 mega-representative convergence + incremental-search integrity**
+- **Review fixes for the breeding-provenance commit (1611e89d)**. An
+  adversarial review of the provenance layer confirmed two defects, both
+  reproduced by executing the real modules:
+  (1) The relearner route for a level-1 relist vanished whenever a
+  delayed/candy pre-evo route entered the cap — it was the LAST else-if
+  in the source chain, so Honchkrow's Sucker Punch (own [1], Murkrow@55)
+  was relearner-only at cap 50 but delayed-ONLY at cap 55: raising the
+  badge cap made the signature move strictly worse (delayed friction on
+  every build, breeding donors priced @55 instead of the relearner's
+  last-resort 200). The relearner source is now pushed independently of
+  the level-route branches; the move-level delayedEvolution flag
+  (sources.every) then correctly clears. Left by the batch-B audit fix
+  (6ae48bbd); surfaced by the provenance tooltips asserting a wrong sole
+  route. RESULT_CACHE_VERSION 15 → 16.
+  (2) compareBreedingCosts was a PARTIAL order: donors tying on the
+  user-ratified keys (hops, level, path) could differ in the new
+  provenance text (fielded Vigoroth "Level 9" vs fielded Slaking
+  "Level 9 (Vigoroth, candy down)" — both @9 via Vigoroth), and the
+  winner was whichever came first in pool TEXT order. That leaked input
+  ordering into breedingContext and thus into every stableStringify'd
+  cache signature — reordering the same pool recomputed everything cold
+  and flipped the Egg tooltip. Final tiebreaks on how/sourceTitle make
+  the order total; they can never reorder candidates the ratified keys
+  distinguish. Both pinned by regression tests; golden drift (if any)
+  audited alongside.
   (same audit). (1) A mega usage representative could never satisfy the
   O_rep gate: currentSpecies never fields mega ids, so `currentId ===
   representativeId` was unsatisfiable and every mega-anchored line kept
