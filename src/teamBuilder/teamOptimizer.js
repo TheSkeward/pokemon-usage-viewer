@@ -82,7 +82,11 @@ const MAX_RESULT_CACHE = 400;
 // routes (Honchkrow Sucker Punch was delayed-only at cap 55+), changing
 // builds/friction for affected mons; breeding donor ties are now total-
 // ordered so provenance no longer varies with pool text order.
-const RESULT_CACHE_VERSION = "16";
+// v17: a fielded evolution's OWN below-arrival level-up entries obey the
+// arrival window (candy-down/relearner, not phantom natural), and equal-
+// level donor ties prefer less hassle — chain details/labels change
+// (Pineco's Pin Missile: Skorupi@9, not Drapion@9).
+const RESULT_CACHE_VERSION = "17";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the

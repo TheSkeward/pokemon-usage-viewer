@@ -836,6 +836,26 @@ Invariants the shape encodes (each guarded by fixtures):
   PROVISIONAL pending calibration against the extracted lift
   distributions (0 = kill switch; sweepable). Both team-fit paths
   (fastTeamFit and the exact fallback) carry the blend in lockstep.
+- **Own-form arrival window + donor hassle tiebreak** (user report:
+  Pineco's Pin Missile donor read "Drapion breeding chain (@9)" — but
+  Drapion arrives at 40, so Drapion@9 means evolve-then-candy-down while
+  Skorupi@9 is plain leveling). Two rules:
+  (1) A fielded evolution's OWN level-up entries obey the same arrival
+  window as pre-evo entries — a below-arrival own entry is a candy-down
+  route (level ≥ 2, form reachable at cap) or relearner-teachable, never
+  a phantom natural "Level N". In practice the pre-evo natural window
+  almost always covers the same move (learnsets are inherited), so the
+  fielded Drapion now resolves Pin Missile as natural "Level 9" with
+  learner SKORUPI — the honest zero-cost route — and the provenance
+  tooltip says so.
+  (2) acquisitionOf and compareBreedingCosts carry a `hassle` rank:
+  candy-down and delayed routes lose EQUAL-LEVEL ties to plain level-ups
+  (structured candyDown/delayedEvolution flags, label fallback). Never
+  overrides a level advantage — Vigoroth@9 candy-down still beats
+  Exploud@27 per the ratified hops → level order; the ratified keys are
+  untouched above the tie. Zero golden drift (availability unchanged —
+  only pricing, labels, and chain crediting move); pinned by a Pineco/
+  Skorupi regression test. RESULT_CACHE_VERSION 16 → 17.
 - **Review fixes for the breeding-provenance commit (1611e89d)**. An
   adversarial review of the provenance layer confirmed two defects, both
   reproduced by executing the real modules:

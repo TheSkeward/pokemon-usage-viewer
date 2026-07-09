@@ -84,6 +84,7 @@ export async function buildRebornBreedingContext({
             hops: donorCost.hops + 1,
             level: donorCost.level,
             how: donorCost.how,
+            hassle: donorCost.hassle || 0,
             sourceTitle: donorCost.sourceTitle || "",
             // A direct donor is credited as the form that actually learns
             // the move (Vigoroth, not the fielded Slaking) when the source
@@ -161,6 +162,15 @@ export function acquisitionOf(move, speciesId) {
         how: `@${level}`,
         learner: source.learnerName || levelMatch[2] || null,
         sourceTitle: source.sourceTitle || source.detail || source.label || "",
+        // Candy-down and delayed-evolution routes cost real extra work over a
+        // plain level-up at the SAME level (Drapion@9 means candying a
+        // level-40 evo back down; Skorupi@9 is just leveling) — they lose
+        // equal-level ties, never a level advantage (Vigoroth@9 candy still
+        // beats Exploud@27, per the ratified hops→level order).
+        hassle:
+          source.candyDown || source.delayedEvolution || /candy down/i.test(label)
+            ? 1
+            : 0,
       };
     } else if (/relearner/i.test(label)) {
       // Relearning costs a Heart Scale + a trip — a real hassle the user
@@ -190,7 +200,14 @@ export function acquisitionOf(move, speciesId) {
         sourceTitle: source.sourceTitle || source.detail || source.label || "",
       };
     }
-    if (!best || candidate.level < best.level) best = candidate;
+    if (
+      !best ||
+      candidate.level < best.level ||
+      (candidate.level === best.level &&
+        (candidate.hassle || 0) < (best.hassle || 0))
+    ) {
+      best = candidate;
+    }
   }
   return best || { level: 0, how: "" };
 }
@@ -224,6 +241,10 @@ export function compareBreedingCosts(a, b) {
   if (a.hops !== b.hops) return a.hops - b.hops;
   if (a.level !== b.level) return a.level - b.level;
   return (
+    // Equal-level routes differ in real work: a candy-down/delayed @9 loses
+    // to a plain level-up @9 (user report: Drapion@9-candy beat Skorupi@9
+    // on the path tiebreak). Never overrides a level advantage.
+    (a.hassle || 0) - (b.hassle || 0) ||
     (a.path || []).join("→").localeCompare((b.path || []).join("→")) ||
     String(a.how || "").localeCompare(String(b.how || "")) ||
     String(a.sourceTitle || "").localeCompare(String(b.sourceTitle || ""))

@@ -148,11 +148,21 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     );
     // Reachable-by-leveling window per entry: at or above the form's arrival
     // (it must EXIST at that level) and at or below its natural departure.
+    // The fielded form's OWN entries obey the same arrival bound — a fielded
+    // Drapion (arrives at 40) does not "learn Pin Missile at 9" by leveling;
+    // its own below-arrival entries are candy-down routes exactly like a
+    // pre-evo's (user report: Pineco's Pin Missile donor priced Drapion@9 as
+    // if natural, beating the honest Skorupi@9 on an alphabetical tie).
     // Keep the learner form structured; breeding-chain provenance must say
     // "Skitty @1", not the currently fielded Delcatty that inherited the move.
+    const ownArrival = arrivalOf(pokemonId);
     const naturalLevelUpSources = [
       ...allLevelUpLevels
-        .filter((level) => !isEvolvedLevelOneMove(level, evolvedSpecies))
+        .filter(
+          (level) =>
+            !isEvolvedLevelOneMove(level, evolvedSpecies) &&
+            level >= ownArrival,
+        )
         .map((level) => ({
           level,
           learnerId: pokemonId,
@@ -182,17 +192,29 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     // (user-verified): Common Candy the form back below the level, then level
     // up through it — Vigoroth (exists from 18) candies down to 8 and learns
     // Uproar at 9. Requires the form to be reachable at the cap. Level-1
-    // entries stay relearner-only: you never level UP to 1.
-    const candyEntries = preEvolutionEntries
-      .filter(
+    // entries stay relearner-only: you never level UP to 1. The fielded
+    // form's own below-arrival entries take the same route (Drapion candies
+    // down for its own level-9 Pin Missile).
+    const candyEntries = [
+      ...allLevelUpLevels
+        .filter(
+          (level) => level >= 2 && level < ownArrival && ownArrival <= levelCap,
+        )
+        .map((level) => ({ level, from: pokemonId })),
+      ...preEvolutionEntries.filter(
         (entry) =>
           entry.level >= 2 &&
           entry.level < arrivalOf(entry.from) &&
           arrivalOf(entry.from) <= levelCap,
-      )
-      .sort((a, b) => a.level - b.level);
+      ),
+    ].sort((a, b) => a.level - b.level);
     const hasLevelOnePreEvoOnly = preEvolutionEntries.some(
       (entry) => entry.level === 1 && arrivalOf(entry.from) > 1,
+    );
+    // Any own-learnset entry below arrival (candied or not) is also always
+    // teachable by the move relearner on this form.
+    const hasOwnBelowArrival = allLevelUpLevels.some(
+      (level) => level < ownArrival,
     );
     const levelSources = naturalLevelUpSources
       .filter((source) => source.level <= levelCap)
@@ -246,6 +268,9 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         learnerId: best.from || null,
         learnerName: learner,
         sourceTitle: `${learner} learns ${move.name} at level ${best.level} after being candied down.`,
+        // Structured flag for donor pricing: a candy-down at level N is more
+        // work than a plain level-up at N, so it loses equal-level ties.
+        candyDown: true,
       });
     } else if (delayedEntries.length > 0) {
       // Only reachable by delaying a SPECIFIC evolution past its natural level
@@ -280,7 +305,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     // the move got strictly worse by raising the cap (delayed friction on
     // builds, donor pricing @55 instead of the relearner's last-resort 200).
     if (
-      (hasRelearnerOnlyLevelOne || hasLevelOnePreEvoOnly) &&
+      (hasRelearnerOnlyLevelOne || hasLevelOnePreEvoOnly || hasOwnBelowArrival) &&
       moveRelearnerUnlocked &&
       !sources.some((source) => source.kind === "relearner")
     ) {

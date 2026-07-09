@@ -187,3 +187,24 @@ test("breeding provenance is independent of pool text order", async () => {
     "the breeding context must not depend on pool text order",
   );
 });
+
+test("a fielded evolution's own below-arrival entry never outprices the pre-evo route", async () => {
+  // User report: Pineco's Pin Missile donor read "Drapion breeding chain
+  // (@9)" — Drapion's OWN learnset lists 9, but Drapion arrives at 40, so
+  // that route is evolve-then-candy-down; Skorupi@9 is just leveling. The
+  // fielded form's own entries now obey the same arrival window as pre-evo
+  // entries, and equal-level ties prefer less hassle (plain level-up over
+  // candy-down/delayed).
+  const { pokemonIndex } = await loadShared();
+  const context = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression: { levelCap: "40", daycareUnlocked: true },
+    query: ["Pineco", "Skorupi"].join("\n"),
+  });
+
+  const pinMissile = context.byPokemonId.pineco?.sources?.pinmissile;
+  assert.ok(pinMissile, "Pineco must get Pin Missile from the Skorupi line");
+  assert.equal(pinMissile.donorName, "Skorupi");
+  assert.equal(pinMissile.detail, "Skorupi breeding chain (@9)");
+  assert.match(pinMissile.sourceTitle, /Skorupi learns Pin Missile at level 9\./);
+});
