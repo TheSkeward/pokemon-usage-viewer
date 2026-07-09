@@ -717,10 +717,12 @@ function renderBenchLine(result) {
     groups.get(key).entries.push(entry);
   }
 
-  // Box-position numbering: the first 30 chips in display order (a PC box's
-  // worth) get 1–30, so sorting a box by descending usage tier is a matter of
-  // reading the numbers off, not re-deriving the order by hand.
+  // Box-position numbering: bench chips in display order are numbered 1–120,
+  // four PC boxes' worth (30 slots each), each box in its own colour — so
+  // sorting a box by descending usage tier is reading numbers off rather than
+  // re-deriving the order, and the box a chip lands in is visible at a glance.
   const BOX_SIZE = 30;
+  const MAX_BENCH_INDEX = BOX_SIZE * 4;
   let benchPosition = 0;
 
   const segments = [...groups.values()]
@@ -741,8 +743,8 @@ function renderBenchLine(result) {
           const { representative, ceiling } = entry;
           benchPosition += 1;
           const boxIndex =
-            benchPosition <= BOX_SIZE
-              ? `<span class="bench-index">${benchPosition}.</span> `
+            benchPosition <= MAX_BENCH_INDEX
+              ? `<span class="bench-index bench-index--box${Math.floor((benchPosition - 1) / BOX_SIZE)}">${benchPosition}.</span> `
               : "";
           const isWorst = worstInputIds.has(representative.inputPokemonId);
           const formName = chipFormName(entry);

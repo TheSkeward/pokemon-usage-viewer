@@ -449,14 +449,19 @@ input {
   font-style: normal;
 }
 
-/* Box-position number on the first 30 bench chips (one PC box, in display
-   order), so sorting a box by descending usage tier is copy-down work. Gold,
-   so it can't be confused with the gray uppercase tier labels beside it. */
+/* Box-position number on the first 120 bench chips (four PC boxes' worth, in
+   display order), so sorting a box by descending usage tier is copy-down work.
+   One light-pastel colour per box (30 chips each) so a box boundary reads at a
+   glance and none is confused with the gray tier labels or red "worst" flag. */
 .bench-index {
-  color: #f1d887;
   font-size: 0.85em;
   font-variant-numeric: tabular-nums;
 }
+
+.bench-index--box0 { color: #f1d887; } /* box 1 · 1–30 · gold */
+.bench-index--box1 { color: #8fc7f0; } /* box 2 · 31–60 · sky */
+.bench-index--box2 { color: #93dcae; } /* box 3 · 61–90 · mint */
+.bench-index--box3 { color: #c9aef0; } /* box 4 · 91–120 · lavender */
 
 .bench-chip.trace {
   opacity: 0.5;
