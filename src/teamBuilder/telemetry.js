@@ -132,6 +132,11 @@ export function recordOptimizerSample({
   totalMs = null,
   movesetMs = null,
   fullMs = null,
+  // Swap-polish audit (shortlist runs only, null on exact paths): repairs
+  // applied and their total realized-score gain. The repair rate over time is
+  // the shortlist-quality metric the audit exists to measure.
+  polishSwaps = null,
+  polishGain = null,
   cancelled = false,
   cancelledPhase = null,
 }) {
@@ -161,6 +166,9 @@ export function recordOptimizerSample({
     // actually stopwatch, distinct from totalMs (team rows rendered).
     ...(movesetMs != null ? { movesetMs: roundMs(movesetMs) } : {}),
     ...(fullMs != null ? { fullMs: roundMs(fullMs) } : {}),
+    ...(polishSwaps != null
+      ? { polishSwaps, polishGain: Math.round(polishGain || 0) }
+      : {}),
     cancelled: Boolean(cancelled),
     ...(cancelled ? { cancelledPhase } : {}),
   };
@@ -254,6 +262,33 @@ export function getTelemetrySummary(samples = loadTelemetrySamples()) {
               group.length,
           ),
         ),
+        // Shortlist-quality aggregate: of the runs that ran the swap audit,
+        // how many needed repairs, how many swaps total, and the largest
+        // single-run gain. audited=0 means every run in this segment was
+        // exact (nothing to audit). A persistent repair rate is the signal
+        // the shortlist heuristics need work.
+        ...(() => {
+          const audited = group.filter(
+            (sample) => sample.polishSwaps != null,
+          );
+          if (!audited.length) return {};
+          const repaired = audited.filter(
+            (sample) => sample.polishSwaps > 0,
+          );
+          return {
+            polish: {
+              audited: audited.length,
+              repairedRuns: repaired.length,
+              totalSwaps: repaired.reduce(
+                (sum, sample) => sum + sample.polishSwaps,
+                0,
+              ),
+              maxGain: repaired.length
+                ? Math.max(...repaired.map((sample) => sample.polishGain || 0))
+                : 0,
+            },
+          };
+        })(),
       });
     }
   }
@@ -297,6 +332,9 @@ export function buildPerformanceReport() {
           ...(last.totalMs != null ? { totalMs: last.totalMs } : {}),
           ...(last.movesetMs != null ? { movesetMs: last.movesetMs } : {}),
           ...(last.fullMs != null ? { fullMs: last.fullMs } : {}),
+          ...(last.polishSwaps != null
+            ? { polishSwaps: last.polishSwaps, polishGain: last.polishGain }
+            : {}),
           poolSize: last.poolSize,
           builds: last.builds,
           cancelled: last.cancelled || false,

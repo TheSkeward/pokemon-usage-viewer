@@ -245,10 +245,18 @@ export function mountPoolOptimizer(container, options = {}) {
 
       stopOptimizeProgress();
       state.loading = false;
+      const polishSwapCount = state.result.searchPolish?.swaps?.length || 0;
       const approxNote = [
         state.result.searchExact
           ? ""
           : " Pool too large for an exact search — used a fast approximate one.",
+        // The swap audit repairing the team is worth a sentence: it means the
+        // shortlist heuristics missed a seat and the full-pool audit caught
+        // it. The healthy case (audit ran, nothing found) lives in the
+        // provenance footer instead — this line is prime real estate.
+        polishSwapCount
+          ? ` The full-pool swap audit then improved it (${polishSwapCount} swap${polishSwapCount === 1 ? "" : "s"}).`
+          : "",
         state.result.degraded
           ? " Some data failed to load, so parts of the pool were skipped — optimize again to retry."
           : "",
@@ -426,6 +434,19 @@ export function mountPoolOptimizer(container, options = {}) {
               totalMs: pipeline.totalMs,
               movesetMs: pipeline.movesetMs ?? null,
               fullMs: Date.now() - pipeline.pipelineStart,
+              // Shortlist-quality signal: repairs applied by the full-pool
+              // swap audit (null on exact paths where no audit runs). The
+              // aggregate repair RATE across runs is the answer to "are the
+              // shortlist heuristics good enough".
+              polishSwaps: forResult.searchPolish
+                ? forResult.searchPolish.swaps.length
+                : null,
+              polishGain: forResult.searchPolish
+                ? forResult.searchPolish.swaps.reduce(
+                    (sum, swap) => sum + (swap.gain || 0),
+                    0,
+                  )
+                : null,
             });
           } catch {
             // Telemetry must never break the pipeline.

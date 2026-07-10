@@ -56,6 +56,12 @@ export async function choosePoolTeam(
     // scores are compared against (valid for approximate searches too, where
     // bestEvaluated below is withheld from the incremental cache).
     teamScore: evaluated.score ?? null,
+    // Swap-polish audit record (shortlist path only): {swaps: [{in, out,
+    // gain, attribution}], audited}. Non-null means the full-pool 1-swap
+    // audit ran; swaps.length > 0 means the shortlist provably missed a
+    // better team and it was repaired. Null on exact paths (nothing to
+    // audit — the search already saw every mon).
+    searchPolish: bestTeam.searchPolish || null,
     // The raw (pre-note) winning team, so the optimizer can cache it and grow
     // the search incrementally next time. Only exact results are safe to seed.
     bestEvaluated: bestTeam.searchExact ? evaluated : null,
@@ -356,9 +362,9 @@ async function selectTeamByFit(
       const evaluated = realizeBestTeam(candidates, opponentTypeBias);
       if (evaluated) {
         const benchSwapScores = benchSwaps
-          ? computeBenchSwapScores(lines, evaluated.team, opponentTypeBias)
+          ? scanTeamSwaps(lines, evaluated.team, opponentTypeBias).scores
           : null;
-        return { evaluated, searchExact: true, benchSwapScores };
+        return { evaluated, searchExact: true, benchSwapScores, searchPolish: null };
       }
     } finally {
       resetFitScoring(lines);
@@ -370,6 +376,7 @@ async function selectTeamByFit(
   try {
     let candidates;
     let searchExact;
+    let usedShortlist = false;
 
     if (isStoreCovered) {
       // The team store answers any SUBSET of a fully-enumerated pool exactly,
@@ -406,6 +413,7 @@ async function selectTeamByFit(
       // Too big to enumerate fully: reduce to a coverage-preserving shortlist and
       // enumerate THAT exactly (far better than the old lossy beam). Route through
       // the Web Worker pool when it's worth it, so a big pool still uses all cores.
+      usedShortlist = true;
       const shortlist = buildShortlist(lines);
       const shortSize = Math.min(6, shortlist.length);
       const shortCombos = countCombinations(shortlist.length, shortSize);
@@ -442,21 +450,37 @@ async function selectTeamByFit(
 
     // Realize concrete builds for the top relaxed teams and keep the best by
     // exact realized score (see realizeBestTeam).
-    const evaluated =
+    let evaluated =
       realizeBestTeam(candidates || [], opponentTypeBias) || {
         team: [],
         megaUsed: null,
       };
 
-    // Rank the non-selected lines by how much the team would suffer if forced to
-    // field them — independent of which search ran above. Skippable (the
-    // confidence sweep only needs the seated set, and this is hundreds of full
-    // team evaluations per call).
-    const benchSwapScores = benchSwaps
-      ? computeBenchSwapScores(lines, evaluated.team, opponentTypeBias)
-      : null;
+    // Shortlist verdicts get the swap-polish audit: exact-on-shortlist can
+    // miss a mon the heuristics didn't keep, so scan the FULL pool for
+    // improving single swaps and apply them to a fixed point. This scan is
+    // load-bearing here (it's the exactness repair, not display), so it runs
+    // regardless of the benchSwaps option — and its final round IS the bench
+    // droppability map, so the shortlist path gets that for free.
+    let searchPolish = null;
+    let benchSwapScores = null;
+    if (usedShortlist && evaluated.team.length) {
+      const polished = polishTeamBySwaps(lines, evaluated, opponentTypeBias);
+      evaluated = polished.evaluated;
+      searchPolish = polished.record;
+      benchSwapScores = polished.scanScores;
+    } else if (benchSwaps) {
+      // Exact paths: the ranking is display-only (the bench view's "most
+      // droppable" flags) and skippable — the confidence sweep only needs the
+      // seated set, and this is hundreds of full team evaluations per call.
+      benchSwapScores = scanTeamSwaps(
+        lines,
+        evaluated.team,
+        opponentTypeBias,
+      ).scores;
+    }
 
-    return { evaluated, searchExact, benchSwapScores };
+    return { evaluated, searchExact, benchSwapScores, searchPolish };
   } finally {
     resetFitScoring(lines);
   }
@@ -516,15 +540,20 @@ function evaluatedFromRefs(bestRefs, lines, targetSize, opponentTypeBias) {
   return evaluateTeam(team, megaUsed, targetSize, opponentTypeBias);
 }
 
-// For each line not on the optimal team, the best team score achievable by
-// swapping it in for one of the starters (best over the line's form options and
-// the slot it replaces, honouring the one-Mega limit). A high score means the
-// pool genuinely wants this mon — its coverage nearly justifies a starter slot —
-// so it should NOT read as the "worst"; a low score means even its best swap-in
-// is weak, i.e. it's the most droppable. Returns inputPokemonId -> best score.
-function computeBenchSwapScores(lines, team, opponentTypeBias) {
+// One exhaustive 1-swap scan of the WHOLE pool against the current team: for
+// each line not on the team, the best team score achievable by swapping it in
+// for one of the starters (best over the line's form options and the slot it
+// replaces, honouring the one-Mega limit). Returns both readings of the same
+// pass:
+//   scores — inputPokemonId -> best swap score, the bench view's droppability
+//            ranking (a high score means the pool genuinely wants this mon);
+//   best   — the single strongest swap {line, form, slot, score}, which is the
+//            swap-polish audit: if best.score beats the team's own realized
+//            score, the search provably missed a better team.
+function scanTeamSwaps(lines, team, opponentTypeBias) {
   const scores = new Map();
-  if (!team.length) return scores;
+  let best = null;
+  if (!team.length) return { scores, best };
 
   const teamInputIds = new Set(team.map((choice) => choice.inputPokemonId));
 
@@ -533,7 +562,7 @@ function computeBenchSwapScores(lines, team, opponentTypeBias) {
     if (!representative) continue;
     if (teamInputIds.has(representative.inputPokemonId)) continue;
 
-    let best = -Infinity;
+    let lineBest = -Infinity;
     for (const form of getLineChoiceOptions(line)) {
       for (let slot = 0; slot < team.length; slot += 1) {
         const swapped = team.slice();
@@ -551,14 +580,136 @@ function computeBenchSwapScores(lines, team, opponentTypeBias) {
         // a build wrapper: same pool, two different scales, chosen by an
         // unrelated property.
         const score = getRealizedTeamScore(swapped, opponentTypeBias);
-        if (score > best) best = score;
+        if (score > lineBest) lineBest = score;
+        // Deterministic best-swap pick: score, then incoming line key, then
+        // slot — so equal-scoring audits repair identically on every run.
+        if (
+          !best ||
+          score > best.score ||
+          (score === best.score &&
+            (line.lineKey < best.line.lineKey ||
+              (line.lineKey === best.line.lineKey && slot < best.slot)))
+        ) {
+          best = { line, form, slot, score };
+        }
       }
     }
 
-    if (best > -Infinity) scores.set(representative.inputPokemonId, best);
+    if (lineBest > -Infinity) {
+      scores.set(representative.inputPokemonId, lineBest);
+    }
   }
 
-  return scores;
+  return { scores, best };
+}
+
+// Swap-polish (user design ask: "mons that get non-shortlisted SHOULD seat"):
+// repeatedly apply the best strictly-improving single swap from scanTeamSwaps
+// until none exists. The final team is a 1-swap local optimum over the ENTIRE
+// pool — any individually-better mon the shortlist missed gets seated — and
+// each accepted swap is recorded with attribution (why the shortlist missed
+// the incomer) as the shortlist-quality diagnostic. Sound but one-sided:
+// repairs prove a shortlist miss; zero repairs certify local optimality, not
+// global (a synergy PAIR both outside the shortlist stays invisible).
+// Deterministic throughout; terminates because the realized score strictly
+// increases per accepted swap, with a paranoia cap well above any observed
+// repair count.
+const POLISH_MAX_SWAPS = 8;
+
+function polishTeamBySwaps(lines, evaluated, opponentTypeBias) {
+  let current = evaluated;
+  const swaps = [];
+  let scan = scanTeamSwaps(lines, current.team, opponentTypeBias);
+
+  while (
+    scan.best &&
+    scan.best.score > (current.score ?? -Infinity) &&
+    swaps.length < POLISH_MAX_SWAPS
+  ) {
+    const swapped = current.team.slice();
+    const outgoing = swapped[scan.best.slot];
+    swapped[scan.best.slot] = scan.best.form;
+    // Re-realize builds for the new composition (the incomer's best build can
+    // differ in this team context). The scan already scored one concrete
+    // assignment, so realization can only match or improve it — the guard is
+    // a monotonicity backstop that also guarantees termination.
+    const realized = assignTeamBuilds(swapped, opponentTypeBias);
+    if (!(realized.score > (current.score ?? -Infinity))) break;
+
+    swaps.push({
+      in: choiceLabel(scan.best.form),
+      out: choiceLabel(outgoing),
+      gain: Math.round(realized.score - (current.score ?? 0)),
+      attribution: explainShortlistMiss(lines, scan.best.line),
+    });
+    current = {
+      ...current,
+      team: realized.team,
+      score: realized.score,
+      megaUsed: realized.team.find((choice) => choice.isMega) || null,
+    };
+    scan = scanTeamSwaps(lines, current.team, opponentTypeBias);
+  }
+
+  return {
+    evaluated: current,
+    // The last scan audited the FINAL team and found no improvement — exactly
+    // the bench view's droppability map, for free.
+    scanScores: scan.scores,
+    record: { swaps, audited: lines.length },
+  };
+}
+
+function choiceLabel(choice) {
+  return {
+    inputName: choice?.inputName || "",
+    name:
+      choice?.legalityProfile?.currentName ||
+      choice?.inputName ||
+      choice?.pokemonId ||
+      "?",
+  };
+}
+
+// Why did the shortlist exclude this line? Reports its rank under the same
+// individual-score ordering buildShortlist cuts on, plus every shortlist gate
+// it DID satisfy (it lost those slots to better-ranked entries) — so a repair
+// reads as either the known blind spot ("ranked 51st, matched nothing:
+// team-context value the individual score can't see") or a genuine heuristic
+// bug ("ranked 9th and still missed").
+function explainShortlistMiss(lines, line) {
+  const scored = rankShortlistEntries(lines);
+  const index = scored.findIndex((entry) => entry.line === line);
+  const entry = index >= 0 ? scored[index] : null;
+  const matched = [];
+  if (entry) {
+    REBORN_ANALYSIS_TYPES.forEach((type, typeIndex) => {
+      if ((shortlistCoverageOf(entry)?.[typeIndex] || 0) >= 0.5) {
+        matched.push(`hits ${type}`);
+      }
+      const multiplier = getTypeMultiplier(
+        type,
+        entry.best?.legalityProfile?.currentTypes || [],
+      );
+      if (multiplier === 0) matched.push(`immune to ${type}`);
+      else if (multiplier < 1) matched.push(`resists ${type}`);
+    });
+    if ((entry.best?.currentFeatures?.speed_q || 0) >= 0.8) matched.push("fast");
+    if (
+      (entry.best?.legalityProfile?.recommendedMoves || []).some(
+        (move) => (move.priority || 0) > 0,
+      )
+    ) {
+      matched.push("priority");
+    }
+    if ((entry.best?.currentFeatures?.utility_q || 0) >= 0.6) {
+      matched.push("utility");
+    }
+    if ((entry.best?.online ?? 0) === 1 && (entry.best?.friction || 0) === 0) {
+      matched.push("friction-free online");
+    }
+  }
+  return { rank: index + 1, of: scored.length, matched };
 }
 
 // Maps a realized team back onto the prepared per-line choice objects by
@@ -682,8 +833,11 @@ function countCombinations(n, k) {
 // forms — so no mon that could earn a slot on quality OR any coverage axis is
 // pruned before the optimiser sees it. Deterministic (scored order + fixed type
 // order), so the shortlist — and thus the result — is stable.
-function buildShortlist(lines) {
-  const scored = lines
+// The individual-score ordering the shortlist cuts on — shared with
+// explainShortlistMiss so repair attribution ranks by EXACTLY the ordering
+// that excluded the mon.
+function rankShortlistEntries(lines) {
+  return lines
     .map((line) => {
       const best = getLineChoiceOptions(line)[0];
       return { line, best, score: best?.teamScore ?? best?.score ?? 0 };
@@ -692,6 +846,18 @@ function buildShortlist(lines) {
       (a, b) =>
         b.score - a.score || a.line.lineKey.localeCompare(b.line.lineKey),
     );
+}
+
+function shortlistCoverageOf(entry) {
+  return (
+    entry.best?.optimisticCoverageVector ||
+    entry.best?.legalityProfile?.coverageVector ||
+    null
+  );
+}
+
+function buildShortlist(lines) {
+  const scored = rankShortlistEntries(lines);
 
   const maxSize = tunable("SHORTLIST_MAX");
   const coreSize = Math.min(tunable("SHORTLIST_CORE"), maxSize);
@@ -701,10 +867,7 @@ function buildShortlist(lines) {
       picked.set(entry.line.lineKey, entry.line);
     }
   };
-  const coverageOf = (s) =>
-    s.best?.optimisticCoverageVector ||
-    s.best?.legalityProfile?.coverageVector ||
-    null;
+  const coverageOf = shortlistCoverageOf;
 
   // 1. The straightforwardly best individuals.
   for (let i = 0; i < scored.length && picked.size < coreSize; i++) {

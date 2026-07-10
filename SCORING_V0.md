@@ -1044,3 +1044,38 @@ Invariants the shape encodes (each guarded by fixtures):
   over 80 mons / 200 builds skip fresh confidence/investment entirely
   (persisted analysis still displays), and startup auto-optimize is
   non-exhaustive and non-blocking.
+- **Swap-polish: shortlist verdicts are repaired to a 1-swap local optimum
+  over the FULL pool** (user design ask: "mons in the pool that get
+  non-shortlisted SHOULD seat... designate the last few shortlist slots at
+  random [as a canary]?" — built as the strictly-stronger deterministic
+  version: instead of randomly sampling the excluded set, audit ALL of it,
+  every run, and repair what's found). On the shortlist path (pool too big
+  to enumerate; at 120 mons the incremental layer never engages either, so
+  this was every run), after realization the engine scans every non-team
+  line x seat x form with the exact realized scorer, applies the best
+  strictly-improving swap, re-realizes builds, and repeats to a fixed
+  point (deterministic tie-breaks; strict-improvement termination; cap 8).
+  Sound but one-sided: a repair PROVES a shortlist miss; zero repairs
+  certify 1-swap local optimality, not global — the synergy-pair blind
+  spot (both partners excluded) remains, mitigable later by seeding the
+  shortlist with teammate-lift partners. Each repair carries attribution
+  (rank under the shortlist's own ordering + which gates the incomer
+  matched) so a miss reads as the known team-context blind spot vs a
+  heuristic bug. Surfacing: provenance footer shows the audit verdict
+  including the healthy case ("swap audit: shortlist held (N lines
+  audited)" — silence must not be mistakable for "didn't look"); status
+  line gains a sentence only when repairs fired; telemetry samples carry
+  polishSwaps/polishGain with a per-segment aggregate (audited /
+  repairedRuns / totalSwaps / maxGain) — the repair RATE over time is the
+  shortlist-quality metric; the audit's final scan doubles as
+  benchSwapScores, so the shortlist path always carries bench droppability
+  data again (un-degrading the bench flags that the 6985a280 valve's
+  benchSwaps gating had cost auto-reoptimize runs). Measured on the regret
+  fixture: forced shortlist sizes 8-16 miss a seat (Wormadam-Trash, ranked
+  18/36, wins no gate slot) and ONE repair recovers the true exact optimum
+  at every size; sizes 20+ hold. Pinned: repair fires and restores the
+  exact team + score at size 8; audit record present with zero swaps at
+  24; existing 24/28/32 zero-regret pins unchanged. The confidence sweep's
+  FORCE_SHORTLIST settings now also polish (engine consistency: the sweep
+  must measure the engine that ships). RESULT_CACHE_VERSION 17 -> 18
+  (large-pool teams can differ; results carry searchPolish).

@@ -53,7 +53,7 @@ export function renderTeamBuilderPage({
       ${renderRebornProgressionPanel(state.progression, { includeBias: false })}
     </details>
 
-    ${state.result?.team?.length ? renderProvenanceFooter(state.manifest, state.result?.timings) : ""}
+    ${state.result?.team?.length ? renderProvenanceFooter(state.manifest, state.result) : ""}
   `;
 
   renderSelectedSetDetails({ app, pokemonIndex, setDetails, state });
@@ -555,7 +555,8 @@ function renderInvestmentSection(state) {
 }
 
 // --- Provenance (roadmap Phase 7) --------------------------------------------
-function renderProvenanceFooter(manifest, timings) {
+function renderProvenanceFooter(manifest, result) {
+  const timings = result?.timings;
   if (!manifest && !timings) return "";
   const timingText = timings
     ? ` · resolved in ${(timings.resolveMs / 1000).toFixed(1)}s, searched in ${(timings.searchMs / 1000).toFixed(1)}s`
@@ -566,11 +567,38 @@ function renderProvenanceFooter(manifest, timings) {
         Data: Reborn ${escapeHtml(manifest?.rebornVersion || "?")} ·
         scoring ${escapeHtml(manifest?.scoringVersion || "?")} ·
         signature ${escapeHtml(manifest?.dataSignature || "?")} ·
-        built ${escapeHtml((manifest?.generatedAt || "").slice(0, 10))}${timingText}
+        built ${escapeHtml((manifest?.generatedAt || "").slice(0, 10))}${timingText}${renderSwapAuditText(result?.searchPolish)}
       </p>
       ${renderTelemetryDetails()}
     </section>
   `;
+}
+
+// The swap audit's verdict, including the healthy case: "shortlist held" is
+// only reassuring if the reader can see the audit RAN (silence would be
+// indistinguishable from "didn't look"). A repair names who came in and why
+// the shortlist missed them — the difference between the known blind spot
+// (modest individual rank, matched no gate: team-context value the
+// individual score can't see) and a heuristic bug (high rank, still missed).
+function renderSwapAuditText(searchPolish) {
+  if (!searchPolish) return "";
+  if (!searchPolish.swaps.length) {
+    return ` · swap audit: shortlist held (${searchPolish.audited} lines audited)`;
+  }
+  const parts = searchPolish.swaps.map((swap) => {
+    const attribution = swap.attribution || {};
+    const matched = attribution.matched?.length
+      ? `matched ${attribution.matched.slice(0, 3).join(", ")}${
+          attribution.matched.length > 3
+            ? ` +${attribution.matched.length - 3} more`
+            : ""
+        } but outranked`
+      : "matched no shortlist gate";
+    return `${swap.in.name} in for ${swap.out.name}, +${swap.gain} (ranked ${attribution.rank}/${attribution.of}; ${matched})`;
+  });
+  return ` · swap audit: ${searchPolish.swaps.length} repair${
+    searchPolish.swaps.length === 1 ? "" : "s"
+  } — ${escapeHtml(parts.join("; "))}`;
 }
 
 // Accumulated in-browser performance percentiles (external review ask):

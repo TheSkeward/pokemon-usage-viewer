@@ -26,5 +26,65 @@ test("shortlist regret on exact-feasible 36-mon pool (sizes 24/28/32)", async ()
       exactTeam,
       `shortlist size ${size} diverged from the exact optimum (regret > 0)`,
     );
+    assert.ok(
+      shortlisted.searchPolish,
+      "the shortlist path must always carry the swap-audit record",
+    );
   }
+});
+
+test("swap-polish repairs a shortlist miss back to the exact optimum", async () => {
+  // At tiny forced shortlist sizes the heuristics provably miss a seat on
+  // this fixture (measured: Wormadam-Trash, ranked 18/36 by individual
+  // score, wins no gate slot — the team-context blind spot the audit exists
+  // for). The polish must (a) detect it — swaps recorded with attribution —
+  // and (b) repair it all the way back to the true exact team. If a future
+  // shortlist improvement makes size 8 lossless, this fails with swaps=0:
+  // re-plant the miss at a smaller size rather than deleting the assert.
+  const fixture = loadFixture("early-weak-froakie");
+  const exact = await runFixture(fixture);
+  const exactTeam = teamInputNames(exact);
+
+  const repaired = await runPool({
+    pool: fixture.pool,
+    badge: fixture.badge,
+    levelCap: fixture.levelCap,
+    overrides: { FORCE_SHORTLIST: true, SHORTLIST_MAX: 8 },
+  });
+  const polish = repaired.searchPolish;
+  assert.ok(polish, "shortlist path must run the audit");
+  assert.ok(
+    polish.swaps.length >= 1,
+    "the planted miss must trigger at least one repair",
+  );
+  for (const swap of polish.swaps) {
+    assert.ok(swap.gain > 0, "every accepted swap must strictly improve");
+    assert.ok(
+      swap.attribution.rank >= 1 && swap.attribution.rank <= swap.attribution.of,
+      "attribution must rank the incomer within the pool",
+    );
+  }
+  assert.deepEqual(
+    teamInputNames(repaired),
+    exactTeam,
+    "the polished team must recover the exact optimum",
+  );
+  assert.equal(repaired.teamScore, exact.teamScore, "and its exact score");
+  assert.ok(
+    repaired.benchSwapScores instanceof Map && repaired.benchSwapScores.size > 0,
+    "the audit's final scan doubles as the bench swap map",
+  );
+
+  // The healthy case is a record too: at a size the shortlist handles, the
+  // audit must still report it RAN and held (silence would be
+  // indistinguishable from "didn't look").
+  const held = await runPool({
+    pool: fixture.pool,
+    badge: fixture.badge,
+    levelCap: fixture.levelCap,
+    overrides: { FORCE_SHORTLIST: true, SHORTLIST_MAX: 24 },
+  });
+  assert.ok(held.searchPolish, "audit record must exist");
+  assert.equal(held.searchPolish.swaps.length, 0, "shortlist held at 24");
+  assert.ok(held.searchPolish.audited > 0, "audit must report coverage");
 });
