@@ -64,10 +64,11 @@ for (const pokemon of pokemonIndex) {
     baseSpeciesId: toId(species.baseSpecies),
     eggGroups: species.eggGroups || [],
     // Fixed-gender marker: "M" male-only, "F" female-only, "N" genderless,
-    // "" mixed. Breeding legality needs it: without Ditto the mother fixes
-    // the offspring species, so an egg-move donor must be able to be MALE
-    // (female-only lines like NidoranF can never donate across lines) and a
-    // recipient line must be able to field a female mother.
+    // "" mixed. Breeding legality needs it: the mother fixes the offspring
+    // species (a Ditto pair hatches the non-Ditto parent's species, so Ditto
+    // never moves a move across lines), so an egg-move donor must be able to
+    // be MALE (female-only lines like NidoranF can never donate across
+    // lines) and a recipient line must be able to field a female mother.
     gender: species.gender || "",
     isMega: Boolean(species.isMega),
   };

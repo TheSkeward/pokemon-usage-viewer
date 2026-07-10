@@ -300,13 +300,18 @@ function canBreed(donorId, targetId) {
 
   if (!donorGroups.some((group) => targetGroups.includes(group))) return false;
 
-  // Gender direction (no Ditto in Reborn's daycare): the MOTHER fixes the
-  // hatched species, so the target line supplies her and the donor must
-  // FATHER the egg. A line that can never be male — female-only (NidoranF's
-  // whole line) or genderless (Magnemite) — can't donate across lines (user
-  // report: NidoranF recommended as Zebstrika's Double Kick donor), and a
-  // line that can never be female — male-only (Tauros) or genderless —
-  // has no mother, so it can't receive. Family granularity, like the egg
+  // Gender direction: the MOTHER fixes the hatched species, so the target
+  // line supplies her and the donor must FATHER the egg. Ditto is no
+  // exception for CROSS-LINE moves — a Ditto pair hatches the non-Ditto
+  // parent's species (NidoranF + Ditto is a NidoranF egg, never a Blitzle)
+  // and Ditto knows only Transform, so it can carry a parent's own moves
+  // down a generation but never inject another line's. Hence, Ditto or not:
+  // a line that can never be male — female-only (NidoranF's whole line) or
+  // genderless (Magnemite) — can't donate across lines (user report:
+  // NidoranF recommended as Zebstrika's Double Kick donor), and a line that
+  // can never be female — male-only (Tauros) or genderless — has no
+  // cross-line mother, so it can't receive (its Ditto eggs inherit only
+  // what the parent itself already knew). Family granularity, like the egg
   // groups: any form's eligibility counts (Salandit can father for
   // female-only Salazzle; NidoranF's line has no such out).
   return familyHasGender(donorId, "M") && familyHasGender(targetId, "F");
