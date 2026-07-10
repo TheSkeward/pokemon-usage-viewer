@@ -1004,3 +1004,20 @@ Invariants the shape encodes (each guarded by fixtures):
   simply lack the analysis field and recompute it once. NOTE: future sweep-
   grid/contender/investment changes are output changes for the persisted
   analysis and need a version bump.
+- **Breeding gender direction: donors must father, recipients must mother**
+  (user report: NidoranF recommended as Zebstrika's Double Kick donor —
+  "without Ditto, female pokemon can't breed a move onto a Blitzle").
+  The daycare model had no gender at all. Without Ditto the mother fixes
+  the hatched species, so an egg-move donor must be able to be MALE and
+  the recipient line must supply a female mother. gen7ProgressionSpecies
+  now carries the fixed-gender marker ("M"/"F"/"N"/"" mixed) from
+  @pkmn/dex; canBreed requires, at family granularity (any form counts,
+  matching the egg-group union): donor family can produce a male —
+  female-only lines (NidoranF/Nidorina/Nidoqueen) and genderless lines
+  never donate across lines — and target family can produce a female —
+  male-only (Tauros) and genderless (Magnemite) lines never receive.
+  Cache correctness is automatic: the breeding signature is the context's
+  reachable-egg-moves content, so affected pools re-key themselves; no
+  RESULT_CACHE_VERSION bump. Goldens: zero drift (no golden scenario
+  used a gender-illegal chain). Pinned: NidoranF cannot donate Double
+  Kick to Blitzle, NidoranM can, Magnemite receives nothing.

@@ -298,7 +298,28 @@ function canBreed(donorId, targetId) {
   const donorGroups = getBreedableEggGroups(donorId);
   const targetGroups = getBreedableEggGroups(targetId);
 
-  return donorGroups.some((group) => targetGroups.includes(group));
+  if (!donorGroups.some((group) => targetGroups.includes(group))) return false;
+
+  // Gender direction (no Ditto in Reborn's daycare): the MOTHER fixes the
+  // hatched species, so the target line supplies her and the donor must
+  // FATHER the egg. A line that can never be male — female-only (NidoranF's
+  // whole line) or genderless (Magnemite) — can't donate across lines (user
+  // report: NidoranF recommended as Zebstrika's Double Kick donor), and a
+  // line that can never be female — male-only (Tauros) or genderless —
+  // has no mother, so it can't receive. Family granularity, like the egg
+  // groups: any form's eligibility counts (Salandit can father for
+  // female-only Salazzle; NidoranF's line has no such out).
+  return familyHasGender(donorId, "M") && familyHasGender(targetId, "F");
+}
+
+// Whether any form in the evolutionary family can be the given sex: ""
+// (mixed ratio) counts for either; "M"/"F" only for themselves; "N"
+// (genderless) for neither.
+function familyHasGender(pokemonId, sex) {
+  return familyForms(pokemonId).some((record) => {
+    const gender = record.gender ?? "";
+    return gender === "" || gender === sex;
+  });
 }
 
 // Egg-group compatibility is a property of the evolutionary FAMILY, not the
@@ -309,6 +330,18 @@ function canBreed(donorId, targetId) {
 // move). Union the breedable groups across the whole line, walking down to
 // the root and up through every branch.
 function getBreedableEggGroups(pokemonId) {
+  const groups = new Set();
+  for (const record of familyForms(pokemonId)) {
+    for (const group of record.eggGroups || []) {
+      if (!BLOCKED_EGG_GROUPS.has(group)) groups.add(group);
+    }
+  }
+  return [...groups];
+}
+
+// Every species record in the family: walk down to the root, then up through
+// every branch.
+function familyForms(pokemonId) {
   let rootId = pokemonId;
   const seen = new Set();
   while (GEN7_PROGRESSION_SPECIES[rootId]?.prevoId && !seen.has(rootId)) {
@@ -316,19 +349,17 @@ function getBreedableEggGroups(pokemonId) {
     rootId = GEN7_PROGRESSION_SPECIES[rootId].prevoId;
   }
 
-  const groups = new Set();
+  const forms = [];
   const walked = new Set();
   const visit = (id) => {
     const record = GEN7_PROGRESSION_SPECIES[id];
     if (!record || walked.has(id)) return;
     walked.add(id);
-    for (const group of record.eggGroups || []) {
-      if (!BLOCKED_EGG_GROUPS.has(group)) groups.add(group);
-    }
+    forms.push(record);
     for (const evoId of record.evos || []) visit(evoId);
   };
   visit(rootId);
-  return [...groups];
+  return forms;
 }
 
 function emptyContext() {

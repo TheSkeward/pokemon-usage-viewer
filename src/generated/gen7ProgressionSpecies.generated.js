@@ -17,6 +17,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "abomasnowmega": {
@@ -36,6 +37,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Grass"
     ],
+    "gender": "",
     "isMega": true
   },
   "abra": {
@@ -56,6 +58,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "absol": {
@@ -74,6 +77,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "absolmega": {
@@ -92,6 +96,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": true
   },
   "accelgor": {
@@ -110,6 +115,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "aegislash": {
@@ -128,6 +134,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "aerodactyl": {
@@ -146,6 +153,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "aerodactylmega": {
@@ -164,6 +172,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": true
   },
   "aggron": {
@@ -182,6 +191,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "aggronmega": {
@@ -200,6 +210,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": true
   },
   "aipom": {
@@ -220,6 +231,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "alakazam": {
@@ -238,6 +250,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "alakazammega": {
@@ -256,6 +269,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": true
   },
   "alomomola": {
@@ -275,6 +289,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "altaria": {
@@ -294,6 +309,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Flying",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "altariamega": {
@@ -313,6 +329,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Flying",
       "Dragon"
     ],
+    "gender": "",
     "isMega": true
   },
   "amaura": {
@@ -333,6 +350,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "ambipom": {
@@ -351,6 +369,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "amoonguss": {
@@ -369,6 +388,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "ampharos": {
@@ -388,6 +408,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "ampharosmega": {
@@ -407,6 +428,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Field"
     ],
+    "gender": "",
     "isMega": true
   },
   "anorith": {
@@ -427,6 +449,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "araquanid": {
@@ -446,6 +469,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "araquanidtotem": {
@@ -465,6 +489,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "arbok": {
@@ -484,6 +509,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "arcanine": {
@@ -502,6 +528,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "arceus": {
@@ -520,6 +547,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceusbug": {
@@ -538,6 +566,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceusdark": {
@@ -556,6 +585,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceusdragon": {
@@ -574,6 +604,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceuselectric": {
@@ -592,6 +623,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceusfairy": {
@@ -610,6 +642,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceusfighting": {
@@ -628,6 +661,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceusfire": {
@@ -646,6 +680,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceusflying": {
@@ -664,6 +699,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceusghost": {
@@ -682,6 +718,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceusgrass": {
@@ -700,6 +737,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceusground": {
@@ -718,6 +756,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceusice": {
@@ -736,6 +775,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceuspoison": {
@@ -754,6 +794,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceuspsychic": {
@@ -772,6 +813,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceusrock": {
@@ -790,6 +832,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceussteel": {
@@ -808,6 +851,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "arceuswater": {
@@ -826,6 +870,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "archen": {
@@ -847,6 +892,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Flying",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "archeops": {
@@ -866,6 +912,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Flying",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "ariados": {
@@ -884,6 +931,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "armaldo": {
@@ -902,6 +950,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "aromatisse": {
@@ -920,6 +969,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "aron": {
@@ -940,6 +990,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "articuno": {
@@ -958,6 +1009,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "audino": {
@@ -976,6 +1028,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "audinomega": {
@@ -994,6 +1047,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "",
     "isMega": true
   },
   "aurorus": {
@@ -1012,6 +1066,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "avalugg": {
@@ -1030,6 +1085,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "axew": {
@@ -1051,6 +1107,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "azelf": {
@@ -1069,6 +1126,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "azumarill": {
@@ -1088,6 +1146,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "azurill": {
@@ -1108,6 +1167,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "bagon": {
@@ -1128,6 +1188,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "baltoy": {
@@ -1148,6 +1209,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "banette": {
@@ -1166,6 +1228,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "banettemega": {
@@ -1184,6 +1247,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": true
   },
   "barbaracle": {
@@ -1202,6 +1266,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "barboach": {
@@ -1222,6 +1287,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "basculin": {
@@ -1240,6 +1306,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "bastiodon": {
@@ -1258,6 +1325,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "bayleef": {
@@ -1279,6 +1347,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "beartic": {
@@ -1297,6 +1366,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "beautifly": {
@@ -1315,6 +1385,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "beedrill": {
@@ -1333,6 +1404,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "beedrillmega": {
@@ -1351,6 +1423,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": true
   },
   "beheeyem": {
@@ -1369,6 +1442,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "beldum": {
@@ -1389,6 +1463,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "bellossom": {
@@ -1407,6 +1482,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "bellsprout": {
@@ -1427,6 +1503,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "bergmite": {
@@ -1447,6 +1524,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "bewear": {
@@ -1465,6 +1543,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "bibarel": {
@@ -1484,6 +1563,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "bidoof": {
@@ -1505,6 +1585,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "binacle": {
@@ -1525,6 +1606,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "bisharp": {
@@ -1543,6 +1625,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "blacephalon": {
@@ -1561,6 +1644,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "blastoise": {
@@ -1580,6 +1664,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "blastoisemega": {
@@ -1599,6 +1684,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": true
   },
   "blaziken": {
@@ -1617,6 +1703,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "blazikenmega": {
@@ -1635,6 +1722,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": true
   },
   "blissey": {
@@ -1653,6 +1741,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "F",
     "isMega": false
   },
   "blitzle": {
@@ -1673,6 +1762,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "boldore": {
@@ -1693,6 +1783,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "bonsly": {
@@ -1713,6 +1804,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "bouffalant": {
@@ -1731,6 +1823,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "bounsweet": {
@@ -1751,6 +1844,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "F",
     "isMega": false
   },
   "braixen": {
@@ -1771,6 +1865,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "braviary": {
@@ -1789,6 +1884,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "M",
     "isMega": false
   },
   "breloom": {
@@ -1808,6 +1904,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "brionne": {
@@ -1829,6 +1926,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "bronzong": {
@@ -1847,6 +1945,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "bronzor": {
@@ -1867,6 +1966,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "bruxish": {
@@ -1885,6 +1985,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "budew": {
@@ -1905,6 +2006,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "buizel": {
@@ -1926,6 +2028,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "bulbasaur": {
@@ -1947,6 +2050,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "buneary": {
@@ -1968,6 +2072,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "bunnelby": {
@@ -1988,6 +2093,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "burmy": {
@@ -2011,6 +2117,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "butterfree": {
@@ -2029,6 +2136,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "buzzwole": {
@@ -2047,6 +2155,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "cacnea": {
@@ -2068,6 +2177,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Grass",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "cacturne": {
@@ -2087,6 +2197,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Grass",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "camerupt": {
@@ -2105,6 +2216,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "cameruptmega": {
@@ -2123,6 +2235,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": true
   },
   "carbink": {
@@ -2142,6 +2255,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "carnivine": {
@@ -2160,6 +2274,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "carracosta": {
@@ -2179,6 +2294,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "carvanha": {
@@ -2199,6 +2315,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "cascoon": {
@@ -2219,6 +2336,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "castform": {
@@ -2238,6 +2356,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "caterpie": {
@@ -2258,6 +2377,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "celebi": {
@@ -2276,6 +2396,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "celesteela": {
@@ -2294,6 +2415,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "chandelure": {
@@ -2312,6 +2434,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "chansey": {
@@ -2332,6 +2455,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "F",
     "isMega": false
   },
   "charizard": {
@@ -2351,6 +2475,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "charizardmegax": {
@@ -2370,6 +2495,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": true
   },
   "charizardmegay": {
@@ -2389,6 +2515,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": true
   },
   "charjabug": {
@@ -2409,6 +2536,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "charmander": {
@@ -2430,6 +2558,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "charmeleon": {
@@ -2451,6 +2580,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "chatot": {
@@ -2469,6 +2599,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "cherrim": {
@@ -2488,6 +2619,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "cherubi": {
@@ -2509,6 +2641,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "chesnaught": {
@@ -2527,6 +2660,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "chespin": {
@@ -2547,6 +2681,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "chikorita": {
@@ -2568,6 +2703,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "chimchar": {
@@ -2589,6 +2725,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "chimecho": {
@@ -2607,6 +2744,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "chinchou": {
@@ -2627,6 +2765,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "chingling": {
@@ -2647,6 +2786,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "cinccino": {
@@ -2665,6 +2805,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "clamperl": {
@@ -2686,6 +2827,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "clauncher": {
@@ -2707,6 +2849,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "clawitzer": {
@@ -2726,6 +2869,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "claydol": {
@@ -2744,6 +2888,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "clefable": {
@@ -2762,6 +2907,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "clefairy": {
@@ -2782,6 +2928,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "cleffa": {
@@ -2802,6 +2949,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "cloyster": {
@@ -2820,6 +2968,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "cobalion": {
@@ -2838,6 +2987,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "cofagrigus": {
@@ -2857,6 +3007,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Mineral",
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "combee": {
@@ -2877,6 +3028,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "combusken": {
@@ -2897,6 +3049,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "comfey": {
@@ -2915,6 +3068,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "conkeldurr": {
@@ -2933,6 +3087,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "corphish": {
@@ -2954,6 +3109,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "corsola": {
@@ -2973,6 +3129,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "cosmoem": {
@@ -2994,6 +3151,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "cosmog": {
@@ -3014,6 +3172,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "cottonee": {
@@ -3035,6 +3194,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "crabominable": {
@@ -3053,6 +3213,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "crabrawler": {
@@ -3073,6 +3234,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "cradily": {
@@ -3091,6 +3253,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "cranidos": {
@@ -3111,6 +3274,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "crawdaunt": {
@@ -3130,6 +3294,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "cresselia": {
@@ -3148,6 +3313,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "F",
     "isMega": false
   },
   "croagunk": {
@@ -3168,6 +3334,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "crobat": {
@@ -3186,6 +3353,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "croconaw": {
@@ -3207,6 +3375,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "crustle": {
@@ -3226,6 +3395,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Bug",
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "cryogonal": {
@@ -3244,6 +3414,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "cubchoo": {
@@ -3264,6 +3435,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "cubone": {
@@ -3285,6 +3457,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "cutiefly": {
@@ -3306,6 +3479,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Bug",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "cyndaquil": {
@@ -3326,6 +3500,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "darkrai": {
@@ -3344,6 +3519,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "darmanitan": {
@@ -3362,6 +3538,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "dartrix": {
@@ -3382,6 +3559,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "darumaka": {
@@ -3402,6 +3580,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "decidueye": {
@@ -3420,6 +3599,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "dedenne": {
@@ -3439,6 +3619,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "deerling": {
@@ -3459,6 +3640,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "deino": {
@@ -3479,6 +3661,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "delcatty": {
@@ -3498,6 +3681,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "delibird": {
@@ -3517,6 +3701,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "delphox": {
@@ -3535,6 +3720,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "deoxys": {
@@ -3553,6 +3739,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "deoxysattack": {
@@ -3571,6 +3758,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "deoxysdefense": {
@@ -3589,6 +3777,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "deoxysspeed": {
@@ -3607,6 +3796,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "dewgong": {
@@ -3626,6 +3816,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "dewott": {
@@ -3646,6 +3837,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "dewpider": {
@@ -3667,6 +3859,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "dhelmise": {
@@ -3685,6 +3878,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "dialga": {
@@ -3703,6 +3897,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "diancie": {
@@ -3721,6 +3916,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "dianciemega": {
@@ -3739,6 +3935,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": true
   },
   "diggersby": {
@@ -3757,6 +3954,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "diglett": {
@@ -3777,6 +3975,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "diglettalola": {
@@ -3797,6 +3996,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "ditto": {
@@ -3815,6 +4015,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Ditto"
     ],
+    "gender": "N",
     "isMega": false
   },
   "dodrio": {
@@ -3833,6 +4034,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "doduo": {
@@ -3853,6 +4055,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "donphan": {
@@ -3871,6 +4074,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "doublade": {
@@ -3891,6 +4095,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "dragalge": {
@@ -3910,6 +4115,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "dragonair": {
@@ -3931,6 +4137,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "dragonite": {
@@ -3950,6 +4157,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "drampa": {
@@ -3969,6 +4177,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "drapion": {
@@ -3988,6 +4197,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Bug",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "dratini": {
@@ -4009,6 +4219,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "drifblim": {
@@ -4027,6 +4238,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "drifloon": {
@@ -4047,6 +4259,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "drilbur": {
@@ -4067,6 +4280,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "drowzee": {
@@ -4087,6 +4301,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "druddigon": {
@@ -4106,6 +4321,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "ducklett": {
@@ -4127,6 +4343,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "dugtrio": {
@@ -4145,6 +4362,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "dugtrioalola": {
@@ -4163,6 +4381,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "dunsparce": {
@@ -4181,6 +4400,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "duosion": {
@@ -4201,6 +4421,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "durant": {
@@ -4219,6 +4440,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "dusclops": {
@@ -4239,6 +4461,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "dusknoir": {
@@ -4257,6 +4480,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "duskull": {
@@ -4277,6 +4501,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "dustox": {
@@ -4295,6 +4520,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "dwebble": {
@@ -4316,6 +4542,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Bug",
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "eelektrik": {
@@ -4336,6 +4563,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "eelektross": {
@@ -4354,6 +4582,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "eevee": {
@@ -4381,6 +4610,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "ekans": {
@@ -4402,6 +4632,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "electabuzz": {
@@ -4422,6 +4653,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "electivire": {
@@ -4440,6 +4672,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "electrike": {
@@ -4460,6 +4693,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "electrode": {
@@ -4478,6 +4712,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "elekid": {
@@ -4498,6 +4733,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "elgyem": {
@@ -4518,6 +4754,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "emboar": {
@@ -4536,6 +4773,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "emolga": {
@@ -4554,6 +4792,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "empoleon": {
@@ -4573,6 +4812,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "entei": {
@@ -4591,6 +4831,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "escavalier": {
@@ -4609,6 +4850,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "espeon": {
@@ -4627,6 +4869,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "espurr": {
@@ -4647,6 +4890,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "excadrill": {
@@ -4665,6 +4909,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "exeggcute": {
@@ -4686,6 +4931,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "exeggutor": {
@@ -4704,6 +4950,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "exeggutoralola": {
@@ -4722,6 +4969,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "exploud": {
@@ -4741,6 +4989,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "farfetchd": {
@@ -4760,6 +5009,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Flying",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "fearow": {
@@ -4778,6 +5028,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "feebas": {
@@ -4799,6 +5050,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "fennekin": {
@@ -4819,6 +5071,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "feraligatr": {
@@ -4838,6 +5091,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "ferroseed": {
@@ -4859,6 +5113,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Grass",
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "ferrothorn": {
@@ -4878,6 +5133,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Grass",
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "finneon": {
@@ -4898,6 +5154,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "flaaffy": {
@@ -4919,6 +5176,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "flabebe": {
@@ -4939,6 +5197,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "F",
     "isMega": false
   },
   "flareon": {
@@ -4957,6 +5216,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "fletchinder": {
@@ -4977,6 +5237,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "fletchling": {
@@ -4997,6 +5258,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "floatzel": {
@@ -5016,6 +5278,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "floette": {
@@ -5036,6 +5299,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "F",
     "isMega": false
   },
   "floetteeternal": {
@@ -5054,6 +5318,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "F",
     "isMega": false
   },
   "florges": {
@@ -5072,6 +5337,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "F",
     "isMega": false
   },
   "flygon": {
@@ -5090,6 +5356,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "fomantis": {
@@ -5110,6 +5377,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "foongus": {
@@ -5130,6 +5398,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "forretress": {
@@ -5148,6 +5417,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "fraxure": {
@@ -5169,6 +5439,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "frillish": {
@@ -5189,6 +5460,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "froakie": {
@@ -5209,6 +5481,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "frogadier": {
@@ -5229,6 +5502,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "froslass": {
@@ -5248,6 +5522,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Mineral"
     ],
+    "gender": "F",
     "isMega": false
   },
   "furfrou": {
@@ -5266,6 +5541,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "furret": {
@@ -5284,6 +5560,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "gabite": {
@@ -5305,6 +5582,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "gallade": {
@@ -5323,6 +5601,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "M",
     "isMega": false
   },
   "gallademega": {
@@ -5341,6 +5620,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "M",
     "isMega": true
   },
   "galvantula": {
@@ -5359,6 +5639,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "garbodor": {
@@ -5377,6 +5658,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "garchomp": {
@@ -5396,6 +5678,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "garchompmega": {
@@ -5415,6 +5698,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": true
   },
   "gardevoir": {
@@ -5433,6 +5717,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "gardevoirmega": {
@@ -5451,6 +5736,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": true
   },
   "gastly": {
@@ -5471,6 +5757,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "gastrodon": {
@@ -5490,6 +5777,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "genesect": {
@@ -5508,6 +5796,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "gengar": {
@@ -5526,6 +5815,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "gengarmega": {
@@ -5544,6 +5834,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": true
   },
   "geodude": {
@@ -5564,6 +5855,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "geodudealola": {
@@ -5584,6 +5876,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "gible": {
@@ -5605,6 +5898,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "gigalith": {
@@ -5623,6 +5917,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "girafarig": {
@@ -5641,6 +5936,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "giratina": {
@@ -5659,6 +5955,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "giratinaorigin": {
@@ -5677,6 +5974,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "glaceon": {
@@ -5695,6 +5993,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "glalie": {
@@ -5714,6 +6013,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "glaliemega": {
@@ -5733,6 +6033,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Mineral"
     ],
+    "gender": "",
     "isMega": true
   },
   "glameow": {
@@ -5753,6 +6054,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "gligar": {
@@ -5773,6 +6075,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "gliscor": {
@@ -5791,6 +6094,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "gloom": {
@@ -5812,6 +6116,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "gogoat": {
@@ -5830,6 +6135,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "golbat": {
@@ -5850,6 +6156,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "goldeen": {
@@ -5870,6 +6177,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "golduck": {
@@ -5889,6 +6197,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "golem": {
@@ -5907,6 +6216,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "golemalola": {
@@ -5925,6 +6235,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "golett": {
@@ -5945,6 +6256,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "golisopod": {
@@ -5964,6 +6276,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Bug",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "golurk": {
@@ -5982,6 +6295,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "goodra": {
@@ -6000,6 +6314,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "goomy": {
@@ -6020,6 +6335,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "gorebyss": {
@@ -6038,6 +6354,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "gothita": {
@@ -6058,6 +6375,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "gothitelle": {
@@ -6076,6 +6394,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "gothorita": {
@@ -6096,6 +6415,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "gourgeist": {
@@ -6114,6 +6434,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "gourgeistlarge": {
@@ -6132,6 +6453,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "gourgeistsmall": {
@@ -6150,6 +6472,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "gourgeistsuper": {
@@ -6168,6 +6491,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "granbull": {
@@ -6187,6 +6511,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "graveler": {
@@ -6207,6 +6532,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "graveleralola": {
@@ -6227,6 +6553,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "greninja": {
@@ -6245,6 +6572,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "greninjaash": {
@@ -6263,6 +6591,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "grimer": {
@@ -6283,6 +6612,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "grimeralola": {
@@ -6303,6 +6633,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "grotle": {
@@ -6324,6 +6655,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "groudon": {
@@ -6342,6 +6674,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "groudonprimal": {
@@ -6360,6 +6693,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "grovyle": {
@@ -6381,6 +6715,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "growlithe": {
@@ -6401,6 +6736,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "grubbin": {
@@ -6421,6 +6757,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "grumpig": {
@@ -6439,6 +6776,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "gulpin": {
@@ -6459,6 +6797,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "gumshoos": {
@@ -6477,6 +6816,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "gumshoostotem": {
@@ -6495,6 +6835,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "gurdurr": {
@@ -6515,6 +6856,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "guzzlord": {
@@ -6533,6 +6875,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "gyarados": {
@@ -6552,6 +6895,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 2",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "gyaradosmega": {
@@ -6571,6 +6915,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 2",
       "Dragon"
     ],
+    "gender": "",
     "isMega": true
   },
   "hakamoo": {
@@ -6591,6 +6936,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "happiny": {
@@ -6611,6 +6957,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "F",
     "isMega": false
   },
   "hariyama": {
@@ -6629,6 +6976,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "haunter": {
@@ -6649,6 +6997,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "hawlucha": {
@@ -6667,6 +7016,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "haxorus": {
@@ -6686,6 +7036,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "heatmor": {
@@ -6704,6 +7055,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "heatran": {
@@ -6722,6 +7074,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "heliolisk": {
@@ -6741,6 +7094,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "helioptile": {
@@ -6762,6 +7116,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "heracross": {
@@ -6780,6 +7135,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "heracrossmega": {
@@ -6798,6 +7154,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": true
   },
   "herdier": {
@@ -6818,6 +7175,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "hippopotas": {
@@ -6838,6 +7196,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "hippowdon": {
@@ -6856,6 +7215,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "hitmonchan": {
@@ -6874,6 +7234,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "M",
     "isMega": false
   },
   "hitmonlee": {
@@ -6892,6 +7253,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "M",
     "isMega": false
   },
   "hitmontop": {
@@ -6910,6 +7272,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "M",
     "isMega": false
   },
   "hooh": {
@@ -6928,6 +7291,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "honchkrow": {
@@ -6946,6 +7310,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "honedge": {
@@ -6966,6 +7331,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "hoopa": {
@@ -6984,6 +7350,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "hoopaunbound": {
@@ -7002,6 +7369,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "hoothoot": {
@@ -7022,6 +7390,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "hoppip": {
@@ -7043,6 +7412,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "horsea": {
@@ -7064,6 +7434,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "houndoom": {
@@ -7082,6 +7453,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "houndoommega": {
@@ -7100,6 +7472,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": true
   },
   "houndour": {
@@ -7120,6 +7493,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "huntail": {
@@ -7138,6 +7512,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "hydreigon": {
@@ -7156,6 +7531,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "hypno": {
@@ -7174,6 +7550,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "igglybuff": {
@@ -7194,6 +7571,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "illumise": {
@@ -7213,6 +7591,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Bug",
       "Human-Like"
     ],
+    "gender": "F",
     "isMega": false
   },
   "incineroar": {
@@ -7231,6 +7610,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "infernape": {
@@ -7250,6 +7630,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "inkay": {
@@ -7271,6 +7652,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "ivysaur": {
@@ -7292,6 +7674,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "jangmoo": {
@@ -7312,6 +7695,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "jellicent": {
@@ -7330,6 +7714,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "jigglypuff": {
@@ -7350,6 +7735,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "jirachi": {
@@ -7368,6 +7754,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "jolteon": {
@@ -7386,6 +7773,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "joltik": {
@@ -7406,6 +7794,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "jumpluff": {
@@ -7425,6 +7814,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "jynx": {
@@ -7443,6 +7833,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "F",
     "isMega": false
   },
   "kabuto": {
@@ -7464,6 +7855,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "kabutops": {
@@ -7483,6 +7875,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "kadabra": {
@@ -7503,6 +7896,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "kakuna": {
@@ -7523,6 +7917,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "kangaskhan": {
@@ -7541,6 +7936,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "F",
     "isMega": false
   },
   "kangaskhanmega": {
@@ -7559,6 +7955,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "F",
     "isMega": true
   },
   "karrablast": {
@@ -7579,6 +7976,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "kartana": {
@@ -7597,6 +7995,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "kecleon": {
@@ -7615,6 +8014,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "keldeo": {
@@ -7633,6 +8033,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "kingdra": {
@@ -7652,6 +8053,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "kingler": {
@@ -7670,6 +8072,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "kirlia": {
@@ -7691,6 +8094,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "klang": {
@@ -7711,6 +8115,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "klefki": {
@@ -7729,6 +8134,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "klink": {
@@ -7749,6 +8155,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "klinklang": {
@@ -7767,6 +8174,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "koffing": {
@@ -7787,6 +8195,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "komala": {
@@ -7805,6 +8214,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "kommoo": {
@@ -7823,6 +8233,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "kommoototem": {
@@ -7841,6 +8252,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "krabby": {
@@ -7861,6 +8273,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "kricketot": {
@@ -7881,6 +8294,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "kricketune": {
@@ -7899,6 +8313,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "krokorok": {
@@ -7919,6 +8334,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "krookodile": {
@@ -7937,6 +8353,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "kyogre": {
@@ -7955,6 +8372,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "kyogreprimal": {
@@ -7973,6 +8391,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "kyurem": {
@@ -7991,6 +8410,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "kyuremblack": {
@@ -8009,6 +8429,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "kyuremwhite": {
@@ -8027,6 +8448,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "lairon": {
@@ -8047,6 +8469,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "lampent": {
@@ -8067,6 +8490,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "landorus": {
@@ -8085,6 +8509,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "landorustherian": {
@@ -8103,6 +8528,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "lanturn": {
@@ -8121,6 +8547,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "lapras": {
@@ -8140,6 +8567,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "larvesta": {
@@ -8160,6 +8588,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "larvitar": {
@@ -8180,6 +8609,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "latias": {
@@ -8198,6 +8628,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "F",
     "isMega": false
   },
   "latiasmega": {
@@ -8216,6 +8647,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "F",
     "isMega": true
   },
   "latios": {
@@ -8234,6 +8666,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "latiosmega": {
@@ -8252,6 +8685,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": true
   },
   "leafeon": {
@@ -8270,6 +8704,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "leavanny": {
@@ -8288,6 +8723,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "ledian": {
@@ -8306,6 +8742,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "ledyba": {
@@ -8326,6 +8763,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "lickilicky": {
@@ -8344,6 +8782,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "lickitung": {
@@ -8364,6 +8803,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "liepard": {
@@ -8382,6 +8822,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "lileep": {
@@ -8402,6 +8843,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "lilligant": {
@@ -8420,6 +8862,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "F",
     "isMega": false
   },
   "lillipup": {
@@ -8440,6 +8883,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "linoone": {
@@ -8458,6 +8902,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "litleo": {
@@ -8478,6 +8923,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "litten": {
@@ -8498,6 +8944,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "litwick": {
@@ -8518,6 +8965,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "lombre": {
@@ -8539,6 +8987,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "lopunny": {
@@ -8558,6 +9007,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "lopunnymega": {
@@ -8577,6 +9027,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": true
   },
   "lotad": {
@@ -8598,6 +9049,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "loudred": {
@@ -8619,6 +9071,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "lucario": {
@@ -8638,6 +9091,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "lucariomega": {
@@ -8657,6 +9111,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": true
   },
   "ludicolo": {
@@ -8676,6 +9131,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "lugia": {
@@ -8694,6 +9150,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "lumineon": {
@@ -8712,6 +9169,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "lunala": {
@@ -8730,6 +9188,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "lunatone": {
@@ -8748,6 +9207,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "lurantis": {
@@ -8766,6 +9226,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "lurantistotem": {
@@ -8784,6 +9245,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "luvdisc": {
@@ -8802,6 +9264,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "luxio": {
@@ -8822,6 +9285,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "luxray": {
@@ -8840,6 +9304,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "lycanroc": {
@@ -8858,6 +9323,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "lycanrocdusk": {
@@ -8876,6 +9342,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "lycanrocmidnight": {
@@ -8894,6 +9361,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "machamp": {
@@ -8912,6 +9380,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "machoke": {
@@ -8932,6 +9401,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "machop": {
@@ -8952,6 +9422,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "magby": {
@@ -8972,6 +9443,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "magcargo": {
@@ -8990,6 +9462,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "magearna": {
@@ -9008,6 +9481,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "magikarp": {
@@ -9029,6 +9503,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 2",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "magmar": {
@@ -9049,6 +9524,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "magmortar": {
@@ -9067,6 +9543,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "magnemite": {
@@ -9087,6 +9564,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "magneton": {
@@ -9107,6 +9585,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "magnezone": {
@@ -9125,6 +9604,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "makuhita": {
@@ -9145,6 +9625,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "malamar": {
@@ -9164,6 +9645,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "mamoswine": {
@@ -9182,6 +9664,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "manaphy": {
@@ -9201,6 +9684,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Fairy"
     ],
+    "gender": "N",
     "isMega": false
   },
   "mandibuzz": {
@@ -9219,6 +9703,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "F",
     "isMega": false
   },
   "manectric": {
@@ -9237,6 +9722,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "manectricmega": {
@@ -9255,6 +9741,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": true
   },
   "mankey": {
@@ -9275,6 +9762,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "mantine": {
@@ -9293,6 +9781,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "mantyke": {
@@ -9313,6 +9802,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "maractus": {
@@ -9331,6 +9821,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "mareanie": {
@@ -9351,6 +9842,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "mareep": {
@@ -9372,6 +9864,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "marill": {
@@ -9393,6 +9886,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "marowak": {
@@ -9411,6 +9905,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "marowakalola": {
@@ -9429,6 +9924,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "marowakalolatotem": {
@@ -9447,6 +9943,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "marshadow": {
@@ -9465,6 +9962,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "marshtomp": {
@@ -9486,6 +9984,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "masquerain": {
@@ -9505,6 +10004,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "mawile": {
@@ -9524,6 +10024,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "mawilemega": {
@@ -9543,6 +10044,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Fairy"
     ],
+    "gender": "",
     "isMega": true
   },
   "medicham": {
@@ -9561,6 +10063,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "medichammega": {
@@ -9579,6 +10082,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": true
   },
   "meditite": {
@@ -9599,6 +10103,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "meganium": {
@@ -9618,6 +10123,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "meloetta": {
@@ -9636,6 +10142,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "meowstic": {
@@ -9654,6 +10161,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "M",
     "isMega": false
   },
   "meowth": {
@@ -9674,6 +10182,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "meowthalola": {
@@ -9694,6 +10203,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "mesprit": {
@@ -9712,6 +10222,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "metagross": {
@@ -9730,6 +10241,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "metagrossmega": {
@@ -9748,6 +10260,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": true
   },
   "metang": {
@@ -9768,6 +10281,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "metapod": {
@@ -9788,6 +10302,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "mew": {
@@ -9806,6 +10321,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "mewtwo": {
@@ -9824,6 +10340,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "mewtwomegax": {
@@ -9842,6 +10359,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": true
   },
   "mewtwomegay": {
@@ -9860,6 +10378,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": true
   },
   "mienfoo": {
@@ -9881,6 +10400,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "mienshao": {
@@ -9900,6 +10420,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "mightyena": {
@@ -9918,6 +10439,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "milotic": {
@@ -9937,6 +10459,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "miltank": {
@@ -9955,6 +10478,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "F",
     "isMega": false
   },
   "mimejr": {
@@ -9975,6 +10499,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "mimikyu": {
@@ -9993,6 +10518,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "mimikyubusted": {
@@ -10011,6 +10537,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "mimikyutotem": {
@@ -10029,6 +10556,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "minccino": {
@@ -10049,6 +10577,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "minior": {
@@ -10067,6 +10596,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "miniormeteor": {
@@ -10085,6 +10615,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "minun": {
@@ -10103,6 +10634,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "misdreavus": {
@@ -10123,6 +10655,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "mismagius": {
@@ -10141,6 +10674,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "moltres": {
@@ -10159,6 +10693,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "monferno": {
@@ -10180,6 +10715,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "morelull": {
@@ -10200,6 +10736,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "mothim": {
@@ -10218,6 +10755,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "M",
     "isMega": false
   },
   "mrmime": {
@@ -10236,6 +10774,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "mudbray": {
@@ -10256,6 +10795,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "mudkip": {
@@ -10277,6 +10817,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "mudsdale": {
@@ -10295,6 +10836,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "muk": {
@@ -10313,6 +10855,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "mukalola": {
@@ -10331,6 +10874,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "munchlax": {
@@ -10351,6 +10895,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "munna": {
@@ -10371,6 +10916,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "murkrow": {
@@ -10391,6 +10937,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "musharna": {
@@ -10409,6 +10956,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "naganadel": {
@@ -10427,6 +10975,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "natu": {
@@ -10447,6 +10996,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "necrozma": {
@@ -10465,6 +11015,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "necrozmadawnwings": {
@@ -10483,6 +11034,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "necrozmaduskmane": {
@@ -10501,6 +11053,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "nidoking": {
@@ -10520,6 +11073,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Field"
     ],
+    "gender": "M",
     "isMega": false
   },
   "nidoqueen": {
@@ -10538,6 +11092,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "F",
     "isMega": false
   },
   "nidoranf": {
@@ -10559,6 +11114,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Field"
     ],
+    "gender": "F",
     "isMega": false
   },
   "nidoranm": {
@@ -10580,6 +11136,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Field"
     ],
+    "gender": "M",
     "isMega": false
   },
   "nidorina": {
@@ -10600,6 +11157,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "F",
     "isMega": false
   },
   "nidorino": {
@@ -10621,6 +11179,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Field"
     ],
+    "gender": "M",
     "isMega": false
   },
   "nihilego": {
@@ -10639,6 +11198,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "nincada": {
@@ -10660,6 +11220,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "ninetales": {
@@ -10678,6 +11239,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "ninetalesalola": {
@@ -10696,6 +11258,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "ninjask": {
@@ -10714,6 +11277,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "noctowl": {
@@ -10732,6 +11296,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "noibat": {
@@ -10752,6 +11317,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "noivern": {
@@ -10770,6 +11336,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "nosepass": {
@@ -10790,6 +11357,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "numel": {
@@ -10810,6 +11378,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "nuzleaf": {
@@ -10831,6 +11400,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "octillery": {
@@ -10850,6 +11420,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "oddish": {
@@ -10870,6 +11441,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "omanyte": {
@@ -10891,6 +11463,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "omastar": {
@@ -10910,6 +11483,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "onix": {
@@ -10930,6 +11504,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "oranguru": {
@@ -10948,6 +11523,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "oricorio": {
@@ -10966,6 +11542,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "oricoriopau": {
@@ -10984,6 +11561,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "oricoriopompom": {
@@ -11002,6 +11580,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "oricoriosensu": {
@@ -11020,6 +11599,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "oshawott": {
@@ -11040,6 +11620,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "pachirisu": {
@@ -11059,6 +11640,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "palkia": {
@@ -11077,6 +11659,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "palossand": {
@@ -11095,6 +11678,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "palpitoad": {
@@ -11115,6 +11699,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "pancham": {
@@ -11136,6 +11721,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "pangoro": {
@@ -11155,6 +11741,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "panpour": {
@@ -11175,6 +11762,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "pansage": {
@@ -11195,6 +11783,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "pansear": {
@@ -11215,6 +11804,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "paras": {
@@ -11236,6 +11826,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Bug",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "parasect": {
@@ -11255,6 +11846,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Bug",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "passimian": {
@@ -11273,6 +11865,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "patrat": {
@@ -11293,6 +11886,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "pawniard": {
@@ -11313,6 +11907,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "pelipper": {
@@ -11332,6 +11927,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "persian": {
@@ -11350,6 +11946,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "persianalola": {
@@ -11368,6 +11965,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "petilil": {
@@ -11388,6 +11986,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "F",
     "isMega": false
   },
   "phanpy": {
@@ -11408,6 +12007,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "phantump": {
@@ -11429,6 +12029,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Grass",
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "pheromosa": {
@@ -11447,6 +12048,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "phione": {
@@ -11466,6 +12068,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Fairy"
     ],
+    "gender": "N",
     "isMega": false
   },
   "pichu": {
@@ -11486,6 +12089,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "pidgeot": {
@@ -11504,6 +12108,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "pidgeotmega": {
@@ -11522,6 +12127,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": true
   },
   "pidgeotto": {
@@ -11542,6 +12148,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "pidgey": {
@@ -11562,6 +12169,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "pidove": {
@@ -11582,6 +12190,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "pignite": {
@@ -11602,6 +12211,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "pikachu": {
@@ -11624,6 +12234,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "pikachualola": {
@@ -11642,6 +12253,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "pikachuhoenn": {
@@ -11660,6 +12272,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "pikachukalos": {
@@ -11678,6 +12291,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "pikachuoriginal": {
@@ -11696,6 +12310,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "pikachupartner": {
@@ -11714,6 +12329,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "pikachusinnoh": {
@@ -11732,6 +12348,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "pikachuunova": {
@@ -11750,6 +12367,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "pikipek": {
@@ -11770,6 +12388,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "piloswine": {
@@ -11790,6 +12409,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "pineco": {
@@ -11810,6 +12430,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "pinsir": {
@@ -11828,6 +12449,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "pinsirmega": {
@@ -11846,6 +12468,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": true
   },
   "piplup": {
@@ -11867,6 +12490,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "plusle": {
@@ -11885,6 +12509,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "poipole": {
@@ -11905,6 +12530,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "politoed": {
@@ -11923,6 +12549,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "poliwag": {
@@ -11943,6 +12570,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "poliwhirl": {
@@ -11964,6 +12592,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "poliwrath": {
@@ -11982,6 +12611,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "ponyta": {
@@ -12002,6 +12632,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "poochyena": {
@@ -12022,6 +12653,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "popplio": {
@@ -12043,6 +12675,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "porygon": {
@@ -12063,6 +12696,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "porygonz": {
@@ -12081,6 +12715,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "porygon2": {
@@ -12101,6 +12736,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "primarina": {
@@ -12120,6 +12756,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "primeape": {
@@ -12138,6 +12775,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "prinplup": {
@@ -12159,6 +12797,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "probopass": {
@@ -12177,6 +12816,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "psyduck": {
@@ -12198,6 +12838,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "pumpkaboo": {
@@ -12218,6 +12859,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "pumpkaboolarge": {
@@ -12238,6 +12880,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "pumpkaboosmall": {
@@ -12258,6 +12901,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "pumpkaboosuper": {
@@ -12278,6 +12922,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "pupitar": {
@@ -12298,6 +12943,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "purrloin": {
@@ -12318,6 +12964,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "purugly": {
@@ -12336,6 +12983,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "pyroar": {
@@ -12354,6 +13002,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "pyukumuku": {
@@ -12372,6 +13021,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "quagsire": {
@@ -12391,6 +13041,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "quilava": {
@@ -12411,6 +13062,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "quilladin": {
@@ -12431,6 +13083,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "qwilfish": {
@@ -12449,6 +13102,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "raichu": {
@@ -12468,6 +13122,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "raichualola": {
@@ -12487,6 +13142,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "raikou": {
@@ -12505,6 +13161,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "ralts": {
@@ -12525,6 +13182,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "rampardos": {
@@ -12543,6 +13201,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "rapidash": {
@@ -12561,6 +13220,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "raticate": {
@@ -12579,6 +13239,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "raticatealola": {
@@ -12597,6 +13258,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "raticatealolatotem": {
@@ -12615,6 +13277,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "rattata": {
@@ -12635,6 +13298,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "rattataalola": {
@@ -12655,6 +13319,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "rayquaza": {
@@ -12673,6 +13338,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "rayquazamega": {
@@ -12691,6 +13357,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": true
   },
   "regice": {
@@ -12709,6 +13376,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "regigigas": {
@@ -12727,6 +13395,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "regirock": {
@@ -12745,6 +13414,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "registeel": {
@@ -12763,6 +13433,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "relicanth": {
@@ -12782,6 +13453,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "remoraid": {
@@ -12803,6 +13475,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "reshiram": {
@@ -12821,6 +13494,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "reuniclus": {
@@ -12839,6 +13513,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "rhydon": {
@@ -12860,6 +13535,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "rhyhorn": {
@@ -12881,6 +13557,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "rhyperior": {
@@ -12900,6 +13577,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "ribombee": {
@@ -12919,6 +13597,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Bug",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "ribombeetotem": {
@@ -12938,6 +13617,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Bug",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "riolu": {
@@ -12958,6 +13638,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "rockruff": {
@@ -12979,6 +13660,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "rockruffdusk": {
@@ -12999,6 +13681,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "roggenrola": {
@@ -13019,6 +13702,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "roselia": {
@@ -13040,6 +13724,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "roserade": {
@@ -13059,6 +13744,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "rotom": {
@@ -13077,6 +13763,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "N",
     "isMega": false
   },
   "rotomfan": {
@@ -13095,6 +13782,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "N",
     "isMega": false
   },
   "rotomfrost": {
@@ -13113,6 +13801,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "N",
     "isMega": false
   },
   "rotomheat": {
@@ -13131,6 +13820,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "N",
     "isMega": false
   },
   "rotommow": {
@@ -13149,6 +13839,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "N",
     "isMega": false
   },
   "rotomwash": {
@@ -13167,6 +13858,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "N",
     "isMega": false
   },
   "rowlet": {
@@ -13187,6 +13879,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "rufflet": {
@@ -13207,6 +13900,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "M",
     "isMega": false
   },
   "sableye": {
@@ -13225,6 +13919,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "sableyemega": {
@@ -13243,6 +13938,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": true
   },
   "salamence": {
@@ -13261,6 +13957,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "salamencemega": {
@@ -13279,6 +13976,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Dragon"
     ],
+    "gender": "",
     "isMega": true
   },
   "salandit": {
@@ -13300,6 +13998,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "salazzle": {
@@ -13319,6 +14018,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "F",
     "isMega": false
   },
   "salazzletotem": {
@@ -13338,6 +14038,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "F",
     "isMega": false
   },
   "samurott": {
@@ -13356,6 +14057,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "sandile": {
@@ -13376,6 +14078,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "sandshrew": {
@@ -13396,6 +14099,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "sandshrewalola": {
@@ -13416,6 +14120,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "sandslash": {
@@ -13434,6 +14139,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "sandslashalola": {
@@ -13452,6 +14158,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "sandygast": {
@@ -13472,6 +14179,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "sawk": {
@@ -13490,6 +14198,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "M",
     "isMega": false
   },
   "sawsbuck": {
@@ -13508,6 +14217,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "scatterbug": {
@@ -13528,6 +14238,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "sceptile": {
@@ -13547,6 +14258,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "sceptilemega": {
@@ -13566,6 +14278,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": true
   },
   "scizor": {
@@ -13584,6 +14297,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "scizormega": {
@@ -13602,6 +14316,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": true
   },
   "scolipede": {
@@ -13620,6 +14335,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "scrafty": {
@@ -13639,6 +14355,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "scraggy": {
@@ -13660,6 +14377,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "scyther": {
@@ -13680,6 +14398,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "seadra": {
@@ -13701,6 +14420,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "seaking": {
@@ -13719,6 +14439,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "sealeo": {
@@ -13740,6 +14461,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "seedot": {
@@ -13761,6 +14483,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "seel": {
@@ -13782,6 +14505,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "seismitoad": {
@@ -13800,6 +14524,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "sentret": {
@@ -13820,6 +14545,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "serperior": {
@@ -13839,6 +14565,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "servine": {
@@ -13860,6 +14587,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "seviper": {
@@ -13879,6 +14607,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "sewaddle": {
@@ -13899,6 +14628,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "sharpedo": {
@@ -13917,6 +14647,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "sharpedomega": {
@@ -13935,6 +14666,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": true
   },
   "shaymin": {
@@ -13953,6 +14685,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "shayminsky": {
@@ -13971,6 +14704,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "shedinja": {
@@ -13989,6 +14723,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "shelgon": {
@@ -14009,6 +14744,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "shellder": {
@@ -14029,6 +14765,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "shellos": {
@@ -14050,6 +14787,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "shelmet": {
@@ -14070,6 +14808,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "shieldon": {
@@ -14090,6 +14829,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "shiftry": {
@@ -14109,6 +14849,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "shiinotic": {
@@ -14127,6 +14868,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "shinx": {
@@ -14147,6 +14889,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "shroomish": {
@@ -14168,6 +14911,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "shuckle": {
@@ -14186,6 +14930,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "shuppet": {
@@ -14206,6 +14951,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "sigilyph": {
@@ -14224,6 +14970,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "silcoon": {
@@ -14244,6 +14991,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "silvally": {
@@ -14262,6 +15010,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallybug": {
@@ -14280,6 +15029,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallydark": {
@@ -14298,6 +15048,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallydragon": {
@@ -14316,6 +15067,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallyelectric": {
@@ -14334,6 +15086,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallyfairy": {
@@ -14352,6 +15105,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallyfighting": {
@@ -14370,6 +15124,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallyfire": {
@@ -14388,6 +15143,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallyflying": {
@@ -14406,6 +15162,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallyghost": {
@@ -14424,6 +15181,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallygrass": {
@@ -14442,6 +15200,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallyground": {
@@ -14460,6 +15219,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallyice": {
@@ -14478,6 +15238,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallypoison": {
@@ -14496,6 +15257,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallypsychic": {
@@ -14514,6 +15276,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallyrock": {
@@ -14532,6 +15295,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallysteel": {
@@ -14550,6 +15314,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "silvallywater": {
@@ -14568,6 +15333,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "simipour": {
@@ -14586,6 +15352,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "simisage": {
@@ -14604,6 +15371,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "simisear": {
@@ -14622,6 +15390,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "skarmory": {
@@ -14640,6 +15409,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "skiddo": {
@@ -14660,6 +15430,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "skiploom": {
@@ -14681,6 +15452,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "skitty": {
@@ -14702,6 +15474,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "skorupi": {
@@ -14723,6 +15496,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Bug",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "skrelp": {
@@ -14744,6 +15518,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "skuntank": {
@@ -14762,6 +15537,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "slaking": {
@@ -14780,6 +15556,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "slakoth": {
@@ -14800,6 +15577,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "sliggoo": {
@@ -14820,6 +15598,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "slowbro": {
@@ -14839,6 +15618,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "slowbromega": {
@@ -14858,6 +15638,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": true
   },
   "slowking": {
@@ -14877,6 +15658,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "slowpoke": {
@@ -14899,6 +15681,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "slugma": {
@@ -14919,6 +15702,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "slurpuff": {
@@ -14937,6 +15721,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "smeargle": {
@@ -14955,6 +15740,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "smoochum": {
@@ -14975,6 +15761,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "F",
     "isMega": false
   },
   "sneasel": {
@@ -14995,6 +15782,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "snivy": {
@@ -15016,6 +15804,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "snorlax": {
@@ -15034,6 +15823,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "snorunt": {
@@ -15056,6 +15846,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "snover": {
@@ -15077,6 +15868,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "snubbull": {
@@ -15098,6 +15890,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "solgaleo": {
@@ -15116,6 +15909,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "solosis": {
@@ -15136,6 +15930,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "solrock": {
@@ -15154,6 +15949,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "spearow": {
@@ -15174,6 +15970,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "spewpa": {
@@ -15194,6 +15991,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "spheal": {
@@ -15215,6 +16013,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "spinarak": {
@@ -15235,6 +16034,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "spinda": {
@@ -15254,6 +16054,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "spiritomb": {
@@ -15272,6 +16073,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "spoink": {
@@ -15292,6 +16094,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "spritzee": {
@@ -15312,6 +16115,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "squirtle": {
@@ -15333,6 +16137,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "stakataka": {
@@ -15351,6 +16156,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "stantler": {
@@ -15369,6 +16175,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "staraptor": {
@@ -15387,6 +16194,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "staravia": {
@@ -15407,6 +16215,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "starly": {
@@ -15427,6 +16236,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "starmie": {
@@ -15445,6 +16255,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "N",
     "isMega": false
   },
   "staryu": {
@@ -15465,6 +16276,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "N",
     "isMega": false
   },
   "steelix": {
@@ -15483,6 +16295,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "steelixmega": {
@@ -15501,6 +16314,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": true
   },
   "steenee": {
@@ -15521,6 +16335,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "F",
     "isMega": false
   },
   "stoutland": {
@@ -15539,6 +16354,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "stufful": {
@@ -15559,6 +16375,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "stunfisk": {
@@ -15578,6 +16395,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "stunky": {
@@ -15598,6 +16416,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "sudowoodo": {
@@ -15616,6 +16435,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "suicune": {
@@ -15634,6 +16454,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "sunflora": {
@@ -15652,6 +16473,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "sunkern": {
@@ -15672,6 +16494,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "surskit": {
@@ -15693,6 +16516,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "swablu": {
@@ -15714,6 +16538,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Flying",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "swadloon": {
@@ -15734,6 +16559,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "swalot": {
@@ -15752,6 +16578,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "swampert": {
@@ -15771,6 +16598,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "swampertmega": {
@@ -15790,6 +16618,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": true
   },
   "swanna": {
@@ -15809,6 +16638,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "swellow": {
@@ -15827,6 +16657,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "swinub": {
@@ -15847,6 +16678,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "swirlix": {
@@ -15867,6 +16699,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "swoobat": {
@@ -15886,6 +16719,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Flying",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "sylveon": {
@@ -15904,6 +16738,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "taillow": {
@@ -15924,6 +16759,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "talonflame": {
@@ -15942,6 +16778,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "tangela": {
@@ -15962,6 +16799,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "tangrowth": {
@@ -15980,6 +16818,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "tapubulu": {
@@ -15998,6 +16837,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "tapufini": {
@@ -16016,6 +16856,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "tapukoko": {
@@ -16034,6 +16875,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "tapulele": {
@@ -16052,6 +16894,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "tauros": {
@@ -16070,6 +16913,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "M",
     "isMega": false
   },
   "teddiursa": {
@@ -16090,6 +16934,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "tentacool": {
@@ -16110,6 +16955,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "tentacruel": {
@@ -16128,6 +16974,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "tepig": {
@@ -16148,6 +16995,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "terrakion": {
@@ -16166,6 +17014,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "throh": {
@@ -16184,6 +17033,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "M",
     "isMega": false
   },
   "thundurus": {
@@ -16202,6 +17052,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "thundurustherian": {
@@ -16220,6 +17071,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "timburr": {
@@ -16240,6 +17092,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "tirtouga": {
@@ -16261,6 +17114,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "togedemaru": {
@@ -16280,6 +17134,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "togedemarutotem": {
@@ -16299,6 +17154,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "togekiss": {
@@ -16318,6 +17174,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Flying",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "togepi": {
@@ -16338,6 +17195,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "togetic": {
@@ -16359,6 +17217,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Flying",
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "torchic": {
@@ -16379,6 +17238,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "torkoal": {
@@ -16397,6 +17257,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "tornadus": {
@@ -16415,6 +17276,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "tornadustherian": {
@@ -16433,6 +17295,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "torracat": {
@@ -16453,6 +17316,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "torterra": {
@@ -16472,6 +17336,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "totodile": {
@@ -16493,6 +17358,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "toucannon": {
@@ -16511,6 +17377,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "toxapex": {
@@ -16529,6 +17396,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "toxicroak": {
@@ -16547,6 +17415,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Human-Like"
     ],
+    "gender": "",
     "isMega": false
   },
   "tranquill": {
@@ -16567,6 +17436,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "trapinch": {
@@ -16587,6 +17457,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "treecko": {
@@ -16608,6 +17479,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "trevenant": {
@@ -16627,6 +17499,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Grass",
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "tropius": {
@@ -16646,6 +17519,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "trubbish": {
@@ -16666,6 +17540,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "trumbeak": {
@@ -16686,6 +17561,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "tsareena": {
@@ -16704,6 +17580,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "F",
     "isMega": false
   },
   "turtonator": {
@@ -16723,6 +17600,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "turtwig": {
@@ -16744,6 +17622,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "tympole": {
@@ -16764,6 +17643,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "tynamo": {
@@ -16784,6 +17664,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "typenull": {
@@ -16804,6 +17685,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "typhlosion": {
@@ -16822,6 +17704,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "tyranitar": {
@@ -16840,6 +17723,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": false
   },
   "tyranitarmega": {
@@ -16858,6 +17742,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Monster"
     ],
+    "gender": "",
     "isMega": true
   },
   "tyrantrum": {
@@ -16877,6 +17762,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "tyrogue": {
@@ -16899,6 +17785,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "M",
     "isMega": false
   },
   "tyrunt": {
@@ -16920,6 +17807,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "umbreon": {
@@ -16938,6 +17826,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "unfezant": {
@@ -16956,6 +17845,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "unown": {
@@ -16974,6 +17864,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "ursaring": {
@@ -16992,6 +17883,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "uxie": {
@@ -17010,6 +17902,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "vanillish": {
@@ -17030,6 +17923,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "vanillite": {
@@ -17050,6 +17944,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "vanilluxe": {
@@ -17068,6 +17963,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "",
     "isMega": false
   },
   "vaporeon": {
@@ -17086,6 +17982,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "venipede": {
@@ -17106,6 +18003,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "venomoth": {
@@ -17124,6 +18022,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "venonat": {
@@ -17144,6 +18043,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "venusaur": {
@@ -17163,6 +18063,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "venusaurmega": {
@@ -17182,6 +18083,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Grass"
     ],
+    "gender": "",
     "isMega": true
   },
   "vespiquen": {
@@ -17200,6 +18102,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "F",
     "isMega": false
   },
   "vibrava": {
@@ -17220,6 +18123,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "victini": {
@@ -17238,6 +18142,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "victreebel": {
@@ -17256,6 +18161,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "vigoroth": {
@@ -17276,6 +18182,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "vikavolt": {
@@ -17294,6 +18201,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "vikavolttotem": {
@@ -17312,6 +18220,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "vileplume": {
@@ -17330,6 +18239,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "virizion": {
@@ -17348,6 +18258,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "vivillon": {
@@ -17366,6 +18277,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "volbeat": {
@@ -17385,6 +18297,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Bug",
       "Human-Like"
     ],
+    "gender": "M",
     "isMega": false
   },
   "volcanion": {
@@ -17403,6 +18316,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "volcarona": {
@@ -17421,6 +18335,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "voltorb": {
@@ -17441,6 +18356,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Mineral"
     ],
+    "gender": "N",
     "isMega": false
   },
   "vullaby": {
@@ -17461,6 +18377,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "F",
     "isMega": false
   },
   "vulpix": {
@@ -17481,6 +18398,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "vulpixalola": {
@@ -17501,6 +18419,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "wailmer": {
@@ -17522,6 +18441,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "wailord": {
@@ -17541,6 +18461,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Field",
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "walrein": {
@@ -17560,6 +18481,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "wartortle": {
@@ -17581,6 +18503,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Water 1"
     ],
+    "gender": "",
     "isMega": false
   },
   "watchog": {
@@ -17599,6 +18522,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "weavile": {
@@ -17617,6 +18541,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "weedle": {
@@ -17637,6 +18562,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "weepinbell": {
@@ -17657,6 +18583,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "weezing": {
@@ -17675,6 +18602,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "whimsicott": {
@@ -17694,6 +18622,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Fairy",
       "Grass"
     ],
+    "gender": "",
     "isMega": false
   },
   "whirlipede": {
@@ -17714,6 +18643,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "whiscash": {
@@ -17732,6 +18662,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "whismur": {
@@ -17753,6 +18684,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Monster",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "wigglytuff": {
@@ -17771,6 +18703,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Fairy"
     ],
+    "gender": "",
     "isMega": false
   },
   "wimpod": {
@@ -17792,6 +18725,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Bug",
       "Water 3"
     ],
+    "gender": "",
     "isMega": false
   },
   "wingull": {
@@ -17813,6 +18747,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "wishiwashi": {
@@ -17831,6 +18766,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "wishiwashischool": {
@@ -17849,6 +18785,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Water 2"
     ],
+    "gender": "",
     "isMega": false
   },
   "wobbuffet": {
@@ -17867,6 +18804,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "woobat": {
@@ -17888,6 +18826,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Flying",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "wooper": {
@@ -17909,6 +18848,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Water 1",
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "wormadam": {
@@ -17927,6 +18867,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "F",
     "isMega": false
   },
   "wormadamsandy": {
@@ -17945,6 +18886,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "F",
     "isMega": false
   },
   "wormadamtrash": {
@@ -17963,6 +18905,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "F",
     "isMega": false
   },
   "wurmple": {
@@ -17984,6 +18927,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "wynaut": {
@@ -18004,6 +18948,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "",
     "isMega": false
   },
   "xatu": {
@@ -18022,6 +18967,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "xerneas": {
@@ -18040,6 +18986,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "xurkitree": {
@@ -18058,6 +19005,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "yamask": {
@@ -18079,6 +19027,7 @@ export const GEN7_PROGRESSION_SPECIES = {
       "Mineral",
       "Amorphous"
     ],
+    "gender": "",
     "isMega": false
   },
   "yanma": {
@@ -18099,6 +19048,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "yanmega": {
@@ -18117,6 +19067,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Bug"
     ],
+    "gender": "",
     "isMega": false
   },
   "yungoos": {
@@ -18137,6 +19088,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "yveltal": {
@@ -18155,6 +19107,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "zangoose": {
@@ -18173,6 +19126,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "zapdos": {
@@ -18191,6 +19145,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "zebstrika": {
@@ -18209,6 +19164,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "zekrom": {
@@ -18227,6 +19183,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "zeraora": {
@@ -18245,6 +19202,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "zigzagoon": {
@@ -18265,6 +19223,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "zoroark": {
@@ -18283,6 +19242,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "zorua": {
@@ -18303,6 +19263,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Field"
     ],
+    "gender": "",
     "isMega": false
   },
   "zubat": {
@@ -18323,6 +19284,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Flying"
     ],
+    "gender": "",
     "isMega": false
   },
   "zweilous": {
@@ -18343,6 +19305,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Dragon"
     ],
+    "gender": "",
     "isMega": false
   },
   "zygarde": {
@@ -18361,6 +19324,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "zygarde10": {
@@ -18379,6 +19343,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   },
   "zygardecomplete": {
@@ -18397,6 +19362,7 @@ export const GEN7_PROGRESSION_SPECIES = {
     "eggGroups": [
       "Undiscovered"
     ],
+    "gender": "N",
     "isMega": false
   }
 };

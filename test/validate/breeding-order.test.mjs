@@ -208,3 +208,44 @@ test("a fielded evolution's own below-arrival entry never outprices the pre-evo 
   assert.equal(pinMissile.detail, "Skorupi breeding chain (@9)");
   assert.match(pinMissile.sourceTitle, /Skorupi learns Pin Missile at level 9\./);
 });
+
+test("egg-move donors must be able to father the egg (gender direction)", async () => {
+  // User report: NidoranF recommended as Zebstrika's Double Kick donor.
+  // Without Ditto the mother fixes the hatched species — the Blitzle line
+  // supplies her — so the donor must be male, and NidoranF's line (all
+  // female) can never father an egg. NidoranM's line can.
+  const { pokemonIndex } = await loadShared();
+  const progression = { levelCap: "40", daycareUnlocked: true };
+
+  const femaleOnly = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression,
+    query: ["Blitzle", "NidoranF"].join("\n"),
+  });
+  assert.ok(
+    !(femaleOnly.byPokemonId.blitzle?.moveIds || []).includes("doublekick"),
+    "a female-only line must never donate an egg move across lines",
+  );
+
+  const maleOnly = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression,
+    query: ["Blitzle", "NidoranM"].join("\n"),
+  });
+  const doubleKick = maleOnly.byPokemonId.blitzle?.sources?.doublekick;
+  assert.ok(doubleKick, "NidoranM (male) must donate Double Kick");
+  assert.equal(doubleKick.donorName, "NidoranM");
+
+  // Genderless lines have no mother OR father: Magnemite can't receive egg
+  // moves (nor donate them) without Ditto.
+  const genderless = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression,
+    query: ["Magnemite", "Blitzle"].join("\n"),
+  });
+  assert.deepEqual(
+    genderless.byPokemonId.magnemite?.moveIds || [],
+    [],
+    "a genderless line can never receive egg moves",
+  );
+});
