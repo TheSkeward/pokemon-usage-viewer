@@ -63,6 +63,8 @@ const POOL_STORAGE_KEY = "pokemon-usage-viewer:owned-pool:v1";
 const TEAM_SORT_STORAGE_KEY = "pokemon-usage-viewer:pool-team-sort:v1";
 const TEAM_SORT_DIR_STORAGE_KEY = "pokemon-usage-viewer:pool-team-sort-dir:v1";
 const SCORING_MODEL_STORAGE_KEY = "pokemon-usage-viewer:scoring-model:v1";
+const POST_ANALYSIS_MAX_POOL_SIZE = 80;
+const POST_ANALYSIS_MAX_BUILDS = 200;
 
 export function mountPoolOptimizer(container, options = {}) {
   const app = container;
@@ -95,6 +97,10 @@ export function mountPoolOptimizer(container, options = {}) {
     teamItemUsage: null,
     teamItemContext: null,
     itemRecommendations: {},
+    confidence: null,
+    investment: null,
+    analysisPending: false,
+    postAnalysisSkipped: null,
   };
 
   const setDetails = createTeamBuilderSetDetailsLoader({
@@ -134,7 +140,8 @@ export function mountPoolOptimizer(container, options = {}) {
 
     if (initialQuery.trim()) {
       savePool(initialQuery);
-      await computeAndRender();
+      render();
+      void computeAndRender({ exhaustive: false });
     } else {
       render();
     }
@@ -158,6 +165,10 @@ export function mountPoolOptimizer(container, options = {}) {
 
     state.loading = true;
     state.statusMessage = "Optimizing pool...";
+    state.confidence = null;
+    state.investment = null;
+    state.analysisPending = false;
+    state.postAnalysisSkipped = null;
     render();
     startOptimizeProgress(getPoolStats(state.query, pokemonIndex).uniqueCount);
     await waitForPaint();
@@ -295,10 +306,33 @@ export function mountPoolOptimizer(container, options = {}) {
     sweepAbortRequested = false;
     state.confidence = null;
     state.investment = null;
-    state.analysisPending = true;
-    const pendingHandle = render();
+    state.postAnalysisSkipped = null;
     let superseded = false;
     try {
+      if (forResult.postAnalysis) {
+        state.confidence = forResult.postAnalysis.confidence || null;
+        state.investment = forResult.postAnalysis.investment || null;
+        if (pipeline) {
+          pipeline.phases.confidence = 0;
+          pipeline.phases.investment = 0;
+        }
+        render();
+        return;
+      }
+
+      const skipReason = getPostAnalysisSkipReason(forResult);
+      if (skipReason) {
+        state.postAnalysisSkipped = skipReason;
+        if (pipeline) {
+          pipeline.phases.confidence = 0;
+          pipeline.phases.investment = 0;
+        }
+        render();
+        return;
+      }
+
+      state.analysisPending = true;
+      const pendingHandle = render();
       // Wait for the movesets (Team Analysis panel) to land before starting
       // the sweep: its settings run as long synchronous blocks that starve
       // every pending async continuation — measured on a 65-mon pool, the
@@ -324,20 +358,7 @@ export function mountPoolOptimizer(container, options = {}) {
         }
       }
 
-      // A cached result carries its analysis (persistPostAnalysis wrote it
-      // through) — restore the panels for free instead of re-paying the
-      // sweep and the future-cap runs (measured 26s per warm run).
-      if (forResult.postAnalysis) {
-        state.confidence = forResult.postAnalysis.confidence || null;
-        state.investment = forResult.postAnalysis.investment || null;
-        if (pipeline) {
-          pipeline.phases.confidence = 0;
-          pipeline.phases.investment = 0;
-        }
-        render();
-        return;
-      }
-
+      // From here on, the remaining work is optional and can be expensive.
       const confidenceStart = Date.now();
       const confidence = await computeTeamConfidence({
         result: forResult,
@@ -425,6 +446,34 @@ export function mountPoolOptimizer(container, options = {}) {
         render();
       }
     }
+  }
+
+  function getPostAnalysisSkipReason(result) {
+    const poolSize =
+      result?.telemetryMeta?.poolSize || (result?.lines || []).length || 0;
+    const builds = result?.telemetryMeta?.builds || countResultBuilds(result);
+    if (
+      poolSize <= POST_ANALYSIS_MAX_POOL_SIZE &&
+      builds <= POST_ANALYSIS_MAX_BUILDS
+    ) {
+      return null;
+    }
+
+    return {
+      poolSize,
+      builds,
+      poolLimit: POST_ANALYSIS_MAX_POOL_SIZE,
+      buildLimit: POST_ANALYSIS_MAX_BUILDS,
+    };
+  }
+
+  function countResultBuilds(result) {
+    return (result?.lines || []).reduce((total, line) => {
+      const representative = line.best || line.bestNonMega;
+      if (!representative) return total;
+      const alternatives = representative?.buildAlternatives;
+      return total + (Array.isArray(alternatives) ? alternatives.length : 1);
+    }, 0);
   }
 
   // After a progression change that invalidates the optimized team, re-run the

@@ -285,8 +285,8 @@ export async function optimizeTeamFromPool({
     // deletion to an unvisited subset is answered from the last full search.
     searchKey,
     // Bench-swap ranking is hundreds of full team evaluations and only feeds
-    // the interactive bench UI — a projection run never reads it.
-    benchSwaps: !fastMode,
+    // extra bench annotation, so keep it for explicit full optimizes only.
+    benchSwaps: exhaustive && !fastMode,
   });
   // Wall-clock telemetry (roadmap: performance visibility): how long line
   // resolution vs the search actually took, surfaced in the provenance footer.

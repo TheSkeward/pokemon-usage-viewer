@@ -351,11 +351,28 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
 
     <div id="reborn-team-analysis-root"></div>
 
+    ${renderPostAnalysisSkippedSection(state)}
     ${renderInvestmentSection(state)}
     ${renderConfidenceSection(state)}
     ${renderExplanationsSection(state)}
 
     ${renderUnresolved(result.unresolved)}
+  `;
+}
+
+function renderPostAnalysisSkippedSection(state) {
+  const skipped = state.postAnalysisSkipped;
+  if (!skipped || state.analysisPending || state.confidence || state.investment) {
+    return "";
+  }
+
+  const poolSize = skipped.poolSize || 0;
+  const builds = skipped.builds || 0;
+  return `
+    <section class="panel">
+      <h2>Stability and investment</h2>
+      <p class="muted">Skipped optional recommendation stability and level-cap investment projections for this large pool (${poolSize} Pokemon, ${builds} candidate builds) to keep the tab responsive. These diagnostics resume automatically at ${skipped.poolLimit} Pokemon / ${skipped.buildLimit} builds or less.</p>
+    </section>
   `;
 }
 
