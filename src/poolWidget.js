@@ -1,5 +1,10 @@
 import { escapeHtml } from "./utils/html.js";
-import { loadAvailability, loadFormatsIndex, loadPokemonIndex } from "./data";
+import {
+  loadAvailability,
+  loadFormatsIndex,
+  loadPokemonIndex,
+  releaseSourceData,
+} from "./data";
 import {
   getSortedTeam,
   renderGamestateStrip,
@@ -7,7 +12,10 @@ import {
 } from "./teamBuilder/teamBuilderView";
 import { createTeamBuilderSetDetailsLoader } from "./teamBuilder/setDetailsLoader";
 import { getPoolStats, normalizePoolText } from "./teamBuilder/poolParsing";
-import { optimizeTeamFromPool } from "./teamBuilder/teamOptimizer";
+import {
+  optimizeTeamFromPool,
+  persistPostAnalysis,
+} from "./teamBuilder/teamOptimizer";
 import { computeTeamConfidence } from "./teamBuilder/confidence.js";
 import { computeInvestmentPlan } from "./teamBuilder/investment.js";
 import { setScoringOverrides } from "./teamBuilder/scoringConstants.js";
@@ -316,6 +324,20 @@ export function mountPoolOptimizer(container, options = {}) {
         }
       }
 
+      // A cached result carries its analysis (persistPostAnalysis wrote it
+      // through) — restore the panels for free instead of re-paying the
+      // sweep and the future-cap runs (measured 26s per warm run).
+      if (forResult.postAnalysis) {
+        state.confidence = forResult.postAnalysis.confidence || null;
+        state.investment = forResult.postAnalysis.investment || null;
+        if (pipeline) {
+          pipeline.phases.confidence = 0;
+          pipeline.phases.investment = 0;
+        }
+        render();
+        return;
+      }
+
       const confidenceStart = Date.now();
       const confidence = await computeTeamConfidence({
         result: forResult,
@@ -346,6 +368,7 @@ export function mountPoolOptimizer(container, options = {}) {
         // V1 now-scores against V0 future-scores (phantom ~+400 "gains" on
         // converged lines).
         scoringModel: pipeline?.scoringModel ?? state.scoringModel,
+        shouldAbort: () => sweepAbortRequested || state.result !== forResult,
       });
       if (state.result !== forResult) {
         superseded = true;
@@ -353,11 +376,27 @@ export function mountPoolOptimizer(container, options = {}) {
       }
       if (pipeline) pipeline.phases.investment = Date.now() - investmentStart;
       state.investment = investment;
+      // Both landed for the CURRENT result: write them through to the cached
+      // record so the next hit on this gamestate (memo or reload) restores
+      // the panels instead of recomputing them. Guarded on the abort flag: an
+      // abort mid-investment ALSO returns null, and persisting that null
+      // would replay an empty investment panel on every future hit —
+      // a legitimate null (endgame: no future caps) persists fine.
+      if (!sweepAbortRequested) {
+        persistPostAnalysis(forResult, { confidence, investment });
+      }
     } catch (error) {
       console.warn("Post-analysis failed", error);
     } finally {
       setScoringOverrides(null);
       if (state.result === forResult) {
+        // The pipeline (optimize + items + analysis) is over: let go of the
+        // parsed Smogon month files. They only pay for themselves WITHIN a
+        // run (per-mon scans share them); across runs the line/result caches
+        // answer, and keeping them pinned hundreds of MB for the tab's life.
+        // Superseded passes skip this — the newer run is mid-flight and
+        // still reading them.
+        releaseSourceData();
         state.analysisPending = false;
         // One telemetry sample per completed interactive pipeline: optimizer
         // phases from telemetryMeta, item/render/analysis phases measured

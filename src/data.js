@@ -71,6 +71,18 @@ export async function loadSourceData(month, formatId, cutoff, dataKind) {
   }
 }
 
+// Release the parsed month/format/cutoff source files. They exist to be
+// shared across the many per-mon scans WITHIN one optimize pipeline (each mon
+// re-walks the same months, so evicting mid-run would thrash re-parses);
+// across runs the line/result caches answer instead, so keeping them pins
+// hundreds of MB of parsed JSON for the tab's lifetime — the "this tab is
+// using a lot of resources" report. Callers invoke this when a pipeline
+// (including its post-analysis) finishes; a later scan refetches from the
+// browser's disk cache.
+export function releaseSourceData() {
+  sourceCache.clear();
+}
+
 async function loadJson(url) {
   if (jsonCache.has(url)) return jsonCache.get(url);
   const response = await fetch(url);

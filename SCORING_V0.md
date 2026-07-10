@@ -974,3 +974,33 @@ Invariants the shape encodes (each guarded by fixtures):
   silent end-to-end; and the regenerator core wins its endgame seats from
   the synergy term (seated at default scale, never seated together at
   scale 0).
+- **Perf package: post-analysis persistence + sweep/investment cost model**
+  (user: Chrome flagged the tab for high resource use; telemetry showed a
+  cold 160-mon run kept the CPU busy ~6 minutes AFTER the team rendered —
+  confidence 140s + investment 218s — and a result-cache-hit run still
+  re-paid 26s of both). Five changes, none of which touch team selection:
+  (1) confidence + investment now persist WITH the result (memory memo and
+  IndexedDB) and are restored on any hit instead of recomputed; an aborted
+  pass never persists (a mid-investment abort returns null, and persisting
+  it would replay an empty panel forever). (2) The sweep RESCORES only the
+  plausible seat contenders — baseline top 40 lines plus the current team —
+  instead of every line×form×build 21 times; the grid's one-knob nudges
+  can't promote a line that isn't already near the seats, and the searched
+  shortlist (20) is unchanged. Alternatives can now only surface from those
+  contenders (they were the only lines that ever seated anyway).
+  (3) Investment's two future-cap runs use searchMode "fast": line scores —
+  and therefore every `gain` — are exact and search-independent; only
+  `seatsLater` reads the future team, which is now shortlist-grade. Fast
+  runs are quarantined: cache keys carry a "search:fast" tag, they never
+  read or seed the incremental search cache (they used to CLOBBER it — every
+  post-analysis destroyed Layer 2, forcing the next pool edit into a full
+  cold search), and they don't write IndexedDB. computeInvestmentPlan also
+  aborts between caps, so a user optimize no longer queues behind both
+  future runs. (4) The parsed Smogon month files (sources/*, 1–4MB JSON
+  each — the resolver can pin hundreds of MB) are released when the
+  pipeline finishes; within-run sharing is untouched. (5) Idle search
+  workers terminate after 60s and respawn on demand. RESULT_CACHE_VERSION
+  unchanged (17): team output is identical; persisted pre-package records
+  simply lack the analysis field and recompute it once. NOTE: future sweep-
+  grid/contender/investment changes are output changes for the persisted
+  analysis and need a version bump.

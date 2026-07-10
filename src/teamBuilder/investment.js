@@ -43,6 +43,11 @@ export async function computeInvestmentPlan({
   // score against result's now-score, and optimizeTeamFromPool resets the
   // session-global usage model to its argument on every call.
   scoringModel = null,
+  // Checked before each future-cap optimize. A user optimize awaits the whole
+  // post-analysis before it starts (the sweep's override handshake), so
+  // without this hook a click landing mid-investment queued behind BOTH
+  // remaining future runs.
+  shouldAbort = () => false,
 }) {
   const caps = nextLevelCaps(progression.levelCap, 2);
   if (!caps.length || !result?.team?.length) return null;
@@ -54,10 +59,16 @@ export async function computeInvestmentPlan({
   }
   const teamIds = new Set(result.team.map((choice) => choice.inputPokemonId));
 
-  // The optimizer memoizes by (context, pool), so these future runs are cached
-  // like any other gamestate the user might dial in by hand.
+  // The optimizer memoizes by (context, pool), so repeat projections at this
+  // gamestate are free. searchMode "fast" because these runs were the single
+  // biggest CPU sink in the pipeline (218s of a 160-mon cold run — each is a
+  // full optimize) and the plan barely uses their searches: `gain` compares
+  // LINE scores, which are exact under any search mode; only `seatsLater`
+  // reads the future team, and a shortlist-grade six is the right price for
+  // a "worth training soon" hint.
   const futureResults = [];
   for (const cap of caps) {
+    if (shouldAbort()) return null;
     futureResults.push({
       cap,
       result: await optimizeTeamFromPool({
@@ -68,6 +79,7 @@ export async function computeInvestmentPlan({
         query,
         selection,
         scoringModel,
+        searchMode: "fast",
       }),
     });
   }

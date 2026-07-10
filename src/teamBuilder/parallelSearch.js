@@ -78,7 +78,40 @@ export function parallelFullSearch(compactLines, targetSize, bias, total, topCou
   return result;
 }
 
+// Idle reclamation: the pool (up to 8 module workers, one V8 isolate each)
+// used to live for the tab's lifetime after the first parallel search. Runs
+// are bursty — one optimize, then minutes of reading — so terminate after a
+// quiet minute and respawn on the next job (milliseconds; the spawn was
+// already amortized per-run, not per-message). Distinct from retireWorkerPool:
+// this does NOT set workerPoolBroken, so the pool comes back.
+const WORKER_IDLE_MS = 60_000;
+let idleTimer = null;
+
+function scheduleIdleRelease() {
+  // Injected pools (the Node test harness) manage their own lifecycle.
+  if (injectedPoolFactory) return;
+  if (idleTimer) clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    idleTimer = null;
+    if (!workerPool) return;
+    for (const worker of workerPool) {
+      try {
+        worker.terminate();
+      } catch {
+        // ignore
+      }
+    }
+    workerPool = null;
+  }, WORKER_IDLE_MS);
+}
+
 async function dispatch(compactLines, targetSize, bias, total, topCount) {
+  // A job is starting: don't reap workers out from under it. Dispatches are
+  // serialized on `chain`, so clearing here covers the whole job.
+  if (idleTimer) {
+    clearTimeout(idleTimer);
+    idleTimer = null;
+  }
   const pool = total >= PARALLEL_THRESHOLD ? getWorkerPool() : null;
 
   if (!pool || pool.length < 2) {
@@ -107,6 +140,8 @@ async function dispatch(compactLines, targetSize, bias, total, topCount) {
     // to a wrong answer or a frozen UI.
     retireWorkerPool();
     return searchCombinationRange(compactLines, targetSize, bias, 0, total, topCount);
+  } finally {
+    scheduleIdleRelease();
   }
 }
 

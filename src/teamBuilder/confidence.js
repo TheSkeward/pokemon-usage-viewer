@@ -63,6 +63,14 @@ export const CONFIDENCE_GRID = [
 // exact-on-shortlist over the strongest 20 lines (the baseline team always
 // re-competes; a setting that changes the verdict shows up regardless).
 const SWEEP_SHORTLIST = 20;
+// Only the plausible seat contenders are RESCORED per setting: the baseline
+// top CONTENDER_LIMIT lines plus the current team. The grid's perturbations
+// are one-knob nudges — a line has to already be near the seats for one to
+// promote it — so rescoring a 160-line pool's bottom 120 forms×builds 21
+// times over was almost pure waste (the rescoring, not the search, dominated
+// the measured 140s sweep). Double the search's own shortlist keeps a wide
+// apron of near-misses competing for the alternatives list.
+const CONTENDER_LIMIT = 40;
 // Forms per line handed to the sweep's search — see rescoreLine for the
 // measured fidelity/speed trade behind the value.
 const SWEEP_FORM_OPTIONS = 3;
@@ -86,10 +94,11 @@ export async function computeTeamConfidence({
   // and persisted under the base signature.
   shouldAbort = () => false,
 }) {
-  const lines = (result?.lines || []).filter(
+  const allLines = (result?.lines || []).filter(
     (line) => line.best || line.bestNonMega,
   );
-  if (!lines.length || !result?.team?.length) return null;
+  if (!allLines.length || !result?.team?.length) return null;
+  const lines = selectSweepContenders(allLines, result.team);
 
   const levelCap = Number.parseInt(progression?.levelCap, 10) || 0;
   const opponentTypeBias = progression?.opponentTypeBias || {};
@@ -176,6 +185,29 @@ export async function computeTeamConfidence({
   alternatives.sort((a, b) => b.frequency - a.frequency);
 
   return { settings: totalSettings, members, alternatives };
+}
+
+// The baseline top CONTENDER_LIMIT lines by realized score, plus every line
+// carrying a current team member (they must always re-compete). Deterministic:
+// score, then inputPokemonId — same inputs, same contender set, same sweep.
+function selectSweepContenders(allLines, team) {
+  if (allLines.length <= CONTENDER_LIMIT) return allLines;
+  const scoreOf = (line) => {
+    const choice = line.best || line.bestNonMega;
+    return choice?.teamScore ?? choice?.score ?? -Infinity;
+  };
+  const idOf = (line) => (line.best || line.bestNonMega)?.inputPokemonId || "";
+  const ranked = [...allLines].sort(
+    (a, b) => scoreOf(b) - scoreOf(a) || idOf(a).localeCompare(idOf(b)),
+  );
+  const teamIds = new Set(team.map((choice) => choice.inputPokemonId));
+  const kept = new Set(ranked.slice(0, CONTENDER_LIMIT));
+  for (const line of allLines) {
+    if (teamIds.has(idOf(line))) kept.add(line);
+  }
+  // Original pool order, so the contender cut can't reorder anything
+  // downstream reads.
+  return allLines.filter((line) => kept.has(line));
 }
 
 // Re-scores a line's choices under the ACTIVE overrides. Profiles and bundles

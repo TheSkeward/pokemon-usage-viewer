@@ -86,6 +86,11 @@ const MAX_RESULT_CACHE = 400;
 // arrival window (candy-down/relearner, not phantom natural), and equal-
 // level donor ties prefer less hassle — chain details/labels change
 // (Pineco's Pin Missile: Skorupi@9, not Drapion@9).
+//
+// NOTE: results now persist their post-analysis (confidence sweep +
+// investment plan) alongside the team — a change to the sweep grid, its
+// contender selection, or the investment projection is ALSO an output
+// change and needs a bump, even when the team itself is untouched.
 const RESULT_CACHE_VERSION = "17";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
@@ -105,6 +110,9 @@ function ensureHydrated() {
     hydration = loadPersistedResults(RESULT_CACHE_VERSION)
       .then((entries) => {
         for (const [poolKey, result] of entries) {
+          // Re-stamp the key: records written before post-analysis persistence
+          // predate the stamp, and persistPostAnalysis needs it to write back.
+          result.poolKey = poolKey;
           if (!resultCache.has(poolKey)) resultCache.set(poolKey, result);
         }
       })
@@ -127,7 +135,17 @@ export async function optimizeTeamFromPool({
   // opts in itself. Folded into every cache signature via
   // scoringOverridesSignature().
   scoringModel = null,
+  // "fast" is for background projections (the investment plan's future-cap
+  // runs): line scores stay exact — they never depend on the search — but the
+  // team search runs shortlist-budget with no bench-swap ranking, and the run
+  // is quarantined from everything the interactive path relies on: its cache
+  // keys carry a "search:fast" tag so a fast verdict can never answer (or
+  // poison) a real optimize, it neither reads nor seeds the incremental
+  // search cache, and it is not persisted to IndexedDB (the 40-entry store
+  // would evict real results two-for-one per gamestate otherwise).
+  searchMode = "full",
 }) {
+  const fastMode = searchMode === "fast";
   setActiveUsageModel(scoringModel);
   const setupStart = Date.now();
   const groups = buildInputGroups(query, pokemonIndex);
@@ -169,7 +187,12 @@ export async function optimizeTeamFromPool({
   // of the score context: a sweep run must never hit — or seed — the production
   // ("base") caches, and a data refresh must retire every cached verdict.
   const dataSignature = await getDataSignature();
-  const contextSig = `${family}|${selection}|${progressionSig}|${breedingSig}|${abilitySig}|${scoringOverridesSignature()}|${dataSignature}`;
+  // The fast tag is appended (not a new fixed field) so every existing
+  // full-mode key — including results persisted before fast mode existed —
+  // keeps hitting.
+  const contextSig = `${family}|${selection}|${progressionSig}|${breedingSig}|${abilitySig}|${scoringOverridesSignature()}|${dataSignature}${
+    fastMode ? "|search:fast" : ""
+  }`;
 
   // Layer 3: the result is a pure function of the score context and the set of
   // input mons, so memoize by both. A hit short-circuits line resolution and the
@@ -182,7 +205,10 @@ export async function optimizeTeamFromPool({
   const memoized = resultCache.get(poolKey);
   if (memoized) {
     onProgress?.({ phase: "resolve", completed: total, total });
-    seedSearchCache(memoized, memoized.lines, contextSig);
+    // A fast-mode hit must not touch the incremental cache: its results are
+    // shortlist-grade (searchExact false), so seeding would NULL the exact
+    // Layer-2 state the user's next pool edit needs.
+    if (!fastMode) seedSearchCache(memoized, memoized.lines, contextSig);
     // Telemetry facts for the caller (poolWidget records the full pipeline
     // sample — optimizer, item loading, render, post-analysis — so this only
     // DESCRIBES the run; it never records). Overwritten fresh on every hit.
@@ -234,6 +260,7 @@ export async function optimizeTeamFromPool({
   // search, and an addition (with or without unrelated deletions) grows it.
   const searchKey = contextSig;
   const incremental =
+    !fastMode &&
     searchCache &&
     searchCache.searchKey === searchKey &&
     [...searchCache.teamLineKeys].every((key) => hitLineKeys.has(key))
@@ -252,11 +279,14 @@ export async function optimizeTeamFromPool({
   await attachTeammateLift(lines, family);
   onProgress?.({ phase: "search", completed: total, total });
   const result = await choosePoolTeam(lines, progression.opponentTypeBias, {
-    exhaustive,
+    exhaustive: exhaustive && !fastMode,
     incremental,
     // The team store is keyed on the same context as the incremental cache, so a
     // deletion to an unvisited subset is answered from the last full search.
     searchKey,
+    // Bench-swap ranking is hundreds of full team evaluations and only feeds
+    // the interactive bench UI — a projection run never reads it.
+    benchSwaps: !fastMode,
   });
   // Wall-clock telemetry (roadmap: performance visibility): how long line
   // resolution vs the search actually took, surfaced in the provenance footer.
@@ -284,14 +314,37 @@ export async function optimizeTeamFromPool({
   result.degraded = lines.some(lineIsDegraded);
   if (result.degraded) {
     searchCache = null;
+  } else if (fastMode) {
+    // Memoize in memory only (repeat projections at this gamestate are free)
+    // — never seed the incremental cache or the persistent store; see the
+    // searchMode contract above.
+    storeResult(poolKey, result);
   } else {
     seedSearchCache(result, lines, searchKey);
+    // The key rides on the result so persistPostAnalysis can write the
+    // analysis back through to the same record later.
+    result.poolKey = poolKey;
     storeResult(poolKey, result);
     // Persist for future sessions (fire-and-forget; failures are silent no-ops).
     persistResult(RESULT_CACHE_VERSION, poolKey, result);
   }
 
   return result;
+}
+
+// Attaches the post-analysis (confidence sweep + investment plan) to its
+// result and writes the result back through to IndexedDB, so a later hit —
+// memo or reload — restores the analysis panels instead of re-paying the
+// sweep and two future-cap optimizes (measured: 26s of main-thread churn per
+// RESULT-CACHE-HIT run without this, ~6 minutes cold on a 160-mon pool).
+// Degraded results never persist (same rule as the result itself), and a
+// result that predates this build simply lacks the field and recomputes.
+export function persistPostAnalysis(result, postAnalysis) {
+  if (!result || result.degraded || !postAnalysis) return;
+  result.postAnalysis = postAnalysis;
+  if (result.poolKey) {
+    persistResult(RESULT_CACHE_VERSION, result.poolKey, result);
+  }
 }
 
 // Seed the Layer-2 incremental cache from an exact result, so the next pool edit
