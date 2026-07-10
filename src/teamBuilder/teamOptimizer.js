@@ -138,11 +138,12 @@ export async function optimizeTeamFromPool({
   // "fast" is for background projections (the investment plan's future-cap
   // runs): line scores stay exact — they never depend on the search — but the
   // team search runs shortlist-budget with no bench-swap ranking, and the run
-  // is quarantined from everything the interactive path relies on: its cache
-  // keys carry a "search:fast" tag so a fast verdict can never answer (or
-  // poison) a real optimize, it neither reads nor seeds the incremental
-  // search cache, and it is not persisted to IndexedDB (the 40-entry store
-  // would evict real results two-for-one per gamestate otherwise).
+  // is quarantined from the interactive search state: its cache keys carry a
+  // "search:fast" tag so a fast verdict can never answer (or poison) a real
+  // optimize, and it neither reads nor seeds the incremental search cache.
+  // Fast results DO memoize and persist (under their tagged keys) — losing
+  // cross-session warmth measured as investment 18.8s → 426s per warm run,
+  // the regression that white-screened the tab.
   searchMode = "full",
 }) {
   const fastMode = searchMode === "fast";
@@ -314,13 +315,13 @@ export async function optimizeTeamFromPool({
   result.degraded = lines.some(lineIsDegraded);
   if (result.degraded) {
     searchCache = null;
-  } else if (fastMode) {
-    // Memoize in memory only (repeat projections at this gamestate are free)
-    // — never seed the incremental cache or the persistent store; see the
-    // searchMode contract above.
-    storeResult(poolKey, result);
   } else {
-    seedSearchCache(result, lines, searchKey);
+    // Fast runs never seed the incremental cache (their shortlist-grade
+    // optimum would null the exact Layer-2 state the next pool edit needs);
+    // everything else — memory memo AND persistence — they share, because a
+    // cold investment plan is two full future-cap runs and losing their
+    // cross-session warmth measured as 7 minutes per reload.
+    if (!fastMode) seedSearchCache(result, lines, searchKey);
     // The key rides on the result so persistPostAnalysis can write the
     // analysis back through to the same record later.
     result.poolKey = poolKey;

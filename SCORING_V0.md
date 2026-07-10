@@ -1021,3 +1021,26 @@ Invariants the shape encodes (each guarded by fixtures):
   RESULT_CACHE_VERSION bump. Goldens: zero drift (no golden scenario
   used a gender-illegal chain). Pinned: NidoranF cannot donate Double
   Kick to Blitzle, NidoranM can, Magnemite receives nothing.
+- **Perf-package regression: partial revert** (user report: "performance
+  is now a lot slower... blank white... kill the page"; telemetry: cold
+  search 29s → 223s, cold confidence 140s → 336s, warm investment
+  18.8s → 426s on a 161-mon pool). Two package items interacted badly:
+  releasing the parsed source files per pipeline meant every fresh
+  resolve — each auto-reoptimize, and both of investment's future-cap
+  runs — re-fetched and re-JSON.parsed the whole working set (hundreds
+  of MB) on the MAIN THREAD, once per pipeline instead of once per tab;
+  and the fast-mode quarantine kept future-cap results out of IndexedDB,
+  so investment lost all cross-session warmth and re-paid two full
+  future runs per reload, on top of the parse storm. The unresponsive
+  stretches also starved the interactive search (29s → 223s). Fixes:
+  the source cache is permanent again (documented as deliberate — the
+  real memory fix is smaller data, not eviction); fast-mode results now
+  memoize AND persist under their "search:fast"-tagged keys (store cap
+  40 → 60: a gamestate writes now + two future caps), keeping the one
+  quarantine that was correct — fast runs still never read or seed the
+  incremental search cache. Kept from the package: post-analysis
+  persistence, the sweep contender cut, fast-mode future runs, worker
+  idle release. Also kept: the user's own size valve (6985a280) — pools
+  over 80 mons / 200 builds skip fresh confidence/investment entirely
+  (persisted analysis still displays), and startup auto-optimize is
+  non-exhaustive and non-blocking.

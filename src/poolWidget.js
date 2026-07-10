@@ -1,10 +1,5 @@
 import { escapeHtml } from "./utils/html.js";
-import {
-  loadAvailability,
-  loadFormatsIndex,
-  loadPokemonIndex,
-  releaseSourceData,
-} from "./data";
+import { loadAvailability, loadFormatsIndex, loadPokemonIndex } from "./data";
 import {
   getSortedTeam,
   renderGamestateStrip,
@@ -411,13 +406,6 @@ export function mountPoolOptimizer(container, options = {}) {
     } finally {
       setScoringOverrides(null);
       if (state.result === forResult) {
-        // The pipeline (optimize + items + analysis) is over: let go of the
-        // parsed Smogon month files. They only pay for themselves WITHIN a
-        // run (per-mon scans share them); across runs the line/result caches
-        // answer, and keeping them pinned hundreds of MB for the tab's life.
-        // Superseded passes skip this — the newer run is mid-flight and
-        // still reading them.
-        releaseSourceData();
         state.analysisPending = false;
         // One telemetry sample per completed interactive pipeline: optimizer
         // phases from telemetryMeta, item/render/analysis phases measured

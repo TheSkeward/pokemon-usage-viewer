@@ -14,8 +14,10 @@ const DB_NAME = "pokemon-usage-viewer";
 const STORE = "team-results";
 const DB_VERSION = 1;
 // Cap stored pools so the database can't grow without bound; oldest-written are
-// evicted first.
-const MAX_ENTRIES = 40;
+// evicted first. Sized for the investment plan's future-cap projections, which
+// persist alongside the interactive result: each gamestate can write three
+// records (now + two "search:fast" future caps), so 60 keeps ~20 gamestates.
+const MAX_ENTRIES = 60;
 
 let dbPromise = null;
 
