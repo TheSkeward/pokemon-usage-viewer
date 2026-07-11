@@ -47,3 +47,44 @@ test("Frogadier at cap 25: Lick is not meaningful Ghost coverage; Water is a rea
     `Ghost coverage (${intoGhost}) should be clearly below the real Fire answer (${intoFire}) — Lick must not read as an answer`,
   );
 });
+
+test("Focus Punch amortizes to 1/3 effective power (fail-if-disrupted, user report)", () => {
+  // Focus Punch telegraphs at the start of the turn and FAILS if the user
+  // takes damage before it resolves (priority -3) — but the dex encodes that
+  // as a custom condition, not flags.charge, so it was priced as a clean
+  // 150 BP hit, the strongest Fighting move in the model. It now takes the
+  // exposed-charge 1/3 rule (Shell Trap likewise). Pinned via two otherwise
+  // IDENTICAL 150 BP moves: only the id differs, so any damage gap is the
+  // amortization. The base damage formula has a small additive constant, so
+  // the ratio is near-3, not exactly 3.
+  const member = { id: "breloom", name: "Breloom", types: ["Grass", "Fighting"] };
+  const attackerStats = { level: 50, atk: 130, spa: 60 };
+  const asProfile = (id, name) =>
+    buildCandidateLegalityProfile({
+      member,
+      moves: [
+        {
+          id,
+          name,
+          type: "Fighting",
+          category: "Physical",
+          basePower: 150,
+          accuracy: 100,
+          priority: id === "focuspunch" ? -3 : 0,
+          availableSources: [],
+        },
+      ],
+      representativeName: "Breloom",
+      attackerStats,
+      levelCap: 50,
+    });
+
+  const punch = asProfile("focuspunch", "Focus Punch").recommendedMoves[0];
+  const clean = asProfile("brickbreak", "Brick Break").recommendedMoves[0];
+  assert.ok(punch && clean, "both moves must be recommended (sole attack)");
+  const ratio = clean.estimatedDamage / punch.estimatedDamage;
+  assert.ok(
+    ratio > 2.6 && ratio < 3.4,
+    `Focus Punch must deal ~1/3 of an equivalent clean 150 BP hit, got ratio ${ratio}`,
+  );
+});

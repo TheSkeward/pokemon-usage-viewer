@@ -92,12 +92,16 @@ const MAX_RESULT_CACHE = 400;
 // searchPolish record, and the shortlist path always carries bench swap
 // scores (the audit's final scan) — v17 large-pool teams may differ and
 // lack both fields.
+// v19: Focus Punch / Shell Trap amortize to 1/3 effective power (their
+// fail-if-disrupted mechanic is a dex condition, not flags.charge, so the
+// exposed-charge rule missed them) — recommended sets, damage estimates,
+// and coverage change wherever they were priced as clean 150 BP hits.
 //
 // NOTE: results now persist their post-analysis (confidence sweep +
 // investment plan) alongside the team — a change to the sweep grid, its
 // contender selection, or the investment projection is ALSO an output
 // change and needs a bump, even when the team itself is untouched.
-const RESULT_CACHE_VERSION = "18";
+const RESULT_CACHE_VERSION = "19";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the

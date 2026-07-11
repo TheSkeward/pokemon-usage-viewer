@@ -1079,3 +1079,24 @@ Invariants the shape encodes (each guarded by fixtures):
   FORCE_SHORTLIST settings now also polish (engine consistency: the sweep
   must measure the engine that ships). RESULT_CACHE_VERSION 17 -> 18
   (large-pool teams can differ; results carry searchPolish).
+- **Focus Punch / Shell Trap: fail-if-disrupted amortization** (user
+  report: "double-check how Focus Punch is being calculated? I think
+  it's a two-stage move"). The effective-power model already amortized
+  exposed two-turn charges (Solar Beam 1/3), recharge (Hyper Beam 2/3),
+  and multi-hit expectations — but Focus Punch's focus mechanic (fails
+  outright if the user takes damage before its -3-priority resolution)
+  is encoded in the dex as a custom CONDITION, not flags.charge, so it
+  slipped the net and was priced as a clean 150 BP / 100% hit — the
+  strongest Fighting move in the model. Shell Trap (fails unless hit by
+  a physical move first) had the identical hole. Both now take the
+  exposed-charge 1/3 rule via a curated FAILS_IF_DISRUPTED set: the
+  payoff is exposed to disruption exactly like Solar Beam's charge turn.
+  Audited siblings: Beak Blast shares the dex shape but its attack never
+  fails (the condition is the contact burn) — full power kept;
+  Counter/Mirror Coat are BP 0 and never enter the BP model; Avalanche
+  is unconditional at face value. Effect: recommended sets, damage
+  estimates, and damage-aware coverage change wherever the two were
+  picked as the hardest hit. Pinned: Focus Punch deals ~1/3 of an
+  otherwise-identical clean 150 BP move through the profile API. Golden
+  drift: none (no golden scenario carried either move in a recommended
+  set). RESULT_CACHE_VERSION 18 -> 19.

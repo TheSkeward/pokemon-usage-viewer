@@ -914,6 +914,19 @@ const SEMI_INVULNERABLE_CHARGE = new Set([
   "fly", "bounce", "dig", "dive", "phantomforce", "shadowforce", "skydrop",
 ]);
 
+// Telegraph-then-fail-if-disrupted moves (user report: "double-check Focus
+// Punch — I think it's a two-stage move"). The dex encodes their mechanic as
+// a custom condition, NOT flags.charge, so the exposed-charge amortization
+// missed them and both were priced as clean 150 BP hits — the strongest
+// moves of their types. Focus Punch (priority -3) fails outright if the user
+// takes damage before it resolves; Shell Trap fails unless hit by a physical
+// move first. The payoff is exposed to disruption exactly like Solar Beam's
+// charge turn, so they take the same 1/3 rule. Beak Blast shares the dex
+// shape (condition, -3) but its attack NEVER fails — the condition is the
+// contact burn — so it keeps full power; Counter/Mirror Coat are BP 0 and
+// never enter this model.
+const FAILS_IF_DISRUPTED = new Set(["focuspunch", "shelltrap"]);
+
 // How many "hits' worth" of base power a move lands per commitment, used to scale
 // the damage estimate so multi-hit and multi-turn moves are ranked by real output:
 //   - multi-hit: a fixed count (Double Kick → 2) or the EXPECTED count of its
@@ -942,6 +955,7 @@ function getEffectiveHitMultiplier(move) {
 
   if (move.recharge) return 2 / 3;
   if (move.charge && !SEMI_INVULNERABLE_CHARGE.has(move.id)) return 1 / 3;
+  if (FAILS_IF_DISRUPTED.has(move.id)) return 1 / 3;
 
   return 1;
 }
