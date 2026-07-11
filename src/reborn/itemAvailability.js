@@ -1,3 +1,6 @@
+import { REBORN_SHOP_ITEM_BADGES } from "../generated/rebornItemTimeline.generated.js";
+import { GEN7_HELD_ITEMS_BY_ID } from "../generated/gen7HeldItems.generated.js";
+import { HIDDEN_INVENTORY_ITEM_IDS } from "./rebornSeeds";
 // Curated evolution-item availability for Pokémon Reborn.
 //
 // This is a small, SOURCED table — not scraped data and not guesswork dressed
@@ -74,4 +77,29 @@ export function getItemAvailability(itemName) {
       source: `no availability data for ${itemName}`,
     }
   );
+}
+
+// The shop-purchasable held items the player could stock RIGHT NOW but isn't
+// tracking yet: reachable at their badge count, in the held-item catalog,
+// not a hidden/replaced id, and absent from (or under-stocked in) the owned
+// list. Drives the inventory panel's one-click "purchasable now" sync — the
+// data already knows what the shops sell, so discovering shops shouldn't
+// mean transcribing them. Sorted by name for a stable display list.
+// `badges` and `ownedItems` arrive as plain values (not the progression
+// object) to keep this module import-cycle-free.
+export function getPurchasableShopItems(badges, ownedItems = {}, minCount = 1) {
+  if (!Number.isFinite(badges)) return [];
+  const extrasById = Object.fromEntries(
+    REBORN_EXTRA_INVENTORY_ITEMS.map((item) => [item.id, item]),
+  );
+  const results = [];
+  for (const [id, badge] of Object.entries(REBORN_SHOP_ITEM_BADGES)) {
+    if (badge > badges) continue;
+    if (HIDDEN_INVENTORY_ITEM_IDS.has(id)) continue;
+    const item = GEN7_HELD_ITEMS_BY_ID[id] || extrasById[id];
+    if (!item) continue;
+    if ((ownedItems[id] || 0) >= minCount) continue;
+    results.push({ id, name: item.name, badge });
+  }
+  return results.sort((a, b) => a.name.localeCompare(b.name));
 }

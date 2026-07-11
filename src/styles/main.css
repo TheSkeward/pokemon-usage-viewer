@@ -500,6 +500,48 @@ input {
   min-width: 0;
 }
 
+.item-inventory-add-count select {
+  min-width: 58px;
+}
+
+/* One pulse to point at the row an add just touched — the list is
+   alphabetical, so without it the eye has to re-scan after every add. The
+   class is dropped naturally on the next re-render. */
+.item-row-flash {
+  animation: item-row-flash 1.6s ease-out 1;
+}
+
+@keyframes item-row-flash {
+  0% {
+    background: rgba(143, 199, 240, 0.35);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+.item-shop-sync {
+  margin: 0 0 10px;
+  padding: 6px 10px;
+  border: 1px solid rgba(143, 199, 240, 0.25);
+  border-radius: 8px;
+}
+
+.item-shop-sync summary {
+  cursor: pointer;
+}
+
+.item-shop-hint {
+  margin: 6px 0;
+  font-size: 0.85em;
+}
+
+.item-shop-list {
+  margin: 8px 0 4px;
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+
 .item-inventory-list {
   display: flex;
   flex-direction: column;

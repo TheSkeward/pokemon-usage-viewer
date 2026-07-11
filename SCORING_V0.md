@@ -1157,3 +1157,25 @@ Invariants the shape encodes (each guarded by fixtures):
   ZU 1630 (65)) — not by raw trace usage across tiers. Primary key stays
   games ascending; entries within a group stay usage-descending. Display
   only, as before.
+- **Item inventory UX overhaul** (user: entering a shop haul was "really
+  janky" — per item it took a search, a click on Add (which inserted at
+  count 1), a scan of the alphabetical list, and a dropdown change to 6+,
+  with an auto-reoptimize potentially firing between every edit). Five
+  changes, no scoring impact: (1) the add box gains a sticky count picker
+  defaulting to 6+ (most tracked items are renewable shop stock), and
+  adds never LOWER an existing stack; (2) Enter in the search box adds,
+  and focus returns to it after the re-render, so hauls chain
+  type-Enter-type-Enter; (3) the touched row flashes and scrolls into
+  view; (4) inventory edits schedule the re-optimize on a 5s debounce
+  (vs the global 600ms) with a "re-optimizing after edits settle" status,
+  so a burst of edits costs one recompute; (5) a "Purchasable at your
+  badge, not tracked yet" block lists shop-sourced items from the
+  community guide (new generated REBORN_SHOP_ITEM_BADGES map, built from
+  source=Shop rows directly — the merged unlock table hides shop-ness
+  behind earlier one-off finds) with one-click "add all as 6+", via a
+  bulk addRebornOwnedItems that raises-never-lowers. Known data
+  limitation, documented in the generator: the guide extraction kept one
+  row per item, so an item found earlier as Hidden never reads as shop
+  stock even if a shop later sells it. Progression shape and scoring
+  inputs unchanged (ownedItems is the same map; the sync writes count 6
+  exactly as manual entry would).

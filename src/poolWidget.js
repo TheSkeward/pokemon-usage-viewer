@@ -24,9 +24,11 @@ import { renderRebornLegalMovesPanel } from "./reborn/legalMovesView";
 import { renderRebornTeamAnalysisPanel } from "./reborn/teamAnalysisView";
 import { getCurrentRebornSpeciesForChoice } from "./reborn/currentSpecies.js";
 import {
+  addRebornOwnedItems,
   applyRebornCheckpoint,
   clearSavedRebornProgression,
   loadSavedRebornProgression,
+  MAX_TRACKED_ITEM_COUNT,
   saveRebornProgression,
   setRebornOpponentTypeBias,
   setRebornOwnedItemCount,
@@ -34,12 +36,14 @@ import {
   updateRebornProgressionField,
   updateRebornProgressionOption,
 } from "./reborn/progression";
+import { getRebornCheckpoint } from "./reborn/badgeTimeline.js";
 import { toId } from "./utils/ids.js";
 import { bindPersistentDetails } from "./utils/detailsState.js";
 import { GEN7_HELD_ITEMS_BY_ID } from "./generated/gen7HeldItems.generated.js";
 import {
   REBORN_EXTRA_INVENTORY_ITEMS,
   getEvolutionItemIds,
+  getPurchasableShopItems,
 } from "./reborn/itemAvailability.js";
 import { HIDDEN_INVENTORY_ITEM_IDS } from "./reborn/rebornSeeds";
 import { buildPoolAvailabilityText } from "./teamBuilder/availabilityExport";
@@ -488,21 +492,25 @@ export function mountPoolOptimizer(container, options = {}) {
   // After a progression change that invalidates the optimized team, re-run the
   // optimizer automatically. Debounced so rapid edits — typing a level cap,
   // dragging a bias slider, toggling several TMs — settle into one re-optimize.
+  // Inventory edits pass the LONG delay: entering a shop haul is a burst of
+  // add/count actions each several seconds apart, and the short debounce made
+  // every pause cost a full recompute mid-burst.
   const AUTO_REOPTIMIZE_DELAY_MS = 600;
+  const ITEM_EDIT_REOPTIMIZE_DELAY_MS = 5000;
   let autoReoptimizeTimer = null;
 
-  function scheduleAutoReoptimize(stale) {
+  function scheduleAutoReoptimize(stale, delayMs = AUTO_REOPTIMIZE_DELAY_MS) {
     if (!stale || !state.result || !state.query.trim()) return;
 
     if (autoReoptimizeTimer) clearTimeout(autoReoptimizeTimer);
     autoReoptimizeTimer = setTimeout(() => {
       autoReoptimizeTimer = null;
       if (state.loading) {
-        scheduleAutoReoptimize(true);
+        scheduleAutoReoptimize(true, delayMs);
         return;
       }
       void computeAndRender({ exhaustive: false });
-    }, AUTO_REOPTIMIZE_DELAY_MS);
+    }, delayMs);
   }
 
   function render() {
@@ -723,7 +731,11 @@ export function mountPoolOptimizer(container, options = {}) {
       });
     });
 
-    app.querySelector("[data-item-add-button]")?.addEventListener("click", () => {
+    // Shared add path for the button AND Enter in the search box: the item is
+    // added at the sticky picker count (default 6+ — most tracked items are
+    // renewable shop stock), never LOWERING an existing stack, and focus
+    // returns to the search box so shop hauls chain type-Enter-type-Enter.
+    const addOwnedItemFromSearch = () => {
       const input = app.querySelector("[data-item-add-input]");
       const itemId = toId(input?.value || "");
       const knownExtra = REBORN_EXTRA_INVENTORY_ITEMS.some(
@@ -744,10 +756,49 @@ export function mountPoolOptimizer(container, options = {}) {
         return;
       }
 
+      const picked =
+        Number.parseInt(
+          app.querySelector("[data-item-add-count]")?.value,
+          10,
+        ) || MAX_TRACKED_ITEM_COUNT;
       const current = state.progression.ownedItems?.[itemId] || 0;
-      applyOwnedItemChange(itemId, current + 1);
-      if (input) input.value = "";
-    });
+      applyOwnedItemChange(itemId, Math.max(current, picked), {
+        refocusAdd: true,
+        flashItemId: itemId,
+      });
+    };
+
+    app
+      .querySelector("[data-item-add-button]")
+      ?.addEventListener("click", addOwnedItemFromSearch);
+    app
+      .querySelector("[data-item-add-input]")
+      ?.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        addOwnedItemFromSearch();
+      });
+
+    app
+      .querySelector("[data-shop-sync-button]")
+      ?.addEventListener("click", () => {
+        const badges =
+          getRebornCheckpoint(state.progression.checkpoint)?.badges ?? null;
+        const purchasable = getPurchasableShopItems(
+          badges,
+          state.progression.ownedItems || {},
+        );
+        if (!purchasable.length) return;
+        state.progression = addRebornOwnedItems(
+          state.progression,
+          Object.fromEntries(
+            purchasable.map((item) => [item.id, MAX_TRACKED_ITEM_COUNT]),
+          ),
+        );
+        finishOwnedItemsEdit(
+          `Added ${purchasable.length} purchasable item${purchasable.length === 1 ? "" : "s"} at 6+.`,
+        );
+      });
 
     app.querySelectorAll("[data-owned-item-count]").forEach((control) => {
       control.addEventListener("change", () => {
@@ -910,13 +961,20 @@ export function mountPoolOptimizer(container, options = {}) {
     render();
   }
 
-  function applyOwnedItemChange(itemId, count) {
+  function applyOwnedItemChange(itemId, count, { refocusAdd, flashItemId } = {}) {
     state.progression = setRebornOwnedItemCount(
       state.progression,
       itemId,
       count,
     );
+    finishOwnedItemsEdit(null, { refocusAdd, flashItemId });
+  }
 
+  // Common tail of every inventory edit (single change or shop sync): save,
+  // re-render, and schedule the re-optimize on the LONG debounce — entering a
+  // shop haul is a burst of edits, and ten edits should cost one recompute,
+  // not up to ten interleaved with the typing.
+  function finishOwnedItemsEdit(message, { refocusAdd, flashItemId } = {}) {
     const saved = saveRebornProgression(state.progression);
     state.statusMessage = saved
       ? "Saved locally"
@@ -928,7 +986,29 @@ export function mountPoolOptimizer(container, options = {}) {
     // one stale-inducing edit path that never scheduled the re-optimize.
     const stale = markResultProgressionStale();
     render();
-    scheduleAutoReoptimize(stale);
+    if (message || stale) {
+      updateProgressionStatusMessage(
+        [message, stale ? "Re-optimizing after edits settle…" : null]
+          .filter(Boolean)
+          .join(" "),
+      );
+    }
+    // The render replaced the DOM: restore the search box focus so adds can
+    // chain, and flash/scroll the touched row so it's findable in the
+    // alphabetical list without scanning.
+    if (refocusAdd) {
+      app.querySelector("[data-item-add-input]")?.focus();
+    }
+    if (flashItemId) {
+      const row = app
+        .querySelector(`[data-owned-item-count][data-item-id="${flashItemId}"]`)
+        ?.closest(".item-inventory-row");
+      if (row) {
+        row.classList.add("item-row-flash");
+        row.scrollIntoView({ block: "nearest" });
+      }
+    }
+    scheduleAutoReoptimize(stale, ITEM_EDIT_REOPTIMIZE_DELAY_MS);
   }
 
   function applyOpponentBiasChange(type, level) {

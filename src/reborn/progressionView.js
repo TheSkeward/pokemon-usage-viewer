@@ -19,7 +19,10 @@ import {
   getItemUnlockBadge,
   getUnlockBadge,
 } from "./badgeTimeline.js";
-import { REBORN_EXTRA_INVENTORY_ITEMS } from "./itemAvailability.js";
+import {
+  REBORN_EXTRA_INVENTORY_ITEMS,
+  getPurchasableShopItems,
+} from "./itemAvailability.js";
 import { MAX_TRACKED_ITEM_COUNT, MAX_OPPONENT_TYPE_BIAS } from "./progression";
 import { HIDDEN_INVENTORY_ITEM_IDS } from "./rebornSeeds";
 import { REBORN_ANALYSIS_TYPES } from "./typeChart.js";
@@ -125,7 +128,10 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
           badges: getRebornCheckpoint(progression.checkpoint)?.badges ?? null,
         })}
 
-        ${renderItemInventory(progression.ownedItems || {})}
+        ${renderItemInventory(
+          progression.ownedItems || {},
+          getRebornCheckpoint(progression.checkpoint)?.badges ?? null,
+        )}
 
         ${includeBias ? renderOpponentTypeBias(progression.opponentTypeBias || {}) : ""}
       </div>
@@ -232,7 +238,7 @@ function renderBiasRow(type, level) {
   `;
 }
 
-function renderItemInventory(ownedItems) {
+function renderItemInventory(ownedItems, badges) {
   const extrasById = Object.fromEntries(
     REBORN_EXTRA_INVENTORY_ITEMS.map((item) => [item.id, item]),
   );
@@ -273,10 +279,58 @@ function renderItemInventory(ownedItems) {
           aria-label="Add a held item you own"
         />
         <datalist id="reborn-item-options">${datalistOptions}</datalist>
+        <label class="item-inventory-add-count">
+          <span class="visually-hidden">Quantity to add as</span>
+          <select
+            data-item-add-count
+            title="Quantity the item is added at. 6+ means effectively unlimited — the default, because most tracked items are renewable shop stock. Enter in the search box adds too."
+          >
+            ${Array.from({ length: MAX_TRACKED_ITEM_COUNT }, (_, index) => {
+              const value = index + 1;
+              const label =
+                value === MAX_TRACKED_ITEM_COUNT ? `${value}+` : `${value}`;
+              const selected =
+                value === MAX_TRACKED_ITEM_COUNT ? " selected" : "";
+              return `<option value="${value}"${selected}>×${label}</option>`;
+            }).join("")}
+          </select>
+        </label>
         <button type="button" data-item-add-button>Add</button>
       </div>
 
+      ${renderPurchasableShopItems(ownedItems, badges)}
+
       <div class="item-inventory-list">${ownedRows}</div>
+    </details>
+  `;
+}
+
+// One-click shop sync: the community guide already times every shop's stock
+// by badge, so discovering shops shouldn't mean transcribing them — this
+// lists what's purchasable at the current badge but untracked, with a single
+// "add all as 6+" (renewable stock: buy as many as you need).
+function renderPurchasableShopItems(ownedItems, badges) {
+  const purchasable = getPurchasableShopItems(badges, ownedItems);
+  if (!purchasable.length) return "";
+
+  const names = purchasable
+    .map((item) => `<span class="item-shop-name">${escapeHtml(item.name)}</span>`)
+    .join(", ");
+
+  return `
+    <details class="item-shop-sync" ${detailsStateAttrs("shop-sync", false)}>
+      <summary>
+        <span>Purchasable at your badge, not tracked yet</span>
+        <span class="progression-option-count">${purchasable.length}</span>
+      </summary>
+      <p class="muted item-shop-hint">
+        Shop stock timed by the community item guide. Renewable — adding at
+        6+ means "I can buy as many as I need".
+      </p>
+      <button type="button" data-shop-sync-button>
+        Add all ${purchasable.length} as 6+
+      </button>
+      <p class="item-shop-list">${names}</p>
     </details>
   `;
 }

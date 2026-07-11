@@ -150,6 +150,23 @@ export function setRebornOwnedItemCount(progression, itemId, count) {
   return normalizeRebornProgression({ ...progression, ownedItems: owned });
 }
 
+// Bulk inventory merge (shop sync / batch adds): raises each item to the
+// given count, never LOWERING one — re-running a sync can't shrink a stack
+// the player recorded by hand. Counts clamp to the tracking cap.
+export function addRebornOwnedItems(progression, counts = {}) {
+  const owned = { ...(progression.ownedItems || {}) };
+  for (const [itemId, count] of Object.entries(counts)) {
+    const id = String(itemId || "").trim();
+    const parsed = Number.parseInt(count, 10);
+    if (!id || !Number.isFinite(parsed) || parsed <= 0) continue;
+    owned[id] = Math.min(
+      MAX_TRACKED_ITEM_COUNT,
+      Math.max(owned[id] || 0, parsed),
+    );
+  }
+  return normalizeRebornProgression({ ...progression, ownedItems: owned });
+}
+
 // Selecting a badge/post-game checkpoint derives the level cap from the
 // timeline — the player deals in badges; the cap is a consequence.
 export function applyRebornCheckpoint(progression, checkpointId) {
