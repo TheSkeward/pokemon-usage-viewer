@@ -412,11 +412,12 @@ function renderOptionGroup({
         }, 0);
 
   return `
-    <details class="progression-option-group wide-control" ${detailsStateAttrs(detailsId || field, true)}>
+    <details class="progression-option-group wide-control" data-progression-group="${escapeAttr(field)}" ${detailsStateAttrs(detailsId || field, true)}>
       <summary>
         <span>${escapeHtml(summary)}</span>
-        <span class="progression-option-count">${selectedCount}/${uniqueOptions.length} selected${missableCount ? ` · ${missableCount} obtainable now` : ""}</span>
+        <span class="progression-option-count" data-progression-group-count data-option-total="${uniqueOptions.length}">${selectedCount}/${uniqueOptions.length} selected${missableCount ? ` · ${missableCount} obtainable now` : ""}</span>
       </summary>
+      ${renderObtainableRail({ field, uniqueOptions, availabilityById, selected, badges })}
       <div class="progression-option-actions">
         <button
           type="button"
@@ -443,6 +444,48 @@ function renderOptionGroup({
   `;
 }
 
+// The "go pick these up" rail (user report: "I usually have to scroll past a
+// lot of already-checked boxes to get to the ones I want to add"): everything
+// the badge schedule says is obtainable but unchecked, pinned at the top of
+// the group. The canonical full list below keeps its stable order — this is a
+// second view of the same checkboxes, not a reordering, and the change
+// handler syncs twins so ticking a row in either place updates both.
+function renderObtainableRail({
+  field,
+  uniqueOptions,
+  availabilityById,
+  selected,
+  badges,
+}) {
+  if (badges == null) return "";
+  const obtainable = uniqueOptions.filter((option) => {
+    const badge = parseAvailabilityBadge(availabilityById.get(option.id));
+    return badge != null && badge <= badges && !selected.has(option.id);
+  });
+  if (!obtainable.length) return "";
+  return `
+    <div class="progression-obtainable-rail">
+      <div class="progression-subgroup-title">
+        <strong>Obtainable now, not checked</strong>
+        <span>${obtainable.length}</span>
+      </div>
+      <div class="progression-checklist compact">
+        ${obtainable
+          .map((option) =>
+            renderOptionCheckbox({
+              field,
+              option,
+              selected,
+              badges,
+              fallbackAvailable: availabilityById.get(option.id) || "",
+            }),
+          )
+          .join("")}
+      </div>
+    </div>
+  `;
+}
+
 function renderOptionSubgroups({ field, groups, selected, badges = null }) {
   return `
     <div class="progression-subgroups">
@@ -453,6 +496,15 @@ function renderOptionSubgroups({ field, groups, selected, badges = null }) {
               <div class="progression-subgroup-title">
                 <strong>${escapeHtml(group.label)}</strong>
                 <span>${escapeHtml(group.available)}</span>
+                <button
+                  type="button"
+                  class="progression-subgroup-all"
+                  data-progression-subgroup-all="${escapeAttr(field)}"
+                  data-progression-option-ids="${escapeAttr(group.options.map((option) => option.id).join(","))}"
+                  title="Mark every move from this ${escapeHtml(group.label)} location as available"
+                >
+                  All
+                </button>
               </div>
               <div class="progression-checklist compact">
                 ${group.options
@@ -483,13 +535,17 @@ function renderOptionCheckbox({
   fallbackAvailable = "",
 }) {
   const badge = parseAvailabilityBadge(option.available || fallbackAvailable);
-  const obtainable =
-    badges != null && badge != null && badge <= badges && !selected.has(option.id);
+  // "Reachable at the current badge" is stamped as data so the change handler
+  // can retoggle the highlight (and recount the summary) IN PLACE — checkbox
+  // clicks deliberately don't re-render (the re-render reset the viewport:
+  // the "screen jumps" report).
+  const badgeOk = badges != null && badge != null && badge <= badges;
+  const obtainable = badgeOk && !selected.has(option.id);
   // Hover a TM/tutor option for the move's facts — the availability text is
   // already printed inline below the name.
   const facts = describeMoveMeta(getMoveMeta(option.move));
   return `
-    <label class="progression-option${obtainable ? " option-obtainable" : ""}"${facts ? ` title="${escapeAttr(facts)}"` : ""}>
+    <label class="progression-option${obtainable ? " option-obtainable" : ""}"${badgeOk ? ' data-option-badge-ok="1"' : ""}${facts ? ` title="${escapeAttr(facts)}"` : ""}>
       <input
         type="checkbox"
         data-progression-option-list="${escapeAttr(field)}"

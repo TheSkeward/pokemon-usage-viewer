@@ -492,11 +492,12 @@ export function mountPoolOptimizer(container, options = {}) {
   // After a progression change that invalidates the optimized team, re-run the
   // optimizer automatically. Debounced so rapid edits — typing a level cap,
   // dragging a bias slider, toggling several TMs — settle into one re-optimize.
-  // Inventory edits pass the LONG delay: entering a shop haul is a burst of
-  // add/count actions each several seconds apart, and the short debounce made
-  // every pause cost a full recompute mid-burst.
+  // Batch-style edits (a shop haul of items, a badge's worth of TM/tutor
+  // checkboxes) pass the LONG delay: they arrive as bursts of actions each a
+  // few seconds apart, and the short debounce made every pause cost a full
+  // recompute mid-burst.
   const AUTO_REOPTIMIZE_DELAY_MS = 600;
-  const ITEM_EDIT_REOPTIMIZE_DELAY_MS = 5000;
+  const BATCH_EDIT_REOPTIMIZE_DELAY_MS = 5000;
   let autoReoptimizeTimer = null;
 
   function scheduleAutoReoptimize(stale, delayMs = AUTO_REOPTIMIZE_DELAY_MS) {
@@ -516,6 +517,14 @@ export function mountPoolOptimizer(container, options = {}) {
   function render() {
     state.resultProgressionStale = markResultProgressionStale();
 
+    // A render rebuilds the whole page DOM, which resets the viewport to
+    // wherever the shrunk/grown layout lands — the "screen jumps while I'm
+    // ticking checkboxes" report. Renders triggered mid-interaction (status
+    // lines appearing, the progress bar mounting) restore the scroll the
+    // user actually had.
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+
     const handle = renderTeamBuilderPage({
       app,
       baseUrl: baseUrl(),
@@ -529,6 +538,7 @@ export function mountPoolOptimizer(container, options = {}) {
     });
 
     bindEvents();
+    window.scrollTo(scrollX, scrollY);
     return handle;
   }
 
@@ -679,9 +689,10 @@ export function mountPoolOptimizer(container, options = {}) {
 
     app.querySelectorAll("[data-progression-option-list]").forEach((control) => {
       control.addEventListener("change", () => {
+        const field = control.dataset.progressionOptionList;
         state.progression = updateRebornProgressionOption(
           state.progression,
-          control.dataset.progressionOptionList,
+          field,
           control.value,
           control.checked,
         );
@@ -695,8 +706,48 @@ export function mountPoolOptimizer(container, options = {}) {
             : "Progression could not be saved locally; browser storage is full.",
         );
 
+        // DELIBERATELY no render(): the clicked checkbox is already visually
+        // correct, and the full-page rebuild both moved the viewport (the
+        // "screen jumps while ticking boxes" report) and made a burst of
+        // checks feel glacial. Instead: sync any twin renderings of the same
+        // option (the obtainable rail duplicates rows from the main list),
+        // retoggle the highlight, and recount the summary in place. The next
+        // real render arrives with the settled re-optimize.
+        patchOptionCheckboxes(field, control.value, control.checked);
+        patchOptionGroupCount(field);
+        if (!state.result) {
+          // Without a result there is no auto-reoptimize to deliver the
+          // next render (stale banner, gamestate strip) — fall back to the
+          // old full render; there's also no team table above to jump.
+          render();
+        }
+        scheduleAutoReoptimize(stale, BATCH_EDIT_REOPTIMIZE_DELAY_MS);
+      });
+    });
+
+    app.querySelectorAll("[data-progression-subgroup-all]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const field = button.dataset.progressionSubgroupAll;
+        const ids = String(button.dataset.progressionOptionIds || "")
+          .split(",")
+          .filter(Boolean);
+        if (!ids.length) return;
+        // UNION with the existing selection (unlike the group-level "Select
+        // all", which replaces it): "I found this tutor" must not unteach
+        // every other location.
+        state.progression = setRebornProgressionOptions(state.progression, field, [
+          ...new Set([...(state.progression[field] || []), ...ids]),
+        ]);
+
+        const saved = saveRebornProgression(state.progression);
+        const stale = markResultProgressionStale();
+        updateProgressionStatusMessage(
+          saved
+            ? getProgressionSavedMessage(stale)
+            : "Progression could not be saved locally; browser storage is full.",
+        );
         render();
-        scheduleAutoReoptimize(stale);
+        scheduleAutoReoptimize(stale, BATCH_EDIT_REOPTIMIZE_DELAY_MS);
       });
     });
 
@@ -1008,7 +1059,7 @@ export function mountPoolOptimizer(container, options = {}) {
         row.scrollIntoView({ block: "nearest" });
       }
     }
-    scheduleAutoReoptimize(stale, ITEM_EDIT_REOPTIMIZE_DELAY_MS);
+    scheduleAutoReoptimize(stale, BATCH_EDIT_REOPTIMIZE_DELAY_MS);
   }
 
   function applyOpponentBiasChange(type, level) {
@@ -1306,8 +1357,54 @@ export function mountPoolOptimizer(container, options = {}) {
 
   function getProgressionSavedMessage(stale) {
     return stale
-      ? "Progression saved locally. Re-optimize to update team picks."
+      ? "Progression saved locally. Re-optimizing after edits settle…"
       : "Progression saved locally";
+  }
+
+  // In-place DOM patching for checkbox toggles (no re-render — see the change
+  // handler). Every rendering of the option (main list + obtainable rail)
+  // shares field+value, so sync them all and retoggle the "obtainable"
+  // highlight from the render-stamped badge flag.
+  function patchOptionCheckboxes(field, value, checked) {
+    app
+      .querySelectorAll(`[data-progression-option-list="${CSS.escape(field)}"]`)
+      .forEach((box) => {
+        if (box.value !== value) return;
+        box.checked = checked;
+        const label = box.closest(".progression-option");
+        if (!label) return;
+        label.classList.toggle(
+          "option-obtainable",
+          Boolean(label.dataset.optionBadgeOk) && !checked,
+        );
+      });
+  }
+
+  // Recount the group's "N/M selected · K obtainable now" summary from the
+  // live DOM (unique by option value — the rail duplicates rows).
+  function patchOptionGroupCount(field) {
+    const group = app.querySelector(
+      `[data-progression-group="${CSS.escape(field)}"]`,
+    );
+    const counter = group?.querySelector("[data-progression-group-count]");
+    if (!counter) return;
+
+    const seen = new Set();
+    const checked = new Set();
+    const obtainable = new Set();
+    group
+      .querySelectorAll(`[data-progression-option-list="${CSS.escape(field)}"]`)
+      .forEach((box) => {
+        seen.add(box.value);
+        if (box.checked) checked.add(box.value);
+        else if (box.closest(".progression-option")?.dataset.optionBadgeOk) {
+          obtainable.add(box.value);
+        }
+      });
+    const total = Number.parseInt(counter.dataset.optionTotal, 10) || seen.size;
+    counter.textContent = `${checked.size}/${total} selected${
+      obtainable.size ? ` · ${obtainable.size} obtainable now` : ""
+    }`;
   }
 
   function writeUrl() {

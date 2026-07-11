@@ -1179,3 +1179,30 @@ Invariants the shape encodes (each guarded by fixtures):
   stock even if a shop later sells it. Progression shape and scoring
   inputs unchanged (ownedItems is the same map; the sync writes count 6
   exactly as manual entry would).
+- **Progression checkbox mechanics: no re-render on tick, scroll preserved,
+  burst debounce** (user: "sometimes this causes the screen to jump").
+  A checkbox change used to rebuild the entire page DOM — pure waste (the
+  browser had already toggled the box) that reset the viewport mid-burst,
+  and the 600ms debounce ran a full recompute at every pause. Now: option
+  ticks patch in place (twin renderings synced, "obtainable" highlight
+  retoggled from a render-stamped badge flag, the group's N/M · K counter
+  recounted from the live DOM) with NO render — the next render arrives
+  with the settled re-optimize, on the same 5s batch debounce items got.
+  Fallback: with no result on screen there's no re-optimize to deliver
+  that render, so the old full-render path remains (nothing above the
+  panel to jump). Belt-and-braces: render() itself now restores
+  window scroll across the full-page rebuild, so every OTHER render
+  trigger (progress bar mounting, status lines) stops jumping too.
+  Verified in the built app: checkbox click leaves the app DOM intact
+  (marker survives), twins sync, counter updates live, scroll pinned.
+- **Progression checkbox navigation: obtainable rail + per-location tutor
+  "All"** (user: "I usually have to scroll past a lot of already-checked
+  boxes to get to the ones I want to add"). Each option group now pins an
+  "Obtainable now, not checked" rail at the top — the K options the badge
+  schedule says are pickable but untracked (the same K the counter
+  already reported), rendered as live checkboxes; the canonical full list
+  below keeps its stable order (the rail is a second view, not a
+  reordering — twin-sync keeps both honest). Tutor subgroups gain an
+  "All" button that UNIONS the location's moves into the selection
+  (unlike the group-level Select all, which replaces) — a new tutor is
+  one click. Display/UX only; progression shape and scoring untouched.
