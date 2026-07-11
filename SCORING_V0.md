@@ -1151,3 +1151,9 @@ Invariants the shape encodes (each guarded by fixtures):
   meaning of "display only"). No RESULT_CACHE_VERSION bump: the new
   dataSignature retires caches on its own, and results render the tail
   from freshly resolved bundles.
+- **Bench-tail ordering correction** (user ruling superseding their earlier
+  example): within an N-horizon the tail sorts by the SAME ladder order as
+  the meaningful groups — shallower tier first (UU 0 (65) before
+  ZU 1630 (65)) — not by raw trace usage across tiers. Primary key stays
+  games ascending; entries within a group stay usage-descending. Display
+  only, as before.

@@ -774,6 +774,9 @@ function renderBenchLine(result) {
         cutoff: (c || t)?.cutoff,
         hasSignal: Boolean(c),
         games: t?.games ?? null,
+        // The trace row's position on the format×cutoff ladder — the SAME
+        // tier ordering the meaningful groups sort by.
+        traceTierRank: t?.tierRank ?? Infinity,
         maxTraceValue: 0,
         entries: [],
       });
@@ -792,9 +795,11 @@ function renderBenchLine(result) {
   let benchPosition = 0;
 
   // Ordering: meaningful tiers shallow → deep first; then the trace tail by
-  // games ascending (fewer games to 50%-see one = stronger signal) with the
-  // higher-usage band member first inside a horizon (user example: ZU 0 (30)
-  // above ZU 1500 (30), both above PU 1500 (35)); "no usage data" dead last.
+  // games ascending (fewer games to 50%-see one = stronger signal), and
+  // WITHIN a horizon by the same ladder order as everything else — shallower
+  // tier first (user ruling: "primarily ascending N; other than that, the
+  // same sort as everything else", i.e. UU 0 (65) before ZU 1630 (65));
+  // "no usage data" dead last.
   const groupOrder = (a, b) => {
     if (a.hasSignal !== b.hasSignal) return a.hasSignal ? -1 : 1;
     if (a.hasSignal) return a.tierRank - b.tierRank;
@@ -802,11 +807,7 @@ function renderBenchLine(result) {
     const bTrace = b.games != null;
     if (aTrace !== bTrace) return aTrace ? -1 : 1;
     if (!aTrace) return 0;
-    return (
-      a.games - b.games ||
-      b.maxTraceValue - a.maxTraceValue ||
-      `${a.formatId}/${a.cutoff}`.localeCompare(`${b.formatId}/${b.cutoff}`)
-    );
+    return a.games - b.games || a.traceTierRank - b.traceTierRank;
   };
 
   const segments = [...groups.values()]
