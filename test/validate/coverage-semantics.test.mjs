@@ -88,3 +88,49 @@ test("Focus Punch amortizes to 1/3 effective power (fail-if-disrupted, user repo
     `Focus Punch must deal ~1/3 of an equivalent clean 150 BP hit, got ratio ${ratio}`,
   );
 });
+
+test("leaky-dodge charges amortize to 2/3; no-punch-through charges keep full power", () => {
+  // User ruling: Fly/Bounce/Dig/Dive dodge SOME attacks during their charge
+  // turn but are punched through at 2x (Gust into Bounce, Earthquake into
+  // Dig...) and telegraph a free turn — dodge turn worth half a turn, so
+  // (2·½ + 1)/3 = 2/3. Phantom Force/Shadow Force vanish outright and Sky
+  // Drop steals the target's turn — no punch-through, full power. Pinned via
+  // otherwise-identical synthetic 100 BP charge moves.
+  const member = { id: "golurk", name: "Golurk", types: ["Ground", "Ghost"] };
+  const attackerStats = { level: 50, atk: 120, spa: 60 };
+  const damageOf = (id, name) =>
+    buildCandidateLegalityProfile({
+      member,
+      moves: [
+        {
+          id,
+          name,
+          type: "Ground",
+          category: "Physical",
+          basePower: 100,
+          accuracy: 100,
+          priority: 0,
+          charge: true,
+          availableSources: [],
+        },
+      ],
+      representativeName: "Golurk",
+      attackerStats,
+      levelCap: 50,
+    }).recommendedMoves[0].estimatedDamage;
+
+  const dig = damageOf("dig", "Dig");
+  const phantom = damageOf("phantomforce", "Phantom Force");
+  const exposed = damageOf("boltbeam", "Hypothetical Exposed Charge");
+
+  const digRatio = phantom / dig;
+  assert.ok(
+    digRatio > 1.4 && digRatio < 1.6,
+    `Dig must deal ~2/3 of a no-punch-through charge move, got ratio ${digRatio}`,
+  );
+  const exposedRatio = phantom / exposed;
+  assert.ok(
+    exposedRatio > 2.6 && exposedRatio < 3.4,
+    `an exposed charge must still amortize to 1/3, got ratio ${exposedRatio}`,
+  );
+});

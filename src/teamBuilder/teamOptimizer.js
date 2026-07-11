@@ -96,12 +96,16 @@ const MAX_RESULT_CACHE = 400;
 // fail-if-disrupted mechanic is a dex condition, not flags.charge, so the
 // exposed-charge rule missed them) — recommended sets, damage estimates,
 // and coverage change wherever they were priced as clean 150 BP hits.
+// v20: leaky-dodge charge moves (Fly/Bounce/Dig/Dive) amortize to 2/3 —
+// their dodge is punched through at 2x and the lock-in gifts a free turn
+// (user ruling: full power stays only where there's NO punch-through:
+// Phantom Force/Shadow Force vanish, Sky Drop steals the target's turn).
 //
 // NOTE: results now persist their post-analysis (confidence sweep +
 // investment plan) alongside the team — a change to the sweep grid, its
 // contender selection, or the investment projection is ALSO an output
 // change and needs a bump, even when the team itself is untouched.
-const RESULT_CACHE_VERSION = "19";
+const RESULT_CACHE_VERSION = "20";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the

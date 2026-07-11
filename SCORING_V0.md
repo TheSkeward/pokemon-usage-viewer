@@ -1100,3 +1100,28 @@ Invariants the shape encodes (each guarded by fixtures):
   otherwise-identical clean 150 BP move through the profile API. Golden
   drift: none (no golden scenario carried either move in a recommended
   set). RESULT_CACHE_VERSION 18 -> 19.
+- **Leaky-dodge charge moves amortize to 2/3** (user ruling, refining the
+  semi-invulnerable exemption: "for moves with no punch-through — either
+  by making you untargetable or by stealing the opponent's turn — keep em
+  at full power. but for the ones with leaky dodges, put em to 2/3").
+  Fly/Bounce/Dig/Dive previously kept FULL power on the claim that the
+  charge turn blanks the opponent's turn too — but their dodges leak
+  (Gust/Twister hit Fly/Bounce at 2x, Thunder hits airborne outright,
+  Earthquake/Magnitude hit Dig at 2x, Surf/Whirlpool hit Dive at 2x) and
+  the telegraphed lock-in gifts a free switch/setup turn unless the
+  opponent was attacking anyway. Valuing the dodge turn at HALF a turn
+  under the model's double-weight-the-earlier-turn convention gives
+  (2·1/2 + 1·1)/3 = 2/3 — the same convention behind Hyper Beam 2/3 and
+  Solar Beam 1/3, not an ad-hoc haircut. Full power stays only where
+  there is genuinely no punch-through: Phantom Force / Shadow Force
+  vanish completely, and Sky Drop carries the target with it, stealing
+  its turn. Pinned via synthetic same-BP charge moves: Dig ≈ 2/3 of
+  Phantom Force, an exposed charge ≈ 1/3. RESULT_CACHE_VERSION 19 → 20
+  (Dig/Bounce are common mid-game Reborn moves; sets/coverage reprice).
+  Golden drift (audited): all decreases, exactly the Bounce/Dig carriers —
+  late-broad-froakie Steelix 1486→1479 and midgame-broad(+v1) Rapidash
+  1407→1400 (Dig/Bounce marginal in kit; no seat/role changes); weak-shell
+  Azumarill 1366→1239 with role bulky_utility→bulky_attacker (Bounce — its
+  Flying coverage AND its paralysis-utility flag — drops out of the
+  recommended build at 2/3 power, so both credits leave together). No
+  seats changed in any golden.

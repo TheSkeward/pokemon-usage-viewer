@@ -906,13 +906,18 @@ const ESCALATING_HIT_MULTIPLIER = {
   iceball: 2.58,
 };
 
-// Two-turn charge moves that spend their first turn semi-invulnerable (Fly, Dig,
-// ...). The charge turn isn't wasted — you're untargetable, so the opponent's
-// turn is blanked too — so these keep full power, unlike exposed charge moves
-// (Solar Beam, Sky Attack, ...) which charge in the open and get amortized.
-const SEMI_INVULNERABLE_CHARGE = new Set([
-  "fly", "bounce", "dig", "dive", "phantomforce", "shadowforce", "skydrop",
-]);
+// Semi-invulnerable charge moves, split by punch-through (user ruling):
+//   - No punch-through → full power. Phantom Force / Shadow Force vanish
+//     completely (no move hits through), and Sky Drop carries the target
+//     along, stealing its turn — the charge turn is genuinely offset.
+//   - Leaky dodge → 2/3. Fly/Bounce are hit through by Gust/Twister at 2x
+//     power and by Thunder outright; Dig by Earthquake/Magnitude at 2x;
+//     Dive by Surf/Whirlpool at 2x — and the telegraphed lock-in gifts the
+//     opponent a free switch/setup turn unless they were attacking anyway.
+//     Valuing the dodge turn at HALF a turn under the same double-weight-
+//     the-earlier-turn rule as recharge/exposed-charge: (2·½ + 1·1)/3 = 2/3.
+const UNTARGETABLE_CHARGE = new Set(["phantomforce", "shadowforce", "skydrop"]);
+const LEAKY_DODGE_CHARGE = new Set(["fly", "bounce", "dig", "dive"]);
 
 // Telegraph-then-fail-if-disrupted moves (user report: "double-check Focus
 // Punch — I think it's a two-stage move"). The dex encodes their mechanic as
@@ -936,9 +941,13 @@ const FAILS_IF_DISRUPTED = new Set(["focuspunch", "shelltrap"]);
 //     gives (2·1 + 1·0)/3 = 2/3 of a single hit (Hyper Beam);
 //   - exposed charge: a lost turn, then hit. Same double-weight-the-earlier-turn
 //     rule, but now the dead turn is first: (2·0 + 1·1)/3 = 1/3 (Solar Beam);
+//   - leaky-dodge charge: the dodge turn is worth HALF a turn (punch-through
+//     at 2x, telegraphed lock-in): (2·½ + 1·1)/3 = 2/3 (Fly/Bounce/Dig/Dive);
+//   - fails-if-disrupted (Focus Punch/Shell Trap): exposed like Solar Beam's
+//     charge turn → 1/3;
 //   - escalating: a curated weighting (Rollout/Ice Ball).
-// Single-hit moves — and semi-invulnerable charge moves (Fly/Dig), whose charge
-// turn is offset by being untargetable — keep their full single-hit power.
+// Single-hit moves — and no-punch-through charge moves (Phantom Force/Shadow
+// Force vanish outright; Sky Drop steals the target's turn) — keep full power.
 function getEffectiveHitMultiplier(move) {
   const escalating = ESCALATING_HIT_MULTIPLIER[move.id];
   if (escalating) return escalating;
@@ -954,7 +963,11 @@ function getEffectiveHitMultiplier(move) {
   }
 
   if (move.recharge) return 2 / 3;
-  if (move.charge && !SEMI_INVULNERABLE_CHARGE.has(move.id)) return 1 / 3;
+  if (move.charge) {
+    if (UNTARGETABLE_CHARGE.has(move.id)) return 1;
+    if (LEAKY_DODGE_CHARGE.has(move.id)) return 2 / 3;
+    return 1 / 3; // exposed charge (Solar Beam, Sky Attack, ...)
+  }
   if (FAILS_IF_DISRUPTED.has(move.id)) return 1 / 3;
 
   return 1;
