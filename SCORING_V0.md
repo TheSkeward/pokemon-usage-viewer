@@ -1206,3 +1206,28 @@ Invariants the shape encodes (each guarded by fixtures):
   "All" button that UNIONS the location's moves into the selection
   (unlike the group-level Select all, which replaces) — a new tutor is
   one click. Display/UX only; progression shape and scoring untouched.
+- **Egg tooltips: runner-up routes + the scarce-resource pricing finding**
+  (user: "recommended to learn Leaf Storm from breeding Victreebel...
+  that costs a whole Leaf Stone, so I'm a bit skeptical"). Investigation
+  first (asked: "see if the code is sensitive to not wanting to spend
+  scarce resources"): the donor ranking prices hops, LEVELS, candy-down/
+  delayed hassle (equal-level tiebreak), and the relearner's Heart Scale
+  (last resort) — but evolution ITEMS a donor's form consumes are
+  invisible TWICE: getCurrentRebornSpecies presumes elective evolutions
+  once their access is unlocked (input Bellsprout reads as a fielded
+  Victreebel), and the evolved form's level-up entries then price as
+  plain level-ups (Victreebel's Leaf Storm = "@32", Leaf Stone
+  unpriced). Also noted for a future ruling: evolution-MOVE entries with
+  no numeric evoLevel (stone evolutions' "on evolution" moves) price at
+  level 0 — cheaper than any level-up. Where item costs should sit in
+  the ratified hops → level → hassle order is a values call left to the
+  user; the shipped mitigation is transparency: breeding sources are now
+  built in a single post-convergence pass that ranks EVERY viable donor
+  under the same total order and appends up to two runner-up routes to
+  the tooltip ("Other pool routes: Sceptile breeding chain (@63)."),
+  deduped by ROOT learner — a longer chain through the winner's own root
+  (Victreebel → Fomantis) is the same acquisition wearing a detour and
+  is not shown. Pool-order independence preserved (routes rank under the
+  total order; deepEqual pinned); the Pineco/Skorupi and provenance pins
+  unchanged. No RESULT_CACHE_VERSION bump: sourceTitles live inside the
+  breeding signature, so affected pools re-key themselves.

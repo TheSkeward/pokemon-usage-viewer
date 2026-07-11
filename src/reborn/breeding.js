@@ -102,26 +102,79 @@ export async function buildRebornBreedingContext({
         if (current && compareBreedingCosts(best, current) >= 0) continue;
 
         target.costs.set(move.id, best);
-        const targetBreeding = byPokemonId.get(target.species.id);
-        targetBreeding.moveIds.add(move.id);
-        // The path spells every step; the parenthetical is how the ROOT
-        // learner gets the move: "Azumarill → Granbull breeding chain (@1)".
-        const detail = `${best.path.join(" → ")} breeding chain${
-          best.how ? ` (${best.how})` : ""
-        }`;
-        targetBreeding.sources[move.id] = {
-          label: "Egg",
-          detail,
-          donorName: best.path[best.path.length - 1],
-          sourceTitle: formatBreedingSourceTitle({
-            detail,
-            moveName: move.name,
-            rootSourceTitle: best.sourceTitle,
-            targetName: target.species.name,
-          }),
-        };
+        byPokemonId.get(target.species.id).moveIds.add(move.id);
         changed = true;
       }
+    }
+  }
+
+  // Sources are built AFTER convergence, in one pass over the FINAL costs —
+  // both so multi-hop chains display their settled upstream routes, and so
+  // the tooltip can rank every viable donor and show the runner-ups (user
+  // ask: "add other ways to get the move out of my available pool, so I can
+  // compare it with the second-best way"). Deterministic: donors sort under
+  // the same total order the winner was chosen by.
+  for (const target of entries) {
+    const targetBreeding = byPokemonId.get(target.species.id);
+    const movesById = new Map(
+      (target.legalMoveData.moves || []).map((move) => [move.id, move]),
+    );
+    for (const moveId of [...targetBreeding.moveIds].sort()) {
+      const move = movesById.get(moveId);
+      const routes = [];
+      for (const donor of entries) {
+        if (donor.species.id === target.species.id) continue;
+        const donorCost = donor.costs.get(moveId);
+        if (!donorCost || !canBreed(donor.species.id, target.species.id)) {
+          continue;
+        }
+        routes.push({
+          hops: donorCost.hops + 1,
+          level: donorCost.level,
+          how: donorCost.how,
+          hassle: donorCost.hassle || 0,
+          sourceTitle: donorCost.sourceTitle || "",
+          path:
+            donorCost.hops === 0
+              ? [donorCost.learner || donor.species.name]
+              : [...donorCost.path, donor.species.name],
+        });
+      }
+      routes.sort(compareBreedingCosts);
+      if (!routes.length) continue;
+
+      // The path spells every step; the parenthetical is how the ROOT
+      // learner gets the move: "Azumarill → Granbull breeding chain (@1)".
+      const detailOf = (route) =>
+        `${route.path.join(" → ")} breeding chain${route.how ? ` (${route.how})` : ""}`;
+      const best = routes[0];
+      const detail = detailOf(best);
+      // Runner-ups must differ in ROOT LEARNER (path[0]) from the winner and
+      // from each other: a longer chain that still funnels through the same
+      // root (Victreebel → Fomantis → …) is the same acquisition wearing a
+      // detour, not a second opinion. Capped at two — enough to see whether
+      // the recommendation beats the field or squeaked past one rival.
+      const seenRoots = new Set([best.path[0]]);
+      const alternatives = [];
+      for (const route of routes.slice(1)) {
+        if (seenRoots.has(route.path[0])) continue;
+        seenRoots.add(route.path[0]);
+        alternatives.push(detailOf(route));
+        if (alternatives.length >= 2) break;
+      }
+
+      targetBreeding.sources[moveId] = {
+        label: "Egg",
+        detail,
+        donorName: best.path[best.path.length - 1],
+        sourceTitle: formatBreedingSourceTitle({
+          detail,
+          moveName: move?.name || moveId,
+          rootSourceTitle: best.sourceTitle,
+          targetName: target.species.name,
+          alternatives,
+        }),
+      };
     }
   }
 
@@ -217,11 +270,20 @@ function formatBreedingSourceTitle({
   moveName,
   rootSourceTitle,
   targetName,
+  alternatives = [],
 }) {
   return [
     `${moveName}: egg move for ${targetName}.`,
     `Breeding route: ${detail}.`,
     rootSourceTitle ? `Root source: ${rootSourceTitle}` : null,
+    // The pool's next-best routes, so "is this really the cheapest way?" is
+    // answerable from the tooltip instead of on faith — the ranking prices
+    // hops, levels, and candy/relearner hassle, but NOT evolution items a
+    // donor's form consumes (a Victreebel route never charges for its Leaf
+    // Stone), so the runner-ups are the user's cross-check.
+    alternatives.length
+      ? `Other pool routes: ${alternatives.join("; ")}.`
+      : null,
   ]
     .filter(Boolean)
     .join("\n");

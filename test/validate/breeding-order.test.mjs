@@ -209,6 +209,39 @@ test("a fielded evolution's own below-arrival entry never outprices the pre-evo 
   assert.match(pinMissile.sourceTitle, /Skorupi learns Pin Missile at level 9\./);
 });
 
+test("egg tooltips list the pool's next-best routes, deduped by root learner", async () => {
+  // User ask (Leaf Storm via Victreebel costs a Leaf Stone the ranking
+  // can't see): the tooltip must show the runner-up ways to get the move
+  // from the pool, so "is this really the cheapest?" is answerable at a
+  // glance. Runner-ups must be genuinely different ROOTS — a longer chain
+  // that still funnels through the winner's root (Victreebel → Fomantis)
+  // is the same acquisition wearing a detour, not a second opinion.
+  const { pokemonIndex } = await loadShared();
+  const context = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression: {
+      levelCap: "65",
+      daycareUnlocked: true,
+      stonesUnlocked: true,
+      leafStoneUnlocked: true,
+    },
+    query: ["Bulbasaur", "Bellsprout", "Fomantis", "Treecko"].join("\n"),
+  });
+
+  const leafStorm = context.byPokemonId.bulbasaur?.sources?.leafstorm;
+  assert.ok(leafStorm, "Bulbasaur must get Leaf Storm from the pool");
+  assert.equal(leafStorm.detail, "Victreebel breeding chain (@32)");
+  assert.match(
+    leafStorm.sourceTitle,
+    /Other pool routes: Sceptile breeding chain \(@63\)\./,
+    "the independent Sceptile route must appear as the runner-up",
+  );
+  assert.ok(
+    !/Victreebel → /.test(leafStorm.sourceTitle),
+    "same-root detours must not masquerade as alternatives",
+  );
+});
+
 test("egg-move donors must be able to father the egg (gender direction)", async () => {
   // User report: NidoranF recommended as Zebstrika's Double Kick donor.
   // Without Ditto the mother fixes the hatched species — the Blitzle line
