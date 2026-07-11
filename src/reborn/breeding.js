@@ -36,7 +36,10 @@ export async function buildRebornBreedingContext({
           availableEggMoveIdsForPokemon: [],
         })) {
           costs.set(move.id, {
-            ...acquisitionOf(move, species.id),
+            ...acquisitionOf(move, species.id, {
+              inputId: species.inputId,
+              ownedItems: progression.ownedItems || {},
+            }),
             hops: 0,
             path: [],
           });
@@ -198,7 +201,17 @@ export async function buildRebornBreedingContext({
 // it); anything else (TM/tutor/Sketch) is teachable outright at level 0,
 // labelled by its source ("TM42"). Delayed-evolution level-ups
 // ("Level 38 (Slakoth)") still parse to their level.
-export function acquisitionOf(move, speciesId) {
+//
+// Scarce-resource pricing (user ruling: "a Leaf Stone is basically worth
+// any levels of grinding. Stone routes lose ties with either grinding or
+// candy-downs"): when the form that learns the move can only be obtained by
+// consuming evolution items the player doesn't renewably own — a stone, a
+// Link Stone, a trade hold-item — the route is priced out of the normal
+// level range entirely (STONE_ROUTE_OFFSET added to its level), so ANY
+// plain level-up or candy-down beats it, at any level, and it still ranks
+// above nothing-at-all. Items tracked at 6+ ("I can buy as many as I
+// need") waive the penalty: renewable stock isn't scarce.
+export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
   let best = null;
   for (const source of move.availableSources || []) {
     const label = source.label || "";
@@ -253,6 +266,20 @@ export function acquisitionOf(move, speciesId) {
         sourceTitle: source.sourceTitle || source.detail || source.label || "",
       };
     }
+    // Charge unspent evolution items between the player's actual form and
+    // the form that learns the move. Applied per SOURCE because different
+    // sources name different learners: Drapion's "Level 9 (Skorupi)" hatches
+    // a Skorupi (no items), while a Victreebel-only move needs the stone.
+    const learnerId = toId(candidate.learner) || speciesId;
+    const items = unspentEvolutionItems(learnerId, inputId, ownedItems);
+    if (items.length) {
+      candidate = {
+        ...candidate,
+        level: candidate.level + STONE_ROUTE_OFFSET * items.length,
+        how: `${candidate.how} + ${items.join(" + ")}`,
+      };
+    }
+
     if (
       !best ||
       candidate.level < best.level ||
@@ -263,6 +290,53 @@ export function acquisitionOf(move, speciesId) {
     }
   }
   return best || { level: 0, how: "" };
+}
+
+// Above every real level (caps top out at 150) and the relearner's 200, so a
+// stone route loses to grinding, candy-downs, AND a Heart Scale trip — it
+// only ever wins over having no route at all. Stacks per item for multi-item
+// paths.
+const STONE_ROUTE_OFFSET = 300;
+
+// Evolution items consumed to turn the player's ACTUAL form (the pool input)
+// into `learnerId`, skipping items they renewably own (tracked at the 6+
+// cap). Walking learner → root: hops at or below the input are already paid
+// for (the fielded mon exists; a learner BELOW the input is hatched fresh,
+// which costs nothing but the egg).
+function unspentEvolutionItems(learnerId, inputId, ownedItems = {}) {
+  const items = [];
+  let id = learnerId;
+  const seen = new Set();
+  while (id && !seen.has(id) && id !== inputId) {
+    seen.add(id);
+    const record = GEN7_PROGRESSION_SPECIES[id];
+    if (!record) break;
+    const hopItems = [];
+    if (record.evoType === "useItem" && record.evoItem) {
+      hopItems.push(record.evoItem);
+    } else if (record.evoType === "trade") {
+      // Reborn replaces trades with the Link Stone; a trade hold-item
+      // (Metal Coat, King's Rock) is consumed alongside it.
+      hopItems.push("Link Stone");
+      if (record.evoItem) hopItems.push(record.evoItem);
+    }
+    for (const item of hopItems) {
+      if ((ownedItems[toId(item)] || 0) >= RENEWABLE_ITEM_COUNT) continue;
+      items.push(item);
+    }
+    id = record.prevoId;
+  }
+  return items;
+}
+
+// Mirrors MAX_TRACKED_ITEM_COUNT ("6+" = renewable shop stock) without
+// importing the progression module into this dependency-light one.
+const RENEWABLE_ITEM_COUNT = 6;
+
+function toId(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
 }
 
 function formatBreedingSourceTitle({
@@ -349,6 +423,11 @@ function getOwnedCurrentSpecies({ pokemonIndex, progression, query }) {
       species.push({
         id,
         name: GEN7_PROGRESSION_SPECIES[id]?.name || candidate.name || id,
+        // The form the player ACTUALLY listed — evolution items on hops
+        // between it and a move's learner are unspent, so scarce-resource
+        // pricing charges them (a presumed Victreebel still owes its Leaf
+        // Stone; an input Victreebel already paid it).
+        inputId: group.input.id,
       });
     }
   }

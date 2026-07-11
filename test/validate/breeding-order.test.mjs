@@ -209,36 +209,75 @@ test("a fielded evolution's own below-arrival entry never outprices the pre-evo 
   assert.match(pinMissile.sourceTitle, /Skorupi learns Pin Missile at level 9\./);
 });
 
-test("egg tooltips list the pool's next-best routes, deduped by root learner", async () => {
-  // User ask (Leaf Storm via Victreebel costs a Leaf Stone the ranking
-  // can't see): the tooltip must show the runner-up ways to get the move
-  // from the pool, so "is this really the cheapest?" is answerable at a
-  // glance. Runner-ups must be genuinely different ROOTS — a longer chain
-  // that still funnels through the winner's root (Victreebel → Fomantis)
-  // is the same acquisition wearing a detour, not a second opinion.
+test("stone routes lose to any grinding; tooltips show runner-up routes", async () => {
+  // User rulings, both from the Leaf Storm report: (1) "a Leaf Stone is
+  // basically worth any levels of grinding. Stone routes lose ties with
+  // either grinding or candy-downs" — a route that must consume evolution
+  // items the player doesn't renewably own prices out of the level range
+  // entirely; (2) the tooltip lists the pool's next-best routes, deduped by
+  // ROOT learner (a longer chain through the winner's own root is the same
+  // acquisition wearing a detour, not a second opinion).
   const { pokemonIndex } = await loadShared();
-  const context = await buildRebornBreedingContext({
+  const progression = {
+    levelCap: "65",
+    daycareUnlocked: true,
+    stonesUnlocked: true,
+    leafStoneUnlocked: true,
+  };
+
+  // Input Bellsprout: the presumed Victreebel owes its Leaf Stone, so plain
+  // Sceptile@63 beats stone-Victreebel@32 despite 31 levels of grinding.
+  const unspent = await buildRebornBreedingContext({
     pokemonIndex,
-    progression: {
-      levelCap: "65",
-      daycareUnlocked: true,
-      stonesUnlocked: true,
-      leafStoneUnlocked: true,
-    },
+    progression,
     query: ["Bulbasaur", "Bellsprout", "Fomantis", "Treecko"].join("\n"),
   });
-
-  const leafStorm = context.byPokemonId.bulbasaur?.sources?.leafstorm;
+  const leafStorm = unspent.byPokemonId.bulbasaur?.sources?.leafstorm;
   assert.ok(leafStorm, "Bulbasaur must get Leaf Storm from the pool");
-  assert.equal(leafStorm.detail, "Victreebel breeding chain (@32)");
+  assert.equal(leafStorm.detail, "Sceptile breeding chain (@63)");
   assert.match(
     leafStorm.sourceTitle,
-    /Other pool routes: Sceptile breeding chain \(@63\)\./,
-    "the independent Sceptile route must appear as the runner-up",
+    /Other pool routes: Victreebel breeding chain \(@32 \+ Leaf Stone\)\./,
+    "the stone route must appear as a runner-up, priced honestly",
   );
   assert.ok(
     !/Victreebel → /.test(leafStorm.sourceTitle),
     "same-root detours must not masquerade as alternatives",
+  );
+
+  // Input VICTREEBEL: the stone is already sunk into the fielded mon — no
+  // charge, @32 wins again.
+  const sunk = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression,
+    query: ["Bulbasaur", "Victreebel", "Treecko"].join("\n"),
+  });
+  assert.equal(
+    sunk.byPokemonId.bulbasaur?.sources?.leafstorm?.detail,
+    "Victreebel breeding chain (@32)",
+  );
+
+  // Renewable Leaf Stones (tracked 6+ = "buy as many as I need"): waived.
+  const renewable = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression: { ...progression, ownedItems: { leafstone: 6 } },
+    query: ["Bulbasaur", "Bellsprout", "Treecko"].join("\n"),
+  });
+  assert.equal(
+    renewable.byPokemonId.bulbasaur?.sources?.leafstorm?.detail,
+    "Victreebel breeding chain (@32)",
+  );
+
+  // No stone-free donor at all: the stone route is still offered (it beats
+  // having no route), labeled with its real cost.
+  const only = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression,
+    query: ["Bulbasaur", "Bellsprout"].join("\n"),
+  });
+  assert.equal(
+    only.byPokemonId.bulbasaur?.sources?.leafstorm?.detail,
+    "Victreebel breeding chain (@32 + Leaf Stone)",
   );
 });
 

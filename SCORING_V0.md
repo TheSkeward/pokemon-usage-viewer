@@ -1231,3 +1231,26 @@ Invariants the shape encodes (each guarded by fixtures):
   total order; deepEqual pinned); the Pineco/Skorupi and provenance pins
   unchanged. No RESULT_CACHE_VERSION bump: sourceTitles live inside the
   breeding signature, so affected pools re-key themselves.
+- **Scarce-resource ruling ratified: stone routes lose to any grinding**
+  (user, closing the Leaf Storm finding: "I think a Leaf Stone is
+  basically worth any levels of grinding. Stone routes lose ties with
+  either grinding or candy-downs"). acquisitionOf now charges every
+  evolution ITEM consumed between the player's ACTUAL input form and the
+  form that learns the move: useItem stones, and Reborn's trade
+  replacements (Link Stone + any trade hold-item), per source (a
+  Drapion's "Level 9 (Skorupi)" hatches a fresh Skorupi — no items; its
+  Victreebel-class sources owe their stones). Charged routes price out
+  of the level range entirely (+300 per item — above every real cap and
+  the relearner's 200, so they lose to grinding, candy-downs, AND a
+  Heart Scale trip, winning only over no-route-at-all) and label
+  honestly: "Victreebel breeding chain (@32 + Leaf Stone)". Waivers,
+  both from existing semantics: an input listed AS the evolved form has
+  already sunk its stone (no charge), and items tracked renewably (6+ =
+  "buy as many as I need") aren't scarce. Edge left as ratified
+  previously: chain length stays SOVEREIGN (hops before level), so a
+  direct stone donor still beats a two-hop stone-free chain — flagged
+  for a future ruling if it ever bites. Pinned: unspent-stone
+  Bellsprout loses to Sceptile@63 with the stone route as an honestly-
+  priced runner-up; input Victreebel and renewable-stone cases win at
+  @32; a stone-only pool still offers the route. No RESULT_CACHE_VERSION
+  bump (breeding signatures re-key on content).
