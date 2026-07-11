@@ -2,7 +2,9 @@ import { getLineRepresentativeCandidates } from "../data";
 import {
   applyBreedingContextToProgression,
   buildRebornBreedingContext,
+  canHatchLine,
 } from "../reborn/breeding.js";
+import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
 import {
   getCurrentRebornSpeciesForChoice,
   isStrictPreEvolutionOf,
@@ -100,12 +102,17 @@ const MAX_RESULT_CACHE = 400;
 // their dodge is punched through at 2x and the lock-in gifts a free turn
 // (user ruling: full power stays only where there's NO punch-through:
 // Phantom Force/Shadow Force vanish, Sky Drop steals the target's turn).
+// v21: daycare reachability (user ruling): with the daycare unlocked, a
+// hatchable line fields ANY family form from any input (Beedrill can field
+// Kakuna; Mothim reaches the Wormadams) — and without it, sibling branches
+// are now correctly OFF the table (Mothim could wrongly field Wormadam
+// before). Same progression can produce different candidates than v20.
 //
 // NOTE: results now persist their post-analysis (confidence sweep +
 // investment plan) alongside the team — a change to the sweep grid, its
 // contender selection, or the investment projection is ALSO an output
 // change and needs a bump, even when the team itself is untouched.
-const RESULT_CACHE_VERSION = "20";
+const RESULT_CACHE_VERSION = "21";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the
@@ -480,14 +487,38 @@ async function resolvePoolLine({
   }
 
   const input = group.input;
-  // Strict pre-evolutions of the INPUT are excluded: an owned Mantine can
-  // never be a Mantyke again, so Mantyke's LC usage must not name, set-source,
-  // or ceiling-boost the line. (Descendants and megas stay — those are real
-  // futures.)
+  // Which family forms can this input actually BECOME? Descendants and their
+  // megas always (evolving up is a real future). Everything else — strict
+  // pre-evolutions AND sibling branches — needs the daycare on a hatchable
+  // line (user ruling: "if I put in Beedrill but Kakuna was better, field
+  // Kakuna — I can hatch more Weedles"; likewise Mothim reaches the
+  // Wormadams only by hatching a Burmy). Without the daycare, an owned
+  // Mantine can never be a Mantyke again, so Mantyke's LC usage must not
+  // name, set-source, or ceiling-boost the line — and an owned Mothim has
+  // no path to a female Burmy, so the Wormadams are off the table too (the
+  // old filter wrongly allowed those). Form-variant inputs fall back to
+  // their base species for the descendant walk (a Burmy-Sandy's cloak is
+  // mutable in-game, so every Burmy evolution is its descendant).
+  const inputBaseId =
+    GEN7_PROGRESSION_SPECIES[input.id]?.baseSpeciesId || input.id;
+  const daycareReach =
+    Boolean(progression?.daycareUnlocked) && canHatchLine(input.id);
   const candidates = getLineRepresentativeCandidates(
     input.id,
     pokemonIndex,
-  ).filter((candidate) => !isStrictPreEvolutionOf(candidate.id, input.id));
+  ).filter((candidate) => {
+    if (daycareReach) return true;
+    const candidateBaseId = candidate.isMega
+      ? GEN7_PROGRESSION_SPECIES[candidate.id]?.baseSpeciesId || candidate.id
+      : candidate.id;
+    return (
+      candidateBaseId === input.id ||
+      isStrictPreEvolutionOf(input.id, candidateBaseId) ||
+      (inputBaseId !== input.id &&
+        (candidateBaseId === inputBaseId ||
+          isStrictPreEvolutionOf(inputBaseId, candidateBaseId)))
+    );
+  });
   const abilityOverride =
     abilityAnnotations?.get(normalizeName(input.name)) || null;
 

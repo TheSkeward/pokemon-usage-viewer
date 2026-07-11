@@ -137,19 +137,30 @@ test("endgame: the gen7uu regenerator core wins its seats from the synergy term"
   // Blissey/Quagsire/Alomomola (pair lifts +46..+58) vs same-era strangers.
   // Without the term the trio never sits together; at the calibrated scale
   // the core's co-use record buys the marginal seats.
+  //
+  // Daycare OFF, deliberately: the daycare-reachability ruling lets the
+  // Blissey line field CHANSEY (shallower OU record — the Eviolite set),
+  // and a fielded Chansey carries Chansey's OU co-use lifts, not Blissey's
+  // UU regenerator-core ones, so the trio's glue vanishes — correct engine
+  // behavior (pinned in daycare-reachability.test.mjs), but this contract
+  // measures the SYNERGY TERM, which needs Blissey fielded. Relearner-only
+  // trust still suffices for the flip at the shipped scale.
+  const NO_DAYCARE = {
+    progression: { ...ENDGAME.progression, daycareUnlocked: false },
+  };
   const pool = [
     "Blissey", "Quagsire", "Alomomola", "Forretress", "Ambipom", "Arcanine",
     "Altaria", "Golduck", "Exploud", "Swampert", "Gardevoir", "Dodrio",
   ];
   const core = ["Blissey", "Quagsire", "Alomomola"];
-  const withSynergy = await runPool({ pool, ...ENDGAME, overrides: { USAGE_MODEL: "v1" } });
+  const withSynergy = await runPool({ pool, ...NO_DAYCARE, overrides: { USAGE_MODEL: "v1" } });
   const seated = teamSet(withSynergy);
   for (const name of core) {
     assert.ok(seated.has(name), `${name} missing from ${[...seated].join(", ")}`);
   }
   const without = await runPool({
     pool,
-    ...ENDGAME,
+    ...NO_DAYCARE,
     overrides: { USAGE_MODEL: "v1", SYNERGY_SCALE: 0 },
   });
   const seatedOff = teamSet(without);

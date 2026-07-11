@@ -458,6 +458,20 @@ function canBreed(donorId, targetId) {
   return familyHasGender(donorId, "M") && familyHasGender(targetId, "F");
 }
 
+// Whether the daycare can produce fresh members of this line at all: the
+// family must have a breedable egg group AND a possible mother (the hatched
+// species is the mother's). Consumed by line resolution — with the daycare
+// unlocked, a hatchable line's EVERY form is fieldable from any input
+// (user ruling: "if I put in Beedrill but Kakuna was better, field Kakuna —
+// I can hatch more Weedles"), while genderless/male-only/Undiscovered lines
+// (Magnezone, Tauros) still can't reach downward.
+export function canHatchLine(pokemonId) {
+  return (
+    getBreedableEggGroups(pokemonId).length > 0 &&
+    familyHasGender(pokemonId, "F")
+  );
+}
+
 // Whether any form in the evolutionary family can be the given sex: ""
 // (mixed ratio) counts for either; "M"/"F" only for themselves; "N"
 // (genderless) for neither.

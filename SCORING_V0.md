@@ -1254,3 +1254,36 @@ Invariants the shape encodes (each guarded by fixtures):
   priced runner-up; input Victreebel and renewable-stone cases win at
   @32; a stone-only pool still offers the route. No RESULT_CACHE_VERSION
   bump (breeding signatures re-key on content).
+- **Daycare reachability ratified: a hatchable line fields any family form**
+  (user ruling: "as long as I have daycare unlocked, higher evolutions can
+  reach lower evolutions... if I put in Beedrill but Kakuna was better,
+  field Kakuna — I can hatch more Weedles; if my input was Mothim, I reach
+  the Wormadams by breeding and evolving a Burmy"). The line-resolution
+  filter was daycare-blind in BOTH directions: strict pre-evolutions were
+  always excluded (v10's "an owned Mantine can never be a Mantyke again" —
+  true only without the daycare), while sibling branches were always
+  allowed (an owned Mothim fielded Wormadam with no path to a female
+  Burmy). New rule: descendants and their megas are always reachable
+  (evolving up is a real future); everything else — pre-evolutions AND
+  sibling branches — requires daycareUnlocked on a HATCHABLE line
+  (breedable egg groups + a possible mother, via canHatchLine — so
+  genderless Magnezone and male-only lines still can't reach downward).
+  Form-variant inputs fall back to their base species for the descendant
+  walk (a Burmy-Sandy's cloak is mutable in-game, so every Burmy evolution
+  counts as its descendant). Once fielded, a lower form's own kit resolves
+  from its own legal-move data as usual, so Weedle/Kakuna-only moves come
+  with it. Pinned: Beedrill±daycare, Mothim±daycare (both directions),
+  Magnezone+daycare. RESULT_CACHE_VERSION 20 → 21 (same progression can
+  now produce different candidates). Golden drift audited with the regen.
+  Calibration-fixture note (audited during this change): the synergy
+  acceptance scenario ("gen7uu regenerator trio seats at the shipped
+  scale") ran with the daycare on, and the reachability ruling upgrades
+  its Blissey line to CHANSEY — a shallower OU record (the Eviolite set),
+  whose co-use lifts don't include the UU core, so the trio's glue
+  vanishes. That is the ruling working as intended (Chansey-over-Blissey
+  is the canonical better-pre-evo case), not a synergy regression: the
+  points-table, exactness, zero-trust, and inertness contracts all still
+  hold, and the trio contract holds verbatim with the daycare off
+  (relearner-only trust still flips at scale 4, and scale 0 still drops
+  Alomomola). The fixture now pins that gamestate explicitly, with the
+  reasoning in the test.
