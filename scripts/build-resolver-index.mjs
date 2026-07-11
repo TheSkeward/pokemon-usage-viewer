@@ -34,8 +34,11 @@ import { SCORING_DEFAULTS } from "../src/teamBuilder/scoringConstants.js";
 const MEANINGFUL_USAGE_PERCENT = SCORING_DEFAULTS.MIN_MEANINGFUL_USAGE_PERCENT;
 
 async function buildFamilyAllIndex(availability, family) {
-  const { resolved: usageByPokemon, ranking: rankingByPokemon } =
-    await resolveAllPokemonUsage(availability, family);
+  const {
+    resolved: usageByPokemon,
+    ranking: rankingByPokemon,
+    trace: traceByPokemon,
+  } = await resolveAllPokemonUsage(availability, family);
   const leadsByPokemon = await resolveAllPokemonLeads(availability, family);
 
   const pokemon = {};
@@ -45,10 +48,13 @@ async function buildFamilyAllIndex(availability, family) {
     pokemon[pokemonId] = {
       usage: usageByPokemon[pokemonId] || null,
       leads: leadsByPokemon[pokemonId] || null,
-      // The first tier (descending the format×cutoff ladder) whose usage is
-      // >= 0.1% — the signal used to rank low-usage mons against each other,
-      // since the headline tier's raw count is noise for them.
+      // The first tier (descending the format×cutoff ladder) whose usage
+      // clears the meaningful bar — the signal used to rank low-usage mons
+      // against each other, since the headline tier's raw count is noise.
       ranking: rankingByPokemon[pokemonId] || null,
+      // DISPLAY-ONLY (bench tail labels): best sub-bar row for mons with no
+      // ranking anywhere. Scoring never reads it.
+      trace: traceByPokemon[pokemonId] || null,
     };
   }
 
@@ -63,7 +69,14 @@ async function buildFamilyAllIndex(availability, family) {
 
 async function resolveAllPokemonUsage(availability, family) {
   const resolved = {}; // first tier the mon appears in at all (the headline)
-  const ranking = {}; // first tier whose usage rounds to >= 0.1% (ranking signal)
+  const ranking = {}; // first tier whose usage clears the meaningful bar
+  // DISPLAY-ONLY: for mons that never clear the meaningful bar anywhere, the
+  // single best sub-bar row (highest average usage; earliest tier on ties) —
+  // the row that first qualifies as the bar relaxes ("50% chance of being
+  // seen within N games" for growing N). The bench tail labels no-usage-data
+  // mons with it. Scoring must NEVER read this field: the whole point is
+  // that it changes what the tail SAYS, not what anything computes.
+  const trace = {};
   let tierRank = -1;
 
   for (const candidate of iterateCandidateSources(availability, family, 'usage')) {
@@ -129,10 +142,30 @@ async function resolveAllPokemonUsage(availability, family) {
           rawCount: entry.totalRawCount,
         };
       }
+
+      // Strict > keeps the earliest-traversal row on equal values, matching
+      // the first-meaningful convention. Tracked for every not-yet-ranked
+      // mon; rows for mons that later earn a ranking are dropped at emit.
+      if (!ranking[pokemonId]) {
+        const current = trace[pokemonId];
+        if (!current || value > current.value) {
+          trace[pokemonId] = {
+            tierRank,
+            formatId: candidate.formatId,
+            cutoff: candidate.cutoff,
+            value,
+            name: entry.name,
+          };
+        }
+      }
     }
   }
 
-  return { resolved, ranking };
+  for (const pokemonId of Object.keys(trace)) {
+    if (ranking[pokemonId]) delete trace[pokemonId];
+  }
+
+  return { resolved, ranking, trace };
 }
 
 async function resolveAllPokemonLeads(availability, family) {

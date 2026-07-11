@@ -1,4 +1,5 @@
 import { escapeHtml, escapeAttr } from "../utils/html.js";
+import { gamesToLikelySee } from "./traceUsage.js";
 import { renderMovesetPanel } from "../views/movesetView";
 import { renderRebornLegalMovesPanel } from "../reborn/legalMovesView";
 import {
@@ -713,7 +714,14 @@ function renderBenchLine(result) {
     if (seenInputIds.has(representative.inputPokemonId)) continue;
 
     seenInputIds.add(representative.inputPokemonId);
-    bench.push({ representative, ceiling: lineCeilingRanking(line) });
+    const ceiling = lineCeilingRanking(line);
+    bench.push({
+      representative,
+      ceiling,
+      // Only lines with no meaningful tier anywhere get a trace label — the
+      // ceiling keeps sole authority over everything above the bar.
+      trace: ceiling ? null : lineTraceTier(line),
+    });
   }
 
   if (!bench.length) return "";
@@ -735,7 +743,7 @@ function renderBenchLine(result) {
   // 1.3% (FEAR); printing "Raticate 1.3%" there attributed one form's numbers
   // to another. The fielded representative moves to the tooltip.
   const chipFormName = (entry) =>
-    entry.ceiling?.name || entry.representative.name;
+    entry.ceiling?.name || entry.trace?.name || entry.representative.name;
 
   // Two different input lines can share a chip form — disambiguate with the
   // input name instead of rendering two identical chips.
@@ -746,20 +754,33 @@ function renderBenchLine(result) {
   }
 
   // Group by tier (best form's first-meaningful tier), ordered shallow → deep.
+  // Below-the-bar lines form a TAIL after every meaningful group: labelled
+  // with their best trace row at the relaxed seen-within-N-games horizon
+  // ("ZU 1500 (30)"), and only lines with no usage anywhere keep the honest
+  // "no usage data" bucket at the very end.
   const groups = new Map();
   for (const entry of bench) {
     const c = entry.ceiling;
-    const key = c ? `${c.formatId}/${c.cutoff}` : "none";
+    const t = entry.trace;
+    const key = c
+      ? `${c.formatId}/${c.cutoff}`
+      : t
+        ? `trace:${t.formatId}/${t.cutoff}/${t.games}`
+        : "none";
     if (!groups.has(key)) {
       groups.set(key, {
         tierRank: c ? c.tierRank : Infinity,
-        formatId: c?.formatId,
-        cutoff: c?.cutoff,
+        formatId: (c || t)?.formatId,
+        cutoff: (c || t)?.cutoff,
         hasSignal: Boolean(c),
+        games: t?.games ?? null,
+        maxTraceValue: 0,
         entries: [],
       });
     }
-    groups.get(key).entries.push(entry);
+    const group = groups.get(key);
+    if (t && t.value > group.maxTraceValue) group.maxTraceValue = t.value;
+    group.entries.push(entry);
   }
 
   // Box-position numbering: bench chips in display order are numbered 1–120,
@@ -770,18 +791,39 @@ function renderBenchLine(result) {
   const MAX_BENCH_INDEX = BOX_SIZE * 4;
   let benchPosition = 0;
 
+  // Ordering: meaningful tiers shallow → deep first; then the trace tail by
+  // games ascending (fewer games to 50%-see one = stronger signal) with the
+  // higher-usage band member first inside a horizon (user example: ZU 0 (30)
+  // above ZU 1500 (30), both above PU 1500 (35)); "no usage data" dead last.
+  const groupOrder = (a, b) => {
+    if (a.hasSignal !== b.hasSignal) return a.hasSignal ? -1 : 1;
+    if (a.hasSignal) return a.tierRank - b.tierRank;
+    const aTrace = a.games != null;
+    const bTrace = b.games != null;
+    if (aTrace !== bTrace) return aTrace ? -1 : 1;
+    if (!aTrace) return 0;
+    return (
+      a.games - b.games ||
+      b.maxTraceValue - a.maxTraceValue ||
+      `${a.formatId}/${a.cutoff}`.localeCompare(`${b.formatId}/${b.cutoff}`)
+    );
+  };
+
   const segments = [...groups.values()]
-    .sort((a, b) => a.tierRank - b.tierRank)
+    .sort(groupOrder)
     .map((group) => {
       group.entries.sort(
         (a, b) =>
-          (b.ceiling?.value || 0) - (a.ceiling?.value || 0) ||
+          ((b.ceiling || b.trace)?.value || 0) -
+            ((a.ceiling || a.trace)?.value || 0) ||
           chipFormName(a).localeCompare(chipFormName(b)),
       );
 
       const label = group.hasSignal
         ? `${SHORT_FORMAT[group.formatId] || group.formatId} ${group.cutoff}`
-        : "no usage data";
+        : group.games != null
+          ? `${SHORT_FORMAT[group.formatId] || group.formatId} ${group.cutoff} (${group.games})`
+          : "no usage data";
 
       const chips = group.entries
         .map((entry) => {
@@ -815,7 +857,14 @@ function renderBenchLine(result) {
         })
         .join("");
 
-      return `<span class="bench-group"><span class="bench-tier">${escapeHtml(label)}</span>${chips}</span>`;
+      // Trace tiers explain their parenthetical: it's a visibility horizon,
+      // not a usage percent, and the reader shouldn't have to know the
+      // formula to read it.
+      const tierTitle =
+        group.games != null
+          ? ` title="Below the meaningful-usage bar (50% chance of being seen within 25 games ≈ 2.7%) in every tier. Best trace signal: ~${truncatePercent(group.maxTraceValue)} here — 50% chance of being seen within ${group.games} games."`
+          : "";
+      return `<span class="bench-group"><span class="bench-tier"${tierTitle}>${escapeHtml(label)}</span>${chips}</span>`;
     })
     .join('<span class="bench-sep">·</span>');
 
@@ -831,6 +880,35 @@ function renderBenchLine(result) {
 // hard cutoff used to find the meaningful tier.
 function truncatePercent(value) {
   return `${(Math.floor((value || 0) * 10) / 10).toFixed(1)}%`;
+}
+
+// The line's best TRACE row for the bench tail (only consulted when no form
+// is meaningful anywhere): across the line's forms, the resolver index's
+// display-only `trace` row with the highest usage — the row that qualifies
+// first as the seen-within-N-games bar relaxes — stamped with that N. Null
+// when no form has any usage at all (stays "no usage data").
+function lineTraceTier(line) {
+  let best = null;
+  for (const candidate of line.candidates || []) {
+    const trace = candidate.bundle?.trace;
+    if (!trace || !(trace.value > 0)) continue;
+    if (
+      !best ||
+      trace.value > best.value ||
+      (trace.value === best.value && trace.tierRank < best.tierRank)
+    ) {
+      best = {
+        tierRank: trace.tierRank,
+        value: trace.value,
+        formatId: trace.formatId,
+        cutoff: trace.cutoff,
+        name: trace.name || candidate.candidate?.name,
+      };
+    }
+  }
+  if (!best) return null;
+  const games = gamesToLikelySee(best.value);
+  return games == null ? null : { ...best, games };
 }
 
 // The line's best form by ranking: the shallowest meaningful tier, then highest

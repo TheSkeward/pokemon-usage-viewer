@@ -1125,3 +1125,29 @@ Invariants the shape encodes (each guarded by fixtures):
   Flying coverage AND its paralysis-utility flag — drops out of the
   recommended build at 2/3 power, so both credits leave together). No
   seats changed in any golden.
+- **Bench tail: relaxed seen-within-N-games labels (DISPLAY ONLY)** (user
+  design: "when something has no usage data, iteratively add 5 to the
+  number of games played in the '50% chance of having been seen in N
+  games played' calculation, and have that be a tail to the current
+  tiers... it should absolutely not change the mechanics"). The
+  meaningful-usage bar IS that calculation at N=25 (2.73%); mons below it
+  everywhere used to pool into one flat "no usage data" bucket. The
+  resolver index now carries a display-only `trace` field per unranked
+  mon — its best sub-bar row (highest average usage, earliest tier on
+  ties: the row that qualifies first as the bar relaxes) — and the bench
+  tail labels each such line "ZU 1500 (30)": at that row's usage, 50%
+  odds of seeing one within 30 games. Tail ordering per the user's
+  example: games ascending (30-band above 35-band), higher trace usage
+  first within a band, mons with zero usage anywhere stay in an honest
+  "no usage data" bucket dead last. Group tooltip explains the horizon so
+  the parenthetical isn't mistaken for a percent. Verified against the
+  user's live examples: Beartic → ZU 1760 (30) (2.726% — missed the
+  2.732% bar by a hair), Barbaracle → RU 1760 (35), Bastiodon → ZU 0
+  (35), Castform → ZU 0 (165), Cherrim → ZU 0 (320). Mechanics untouched
+  BY CONSTRUCTION and by proof: scoring never reads `trace` (only the
+  bench renderer does), red-flag ordering still keys on the unchanged
+  ceiling field, and the golden suite is byte-stable across the index
+  regeneration (dataSignature changed, zero score drift — the exact
+  meaning of "display only"). No RESULT_CACHE_VERSION bump: the new
+  dataSignature retires caches on its own, and results render the tail
+  from freshly resolved bundles.
