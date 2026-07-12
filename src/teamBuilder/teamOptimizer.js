@@ -113,12 +113,18 @@ const MAX_RESULT_CACHE = 400;
 // Force, the -ate type converters, and the rest of the move-property-
 // conditional family — so damage-derived scores shift without any data
 // signature change.
+// v23: score-what-you-show (user report: displayed sets came apart from the
+// sets that produced the score). Default/delayed builds (and the ability
+// probe) now anchor on canonical move usage + the stitched competitive move
+// rank — the same inputs the analysis pane displays — and the non-passive
+// floor hardened alongside it (currentFormValue). Every line's default
+// build can change, so every score can.
 //
 // NOTE: results now persist their post-analysis (confidence sweep +
 // investment plan) alongside the team — a change to the sweep grid, its
 // contender selection, or the investment projection is ALSO an output
 // change and needs a bump, even when the team itself is untouched.
-const RESULT_CACHE_VERSION = "22";
+const RESULT_CACHE_VERSION = "23";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the
@@ -975,6 +981,19 @@ function formatLegalityNote(profile) {
 // plus, when the caught mon's ability is UNKNOWN, a secondary-ability probe
 // used only to measure ability sensitivity (the optimizer must never "choose"
 // an ability the player doesn't control; a user annotation pins it instead).
+//
+// Score what you show (user report: "The sets it's recommending to me in the
+// display come apart from the sets that give it its score? that seems bad"):
+// the default/delayed builds (and the probe, which measures the default set)
+// anchor on the SAME inputs the analysis pane displays — canonical move
+// usage and the stitched competitive move rank. Coverage/utility variants
+// stay damage-/role-led by design: they exist as alternatives to the
+// canonical set. TWO deliberate differences remain: scoring stays item-blind
+// (items are inventory-dependent and priced by the owned-item system;
+// folding the top competitive item into scored damage would double-count),
+// and scoring uses ideal offensive investment rather than the displayed
+// competitive spread (see the NOTE at makeProfile — real spreads are often
+// defensive and collapsed PvE attacker offense).
 async function resolveCandidateBuilds({
   breedingContext,
   candidate,
@@ -1068,7 +1087,24 @@ async function resolveCandidateBuilds({
     progression: memberProgression,
   });
 
-  const makeProfile = ({ movePreference, buildMoves, buildFriction = 0, ability }) => {
+  // NOTE — scoring deliberately does NOT use the top spread's real EVs/nature
+  // (attackerStats stays the generic strongest-side investment computed
+  // inside buildCandidateLegalityProfile). It was tried as part of score-
+  // what-you-show and REVERTED: competitive singles spreads are often
+  // defensive (Arcanine's canonical spread is Impish 248 HP/252 Def —
+  // Growlithe's scored Atk fell 91→68), which collapsed PvE attacker offense
+  // pool-wide and let zero-offense walls displace real attackers (the
+  // high-utility-low-offense Shuckle guard). A playthrough mon's investment
+  // is the player's choice, so scoring prices the attacking potential —
+  // "best obtainable", the same philosophy as the assumed ability — while
+  // the pane displays the competitive spread it recommends.
+  const makeProfile = ({
+    movePreference,
+    buildMoves,
+    buildFriction = 0,
+    ability,
+    usageAnchored = false,
+  }) => {
     const profile = buildCandidateLegalityProfile({
       member,
       moves: buildMoves,
@@ -1079,6 +1115,12 @@ async function resolveCandidateBuilds({
       buildFriction,
       opponentTypeBias: progression.opponentTypeBias,
       movePreference,
+      // Score what the player is shown: the default/delayed builds anchor on
+      // canonical usage + the stitched move rank. Coverage/utility variants
+      // stay damage-/role-led alternatives.
+      ...(usageAnchored
+        ? { moveUsage: topSet.moveUsage, moveRank: topSet.moveRank }
+        : {}),
     });
     profile.abilityKnown = abilityKnown;
     profile.abilityOptions = abilityChoices;
@@ -1094,6 +1136,7 @@ async function resolveCandidateBuilds({
         movePreference: "default",
         buildMoves: naturalMoves,
         ability: assumedAbility,
+        usageAnchored: true,
       }),
     },
   ];
@@ -1127,6 +1170,7 @@ async function resolveCandidateBuilds({
         movePreference: "default",
         buildMoves: [...naturalMoves, ...delayedMoves],
         ability: assumedAbility,
+        usageAnchored: true,
       });
       const delayedIds = new Set(delayedMoves.map((move) => move.id));
       const usedDelayed = (delayedProfile.recommendedMoves || []).filter((move) =>
@@ -1158,6 +1202,7 @@ async function resolveCandidateBuilds({
           movePreference: "default",
           buildMoves: naturalMoves,
           ability: secondaryAbility,
+          usageAnchored: true,
         })
       : null;
 

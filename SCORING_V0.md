@@ -1538,3 +1538,48 @@ Invariants the shape encodes (each guarded by fixtures):
   optimize 26.2s to table on the slow verification box (the search share
   fell from ~100s to ~3s), live percent captions, "swap audit: shortlist
   held (36 lines audited)" in the footer.
+- **Score what you show** (user report, ratified: "The sets it's
+  recommending to me in the display come apart from the sets that give it
+  its score? that seems bad" → "okay, go ahead"). The optimizer's build
+  variants never passed canonical move usage into profile building — the
+  resolveCandidateBuilds doc comment claimed "default — the usage-anchored
+  competitive set" but the anchoring only ever happened in the display
+  path, so a pick could be seated on a damage-led set (Greninja scored on
+  hydropump/extrasensory/round/substitute) while the pane recommended a
+  different one (extrasensory/hydropump/round/nightslash). The default and
+  delayed builds (and the ability-sensitivity probe) now anchor on
+  canonical move usage + the stitched competitive move rank — the same
+  inputs the analysis pane displays. Coverage/utility variants stay
+  damage-/role-led by design (they exist as alternatives). TWO deliberate
+  score/display differences remain, both documented at the code: items
+  (inventory-dependent, priced by the owned-item system) and investment
+  stats — anchoring the top spread's real EVs/nature was TRIED and
+  REVERTED, because competitive singles spreads are often defensive
+  (Arcanine's canonical spread is Impish 248 HP/252 Def; Growlithe's scored
+  Atk fell 91→68) and collapsed PvE attacker offense pool-wide; scoring
+  keeps ideal offensive investment ("best obtainable", the ability
+  philosophy).
+  Alongside it, the NON-PASSIVE FLOOR is hardened to its documented
+  intent: the gate now multiplies the utility roles outside the geomean
+  (inside it, a mon at 29% of the floor kept 66% of its utility value).
+  This was latent while passive mons' canonical utility moves went
+  unpriced — the anchoring exposed it when Shuckle's real Sticky Web/
+  Encore set jumped it 1045→1277 and seated a base-10-offense wall over a
+  real attacker, violating the high-utility-low-offense guard. With the
+  hard gate the guard holds.
+  Golden drift audited — every move is one of the two mechanisms:
+  floor-subsidized utility bodies drop (Joltik 1158→1025, Ledyba
+  1202→1076, Spinarak 1220→1100, Swirlix 1061→892, Tangela 1127→994);
+  canonical sets with REAL infrastructure gain (Trubbish 945→1032 —
+  Toxic Spikes now priced; Tentacool 1028→1118); roles flip
+  utility→attacker where the subsidy vanished (Burmy, Pancham, Poliwrath,
+  Kricketune); fielded forms move where a floor-subsidized pre-evo lost
+  its edge (Surskit now fields Masquerain; Happiny fields Chansey);
+  midgame-broad's team rebalances (Eevee's eventual vaporeon→jolteon,
+  Tentacool seats over Mareep) and unique-immunity's (Tentacool over
+  Hoothoot — its must-seat pins hold). The incremental-exactness trap
+  fixture was re-tuned with its documented procedure (find-reshuffle
+  grid search): mixed pool + Flying:2 + Sandshrew springs the trap under
+  v23 scoring. The Shuckle, delayed-evolution, and regret suites all
+  pass — regret's exact baselines now run with the (tunable) search cap
+  raised, per the budgets change. RESULT_CACHE_VERSION 22→23.

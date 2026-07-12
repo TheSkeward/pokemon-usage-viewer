@@ -18,18 +18,19 @@ const { __resetOptimizerCachesForTests } = await import(
   "../../src/teamBuilder/teamOptimizer.js"
 );
 
-// Under a Flying-leaning opponent bias, adding Gastly restructures the team:
-// the true union optimum seats Gastly AND swaps in Surskit, which the old
-// optimum excluded (verified by grid search under the CURRENT scoring
-// constants — re-run scratchpad find-reshuffle.mjs to re-tune this fixture if
-// the trap-drift guard below ever fires after a scoring change) — exactly the
-// "companions reshuffled beyond the old optimum" trap. An incremental step
-// that only patched X into neighborhoods of the old optimum would miss it.
+// Under a Flying-leaning opponent bias, adding Sandshrew restructures the
+// team: the true union optimum seats Sandshrew AND swaps in a companion the
+// old optimum excluded (verified by grid search under the CURRENT v23
+// score-what-you-show constants — re-run scratchpad find-reshuffle.mjs to
+// re-tune this fixture if the trap-drift guard below ever fires after a
+// scoring change) — exactly the "companions reshuffled beyond the old
+// optimum" trap. An incremental step that only patched X into neighborhoods
+// of the old optimum would miss it.
 const BASE_POOL = [
   "Wingull", "Pidgey", "Poliwag", "Psyduck", "Slowpoke", "Tentacool",
-  "Spearow", "Hoothoot", "Surskit", "Goldeen", "Ducklett",
+  "Machop", "Oddish", "Bellsprout", "Abra", "Meowth",
 ];
-const ADDED = "Gastly";
+const ADDED = "Sandshrew";
 const BIAS = { Flying: 2 };
 
 test("incremental growth answers exactly (warm S→S∪{X} equals cold S∪{X})", async () => {

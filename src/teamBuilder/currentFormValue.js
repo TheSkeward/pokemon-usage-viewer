@@ -327,11 +327,19 @@ export function currentFormValue(profile, levelCap) {
   // mediocre mon outscore a genuine threat — otherwise a full-TM utility body
   // benches a strong attacker at high level caps.
   const utilityWeight = tunable("UTILITY_ROLE_WEIGHT");
+  // The non-passive gate multiplies the utility roles OUTSIDE the geomean.
+  // Inside it, the cube root softened the gate into a suggestion — a mon at
+  // 29% of the floor kept 66% of its utility value, which stayed latent only
+  // while passive mons' canonical utility moves went unpriced. When score-
+  // what-you-show anchored Shuckle's real Sticky Web/Encore set, the soft
+  // gate let a base-10-offense wall (1045→1277) displace a real attacker —
+  // exactly what this floor is documented to prevent. Mons at or above the
+  // floor are untouched (nonPassive clamps to 1).
   const roles = {
     fast_attacker: geomean([f.damage_q, f.speed_q]),
     bulky_attacker: geomean([f.damage_q, f.bulk_q]),
-    bulky_utility: utilityWeight * geomean([f.bulk_q, f.utility_q, nonPassive]),
-    fast_utility: utilityWeight * geomean([f.speed_q, f.utility_q, nonPassive]),
+    bulky_utility: utilityWeight * nonPassive * geomean([f.bulk_q, f.utility_q]),
+    fast_utility: utilityWeight * nonPassive * geomean([f.speed_q, f.utility_q]),
   };
 
   let bestRole = "fast_attacker";
