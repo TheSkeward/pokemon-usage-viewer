@@ -1318,3 +1318,18 @@ Invariants the shape encodes (each guarded by fixtures):
   Grovyle@58 (hatch + level beats both Sceptile@63 and the stone route).
   Order independence re-pinned with family entries. No
   RESULT_CACHE_VERSION bump (breeding signatures re-key on content).
+- **E2E suite: the browser smokes are now a command** (infrastructure
+  item B, user-approved). The playwright verifications used for the
+  inventory UX, the checkbox mechanics, and the gamestate backup were
+  ad-hoc session scripts; they now live in test/e2e/*.e2e.mjs with a
+  runner (scripts/run-e2e.mjs, `npm run e2e`) that builds the site,
+  serves it via vite preview with site-data symlinked, runs every spec,
+  and exits non-zero on failure. Specs cover what the unit suites
+  cannot see: Enter-to-add focus retention, row flash, never-lower
+  re-adds, one-click shop sync, the obtainable rail, in-place checkbox
+  ticking (page DOM not rebuilt, twins synced, live counters), viewport
+  pinning across renders, the tutor subgroup union, gamestate download/
+  restore round-trip, and corrupt-file rejection. Deliberately not in
+  CI (needs the full data tree + a browser); playwright resolves from a
+  local install or the managed environment's global one, with install
+  instructions in the error. No src changes.
