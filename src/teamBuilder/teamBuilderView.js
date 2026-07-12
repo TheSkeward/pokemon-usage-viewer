@@ -1220,14 +1220,31 @@ export function getSortedTeam(team, sortBy, sortDir = "desc", progression = {}) 
     } else if (sortBy === "tier") {
       // "Descending" = best tier first (lowest tierRank), then highest usage
       // within the tier — AG 1760 1.14%, AG 1760 1.12%, PU 1500 1.58%, ...
+      // Unranked rows form a trace TAIL after every ranked one, ordered the
+      // same way as the bench display: seen-within-N games ascending, then
+      // the tier ladder, then trace usage; no-trace rows dead last.
       const rankOf = (row) => row.bundle?.ranking?.tierRank ?? Infinity;
       const valueOf = (row) =>
         typeof row.bundle?.ranking?.value === "number"
           ? row.bundle.ranking.value
           : -Infinity;
+      const traceGamesOf = (row) => {
+        const games = row.bundle?.trace
+          ? gamesToLikelySee(row.bundle.trace.value)
+          : null;
+        return games == null ? Infinity : games;
+      };
+      const traceRankOf = (row) => row.bundle?.trace?.tierRank ?? Infinity;
+      const traceValueOf = (row) =>
+        typeof row.bundle?.trace?.value === "number"
+          ? row.bundle.trace.value
+          : -Infinity;
       primary =
         compareNumber(rankOf(b), rankOf(a)) ||
-        compareNumber(valueOf(a), valueOf(b));
+        compareNumber(valueOf(a), valueOf(b)) ||
+        compareNumber(traceGamesOf(b), traceGamesOf(a)) ||
+        compareNumber(traceRankOf(b), traceRankOf(a)) ||
+        compareNumber(traceValueOf(a), traceValueOf(b));
     } else if (sortBy === "score") {
       primary = compareNumber(a.score, b.score);
     } else if (sortBy === "current" || sortBy === "input") {

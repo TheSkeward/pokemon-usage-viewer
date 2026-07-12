@@ -1344,3 +1344,17 @@ Invariants the shape encodes (each guarded by fixtures):
   ZU 0 (50) — with the horizon explained in the tooltip, and an honest
   "no usage data" only when the form has no recorded usage anywhere.
   Display only; verified against the reported pool in the built app.
+- **Usage-column sort follows the relaxed labels** (user report: "The
+  usage sort isn't working. The sort should be the same as we did for
+  the bench display" — the tail rendered Pachirisu PU 0 (235) above
+  Noctowl ZU 0 (50) above Raticate ZU 1500 (40)). The tier sort in
+  getSortedTeam treated every unranked row as an identical
+  Infinity/-Infinity tie, so trace rows fell through to the score
+  tie-break. The comparator now extends past rank/value with the bench
+  tail's keys: seen-within-N games ascending, then the trace tier
+  ladder (shallower first at equal N, per the ruling "primarily
+  ascending N; other than that, the same sort as everything else"),
+  then trace usage descending; rows with no usage anywhere sort dead
+  last regardless of score. Pinned in test/trace-usage.test.mjs with a
+  fixture whose scores reproduce the reported wrong order under the old
+  fall-through. Display only; ranked rows unaffected.
