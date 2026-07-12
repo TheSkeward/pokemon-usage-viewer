@@ -1333,3 +1333,14 @@ Invariants the shape encodes (each guarded by fixtures):
   CI (needs the full data tree + a browser); playwright resolves from a
   local install or the managed environment's global one, with install
   instructions in the error. No src changes.
+- **Usage column joins the relaxed-horizon treatment** (user report: with
+  pool Froakie/Hoothoot/Rattata, "both Raticate and Noctowl are showing
+  as trace usage... I'd like that to be expanded, same as the end of the
+  bench ones"). The team table's Usage cell rendered a flat muted
+  "trace" for any form below the meaningful bar — hiding that Raticate
+  and Noctowl have very different sub-bar records. It now renders the
+  same seen-within-N-games label as the bench tail from the resolver
+  index's display-only trace row — Raticate reads ZU 1500 (40), Noctowl
+  ZU 0 (50) — with the horizon explained in the tooltip, and an honest
+  "no usage data" only when the form has no recorded usage anywhere.
+  Display only; verified against the reported pool in the built app.

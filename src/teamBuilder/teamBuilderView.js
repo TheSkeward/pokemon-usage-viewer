@@ -1123,7 +1123,19 @@ function renderMeaningfulUsage(row, formatsIndex) {
   const ranking = row.bundle?.ranking;
   const headline = renderSource(row.bundle?.usage, formatsIndex);
   if (!ranking || typeof ranking.value !== "number") {
-    return `<span class="muted" title="${escapeAttr(`No tier with meaningful usage. Best available: ${headline || "none"}`)}">trace</span>`;
+    // Below the meaningful bar everywhere: the flat "trace" label hid the
+    // real signal (user report: Raticate/Noctowl read as interchangeable
+    // noise). Same relaxed seen-within-N-games treatment as the bench tail —
+    // "ZU 1500 (65)" reads "at its ZU-1500 usage, even odds of seeing one
+    // within 65 games" — from the resolver index's display-only trace row.
+    // Honest "no usage data" only when the form has no recorded usage at all.
+    const trace = row.bundle?.trace;
+    const games = trace ? gamesToLikelySee(trace.value) : null;
+    if (trace && games != null) {
+      const label = `${SHORT_FORMAT[trace.formatId] || trace.formatId} ${trace.cutoff} (${games})`;
+      return `<span class="muted" title="${escapeAttr(`Below the meaningful-usage bar (50% chance of being seen within 25 games ≈ 2.7%) in every tier. Best trace signal: ~${truncatePercent(trace.value)} here — 50% chance of being seen within ${games} games. Best available: ${headline || "none"}`)}">${escapeHtml(label)}</span>`;
+    }
+    return `<span class="muted" title="${escapeAttr(`No recorded usage in any tier. Best available: ${headline || "none"}`)}">no usage data</span>`;
   }
   const label = `${SHORT_FORMAT[ranking.formatId] || ranking.formatId} ${ranking.cutoff}`;
   return `<span title="${escapeAttr(`First meaningful tier. Best available: ${headline || "none"}`)}">${escapeHtml(label)} · ${escapeHtml(truncatePercent(ranking.value))}</span>`;
