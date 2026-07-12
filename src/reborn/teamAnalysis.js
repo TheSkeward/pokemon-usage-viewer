@@ -14,6 +14,8 @@ import {
 import {
   coverageDamageIntoType,
   estimateMoveDamage,
+  getAbilityDamageMultiplier,
+  getAbilityEffectiveMoveType,
   getAttackingStats,
   isFixedDamageMove,
   normalizeLevel,
@@ -853,6 +855,10 @@ function getEstimatedDamage(move, member, attackerStats) {
 }
 
 function computeEstimatedDamage(move, member, attackerStats) {
+  // The type the move actually deals damage as under the set's ability
+  // (Pixilate Hyper Voice is Fairy). Feeds STAB, effectiveness, and the item
+  // layer — a type Gem boosts the CONVERTED move, matching the games.
+  const effectiveType = getAbilityEffectiveMoveType(member.ability, move);
   const perHit = estimateMoveDamage({
     // Fixed-damage moves (Seismic Toss, Super Fang, ...) are resolved by id
     // inside the model at their REAL in-game damage for the attacker's level.
@@ -860,19 +866,23 @@ function computeEstimatedDamage(move, member, attackerStats) {
     // Scale base power by the move's effective-hit factor (multi-hit average,
     // recharge amortization, escalating-move weighting), so ranking and the
     // shown estimate reflect a turn's real output, not a single hit.
-    basePower: move.basePower * getEffectiveHitMultiplier(move),
+    basePower: move.basePower * getEffectiveHitMultiplier(move, member.ability),
     category: move.category,
-    type: move.type,
+    type: effectiveType,
     attackerTypes: member.types,
     attackerStats,
     // The held item the mon is recommended to carry boosts the damage it deals
     // (Life Orb, Choice Band, type items/Gems, ...). Applied to both the shown
     // estimate and the move ranking, so they stay consistent.
     itemMultiplier: getItemDamageMultiplier(member.heldItem, {
-      type: move.type,
+      type: effectiveType,
       category: move.category,
       pokemonId: member.id,
     }),
+    // Move-property-conditional ability boosts (Huge Power, Technician, Sheer
+    // Force, ...): computed from the RAW move so Technician's ≤60 BP gate sees
+    // per-hit power, not the effective-hit-scaled figure above.
+    abilityMultiplier: getAbilityDamageMultiplier(member.ability, move),
     ability: member.ability,
   });
   // Expected damage weights a hit by how often it lands, so an inaccurate nuke
@@ -948,13 +958,16 @@ const FAILS_IF_DISRUPTED = new Set(["focuspunch", "shelltrap"]);
 //   - escalating: a curated weighting (Rollout/Ice Ball).
 // Single-hit moves — and no-punch-through charge moves (Phantom Force/Shadow
 // Force vanish outright; Sky Drop steals the target's turn) — keep full power.
-function getEffectiveHitMultiplier(move) {
+function getEffectiveHitMultiplier(move, ability = null) {
   const escalating = ESCALATING_HIT_MULTIPLIER[move.id];
   if (escalating) return escalating;
 
   const multihit = move.multihit;
   if (typeof multihit === "number") return multihit;
   if (Array.isArray(multihit) && multihit.length === 2) {
+    // Skill Link always lands the maximum count — Icicle Spear at a flat 5
+    // hits is Cloyster's entire identity.
+    if (toId(ability) === "skilllink") return multihit[1];
     // The standard 2–5 roll is 35/35/15/15 → E[hits] = 3.1; the midpoint 3.5
     // overrated every Pin Missile-class move by ~13%. Other ranges (none in
     // Gen 7 data today) fall back to the midpoint.
@@ -1138,11 +1151,23 @@ function decorateMove(
   moveUsage = new Map(),
   opponentTypeBias = {},
 ) {
-  const estimatedDamage = getEstimatedDamage(move, member, attackerStats);
+  // Ability type conversion (-ate abilities, Liquid Voice, Normalize): the
+  // decorated move carries the type it actually deals damage as, so every
+  // downstream consumer — coverage vector, super-effective counts, opponent
+  // bias, attack-type grouping, gem recommendations, display — sees what the
+  // battle would (Aerilate Return IS a Flying move). The pre-conversion type
+  // is preserved as rawType, which keeps the damage-model helpers idempotent
+  // when a decorated move is fed back through them.
+  const effectiveType = getAbilityEffectiveMoveType(member.ability, move);
+  const typed =
+    effectiveType === move.type
+      ? move
+      : { ...move, type: effectiveType, rawType: move.type };
+  const estimatedDamage = getEstimatedDamage(typed, member, attackerStats);
   return {
-    ...move,
-    basePower: getMovePower(move),
-    adjustedPower: getAdjustedPower(move, member),
+    ...typed,
+    basePower: getMovePower(typed),
+    adjustedPower: getAdjustedPower(typed, member),
     estimatedDamage,
     // The damage used purely to *rank* attacks while filling slots. When the
     // opponent type-bias is set, a move that hits a biased type super-effectively
@@ -1150,18 +1175,18 @@ function decorateMove(
     // 3 = 2×, 6 = 3×), so anti-bias coverage is preferred. This never leaves the
     // ranker — the displayed "X dmg" stays the unboosted estimatedDamage.
     rankingDamage: biasAdjustedDamage(
-      move,
+      typed,
       member,
       attackerStats,
       estimatedDamage,
       opponentTypeBias,
     ),
-    sourcePriority: getBestSourcePriority(move),
-    superEffectiveTargetCount: isFixedDamageMove(move.id)
+    sourcePriority: getBestSourcePriority(typed),
+    superEffectiveTargetCount: isFixedDamageMove(typed.id)
       ? 0 // fixed damage is never super effective
-      : countSuperEffectiveTargets(move.type),
-    utilityWeight: UTILITY_MOVE_WEIGHTS[move.id] || 0,
-    usage: moveUsage.get(move.id) || 0,
+      : countSuperEffectiveTargets(effectiveType),
+    utilityWeight: UTILITY_MOVE_WEIGHTS[typed.id] || 0,
+    usage: moveUsage.get(typed.id) || 0,
   };
 }
 

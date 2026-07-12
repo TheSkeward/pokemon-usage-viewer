@@ -145,6 +145,22 @@ function main() {
     // Two-turn charge moves (Solar Beam, Fly, ...). The damage model amortizes
     // the wasted turn — except for the semi-invulnerable ones, handled by id.
     if (move.flags?.charge) entry.charge = true;
+    // Ability-interaction flags: whether an ability boosts/converts a move is
+    // a property of the move itself — Tough Claws → contact, Iron Fist →
+    // punch, Strong Jaw → bite, Mega Launcher → pulse, Liquid Voice → sound,
+    // Reckless → recoil OR crash damage (Gen 4+ rule), Sheer Force → carries
+    // a secondary effect. Sparse: emitted only when at least one key is set.
+    const abilityFlags = {};
+    if (move.flags?.contact) abilityFlags.contact = 1;
+    if (move.flags?.punch) abilityFlags.punch = 1;
+    if (move.flags?.bite) abilityFlags.bite = 1;
+    if (move.flags?.pulse) abilityFlags.pulse = 1;
+    if (move.flags?.sound) abilityFlags.sound = 1;
+    if (move.recoil || move.hasCrashDamage) abilityFlags.recoil = 1;
+    if (move.secondary || (move.secondaries || []).length) {
+      abilityFlags.secondary = 1;
+    }
+    if (Object.keys(abilityFlags).length) entry.flags = abilityFlags;
     // Utility role kinds (recovery / setup / status / speed_control / hazards /
     // screen / pivot / phazing / priority / disruption), so utility scoring can
     // weight real team infrastructure above chip status.

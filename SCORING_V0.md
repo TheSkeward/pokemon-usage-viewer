@@ -1358,3 +1358,53 @@ Invariants the shape encodes (each guarded by fixtures):
   last regardless of score. Pinned in test/trace-usage.test.mjs with a
   fixture whose scores reproduce the reported wrong order under the old
   fall-through. Display only; ranked rows unaffected.
+- **Ability damage layer** (user report: "abilities aren't really factoring
+  into the damage calculations. And some of them absolutely should!").
+  Correct — only Protean (universal STAB) and Adaptability (2x STAB) were
+  modeled; the assumed set's ability (topSet.ability, already threaded into
+  every build variant and the damage memo key) otherwise did nothing. Every
+  damage estimate now applies the abilities whose condition is a property of
+  the MOVE rather than of the battle state:
+  * stat rewrites: Huge/Pure Power 2x physical; Hustle 1.2x physical (1.5x
+    Atk × 0.8 accuracy folded in); Slow Start 0.5x physical (always-on for
+    the first five turns — most of a fight);
+  * base-power boosts: Technician 1.5x at ≤60 per-hit BP (multi-hit moves
+    qualify per hit); Tough Claws 1.3x contact; Strong Jaw 1.5x bite; Mega
+    Launcher 1.5x pulse; Iron Fist 1.2x punch; Reckless 1.2x recoil/crash;
+    Sheer Force 1.3x secondary-carrying moves;
+  * type-keyed: Water Bubble 2x Water; Steelworker 1.5x Steel; Dark/Fairy
+    Aura 4/3 own type;
+  * type CONVERSION: Aerilate/Pixilate/Refrigerate/Galvanize turn Normal
+    moves into Flying/Fairy/Ice/Electric at 1.2x (Gen 7 value), Liquid Voice
+    turns sound moves Water, Normalize turns everything Normal at 1.2x. The
+    decorated move carries the converted type (pre-conversion preserved as
+    rawType for idempotency), so STAB, effectiveness, the coverage vector,
+    super-effective counts, opponent bias, type-Gem recommendations, and the
+    display all see what the battle would — Aerilate Return IS a Flying move
+    and is real Ghost coverage;
+  * hit counts: Skill Link lands the maximum multi-hit count (Icicle Spear
+    a flat 5 instead of the 3.1 expectation); Parental Bond 1.25x on
+    single-hit moves (Gen 7 second-hit value).
+  Battle-state-conditional abilities stay unmodeled on purpose — the
+  estimate prices a typical unconditioned turn: Guts/Toxic Boost/Flare
+  Boost (status), Blaze/Torrent/Overgrow/Swarm (pinch HP), Sand Force/
+  Solar Power (weather), Analytic/Stakeout/Tinted Lens/Sniper/Rivalry
+  (target/order/crit), Defeatist (assumed above half HP) — pinned as
+  no-ops. Move meta gains sparse ability-interaction flags (contact/punch/
+  bite/pulse/sound/recoil/secondary) from @pkmn/dex; fixed-damage moves
+  remain untouched by all of it, as in the games.
+  Golden drift audited — every drifted line is an ability holder boosted in
+  the right direction, and no non-holder moved (Greninja unchanged: Protean
+  was already priced): Azurill 1239→1407 (Azumarill Huge Power — recovering
+  most of the leaky-dodge-era drop, now as a correctly priced attacker),
+  Shellder 1114→1193 (Cloyster Skill Link), Scyther 1551→1603 (Scizor
+  Technician; now SEATS in midgame-broad, displacing Gastly→Gengar, with
+  Eevee's eventual flipping sylveon→vaporeon in the team-fit rebalance),
+  Eevee's eventual espeon→sylveon in item-friendship-evos (Pixilate Hyper
+  Voice), Crabrawler 1404→1466 / Pancham 1435→1480 / Tyrogue 1400→1446
+  (Iron Fist: Crabominable/Pangoro/Hitmonchan), Meowth 1171→1197, 1669→1680
+  (Persian Technician), Kricketot 1065→1106 (Kricketune Technician).
+  Pinned in test/validate/ability-damage.test.mjs (8 tests: each multiplier
+  family, the ≤60 per-hit Technician gate, conversion STAB/coverage, the
+  conditional-ability no-op guard, decorated-move idempotency).
+  RESULT_CACHE_VERSION 21→22 (output changes with no data-signature change).

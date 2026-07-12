@@ -28,20 +28,117 @@ const DEFAULT_LEVEL = 100;
 const REFERENCE_DEFENSE_BASE = 70;
 const STAB_MULTIPLIER = 1.5;
 
+function abilityId(ability) {
+  return String(ability || "")
+    .toLowerCase()
+    .replace(/[^a-z]/g, "");
+}
+
 // Same-type-attack bonus, ability-aware. Protean/Libero change the user's type to
 // the move's before it hits, so EVERY attack gets STAB — the whole point of the
 // ability and the reason a Protean Greninja's coverage is undervalued if ignored.
 // Adaptability turns STAB into 2x. Everything else is the ordinary 1.5-if-matching.
 function abilityStab(ability, attackerTypes, moveType) {
-  const id = String(ability || "")
-    .toLowerCase()
-    .replace(/[^a-z]/g, "");
+  const id = abilityId(ability);
   // Protean only — Libero is a Gen 8 ability and vanilla Reborn is Gen 7, so it
   // would never legally appear; left out rather than pretending to support it.
   if (id === "protean") return STAB_MULTIPLIER;
   const matches = attackerTypes.includes(moveType);
   if (id === "adaptability") return matches ? 2 : 1;
   return matches ? STAB_MULTIPLIER : 1;
+}
+
+// ————————————————— Ability damage layer —————————————————
+// The set's assumed ability (the form's top competitive ability, same source
+// as the STAB handling above) scales damage when its condition is a property
+// of the MOVE — its type, flags, or base power — rather than of the battle
+// state. Battle-state-conditional abilities are deliberately NOT modeled,
+// because the estimate prices a typical unconditioned turn against a neutral
+// wall: Guts/Toxic Boost/Flare Boost (needs a status), Blaze/Torrent/Overgrow/
+// Swarm (needs <1/3 HP), Sand Force/Solar Power (needs weather), Analytic/
+// Stakeout/Tinted Lens/Sniper/Rivalry (needs a specific target or turn order),
+// Defeatist (assumed above half HP). Defender-side abilities never apply — the
+// reference wall is ability-less by construction.
+
+// The -ate abilities convert the user's NORMAL moves and boost them 1.2x
+// (the Gen 7 value; it was 1.3x in Gen 6). Conversion changes everything
+// downstream — STAB, effectiveness, coverage, type Gems — which is exactly
+// why Mega Salamence runs Return and Sylveon runs Hyper Voice.
+const ATE_CONVERSIONS = {
+  aerilate: "Flying",
+  galvanize: "Electric",
+  pixilate: "Fairy",
+  refrigerate: "Ice",
+};
+
+// A decorated move may already carry its converted type (stamped as `type`
+// for coverage/bias/display), with the pre-conversion type preserved in
+// `rawType`. Deriving from rawType-first makes both conversion and the
+// multiplier idempotent — raw and decorated moves give identical answers.
+function baseMoveType(move) {
+  return move.rawType ?? move.type;
+}
+
+// The type a move actually deals damage as under the ability: -ate abilities
+// convert Normal moves, Liquid Voice makes sound moves Water (Primarina's
+// whole STAB plan), Normalize makes everything Normal. Unchanged otherwise.
+export function getAbilityEffectiveMoveType(ability, move) {
+  const id = abilityId(ability);
+  const type = baseMoveType(move);
+  if (ATE_CONVERSIONS[id] && type === "Normal") return ATE_CONVERSIONS[id];
+  if (id === "liquidvoice" && move.flags?.sound) return "Water";
+  if (id === "normalize") return "Normal";
+  return type;
+}
+
+// Move-property-conditional damage multiplier for the assumed ability. Only
+// one branch can fire per call in practice (a mon has one ability), but the
+// composition is written multiplicatively so a single ability with several
+// clauses (the -ate type gate + boost) stays readable. Fixed-damage moves
+// never see this — estimateMoveDamage resolves them before multipliers,
+// matching the games (Huge Power does not change Seismic Toss).
+export function getAbilityDamageMultiplier(ability, move) {
+  const id = abilityId(ability);
+  if (!id) return 1;
+  const type = baseMoveType(move);
+  const flags = move.flags || {};
+  const physical = move.category === "Physical";
+  let multiplier = 1;
+
+  // Attack-stat rewrites (our damage is linear in the attacking stat).
+  if ((id === "hugepower" || id === "purepower") && physical) multiplier *= 2;
+  // Hustle: +50% Atk at -20% physical accuracy. The accuracy factor applied
+  // later reads move.accuracy and can't see the ability, so the expected-value
+  // haircut is folded in here: 1.5 × 0.8 = 1.2.
+  if (id === "hustle" && physical) multiplier *= 1.5 * 0.8;
+  // Slow Start halves Atk for the first five turns — most of a real fight,
+  // so it's priced as always-on rather than ignored (Regigigas is bad).
+  if (id === "slowstart" && physical) multiplier *= 0.5;
+
+  // Base-power boosts gated on move properties.
+  if (id === "technician" && move.basePower > 0 && move.basePower <= 60) {
+    multiplier *= 1.5; // per-hit BP gate — multi-hit moves qualify per hit
+  }
+  if (id === "toughclaws" && flags.contact) multiplier *= 1.3;
+  if (id === "strongjaw" && flags.bite) multiplier *= 1.5;
+  if (id === "megalauncher" && flags.pulse) multiplier *= 1.5;
+  if (id === "ironfist" && flags.punch) multiplier *= 1.2;
+  if (id === "reckless" && flags.recoil) multiplier *= 1.2;
+  if (id === "sheerforce" && flags.secondary) multiplier *= 1.3;
+
+  // Type-keyed boosts.
+  if (id === "waterbubble" && type === "Water") multiplier *= 2;
+  if (id === "steelworker" && type === "Steel") multiplier *= 1.5;
+  if (id === "darkaura" && type === "Dark") multiplier *= 4 / 3;
+  if (id === "fairyaura" && type === "Fairy") multiplier *= 4 / 3;
+  if (ATE_CONVERSIONS[id] && type === "Normal") multiplier *= 1.2;
+  if (id === "normalize") multiplier *= 1.2;
+
+  // Parental Bond: the second hit lands at 25% (Gen 7) → 1.25x on single-hit
+  // moves; genuinely multi-hit moves don't get a bonus hit in-game.
+  if (id === "parentalbond" && !move.multihit) multiplier *= 1.25;
+
+  return multiplier;
 }
 
 // Nature -> attacking-stat multipliers (only Atk/SpA matter here). Natures that
@@ -228,6 +325,10 @@ export function estimateMoveDamage({
   attackerStats,
   level,
   itemMultiplier = 1,
+  // Move-property-conditional ability boost (getAbilityDamageMultiplier) —
+  // computed by the caller from the RAW move so Technician's ≤60 BP gate sees
+  // per-hit power, not the effective-hit-scaled figure passed as basePower.
+  abilityMultiplier = 1,
   ability = null,
 }) {
   const stab = abilityStab(ability, attackerTypes, type);
@@ -239,7 +340,9 @@ export function estimateMoveDamage({
   // No base power and not a known fixed-damage move: nothing to estimate.
   if (!basePower) return 0;
 
-  if (!attackerStats) return Math.round(basePower * stab * itemMultiplier);
+  if (!attackerStats) {
+    return Math.round(basePower * stab * itemMultiplier * abilityMultiplier);
+  }
 
   const attack =
     category === "Physical" ? attackerStats.atk : attackerStats.spa;
@@ -250,5 +353,5 @@ export function estimateMoveDamage({
       (Math.floor(((2 * lvl) / 5 + 2) * basePower * attack) / defense) / 50,
     ) + 2;
 
-  return Math.round(baseDamage * stab * itemMultiplier);
+  return Math.round(baseDamage * stab * itemMultiplier * abilityMultiplier);
 }

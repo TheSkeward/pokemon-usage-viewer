@@ -107,12 +107,18 @@ const MAX_RESULT_CACHE = 400;
 // Kakuna; Mothim reaches the Wormadams) — and without it, sibling branches
 // are now correctly OFF the table (Mothim could wrongly field Wormadam
 // before). Same progression can produce different candidates than v20.
+// v22: ability damage layer (user report: "abilities aren't really factoring
+// into the damage calculations"). The set's assumed ability now scales every
+// damage estimate — Huge Power, Technician, Skill Link, Tough Claws, Sheer
+// Force, the -ate type converters, and the rest of the move-property-
+// conditional family — so damage-derived scores shift without any data
+// signature change.
 //
 // NOTE: results now persist their post-analysis (confidence sweep +
 // investment plan) alongside the team — a change to the sweep grid, its
 // contender selection, or the investment projection is ALSO an output
 // change and needs a bump, even when the team itself is untouched.
-const RESULT_CACHE_VERSION = "21";
+const RESULT_CACHE_VERSION = "22";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the
