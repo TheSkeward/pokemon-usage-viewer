@@ -8,6 +8,7 @@ export function stitchPokemonSetDetail({
   formatsIndex,
   pokemon,
   ranking,
+  trace,
   selection,
   sourceAggregates,
 }) {
@@ -20,7 +21,7 @@ export function stitchPokemonSetDetail({
 
   if (!present.length) return null;
 
-  const primaryIndex = choosePrimaryIndex({ present, ranking, family });
+  const primaryIndex = choosePrimaryIndex({ present, ranking, trace, family });
   const primaryAggregate = present[primaryIndex];
   const primarySourceText = formatSource(primaryAggregate, formatsIndex);
 
@@ -68,20 +69,33 @@ export function stitchPokemonSetDetail({
 // Which appearing tier supplies the primary (headline) set. Prefer the first
 // tier whose usage clears 0.1% (the resolver-index `ranking`): a sub-0.1% mon's
 // highest-tier appearance is a noisy handful of teams, so we drop down the
-// ladder to where it's genuinely played. When no tier is meaningful (0.0%
-// everywhere down to LC), show the deepest tier's set in the build's own family
-// — that's the level where it actually gets used.
-function choosePrimaryIndex({ present, ranking, family }) {
+// ladder to where it's genuinely played. For mons below the bar EVERYWHERE,
+// prefer the resolver-index `trace` tier — their best sub-bar signal, i.e. the
+// tier where they actually see competitive play (user ruling: "that *is* their
+// best usage tier... for the sake of determining their canonical set, you
+// should pick from that usage tier"; their sort stays tailed and the trace
+// value itself still never enters scoring). Only a mon with no usage signal
+// at all keeps the old fallback: the deepest appearing tier in the build's
+// own family.
+function choosePrimaryIndex({ present, ranking, trace, family }) {
+  // A ranking/trace tier may lack moveset data even when it has usage data;
+  // fall through to the next rule in that case.
+  const matchIndex = (tier) =>
+    tier?.formatId != null
+      ? present.findIndex(
+          (aggregate) =>
+            aggregate.formatId === tier.formatId &&
+            aggregate.cutoff === tier.cutoff,
+        )
+      : -1;
+
   if (ranking?.formatId != null) {
-    const matched = present.findIndex(
-      (aggregate) =>
-        aggregate.formatId === ranking.formatId &&
-        aggregate.cutoff === ranking.cutoff,
-    );
-    // The ranking tier may lack moveset data even when it has usage data; fall
-    // back to the highest appearing tier in that case.
+    const matched = matchIndex(ranking);
     return matched >= 0 ? matched : 0;
   }
+
+  const tracedMatch = matchIndex(trace);
+  if (tracedMatch >= 0) return tracedMatch;
 
   let deepestOwnFamily = -1;
   for (let index = 0; index < present.length; index += 1) {

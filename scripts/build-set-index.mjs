@@ -62,13 +62,17 @@ async function buildFamilySetIndex({
   // 0.1% — the same signal the resolver index ranks low-usage mons by. A mon's
   // primary set should be sourced from this tier, not the highest tier it
   // merely appears in (which for a sub-0.1% mon is a noisy handful of teams).
-  const rankingByPokemon = await loadFamilyRankings(family);
+  // For mons below the bar everywhere, the resolver index's `trace` (their
+  // best sub-bar tier — where they actually see play) supplies the primary
+  // instead (user ruling); see choosePrimaryIndex.
+  const { rankingByPokemon, traceByPokemon } = await loadFamilyRankings(family);
 
   const samePokemonDetails = buildSamePokemonDetails({
     family,
     formatsIndex,
     pokemonIndex,
     rankingByPokemon,
+    traceByPokemon,
     selection,
     sourceAggregates,
   });
@@ -118,11 +122,15 @@ async function loadFamilyRankings(family) {
   );
 
   const rankingByPokemon = new Map();
+  const traceByPokemon = new Map();
   for (const [pokemonId, bundle] of Object.entries(index?.pokemon || {})) {
     if (bundle?.ranking) rankingByPokemon.set(pokemonId, bundle.ranking);
+    // The display's best-sub-bar row (mutually exclusive with ranking) — the
+    // trace-mon canonical-set tier per the user ruling.
+    else if (bundle?.trace) traceByPokemon.set(pokemonId, bundle.trace);
   }
 
-  return rankingByPokemon;
+  return { rankingByPokemon, traceByPokemon };
 }
 
 function buildSamePokemonDetails({
@@ -130,6 +138,7 @@ function buildSamePokemonDetails({
   formatsIndex,
   pokemonIndex,
   rankingByPokemon,
+  traceByPokemon,
   selection,
   sourceAggregates,
 }) {
@@ -141,6 +150,7 @@ function buildSamePokemonDetails({
       formatsIndex,
       pokemon,
       ranking: rankingByPokemon.get(pokemon.id) || null,
+      trace: traceByPokemon.get(pokemon.id) || null,
       selection,
       sourceAggregates,
     });

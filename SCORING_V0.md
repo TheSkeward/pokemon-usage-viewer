@@ -1408,3 +1408,27 @@ Invariants the shape encodes (each guarded by fixtures):
   family, the ≤60 per-hit Technician gate, conversion STAB/coverage, the
   conditional-ability no-op guard, decorated-move idempotency).
   RESULT_CACHE_VERSION 21→22 (output changes with no data-signature change).
+- **Trace mons source their canonical set from their trace tier** (user
+  ruling: "that *is* their best 'usage tier', in the sense that, while no
+  one is using them much, that tier is the place where they're seeing
+  competitive play. So, for sorting purposes, they should remain tailed at
+  the end. I don't want their scoring to directly change either. But for
+  the sake of determining their canonical set, you should pick from that
+  usage tier."). The set-index generator's primary-tier choice for mons
+  below the meaningful bar everywhere fell back to the DEEPEST tier they
+  merely appeared in; it now prefers the resolver index's `trace` tier —
+  the same best-sub-bar signal the display shows — with the deepest-own-
+  family fallback kept only for mons with no usage signal at all. Raticate's
+  primary set moves ZU 0 → ZU 1500, Pachirisu's ZU 0 → PU 0; Noctowl's was
+  already its trace tier (ZU 0). 131 singles trace mons flipped primary;
+  ZERO ranked mons did (audited against the resolver index — the ranked
+  branch is untouched, and the remaining 63 changed files are month-counter
+  catch-up from the morning's bot data refresh, which updates resolver-index
+  but never regenerates set-index). Sorting stays tailed (unchanged) and the
+  trace VALUE still never enters scoring; only the set a trace mon is
+  assumed to run (spread/ability/item/canonical moves) changes, which is the
+  point of the ruling. Goldens are byte-stable — no scenario mon's canonical
+  set changed. Pinned in test/validate/set-sourcing.test.mjs (trace-tier
+  primaries for Raticate/Pachirisu with concrete gen7zu/1500 and gen7pu/0
+  anchors). Data-signature change re-keys caches; no RESULT_CACHE_VERSION
+  bump needed.
