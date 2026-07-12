@@ -83,6 +83,7 @@ export async function buildRebornBreedingContext({
           if (!donorCost || !canBreed(donor.species.id, target.species.id)) {
             continue;
           }
+          if (!donorCanPassMove(donor, target, donorCost)) continue;
           const candidate = {
             hops: donorCost.hops + 1,
             level: donorCost.level,
@@ -131,6 +132,7 @@ export async function buildRebornBreedingContext({
         if (!donorCost || !canBreed(donor.species.id, target.species.id)) {
           continue;
         }
+        if (!donorCanPassMove(donor, target, donorCost)) continue;
         routes.push({
           hops: donorCost.hops + 1,
           level: donorCost.level,
@@ -152,16 +154,20 @@ export async function buildRebornBreedingContext({
         `${route.path.join(" → ")} breeding chain${route.how ? ` (${route.how})` : ""}`;
       const best = routes[0];
       const detail = detailOf(best);
-      // Runner-ups must differ in ROOT LEARNER (path[0]) from the winner and
+      // Runner-ups must differ in root learner FAMILY from the winner and
       // from each other: a longer chain that still funnels through the same
       // root (Victreebel → Fomantis → …) is the same acquisition wearing a
-      // detour, not a second opinion. Capped at two — enough to see whether
-      // the recommendation beats the field or squeaked past one rival.
-      const seenRoots = new Set([best.path[0]]);
+      // detour — and now that hatchable lines contribute every family form
+      // as donors, so is the same family's next form up (Grovyle@58 vs
+      // Sceptile@63). Capped at two — enough to see whether the
+      // recommendation beats the field or squeaked past one rival.
+      const rootFamilyOf = (route) => familyRootOf(toId(route.path[0]));
+      const seenRoots = new Set([rootFamilyOf(best)]);
       const alternatives = [];
       for (const route of routes.slice(1)) {
-        if (seenRoots.has(route.path[0])) continue;
-        seenRoots.add(route.path[0]);
+        const rootFamily = rootFamilyOf(route);
+        if (seenRoots.has(rootFamily)) continue;
+        seenRoots.add(rootFamily);
         alternatives.push(detailOf(route));
         if (alternatives.length >= 2) break;
       }
@@ -430,9 +436,41 @@ function getOwnedCurrentSpecies({ pokemonIndex, progression, query }) {
         inputId: group.input.id,
       });
     }
+
+    // Hatchable lines contribute EVERY family form as a potential donor —
+    // sibling branches included (user ruling: an input Mothim can hatch a
+    // Burmy and raise a Wormadam, so Wormadam-only moves are donatable).
+    // The daycare is already a precondition of this whole context; the line
+    // must additionally be able to produce its own hatchlings. inputId stays
+    // the listed form: unspentEvolutionItems walks learner → root without
+    // ever passing it, so a hatched branch correctly owes its whole path's
+    // items (a hatched Vaporeon still costs a Water Stone).
+    if (canHatchLine(group.input.id)) {
+      for (const record of familyForms(group.input.id)) {
+        if (seen.has(record.id)) continue;
+        seen.add(record.id);
+        species.push({
+          id: record.id,
+          name: record.name,
+          inputId: group.input.id,
+        });
+      }
+    }
   }
 
   return species;
+}
+
+// See hasMaleCapableKnower for the reasoning. Only a DIRECT donation
+// (hops 0) keys on the specific learner form; received egg moves ride the
+// whole family, which canBreed's family-level male check already covers.
+function donorCanPassMove(donor, target, donorCost) {
+  if (familyRootOf(donor.species.id) === familyRootOf(target.species.id)) {
+    return true;
+  }
+  if (donorCost.hops > 0) return true;
+  const knowerId = toId(donorCost.learner) || donor.species.id;
+  return hasMaleCapableKnower(knowerId);
 }
 
 function canBreed(donorId, targetId) {
@@ -502,13 +540,6 @@ function getBreedableEggGroups(pokemonId) {
 // Every species record in the family: walk down to the root, then up through
 // every branch.
 function familyForms(pokemonId) {
-  let rootId = pokemonId;
-  const seen = new Set();
-  while (GEN7_PROGRESSION_SPECIES[rootId]?.prevoId && !seen.has(rootId)) {
-    seen.add(rootId);
-    rootId = GEN7_PROGRESSION_SPECIES[rootId].prevoId;
-  }
-
   const forms = [];
   const walked = new Set();
   const visit = (id) => {
@@ -518,8 +549,39 @@ function familyForms(pokemonId) {
     forms.push(record);
     for (const evoId of record.evos || []) visit(evoId);
   };
-  visit(rootId);
+  visit(familyRootOf(pokemonId));
   return forms;
+}
+
+function familyRootOf(pokemonId) {
+  let rootId = pokemonId;
+  const seen = new Set();
+  while (GEN7_PROGRESSION_SPECIES[rootId]?.prevoId && !seen.has(rootId)) {
+    seen.add(rootId);
+    rootId = GEN7_PROGRESSION_SPECIES[rootId].prevoId;
+  }
+  return rootId;
+}
+
+// CROSS-family donation needs a father who KNOWS the move: the learner form
+// or any of its descendants (level-up carryover follows evolution). A move
+// whose only knowers are female-only or genderless — Wormadam-exclusive,
+// Vespiquen-exclusive — can never ride a cross-family egg, even though the
+// family-level gender check passes (Combee drones exist but never learn
+// Vespiquen's moves). WITHIN the family the mother carries it instead
+// (Gen 6+ mothers pass egg moves; her hatchling IS the family), so no
+// father is needed there. Multi-hop intermediates need no extra check: a
+// received egg move rides the whole family's hatchlings, and canBreed's
+// family-level male check already covers that.
+function hasMaleCapableKnower(learnerId) {
+  const visit = (id) => {
+    const record = GEN7_PROGRESSION_SPECIES[id];
+    if (!record) return false;
+    const gender = record.gender ?? "";
+    if (gender === "" || gender === "M") return true;
+    return (record.evos || []).some(visit);
+  };
+  return visit(learnerId);
 }
 
 function emptyContext() {

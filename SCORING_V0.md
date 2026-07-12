@@ -1287,3 +1287,34 @@ Invariants the shape encodes (each guarded by fixtures):
   (relearner-only trust still flips at scale 4, and scale 0 still drops
   Alomomola). The fixture now pins that gamestate explicitly, with the
   reasoning in the test.
+- **Gamestate export/import (downloadable file)** (user: "yeah, you're so
+  right about this! And this should be a quick fix. I prefer the version
+  with a downloadable file"). Everything defining a playthrough — pool
+  text, full progression (badge/cap, TM/tutor checks, item inventory,
+  evolution access, bias), scoring model — lives in localStorage, one
+  browser-data clear from gone. "Export gamestate" downloads a
+  date-stamped versioned JSON; "Import gamestate" restores it through
+  the NORMAL save/load path (so normalizeRebornProgression sanitizes an
+  imported blob exactly like any stored one), confirms before replacing
+  a non-empty pool, and re-optimizes. Round-trip + rejection pins in
+  test/gamestate-backup.test.mjs. No engine impact.
+- **Sibling-form egg donors** (user: "yeah, those should be a thing").
+  Donor entries were input + presumed-current only, so a branch sibling's
+  exclusive moves were undonatable (input Mothim couldn't lend a
+  Wormadam-only move even though hatching a Burmy and raising a Wormadam
+  is routine). Hatchable lines (canHatchLine, same gate as fielding
+  reachability) now contribute EVERY family form as a donor entry.
+  Composition came free: a hatched branch keeps the listed input as its
+  scarcity anchor, so unspentEvolutionItems charges its whole path — an
+  input Vaporeon donating Jolteon's Thunder Fang reads "@20 + Thunder
+  Stone". Precision added with it: CROSS-family donation now requires a
+  male-capable KNOWER (the learner form or a descendant — carryover
+  follows evolution), so Wormadam/Vespiquen-exclusive moves can't ride a
+  cross-family egg even though their families have males; within the
+  family the mother carries the move instead (Gen 6+), so no father is
+  needed there. Tooltip runner-ups dedup by root learner FAMILY now
+  (Grovyle@58 vs Sceptile@63 is one route, not two opinions).
+  Consequence pinned: Bulbasaur's Leaf Storm winner improves to
+  Grovyle@58 (hatch + level beats both Sceptile@63 and the stone route).
+  Order independence re-pinned with family entries. No
+  RESULT_CACHE_VERSION bump (breeding signatures re-key on content).

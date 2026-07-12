@@ -27,8 +27,11 @@ test("breeding chains pick the earliest-acquisition donor", async () => {
   assert.ok(azumarill.moveIds.includes("amnesia"));
 
   const amnesia = azumarill.sources.amnesia;
-  assert.equal(amnesia.donorName, "Quagsire");
-  assert.match(amnesia.detail, /@24/);
+  // Originally Quagsire@24; with hatchable lines contributing every family
+  // form as donors (sibling-donor ruling), WOOPER@23 — hatch one, level it
+  // one level less — is the honest winner.
+  assert.equal(amnesia.donorName, "Wooper");
+  assert.match(amnesia.detail, /@23/);
 
   // Body Slam: Lapras @18 beats Poliwrath-class @21 and everything else here.
   const bodySlam = azumarill.sources.bodyslam;
@@ -225,8 +228,11 @@ test("stone routes lose to any grinding; tooltips show runner-up routes", async 
     leafStoneUnlocked: true,
   };
 
-  // Input Bellsprout: the presumed Victreebel owes its Leaf Stone, so plain
-  // Sceptile@63 beats stone-Victreebel@32 despite 31 levels of grinding.
+  // Input Bellsprout: the presumed Victreebel owes its Leaf Stone, so a
+  // plain grind route beats stone-Victreebel@32 despite the levels. With
+  // hatchable lines contributing every family form as donors, the Treecko
+  // line's cheapest learner is GROVYLE@58 (hatch one, level it) — it beats
+  // both Sceptile@63 and the stone route.
   const unspent = await buildRebornBreedingContext({
     pokemonIndex,
     progression,
@@ -234,7 +240,7 @@ test("stone routes lose to any grinding; tooltips show runner-up routes", async 
   });
   const leafStorm = unspent.byPokemonId.bulbasaur?.sources?.leafstorm;
   assert.ok(leafStorm, "Bulbasaur must get Leaf Storm from the pool");
-  assert.equal(leafStorm.detail, "Sceptile breeding chain (@63)");
+  assert.equal(leafStorm.detail, "Grovyle breeding chain (@58)");
   assert.match(
     leafStorm.sourceTitle,
     /Other pool routes: Victreebel breeding chain \(@32 \+ Leaf Stone\)\./,
@@ -244,9 +250,13 @@ test("stone routes lose to any grinding; tooltips show runner-up routes", async 
     !/Victreebel → /.test(leafStorm.sourceTitle),
     "same-root detours must not masquerade as alternatives",
   );
+  assert.ok(
+    !/Sceptile/.test(leafStorm.sourceTitle),
+    "same-family runner-ups (Sceptile vs the winning Grovyle) are noise",
+  );
 
   // Input VICTREEBEL: the stone is already sunk into the fielded mon — no
-  // charge, @32 wins again.
+  // charge, @32 beats Grovyle@58 again.
   const sunk = await buildRebornBreedingContext({
     pokemonIndex,
     progression,
@@ -255,6 +265,19 @@ test("stone routes lose to any grinding; tooltips show runner-up routes", async 
   assert.equal(
     sunk.byPokemonId.bulbasaur?.sources?.leafstorm?.detail,
     "Victreebel breeding chain (@32)",
+  );
+
+  // Sibling-form donors (user ruling): an input Vaporeon can hatch an Eevee
+  // and raise a JOLTEON donor — and the hatched branch honestly owes its
+  // stone (Thunder Fang rides "@20 + Thunder Stone").
+  const sibling = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression,
+    query: ["Houndour", "Vaporeon"].join("\n"),
+  });
+  assert.equal(
+    sibling.byPokemonId.houndour?.sources?.thunderfang?.detail,
+    "Jolteon breeding chain (@20 + Thunder Stone)",
   );
 
   // Renewable Leaf Stones (tracked 6+ = "buy as many as I need"): waived.
