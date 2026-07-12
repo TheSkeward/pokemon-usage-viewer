@@ -539,6 +539,13 @@ function renderInvestmentSection(state) {
   const plan = state.investment;
   if (!plan) return "";
 
+  // Progressive delivery: the first future cap renders as soon as it lands;
+  // this note says the deeper cap is still cooking (hint-grade projections
+  // are default-build shortlist runs — see SCORING_V0.md).
+  const partialNote = plan.partial
+    ? `<p class="muted">Cap ${escapeHtml((plan.pendingCaps || []).join(" / "))} still computing — this list may grow.</p>`
+    : "";
+
   const trainRows = plan.trainSoon
     .slice(0, 8)
     .map((entry) => {
@@ -564,6 +571,7 @@ function renderInvestmentSection(state) {
   return `
     <section class="panel">
       <h2>Level-cap investment projection (caps ${plan.caps.join(" / ")})</h2>
+      ${partialNote}
       <p class="muted">Projects only the level cap forward — evolutions and level-up moves that unlock by training. New TMs, tutors, items, and locations from future badges are NOT modeled here.</p>
       ${trainRows ? `<h3>Train for the next caps</h3><ul>${trainRows}</ul>` : ""}
       ${closeRows ? `<h3>Close bench (nearly seat today)</h3><ul>${closeRows}</ul>` : ""}

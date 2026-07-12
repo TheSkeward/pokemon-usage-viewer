@@ -1479,3 +1479,33 @@ Invariants the shape encodes (each guarded by fixtures):
   demand; an explicit optimize still computes inline. No scoring change;
   no cache bump (results and their persisted post-analysis are unchanged —
   only WHEN the computation starts moved).
+- **Hint-grade investment runs + progressive delivery + cooperative yields**
+  (user ruling on the residual cold cost: "ten minutes of blocking loading
+  is totally untenable no matter where it is in the user experience").
+  CPU-profiling one "fast" future-cap run showed the minutes were NOT line
+  resolution but the SEARCH KERNEL: fast mode only skipped full enumeration
+  above the 2M-combination auto budget, which a 34-mon pool (1.3M combos)
+  never reaches — so each future-cap run paid a full parallel search, with
+  future caps' richer per-line options multiplying the per-combination cost.
+  The investment plan reads LINE scores (exact under any search path) plus a
+  rough future six for "projected to SEAT", so fast runs now run HINT-grade:
+  * search budget 20k combinations, shortlist capped at 12 (924 combos),
+    swap-polish and bench-swap scans skipped by contract;
+  * build variants trimmed to the default set only (no coverage/utility/
+    delayed variants, no ability-sensitivity probe) — the plan never read
+    them;
+  * the fast context tag bumped ("search:fast" → "search:fast2") so stale
+    full-fat fast entries retire while every exact result stays warm — a
+    RESULT_CACHE_VERSION bump would have forced another cold MAIN search on
+    everyone for an investment-only change (exact-search output is
+    untouched: goldens byte-stable, validate 93/93).
+  Plus two UX guarantees: the plan renders PROGRESSIVELY (the first future
+  cap's list appears as soon as it lands, marked "still computing"), and
+  line resolution now takes a time-sliced event-loop yield (~20/s), so the
+  main thread stays scrollable through any long resolve pass. Measured:
+  node investment 69.1s → 1.8s (same 7 train-soon entries); browser cold
+  full pipeline 408.7s → 140.6s with the post-analysis share 288s → 18s
+  (the remainder is the untouched exact main search). The panel notes that
+  projections are hint-grade. Combined with the previous commit, a cold
+  gamestate now costs one main search, panels fill in seconds behind it,
+  and nothing auto-starts minutes of work on page load.

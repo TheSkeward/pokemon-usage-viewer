@@ -217,9 +217,13 @@ export async function optimizeTeamFromPool({
   const dataSignature = await getDataSignature();
   // The fast tag is appended (not a new fixed field) so every existing
   // full-mode key — including results persisted before fast mode existed —
-  // keeps hitting.
+  // keeps hitting. "fast2": fast runs now resolve DEFAULT-ONLY builds (the
+  // hint-grade trim), so their output changed — bumping only the tag retires
+  // stale fast entries while every exact result stays warm (a full
+  // RESULT_CACHE_VERSION bump here would have forced yet another cold main
+  // search on every user for an investment-only change).
   const contextSig = `${family}|${selection}|${progressionSig}|${breedingSig}|${abilitySig}|${scoringOverridesSignature()}|${dataSignature}${
-    fastMode ? "|search:fast" : ""
+    fastMode ? "|search:fast2" : ""
   }`;
 
   // Layer 3: the result is a pure function of the score context and the set of
@@ -268,6 +272,7 @@ export async function optimizeTeamFromPool({
             progression,
             selection,
             abilityAnnotations,
+            fastMode,
           },
           contextSig,
           hitLineKeys,
@@ -315,6 +320,9 @@ export async function optimizeTeamFromPool({
     // Bench-swap ranking is hundreds of full team evaluations and only feeds
     // extra bench annotation, so keep it for explicit full optimizes only.
     benchSwaps: exhaustive && !fastMode,
+    // Hint-grade search: tiny budget, capped shortlist, no polish. Line
+    // scores — the part the investment plan actually consumes — stay exact.
+    hint: fastMode,
   });
   // Wall-clock telemetry (roadmap: performance visibility): how long line
   // resolution vs the search actually took, surfaced in the provenance footer.
@@ -426,6 +434,18 @@ function storeResult(poolKey, result) {
   resultCache.set(poolKey, result);
 }
 
+// Cooperative main-thread yield, time-sliced so the overhead is bounded: a
+// yield is a real event-loop turn (~1–4ms in browsers), so unconditional
+// per-candidate yields would tax node suites and browsers alike. Once per
+// 50ms keeps the UI responsive (scroll, clicks) through long resolve passes.
+let lastYieldAt = 0;
+function yieldToEventLoop() {
+  const now = Date.now();
+  if (now - lastYieldAt < 50) return Promise.resolve();
+  lastYieldAt = now;
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 async function resolvePoolLineCached({ args, contextSig, hitLineKeys }) {
   const { group } = args;
   const inputId = group.input?.id ?? group.token;
@@ -479,6 +499,7 @@ async function resolvePoolLine({
   pokemonIndex,
   progression,
   selection,
+  fastMode = false,
   abilityAnnotations = null,
 }) {
   if (group.unresolved || !group.entries.length) {
@@ -547,6 +568,7 @@ async function resolvePoolLine({
           progression,
           selection,
           abilityOverride,
+          fastMode,
         });
         return { candidate, bundle, builds };
       } catch (error) {
@@ -955,7 +977,19 @@ async function resolveCandidateBuilds({
   progression,
   selection,
   abilityOverride = null,
+  // Fast (hint-grade) runs — the investment plan's future-cap projections —
+  // resolve ONLY the default build: no coverage/utility alternatives, no
+  // delayed variant, no ability probe. The plan reads line scores and the
+  // future team, and its stated bar is "shortlist-grade hint" — full variant
+  // resolution was most of the plan's multi-minute cold cost (user ruling:
+  // "ten minutes of blocking loading is totally untenable no matter where").
+  fastMode = false,
 }) {
+  // Profile building is the optimizer's dominant synchronous CPU block; on
+  // the browser main thread a long resolve pass froze scrolling outright.
+  // Time-sliced yield: at most ~20 event-loop breaths per second, so the
+  // page stays interactive while costing the engine nothing measurable.
+  await yieldToEventLoop();
   const choice = {
     inputPokemonId: input.id,
     inputName: input.name,
@@ -1056,62 +1090,70 @@ async function resolveCandidateBuilds({
         ability: assumedAbility,
       }),
     },
-    {
-      key: "coverage",
-      label: "Coverage set",
-      profile: makeProfile({
-        movePreference: "coverage",
-        buildMoves: naturalMoves,
-        ability: assumedAbility,
-      }),
-    },
-    {
-      key: "utility",
-      label: "Utility set",
-      profile: makeProfile({
-        movePreference: "utility",
-        buildMoves: naturalMoves,
-        ability: assumedAbility,
-      }),
-    },
   ];
 
-  if (delayedMoves.length) {
-    const delayedProfile = makeProfile({
-      movePreference: "default",
-      buildMoves: [...naturalMoves, ...delayedMoves],
-      ability: assumedAbility,
-    });
-    const delayedIds = new Set(delayedMoves.map((move) => move.id));
-    const usedDelayed = (delayedProfile.recommendedMoves || []).filter((move) =>
-      delayedIds.has(move.id),
+  // Hint-grade fast runs stop at the default build (see the fastMode param
+  // doc); exact runs resolve the full variant family.
+  if (!fastMode) {
+    variants.push(
+      {
+        key: "coverage",
+        label: "Coverage set",
+        profile: makeProfile({
+          movePreference: "coverage",
+          buildMoves: naturalMoves,
+          ability: assumedAbility,
+        }),
+      },
+      {
+        key: "utility",
+        label: "Utility set",
+        profile: makeProfile({
+          movePreference: "utility",
+          buildMoves: naturalMoves,
+          ability: assumedAbility,
+        }),
+      },
     );
-    // Only a distinct build if the set actually uses a delayed move; then it
-    // pays the delayed-evolution K and says which move required the delay.
-    if (usedDelayed.length) {
-      delayedProfile.frictionCost += tunable("DELAYED_EVO_FRICTION");
-      delayedProfile.legalityProof.buildFriction = tunable("DELAYED_EVO_FRICTION");
-      delayedProfile.legalityProof.delayedMoves = usedDelayed.map((move) => ({
-        name: move.name,
-        source: move.availableSources?.[0]?.label || "delayed evolution",
-      }));
-      variants.push({
-        key: "delayed",
-        label: `Delayed-evolution set (${usedDelayed.map((m) => m.name).join(", ")})`,
-        profile: delayedProfile,
+
+    if (delayedMoves.length) {
+      const delayedProfile = makeProfile({
+        movePreference: "default",
+        buildMoves: [...naturalMoves, ...delayedMoves],
+        ability: assumedAbility,
       });
+      const delayedIds = new Set(delayedMoves.map((move) => move.id));
+      const usedDelayed = (delayedProfile.recommendedMoves || []).filter((move) =>
+        delayedIds.has(move.id),
+      );
+      // Only a distinct build if the set actually uses a delayed move; then it
+      // pays the delayed-evolution K and says which move required the delay.
+      if (usedDelayed.length) {
+        delayedProfile.frictionCost += tunable("DELAYED_EVO_FRICTION");
+        delayedProfile.legalityProof.buildFriction = tunable("DELAYED_EVO_FRICTION");
+        delayedProfile.legalityProof.delayedMoves = usedDelayed.map((move) => ({
+          name: move.name,
+          source: move.availableSources?.[0]?.label || "delayed evolution",
+        }));
+        variants.push({
+          key: "delayed",
+          label: `Delayed-evolution set (${usedDelayed.map((m) => m.name).join(", ")})`,
+          profile: delayedProfile,
+        });
+      }
     }
   }
 
   // Sensitivity probe: same default set, secondary ability. Never a competing
-  // build — only a measurement.
-  const sensitivityProbe = secondaryAbility
-    ? makeProfile({
-        movePreference: "default",
-        buildMoves: naturalMoves,
-        ability: secondaryAbility,
-      })
-    : null;
+  // build — only a measurement, skipped on hint-grade fast runs.
+  const sensitivityProbe =
+    !fastMode && secondaryAbility
+      ? makeProfile({
+          movePreference: "default",
+          buildMoves: naturalMoves,
+          ability: secondaryAbility,
+        })
+      : null;
 
   return { variants, sensitivityProbe, assumedAbility, abilityKnown, secondaryAbility };
 }

@@ -19,7 +19,7 @@ import { tunable } from "./scoringConstants.js";
 export async function choosePoolTeam(
   lines,
   opponentTypeBias = {},
-  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true } = {},
+  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true, hint = false } = {},
 ) {
   const resolvedLines = lines.filter((line) => line.best || line.bestNonMega);
   const unresolved = lines.filter((line) => line.unresolved);
@@ -28,6 +28,7 @@ export async function choosePoolTeam(
     incremental,
     searchKey,
     benchSwaps,
+    hint,
   });
   const evaluated = bestTeam.evaluated;
   // selectTeamByFit already realized concrete builds and re-ranked the top
@@ -207,6 +208,16 @@ function getDefensiveCoverTypes(profile, team) {
 // regardless of budget; the budget only gates a from-scratch search.
 const AUTO_EXHAUSTIVE_BUDGET = 2_000_000;
 const HARD_EXHAUSTIVE_CAP = 3_000_000;
+// Hint-grade searches — the investment plan's future-cap "fast" runs. The
+// plan reads LINE scores (exact under any search path) plus a rough future
+// six for the "projected to SEAT" flag, so full enumeration was pure waste:
+// fast mode only dodged enumeration ABOVE the auto budget, which a 34-mon
+// pool (1.3M combos, well under 2M) never reached — measured as ~10 cold
+// minutes of every-core kernel work per investment plan (user ruling: "ten
+// minutes of blocking loading is totally untenable no matter where it is in
+// the user experience"). A 12-mon shortlist enumerates in 924 combinations.
+const HINT_SEARCH_BUDGET = 20_000;
+const HINT_SHORTLIST_MAX = 12;
 // For pools too big to enumerate fully (C(N,6) over the cap — roughly N > 38), we
 // reduce to a shortlist and enumerate THAT exactly, instead of a lossy beam. The
 // shortlist keeps the top mons by individual score plus the best provider of
@@ -308,7 +319,7 @@ function queryTeamStoreTop(lines, targetSize, opponentTypeBias, topCount) {
 async function selectTeamByFit(
   lines,
   opponentTypeBias = {},
-  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true } = {},
+  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true, hint = false } = {},
 ) {
   const targetSize = Math.min(6, lines.length);
   if (targetSize === 0) {
@@ -321,7 +332,11 @@ async function selectTeamByFit(
     ? lines.filter((line) => !incremental.baseLineKeys.has(line.lineKey)).length
     : 0;
   const combinations = countCombinations(lines.length, targetSize);
-  const budget = exhaustive ? HARD_EXHAUSTIVE_CAP : AUTO_EXHAUSTIVE_BUDGET;
+  const budget = hint
+    ? HINT_SEARCH_BUDGET
+    : exhaustive
+      ? HARD_EXHAUSTIVE_CAP
+      : AUTO_EXHAUSTIVE_BUDGET;
 
   // A from-scratch / grown search big enough to be worth it runs in parallel off
   // the main thread. A pure deletion (incremental, no added lines) and a
@@ -414,7 +429,7 @@ async function selectTeamByFit(
       // enumerate THAT exactly (far better than the old lossy beam). Route through
       // the Web Worker pool when it's worth it, so a big pool still uses all cores.
       usedShortlist = true;
-      const shortlist = buildShortlist(lines);
+      const shortlist = buildShortlist(lines, hint ? HINT_SHORTLIST_MAX : null);
       const shortSize = Math.min(6, shortlist.length);
       const shortCombos = countCombinations(shortlist.length, shortSize);
       candidates = null;
@@ -464,7 +479,10 @@ async function selectTeamByFit(
     // droppability map, so the shortlist path gets that for free.
     let searchPolish = null;
     let benchSwapScores = null;
-    if (usedShortlist && evaluated.team.length) {
+    // Hint runs skip the exactness repair by contract: the polish is a full-
+    // pool scan applied to a fixed point, and hint consumers (the investment
+    // plan) read line scores plus a rough six, not an audited optimum.
+    if (usedShortlist && evaluated.team.length && !hint) {
       const polished = polishTeamBySwaps(lines, evaluated, opponentTypeBias);
       evaluated = polished.evaluated;
       searchPolish = polished.record;
@@ -856,10 +874,10 @@ function shortlistCoverageOf(entry) {
   );
 }
 
-function buildShortlist(lines) {
+function buildShortlist(lines, maxSizeOverride = null) {
   const scored = rankShortlistEntries(lines);
 
-  const maxSize = tunable("SHORTLIST_MAX");
+  const maxSize = maxSizeOverride ?? tunable("SHORTLIST_MAX");
   const coreSize = Math.min(tunable("SHORTLIST_CORE"), maxSize);
   const picked = new Map();
   const add = (entry) => {

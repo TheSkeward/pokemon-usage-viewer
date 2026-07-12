@@ -427,6 +427,14 @@ export function mountPoolOptimizer(container, options = {}) {
         // converged lines).
         scoringModel: pipeline?.scoringModel ?? state.scoringModel,
         shouldAbort: () => sweepAbortRequested || state.result !== forResult,
+        // Progressive: render the first future cap's plan as soon as it
+        // lands (marked partial in the panel) instead of sitting on it
+        // until the second cap finishes.
+        onPartial: (partialPlan) => {
+          if (sweepAbortRequested || state.result !== forResult) return;
+          state.investment = partialPlan;
+          render();
+        },
       });
       if (state.result !== forResult) {
         superseded = true;

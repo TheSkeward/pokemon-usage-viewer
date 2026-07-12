@@ -48,6 +48,11 @@ export async function computeInvestmentPlan({
   // without this hook a click landing mid-investment queued behind BOTH
   // remaining future runs.
   shouldAbort = () => false,
+  // Progressive delivery: called with a `partial: true` plan the moment the
+  // FIRST future cap lands, so the panel shows something useful in half the
+  // cold time (user ruling: ten minutes of blocking work is untenable
+  // anywhere). The returned plan is always the complete one.
+  onPartial = null,
 }) {
   const caps = nextLevelCaps(progression.levelCap, 2);
   if (!caps.length || !result?.team?.length) return null;
@@ -65,7 +70,9 @@ export async function computeInvestmentPlan({
   // full optimize) and the plan barely uses their searches: `gain` compares
   // LINE scores, which are exact under any search mode; only `seatsLater`
   // reads the future team, and a shortlist-grade six is the right price for
-  // a "worth training soon" hint.
+  // a "worth training soon" hint. Fast runs also resolve DEFAULT-ONLY builds
+  // (teamOptimizer's fastMode trim) — most of the remaining cold cost was
+  // full variant resolution the plan never read.
   const futureResults = [];
   for (const cap of caps) {
     if (shouldAbort()) return null;
@@ -82,8 +89,21 @@ export async function computeInvestmentPlan({
         searchMode: "fast",
       }),
     });
+    if (futureResults.length < caps.length && onPartial) {
+      const partial = buildInvestmentPlan({ nowByInput, teamIds, result, futureResults });
+      partial.partial = true;
+      partial.pendingCaps = caps.slice(futureResults.length);
+      onPartial(partial);
+    }
   }
 
+  return buildInvestmentPlan({ nowByInput, teamIds, result, futureResults });
+}
+
+// Assembles the plan from whichever future caps have landed so far — pure so
+// the progressive partial and the final plan are the same computation.
+function buildInvestmentPlan({ nowByInput, teamIds, result, futureResults }) {
+  const caps = futureResults.map((entry) => entry.cap);
   const trainSoon = [];
   const holdOff = [];
   for (const [inputId, nowChoice] of nowByInput) {
