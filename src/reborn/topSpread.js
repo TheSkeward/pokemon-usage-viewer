@@ -26,6 +26,14 @@ export async function loadTopSet({ family, pokemonId, selection }) {
     // mon's canonical moves and rank utility moves by how much they're actually
     // run. Entries with no real usage (the stitched tail) are dropped.
     moveUsage: moveUsageMap(data?.moves),
+    // The FULL stitched priority order (id -> rank), including cross-tier
+    // entries whose usage % was nulled when appended (percentages aren't
+    // comparable across tiers) and the sub-bar trace tail. The array order is
+    // exactly "descending usage within the canonical tier, then each fallback
+    // tier down the ladder" — the ranking the recommender's last-resort slot
+    // fill uses (user ruling; Prankster Liepard's Assist lives here, an AG
+    // set entry invisible to moveUsage).
+    moveRank: moveRankMap(data?.moves),
   };
 }
 
@@ -48,6 +56,19 @@ function moveUsageMap(entries) {
     const id = toMoveId(entry.name);
     // Keep the highest usage if a name collapses to the same id (Hidden Power).
     if (!map.has(id) || entry.usage > map.get(id)) map.set(id, entry.usage);
+  }
+  return map;
+}
+
+function moveRankMap(entries) {
+  const map = new Map();
+  if (!Array.isArray(entries)) return map;
+  for (let index = 0; index < entries.length; index += 1) {
+    const name = entries[index]?.name;
+    if (typeof name !== "string") continue;
+    const id = toMoveId(name);
+    // First occurrence wins — earlier in the stitch is higher priority.
+    if (!map.has(id)) map.set(id, index);
   }
   return map;
 }

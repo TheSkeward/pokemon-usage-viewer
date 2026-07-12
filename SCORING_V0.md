@@ -1432,3 +1432,25 @@ Invariants the shape encodes (each guarded by fixtures):
   primaries for Raticate/Pachirisu with concrete gen7zu/1500 and gen7pu/0
   anchors). Data-signature change re-keys caches; no RESULT_CACHE_VERSION
   bump needed.
+- **Recommender step 5: competitive-rank slot fill** (user report: a 0-badge
+  Liepard rendered Pursuit / Scratch / Fury Swipes and a BLANK fourth slot
+  while Assist sat legal; ruling: "In cases where it's made it through the
+  first three bullets of that algorithm, I think remaining moves should be
+  selected by descending usage within its canonical tier (fallback to all
+  tiers in descending order, the usual way)"). Root cause: when the stitch
+  appends another tier's moves it nulls their usage % (cross-tier
+  percentages aren't comparable), and moveUsage drops null entries — so
+  Liepard's Assist, a REAL Gen 7 AG 1760 set entry, was invisible to the
+  recommender, whose fill loop then refused to seat "neither used nor
+  notable" filler and broke with an empty slot. loadTopSet now also exposes
+  moveRank — the stitched array order, which IS the ruling's ranking:
+  primary tier by descending usage, then each fallback tier down the
+  ladder, sub-bar trace tail last. When the damage-led fill (fresh-type →
+  utility-by-usage → any-attack) runs dry with slots left, the recommender
+  takes the best-ranked remaining legal move on that ladder. Moves with no
+  competitive appearance anywhere still never seat — an empty slot stays
+  honest. Liepard@20 now reads Pursuit / Scratch / Fury Swipes / Assist
+  (pinned in test/validate/competitive-rank-fill.test.mjs). Analysis-path
+  only: the optimizer's build variants never passed moveUsage and still
+  don't, so scores are untouched and goldens are byte-stable — no
+  RESULT_CACHE_VERSION bump.

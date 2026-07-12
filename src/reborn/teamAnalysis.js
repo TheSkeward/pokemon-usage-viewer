@@ -157,6 +157,7 @@ async function buildMemberLegalMoveEntry({
     attackerStats,
     levelCap: progression.levelCap,
     moveUsage: topSet.moveUsage,
+    moveRank: topSet.moveRank,
     heldItem,
     ability: topSet.ability,
     opponentTypeBias: progression.opponentTypeBias,
@@ -226,6 +227,7 @@ export function buildCandidateLegalityProfile({
   attackerStats,
   levelCap,
   moveUsage = new Map(),
+  moveRank = new Map(),
   opponentTypeBias = {},
   heldItem = null,
   ability = null,
@@ -251,6 +253,7 @@ export function buildCandidateLegalityProfile({
     moveUsage,
     opponentTypeBias,
     movePreference,
+    moveRank,
   );
   const recommendedDamagingMoves = recommendedMoves.filter(isDamagingMove);
   const stabMoves = damagingMoves
@@ -999,6 +1002,14 @@ function getEffectiveHitMultiplier(move, ability = null) {
 //   4. Fill the rest by damage, skipping attacking types already covered (a
 //      second same-type attack adds nothing); fall back to more utility, then to
 //      a duplicate-type attack only as a last resort.
+//   5. Slots STILL empty with legal moves remaining (user ruling, from a
+//      0-badge Liepard with a blank fourth slot): fill by the stitched
+//      competitive priority order — "descending usage within its canonical
+//      tier (fallback to all tiers in descending order, the usual way)".
+//      That order lives in moveRank (set-index array order), which also sees
+//      cross-tier entries whose usage % was nulled in the stitch — Liepard's
+//      AG Assist. Moves with no competitive appearance anywhere still never
+//      fill a slot; an empty slot stays honest.
 // With no usage data (obscure NFEs) step 1 is empty and the static utility-
 // quality table stands in for usage ranking, so the mon still gets a sensible
 // damage-led set. There is deliberately no "must have an attack" guarantee: a mon
@@ -1010,6 +1021,7 @@ function recommendCurrentMoves(
   moveUsage = new Map(),
   opponentTypeBias = {},
   movePreference = "default",
+  moveRank = new Map(),
 ) {
   const decorated = moves.map((move) =>
     decorateMove(move, member, attackerStats, moveUsage, opponentTypeBias),
@@ -1114,6 +1126,19 @@ function recommendCurrentMoves(
       .filter((move) => !isSelected(move, selected))
       .sort(compareByDamage)[0];
     if (add(anyAttack)) continue;
+    // Step 5: the damage-led fill is dry — take the best-ranked remaining
+    // move on the stitched competitive ladder (canonical tier first, then
+    // the fallback tiers in order). Only moves that appear SOMEWHERE in the
+    // mon's competitive record qualify; unseen filler still never seats.
+    const byCompetitiveRank = decorated
+      .filter(
+        (move) =>
+          moveRank.has(move.id) &&
+          !isSelected(move, selected) &&
+          isSelectableMove(move, selected),
+      )
+      .sort((a, b) => moveRank.get(a.id) - moveRank.get(b.id))[0];
+    if (add(byCompetitiveRank)) continue;
     break;
   }
 
