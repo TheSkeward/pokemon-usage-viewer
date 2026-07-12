@@ -105,6 +105,7 @@ export function mountPoolOptimizer(container, options = {}) {
     investment: null,
     analysisPending: false,
     postAnalysisSkipped: null,
+    postAnalysisDeferred: false,
   };
 
   const setDetails = createTeamBuilderSetDetailsLoader({
@@ -145,13 +146,13 @@ export function mountPoolOptimizer(container, options = {}) {
     if (initialQuery.trim()) {
       savePool(initialQuery);
       render();
-      void computeAndRender({ exhaustive: false });
+      void computeAndRender({ exhaustive: false, background: true });
     } else {
       render();
     }
   }
 
-  async function computeAndRender({ exhaustive = true } = {}) {
+  async function computeAndRender({ exhaustive = true, background = false } = {}) {
     setDetails.cancel();
 
     // Newest-run-wins token: any older in-flight run becomes a no-op the
@@ -173,6 +174,7 @@ export function mountPoolOptimizer(container, options = {}) {
     state.investment = null;
     state.analysisPending = false;
     state.postAnalysisSkipped = null;
+    state.postAnalysisDeferred = false;
     render();
     startOptimizeProgress(getPoolStats(state.query, pokemonIndex).uniqueCount);
     await waitForPaint();
@@ -290,6 +292,9 @@ export function mountPoolOptimizer(container, options = {}) {
         phases,
         totalMs,
         scoringModel: runScoringModel,
+        // Background-triggered runs (page load, auto-reoptimize, import) must
+        // never PAY for post-analysis — see the deferral in runPostAnalysis.
+        background,
         // The Team Analysis (movesets) panel fills asynchronously — the sweep
         // must not start until it's on screen (it starves the main thread).
         analysisPanelReady: handle?.analysisPanelReady || null,
@@ -319,6 +324,7 @@ export function mountPoolOptimizer(container, options = {}) {
     state.confidence = null;
     state.investment = null;
     state.postAnalysisSkipped = null;
+    state.postAnalysisDeferred = false;
     let superseded = false;
     try {
       if (forResult.postAnalysis) {
@@ -339,6 +345,25 @@ export function mountPoolOptimizer(container, options = {}) {
           pipeline.phases.confidence = 0;
           pipeline.phases.investment = 0;
         }
+        render();
+        return;
+      }
+
+      // Background-triggered optimizes (page load with a saved pool, the
+      // auto-reoptimize debounce, gamestate import) never PAY for a cold
+      // post-analysis. The investment plan alone is two more full optimizer
+      // runs at future caps — ~10 minutes on a real pool after a deploy or
+      // data refresh retires the persisted copy — and auto-starting that on
+      // page open saturated every core while the player was trying to read
+      // the page (user report: "multiple minutes of loading... can't even
+      // scroll"). A persisted post-analysis (the forResult.postAnalysis hit
+      // above) still restores instantly; when there is none, the panel
+      // offers a compute-now button, and an explicit Optimize click keeps
+      // computing everything as before.
+      if (pipeline?.background) {
+        state.postAnalysisDeferred = true;
+        pipeline.phases.confidence = 0;
+        pipeline.phases.investment = 0;
         render();
         return;
       }
@@ -515,7 +540,7 @@ export function mountPoolOptimizer(container, options = {}) {
         scheduleAutoReoptimize(true, delayMs);
         return;
       }
-      void computeAndRender({ exhaustive: false });
+      void computeAndRender({ exhaustive: false, background: true });
     }, delayMs);
   }
 
@@ -936,6 +961,16 @@ export function mountPoolOptimizer(container, options = {}) {
       });
 
     app
+      .querySelector("#compute-post-analysis-button")
+      ?.addEventListener("click", () => {
+        if (!state.result || state.analysisPending) return;
+        // Explicit request: run the full post-analysis for the current
+        // result. Tracked as activeAnalysis so the next optimize's abort
+        // handshake covers it like any other sweep.
+        activeAnalysis = runPostAnalysis(state.result, null);
+      });
+
+    app
       .querySelector("#scoring-model-select")
       ?.addEventListener("change", (event) => {
         state.scoringModel = event.target.value === "v0" ? "v0" : "v1";
@@ -1029,7 +1064,7 @@ export function mountPoolOptimizer(container, options = {}) {
         recomputeItemRecommendations();
         render();
         updatePoolStatusMessage("Gamestate imported. Optimizing…");
-        void computeAndRender({ exhaustive: false });
+        void computeAndRender({ exhaustive: false, background: true });
       });
 
     app.querySelector("#clear-pool-button")?.addEventListener("click", () => {

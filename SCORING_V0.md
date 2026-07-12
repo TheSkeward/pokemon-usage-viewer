@@ -1454,3 +1454,28 @@ Invariants the shape encodes (each guarded by fixtures):
   only: the optimizer's build variants never passed moveUsage and still
   don't, so scores are untouched and goldens are byte-stable — no
   RESULT_CACHE_VERSION bump.
+- **Post-analysis deferral for background runs** (user report: "ruinously
+  bad performance... multiple minutes of loading... can't even scroll",
+  with a perf report showing search at a normal 28.5s and INVESTMENT at
+  614.5s of the 648.6s pipeline). Root-cause audit first: browser A/B of
+  the deployed build vs the pre-ability-layer build measured IDENTICAL
+  cold pipelines (to-table 120.8s vs 120.3s; full 408.7s vs 411.0s on the
+  same 25-mon pool), and the node investment path is likewise flat across
+  every commit (main 35s / investment ~70s at both ends) — no engine
+  regression anywhere in the day's commits. What actually happened: the
+  investment projection costs two more full-price optimizer runs at future
+  caps (fast mode skips exhaustive search + bench swaps but still pays full
+  line resolution, which dominates), that cost is only ever felt COLD, and
+  the day shipped three cache-retiring changes back-to-back (the morning
+  Smogon data refresh, RESULT_CACHE_VERSION 22, and the set-index/manifest
+  data change) — so every page load auto-started a ~10-minute, every-core
+  post-analysis the user never asked for. Fix: background-triggered
+  optimizes (page load with a saved pool, the auto-reoptimize debounce,
+  gamestate import) DEFER the post-analysis when no persisted copy exists —
+  the panel says so and offers "Compute stability & investment now" — while
+  explicit Optimize clicks and persisted restores behave exactly as before.
+  Verified in the built app: load-triggered optimize renders the team with
+  the deferred button and starts no future-cap runs; the button computes on
+  demand; an explicit optimize still computes inline. No scoring change;
+  no cache bump (results and their persisted post-analysis are unchanged —
+  only WHEN the computation starts moved).

@@ -365,10 +365,24 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
 }
 
 function renderPostAnalysisSkippedSection(state) {
-  const skipped = state.postAnalysisSkipped;
-  if (!skipped || state.analysisPending || state.confidence || state.investment) {
-    return "";
+  if (state.analysisPending || state.confidence || state.investment) return "";
+
+  // Deferred (background-triggered optimize with no persisted copy): the
+  // stability sweep + investment projection are two more full optimizer runs
+  // — minutes of every-core work — so they only start on request here or on
+  // an explicit Optimize click, never from a page load or auto-reoptimize.
+  if (state.postAnalysisDeferred) {
+    return `
+      <section class="panel">
+        <h2>Stability and investment</h2>
+        <p class="muted">Recommendation stability and the level-cap investment projection weren't recomputed for this background refresh (they cost a couple of extra optimizer runs). They restore automatically when a saved copy exists.</p>
+        <p><button id="compute-post-analysis-button" type="button">Compute stability &amp; investment now</button></p>
+      </section>
+    `;
   }
+
+  const skipped = state.postAnalysisSkipped;
+  if (!skipped) return "";
 
   const poolSize = skipped.poolSize || 0;
   const builds = skipped.builds || 0;
