@@ -53,6 +53,11 @@ import {
 } from "./teamBuilder/itemRecommendations";
 import { getTeamItemContext } from "./reborn/teamAnalysis";
 import {
+  buildGamestateExport,
+  gamestateFileName,
+  parseGamestateImport,
+} from "./teamBuilder/gamestateBackup.js";
+import {
   readLocalStorage,
   removeLocalStorage,
   writeLocalStorage,
@@ -960,6 +965,71 @@ export function mountPoolOptimizer(container, options = {}) {
         } catch {
           updatePoolStatusMessage("Clipboard copy failed");
         }
+      });
+
+    app
+      .querySelector("#export-gamestate-button")
+      ?.addEventListener("click", () => {
+        const blob = new Blob(
+          [
+            buildGamestateExport({
+              query: state.query,
+              progression: state.progression,
+              scoringModel: state.scoringModel,
+            }),
+          ],
+          { type: "application/json" },
+        );
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = gamestateFileName();
+        link.click();
+        URL.revokeObjectURL(url);
+        updatePoolStatusMessage(`Gamestate downloaded (${link.download}).`);
+      });
+
+    app
+      .querySelector("#import-gamestate-button")
+      ?.addEventListener("click", () => {
+        app.querySelector("#import-gamestate-input")?.click();
+      });
+
+    app
+      .querySelector("#import-gamestate-input")
+      ?.addEventListener("change", async (event) => {
+        const file = event.target.files?.[0];
+        event.target.value = "";
+        if (!file) return;
+        let imported;
+        try {
+          imported = parseGamestateImport(await file.text());
+        } catch (error) {
+          updatePoolStatusMessage(`Import failed: ${error.message}`);
+          return;
+        }
+        if (
+          state.query.trim() &&
+          !window.confirm(
+            "Replace the current pool and progression with the imported gamestate?",
+          )
+        ) {
+          return;
+        }
+        state.query = imported.pool;
+        savePool(state.query);
+        state.scoringModel = imported.scoringModel;
+        writeLocalStorage(SCORING_MODEL_STORAGE_KEY, state.scoringModel);
+        // Round-trip the imported progression through the normal save/load
+        // path so it gets the same normalization (terrain-seed migration,
+        // count clamps, unknown-field drops) as any other stored state.
+        saveRebornProgression(imported.progression);
+        state.progression = loadSavedRebornProgression();
+        state.result = null;
+        recomputeItemRecommendations();
+        render();
+        updatePoolStatusMessage("Gamestate imported. Optimizing…");
+        void computeAndRender({ exhaustive: false });
       });
 
     app.querySelector("#clear-pool-button")?.addEventListener("click", () => {

@@ -220,6 +220,9 @@ function renderPoolControls({ embedded, poolStats, state }) {
           </select>
         </label>
         <button class="view-tab" id="copy-pool-button">Copy pool</button>
+        <button class="view-tab" id="export-gamestate-button" title="Download pool + progression + inventory as a JSON backup file. Everything lives in this browser's local storage — one data clear loses it all without a backup.">Export gamestate</button>
+        <button class="view-tab" id="import-gamestate-button" title="Restore a downloaded gamestate backup (replaces the current pool and progression).">Import gamestate</button>
+        <input type="file" id="import-gamestate-input" accept="application/json,.json" style="display: none" />
         <button class="view-tab" id="generate-availability-button" ${state.result?.lines?.length ? "" : "disabled"} title="${state.result?.lines?.length ? "Generate a pasteable list of every available Pokémon, its current move pool, and your held items" : "Optimize the team first to resolve your pool"}">Generate availability list</button>
         <button class="view-tab danger-button" id="clear-pool-button">Clear saved pool</button>
         <span class="muted" data-pool-status>${escapeHtml(state.statusMessage)}</span>
