@@ -5,12 +5,20 @@
 // three sizes share one exact baseline (the expensive part).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { loadFixture, runFixture } from "../helpers/fixtureRunner.mjs";
+import { loadFixture } from "../helpers/fixtureRunner.mjs";
 import { runPool, teamInputNames } from "../helpers/harness.mjs";
 
 test("shortlist regret on exact-feasible 36-mon pool (sizes 24/28/32)", async () => {
   const fixture = loadFixture("early-weak-froakie");
-  const exact = await runFixture(fixture);
+  // The interactive budgets route C(36,6)=1.95M to shortlist+polish, so the
+  // TRUE exact baseline needs the cap raised — a test-only override, exactly
+  // what the tunable exists for.
+  const exact = await runPool({
+    pool: fixture.pool,
+    badge: fixture.badge,
+    levelCap: fixture.levelCap,
+    overrides: { EXHAUSTIVE_CAP: 3_000_000 },
+  });
   assert.equal(exact.searchExact, true, "baseline must be the true exact search");
   const exactTeam = teamInputNames(exact);
 
@@ -42,7 +50,13 @@ test("swap-polish repairs a shortlist miss back to the exact optimum", async () 
   // shortlist improvement makes size 8 lossless, this fails with swaps=0:
   // re-plant the miss at a smaller size rather than deleting the assert.
   const fixture = loadFixture("early-weak-froakie");
-  const exact = await runFixture(fixture);
+  const exact = await runPool({
+    pool: fixture.pool,
+    badge: fixture.badge,
+    levelCap: fixture.levelCap,
+    overrides: { EXHAUSTIVE_CAP: 3_000_000 },
+  });
+  assert.equal(exact.searchExact, true, "baseline must be the true exact search");
   const exactTeam = teamInputNames(exact);
 
   const repaired = await runPool({

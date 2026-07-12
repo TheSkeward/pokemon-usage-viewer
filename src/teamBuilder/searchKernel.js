@@ -509,7 +509,13 @@ function unrankCombination(rank, n, k) {
 // survives a worker postMessage). Pure and self-contained: it prepares and resets
 // its own fit state, so it can run in a worker or on the main thread as a fallback.
 // `lines` must carry a prepared `choiceOptions` array per line (the form options).
-export function searchCombinationRange(lines, targetSize, opponentTypeBias, start, end, topCount = 1) {
+// How often (in scanned combinations) the range search reports progress via
+// its optional callback — rare enough to cost nothing, frequent enough for a
+// live progress caption (a worker chews through a stride in well under a
+// second).
+export const SEARCH_PROGRESS_STRIDE = 65_536;
+
+export function searchCombinationRange(lines, targetSize, opponentTypeBias, start, end, topCount = 1, onProgress = null) {
   for (const line of lines) line._choiceOptions = line.choiceOptions;
   prepareFitScoring(lines, opponentTypeBias);
 
@@ -521,6 +527,9 @@ export function searchCombinationRange(lines, targetSize, opponentTypeBias, star
       const comboLines = idx.map((i) => lines[i]);
       const candidate = bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
       if (candidate) offerTopTeam(top, candidate);
+      if (onProgress && (pos - start + 1) % SEARCH_PROGRESS_STRIDE === 0) {
+        onProgress(pos - start + 1);
+      }
       if (!nextCombination(idx, n, targetSize)) break;
     }
   }

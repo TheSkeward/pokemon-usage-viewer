@@ -1,15 +1,60 @@
 {
   "name": "early-weak-froakie",
   "category": "early-game weak pool (canonical)",
-  "notes": "The real badge-1 pool from the playthrough that drove the v0 calibration. Froakie (fielded as Frogadier) is the established stable-core pick: highest-ceiling line, fast attacker with stage-real Water damage; it appeared in 8/8 settings of the v0 robustness grid. The exact remaining five are allowed to drift with model changes; Froakie seating as a fast attacker is the invariant.",
-  "pool": ["Bidoof","Bronzor","Burmy","Caterpie","Combee","Crabrawler","Drowzee","Ekans","Froakie","Grimer","Hoothoot","Joltik","Kricketot","Ledyba","Mankey","Meowth","Noivern","Onix","Pachirisu","Pancham","Pidgey","Pineco","Poochyena","Purrloin","Rattata","Slakoth","Spearow","Spinarak","Stunky","Surskit","Swirlix","Trubbish","Whismur","Woobat","Wurmple","Yungoos"],
+  "notes": "The real badge-1 pool from the playthrough that drove the v0 calibration. Froakie (fielded as Frogadier) is the established stable-core pick: highest-ceiling line, fast attacker with stage-real Water damage; it appeared in 8/8 settings of the v0 robustness grid. The exact remaining five are allowed to drift with model changes; Froakie seating as a fast attacker is the invariant. searchExact false since the interactive-latency budget cut (EXHAUSTIVE_CAP 1M): C(36,6)=1.95M routes to shortlist+polish; the regret suite separately proves the polish recovers this fixture's exact optimum.",
+  "pool": [
+    "Bidoof",
+    "Bronzor",
+    "Burmy",
+    "Caterpie",
+    "Combee",
+    "Crabrawler",
+    "Drowzee",
+    "Ekans",
+    "Froakie",
+    "Grimer",
+    "Hoothoot",
+    "Joltik",
+    "Kricketot",
+    "Ledyba",
+    "Mankey",
+    "Meowth",
+    "Noivern",
+    "Onix",
+    "Pachirisu",
+    "Pancham",
+    "Pidgey",
+    "Pineco",
+    "Poochyena",
+    "Purrloin",
+    "Rattata",
+    "Slakoth",
+    "Spearow",
+    "Spinarak",
+    "Stunky",
+    "Surskit",
+    "Swirlix",
+    "Trubbish",
+    "Whismur",
+    "Woobat",
+    "Wurmple",
+    "Yungoos"
+  ],
   "badge": 1,
   "levelCap": 25,
   "golden": true,
   "expectations": {
-    "mustSeat": ["Froakie"],
-    "roles": { "Froakie": ["fast_attacker"] },
-    "fieldedForm": { "Froakie": "frogadier" },
-    "searchExact": true
+    "mustSeat": [
+      "Froakie"
+    ],
+    "roles": {
+      "Froakie": [
+        "fast_attacker"
+      ]
+    },
+    "fieldedForm": {
+      "Froakie": "frogadier"
+    },
+    "searchExact": false
   }
 }

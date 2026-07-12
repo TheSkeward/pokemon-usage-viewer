@@ -67,8 +67,8 @@ function getWorkerPool() {
 // combination space, found in parallel when possible. `compactLines` is the
 // trimmed, worker-cloneable line data; `total` is C(lines, targetSize);
 // `topCount` is how many candidates the realization pass wants to re-rank.
-export function parallelFullSearch(compactLines, targetSize, bias, total, topCount = 1) {
-  const run = () => dispatch(compactLines, targetSize, bias, total, topCount);
+export function parallelFullSearch(compactLines, targetSize, bias, total, topCount = 1, onProgress = null) {
+  const run = () => dispatch(compactLines, targetSize, bias, total, topCount, onProgress);
   const result = chain.then(run, run);
   // Keep the chain alive regardless of this job's outcome.
   chain = result.then(
@@ -105,7 +105,7 @@ function scheduleIdleRelease() {
   }, WORKER_IDLE_MS);
 }
 
-async function dispatch(compactLines, targetSize, bias, total, topCount) {
+async function dispatch(compactLines, targetSize, bias, total, topCount, onProgress = null) {
   // A job is starting: don't reap workers out from under it. Dispatches are
   // serialized on `chain`, so clearing here covers the whole job.
   if (idleTimer) {
@@ -116,19 +116,38 @@ async function dispatch(compactLines, targetSize, bias, total, topCount) {
 
   if (!pool || pool.length < 2) {
     // Synchronous fallback (small job, or no workers): identical code path.
-    return searchCombinationRange(compactLines, targetSize, bias, 0, total, topCount);
+    return searchCombinationRange(compactLines, targetSize, bias, 0, total, topCount, onProgress);
   }
 
   try {
     const k = pool.length;
     const chunk = Math.ceil(total / k);
     const jobs = [];
+    // Per-worker scanned counts, summed into one throttled progress stream
+    // for the caption ("Searching team combinations — 43%").
+    const scannedByWorker = [];
+    let lastReport = 0;
+    const reportProgress = () => {
+      if (!onProgress) return;
+      const now = Date.now();
+      if (now - lastReport < 100) return;
+      lastReport = now;
+      onProgress(
+        scannedByWorker.reduce((sum, v) => sum + (v || 0), 0),
+        total,
+      );
+    };
     for (let w = 0; w < k; w++) {
       const start = w * chunk;
       const end = Math.min(total, start + chunk);
       if (start >= end) break;
+      const slot = scannedByWorker.length;
+      scannedByWorker.push(0);
       jobs.push(
-        runOnWorker(pool[w], compactLines, targetSize, bias, start, end, topCount),
+        runOnWorker(pool[w], compactLines, targetSize, bias, start, end, topCount, (scanned) => {
+          scannedByWorker[slot] = scanned;
+          reportProgress();
+        }),
       );
     }
     const results = await Promise.all(jobs);
@@ -151,15 +170,27 @@ async function dispatch(compactLines, targetSize, bias, total, topCount) {
 // raise it to match slower hardware.
 let workerTimeoutMs = 30_000;
 
-function runOnWorker(worker, compactLines, targetSize, bias, start, end, topCount) {
+function runOnWorker(worker, compactLines, targetSize, bias, start, end, topCount, onProgress = null) {
   const id = ++messageSeq;
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
+    let timer = setTimeout(() => {
       cleanup();
       reject(new Error("worker timeout"));
     }, workerTimeoutMs);
     const onMessage = (event) => {
       if (event.data?.id !== id) return;
+      // Interim progress: liveness, not completion. Refresh the hang timeout
+      // — a range that is visibly scanning must never be declared hung — and
+      // feed the caption.
+      if (event.data.progress != null && event.data.ok === undefined) {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          cleanup();
+          reject(new Error("worker timeout"));
+        }, workerTimeoutMs);
+        onProgress?.(event.data.progress);
+        return;
+      }
       cleanup();
       if (event.data.ok) resolve(event.data.result);
       else reject(new Error(event.data.error || "worker error"));

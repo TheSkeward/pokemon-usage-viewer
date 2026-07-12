@@ -310,7 +310,9 @@ export async function optimizeTeamFromPool({
   // team fit toward it as pair trust (min of the two lines' w) grows.
   // Missing index data degrades to trust 0 silently.
   await attachTeammateLift(lines, family);
-  onProgress?.({ phase: "search", completed: total, total });
+  // Phase entry only — combination counts stream from the search workers via
+  // onSearchProgress below.
+  onProgress?.({ phase: "search" });
   const result = await choosePoolTeam(lines, progression.opponentTypeBias, {
     exhaustive: exhaustive && !fastMode,
     incremental,
@@ -323,6 +325,10 @@ export async function optimizeTeamFromPool({
     // Hint-grade search: tiny budget, capped shortlist, no polish. Line
     // scores — the part the investment plan actually consumes — stay exact.
     hint: fastMode,
+    // Live combination counts from the search workers, for the progress
+    // caption ("Searching team combinations — 43%").
+    onSearchProgress: (scanned, totalCombos) =>
+      onProgress?.({ phase: "search", completed: scanned, total: totalCombos }),
   });
   // Wall-clock telemetry (roadmap: performance visibility): how long line
   // resolution vs the search actually took, surfaced in the provenance footer.

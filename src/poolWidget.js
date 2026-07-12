@@ -1304,11 +1304,18 @@ export function mountPoolOptimizer(container, options = {}) {
       remaining =
         budget.resolveMs * (1 - fraction) + budget.searchMs + budget.tailMs;
     } else if (model.phase === "search") {
-      // Past its budget the remaining floor keeps the bar creeping (asymptote)
-      // rather than lying about being done.
-      remaining =
-        Math.max(budget.searchMs - phaseElapsed, budget.searchMs * 0.08) +
-        budget.tailMs;
+      const f = model.searchFraction || 0;
+      if (f > 0.02) {
+        // Real worker progress: project remaining time from the measured
+        // scan rate instead of the pre-run budget guess.
+        remaining = (phaseElapsed * (1 - f)) / f + budget.tailMs;
+      } else {
+        // Past its budget the remaining floor keeps the bar creeping
+        // (asymptote) rather than lying about being done.
+        remaining =
+          Math.max(budget.searchMs - phaseElapsed, budget.searchMs * 0.08) +
+          budget.tailMs;
+      }
     } else {
       remaining = Math.max(budget.tailMs - phaseElapsed, 120);
     }
@@ -1326,12 +1333,24 @@ export function mountPoolOptimizer(container, options = {}) {
       : "";
   }
 
+  // Compact combination counts for the search caption (1,947,792 → "1.9M").
+  function formatComboCount(value) {
+    if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+    if (value >= 1_000) return `${Math.round(value / 1_000)}k`;
+    return String(value);
+  }
+
   function updateOptimizeProgress({ phase = "resolve", completed, total }) {
     const label = app.querySelector("[data-optimize-progress-label]");
     if (label) {
       label.textContent =
         phase === "search"
-          ? "Searching team combinations..."
+          ? total
+            ? // Live sub-progress from the search workers (user ask: "surface
+              // more granularity to the progress bar caption about where we
+              // are in that subprocess").
+              `Searching team combinations — ${Math.min(99, Math.floor((100 * (completed || 0)) / total))}% of ${formatComboCount(total)}...`
+            : "Searching team combinations..."
           : phase === "items"
             ? "Loading item usage for the team..."
             : total
@@ -1342,10 +1361,17 @@ export function mountPoolOptimizer(container, options = {}) {
       if (phase !== optimizeProgress.phase) {
         optimizeProgress.phase = phase;
         optimizeProgress.phaseStart = Date.now();
+        optimizeProgress.searchFraction = 0;
       }
       if (phase === "resolve") {
         optimizeProgress.completed = completed || 0;
         if (total) optimizeProgress.total = total;
+      }
+      if (phase === "search" && total) {
+        optimizeProgress.searchFraction = Math.min(
+          1,
+          (completed || 0) / total,
+        );
       }
       paintOptimizeProgress();
     }

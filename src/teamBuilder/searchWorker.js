@@ -14,6 +14,11 @@ self.onmessage = (event) => {
       start,
       end,
       topCount || 1,
+      // Interim liveness + progress: one small message per stride, consumed
+      // by the orchestrator for the progress caption (and to refresh its
+      // hang-detection timeout — a long range that is visibly working must
+      // not be declared hung).
+      (scanned) => self.postMessage({ id, progress: scanned }),
     );
     self.postMessage({ id, ok: true, result });
   } catch (error) {

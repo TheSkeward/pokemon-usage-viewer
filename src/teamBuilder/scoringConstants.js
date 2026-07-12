@@ -122,6 +122,14 @@ export const SCORING_DEFAULTS = Object.freeze({
   SHORTLIST_MAX: 28,
   SHORTLIST_CORE: 14,
   FORCE_SHORTLIST: false, // test hook: force shortlist path for regret validation
+  // Search enumeration budgets in team combinations C(N,6). Interactive
+  // latency rules these, not search purity (a 36-mon pool is 1.95M combos —
+  // 30-45s of every-core search per optimize under the old 2M/3M caps, paid
+  // again on every background auto-reoptimize; user: "unacceptably long").
+  // Above them the shortlist+polish path takes over. Tunable so the regret
+  // validation can raise the cap to compute a TRUE exact baseline.
+  AUTO_EXHAUSTIVE_BUDGET: 250_000, // background auto-reoptimize ceiling (~25 mons)
+  EXHAUSTIVE_CAP: 1_000_000, // explicit-optimize ceiling (~32 mons)
   // Selection scores an optimistic (max-over-builds) coverage relaxation, so the
   // best relaxed team need not be best after concrete builds are assigned. The
   // search keeps this many top relaxed teams; realization re-ranks them by exact

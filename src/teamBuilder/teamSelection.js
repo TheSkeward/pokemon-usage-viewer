@@ -19,7 +19,7 @@ import { tunable } from "./scoringConstants.js";
 export async function choosePoolTeam(
   lines,
   opponentTypeBias = {},
-  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true, hint = false } = {},
+  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true, hint = false, onSearchProgress = null } = {},
 ) {
   const resolvedLines = lines.filter((line) => line.best || line.bestNonMega);
   const unresolved = lines.filter((line) => line.unresolved);
@@ -29,6 +29,7 @@ export async function choosePoolTeam(
     searchKey,
     benchSwaps,
     hint,
+    onSearchProgress,
   });
   const evaluated = bestTeam.evaluated;
   // selectTeamByFit already realized concrete builds and re-ranked the top
@@ -199,15 +200,22 @@ function getDefensiveCoverTypes(profile, team) {
 // shortlist that is itself enumerated exactly (see below — there is no lossy
 // beam anymore).
 //
-// Budgets are in number of team combinations C(N, size). After the
-// deferred-identity + memoized-options speedup, both budgets cover a full
-// 36-line pool exactly: 2M ≈ a 36-line pool (C(36,6) ≈ 1.95M), and the
-// explicit ceiling adds headroom to ~38 lines (C(38,6) ≈ 2.76M). Big searches
-// run across Web Workers, so they're off the main thread and core-count
-// faster; most edits never hit them anyway — the incremental path is exact
+// Budgets are in number of team combinations C(N, size). Big searches run
+// across Web Workers, so they're off the main thread and core-count faster;
+// most edits never hit them anyway — the incremental path is exact
 // regardless of budget; the budget only gates a from-scratch search.
-const AUTO_EXHAUSTIVE_BUDGET = 2_000_000;
-const HARD_EXHAUSTIVE_CAP = 3_000_000;
+// Interactive latency rules the enumeration budgets, not search purity (user
+// report: a 36-mon pool is C(36,6) = 1.95M combinations, which sat just
+// UNDER the old 2M/3M caps — so every optimize, including every background
+// auto-reoptimize after a progression tick, fully enumerated ~2M teams:
+// 30–45s of "searching team combinations" per edit, "unacceptably long").
+// Above these caps the shortlist+polish path takes over — exact on the
+// shortlist, repaired by the full-pool 1-swap audit, and honest about
+// itself in the provenance footer. Background runs stay exact through
+// ~25 mons, explicit optimizes through ~32. Values live in scoringConstants
+// as tunables so the regret validation can raise the cap for a TRUE exact
+// baseline; countCombinations' overflow early-out keeps a fixed sibling cap.
+const COMBINATION_OVERFLOW_CAP = 3_000_000;
 // Hint-grade searches — the investment plan's future-cap "fast" runs. The
 // plan reads LINE scores (exact under any search path) plus a rough future
 // six for the "projected to SEAT" flag, so full enumeration was pure waste:
@@ -319,7 +327,7 @@ function queryTeamStoreTop(lines, targetSize, opponentTypeBias, topCount) {
 async function selectTeamByFit(
   lines,
   opponentTypeBias = {},
-  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true, hint = false } = {},
+  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true, hint = false, onSearchProgress = null } = {},
 ) {
   const targetSize = Math.min(6, lines.length);
   if (targetSize === 0) {
@@ -335,8 +343,8 @@ async function selectTeamByFit(
   const budget = hint
     ? HINT_SEARCH_BUDGET
     : exhaustive
-      ? HARD_EXHAUSTIVE_CAP
-      : AUTO_EXHAUSTIVE_BUDGET;
+      ? tunable("EXHAUSTIVE_CAP")
+      : tunable("AUTO_EXHAUSTIVE_BUDGET");
 
   // A from-scratch / grown search big enough to be worth it runs in parallel off
   // the main thread. A pure deletion (incremental, no added lines) and a
@@ -368,6 +376,7 @@ async function selectTeamByFit(
       opponentTypeBias,
       combinations,
       realizationPool,
+      onSearchProgress,
     );
     prepareFitScoring(lines, opponentTypeBias);
     try {
@@ -441,6 +450,7 @@ async function selectTeamByFit(
           opponentTypeBias,
           shortCombos,
           realizationPool,
+          onSearchProgress,
         );
         // parallelFullSearch's SYNCHRONOUS fallback (no worker pool) runs
         // searchCombinationRange on this thread, whose own prepare/reset
@@ -838,7 +848,7 @@ function countCombinations(n, k) {
   let result = 1;
   for (let i = 0; i < r; i++) {
     result = (result * (n - i)) / (i + 1);
-    if (result > HARD_EXHAUSTIVE_CAP * 8) return Infinity;
+    if (result > COMBINATION_OVERFLOW_CAP * 8) return Infinity;
   }
   return Math.round(result);
 }

@@ -1509,3 +1509,32 @@ Invariants the shape encodes (each guarded by fixtures):
   projections are hint-grade. Combined with the previous commit, a cold
   gamestate now costs one main search, panels fill in seconds behind it,
   and nothing auto-starts minutes of work on page load.
+- **Interactive search budgets + live search progress** (user report: a
+  36-mon pool took "unacceptably long" in "searching team combinations",
+  plus "I would like the progress bar to accurately display where we are
+  and... surface more granularity... about where we are in that
+  subprocess"). C(36,6) = 1.95M combinations sat just UNDER the old
+  enumeration caps (auto 2M / explicit 3M), so every optimize — including
+  every background auto-reoptimize after a progression tick — fully
+  enumerated ~2M teams: 30–45s of every-core kernel work per edit. The
+  budgets now price interactive latency: AUTO_EXHAUSTIVE_BUDGET 250k
+  (background runs exact through ~25 mons) and EXHAUSTIVE_CAP 1M (explicit
+  optimizes exact through ~32), both tunables so the regret validation can
+  raise the cap for TRUE exact baselines. Above them the shortlist+polish
+  path takes over — exact on the shortlist, repaired by the full-pool
+  1-swap audit, honest in the provenance footer. Golden audit: the three
+  36-mon fixtures (early-weak-froakie, late-broad-froakie, happiny-swap)
+  now route to shortlist+polish and their goldens changed ONLY in the
+  searchExact flag — teams and scores byte-identical, i.e. the polish
+  recovered the exact optimum on every one, exactly what the regret suite
+  (baselines now run with the cap raised) continues to prove. No
+  RESULT_CACHE_VERSION bump: persisted exact results remain valid optima.
+  Progress: search workers now stream scanned-combination counts (one
+  message per 65k-combo stride, which also refreshes the hang-detection
+  timeout so a long visibly-working range is never declared hung); the
+  caption reads "Searching team combinations — 52% of 377k..." and the bar
+  projects remaining time from the measured scan rate instead of the
+  pre-run budget guess. Verified in the built app: 36-mon explicit
+  optimize 26.2s to table on the slow verification box (the search share
+  fell from ~100s to ~3s), live percent captions, "swap audit: shortlist
+  held (36 lines audited)" in the footer.
