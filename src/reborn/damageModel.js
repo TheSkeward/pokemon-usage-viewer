@@ -242,20 +242,23 @@ function weightBucketPower(kg) {
 
 // Effective base power of a variable-power move at the attacker's level, vs
 // the reference defender. Returns null for moves outside the family.
-// Speed-assumption asymmetry is intentional and matches how the moves are
-// used: Electro Ball users BUILD fast (252 Spe, neutral nature), Gyro Ball
-// users want minimum speed (uninvested).
-export function variableMovePower(moveId, level, attackerId = null) {
+// The user's side of the speed formulas is their EXACT speed — the top
+// spread's EVs + nature, the same figure the stat tooltip displays — passed
+// in as attackerSpe; only when no stat line exists (no spread data, or a
+// bare estimateMoveDamage call) does it fall back to the mon's uninvested
+// speed at level. The defender's side is always the reference: median base
+// speed, uninvested.
+export function variableMovePower(moveId, level, attackerId = null, attackerSpe = null) {
   if (!VARIABLE_POWER_MOVE_IDS.has(moveId)) return null;
   const lvl = normalizeLevel(level);
   const id = attackerId ? toId(attackerId) : null;
   const baseSpe = (id && GEN7_BASE_STATS[id]?.[4]) || REFERENCE_SPEED_BASE;
   const weight = (id && GEN7_WEIGHTS_KG[id]) || REFERENCE_WEIGHT_KG;
   const referenceSpe = statValue(REFERENCE_SPEED_BASE, 0, lvl, 1);
+  const userSpe = Math.max(1, attackerSpe ?? statValue(baseSpe, 0, lvl, 1));
 
   switch (moveId) {
     case "electroball": {
-      const userSpe = statValue(baseSpe, 252, lvl, 1);
       const ratio = userSpe / Math.max(1, referenceSpe);
       if (ratio >= 4) return 150;
       if (ratio >= 3) return 120;
@@ -264,7 +267,6 @@ export function variableMovePower(moveId, level, attackerId = null) {
       return 40;
     }
     case "gyroball": {
-      const userSpe = Math.max(1, statValue(baseSpe, 0, lvl, 1));
       return Math.min(150, Math.floor((25 * referenceSpe) / userSpe) + 1);
     }
     case "grassknot":
@@ -375,6 +377,7 @@ export function getAttackingStats({ pokemonId, levelCap, spread }) {
   const level = normalizeLevel(levelCap);
   const baseAtk = stats[STAT_INDEX.atk];
   const baseSpa = stats[STAT_INDEX.spa];
+  const baseSpe = stats[STAT_INDEX.spe];
 
   const parsed = spread ? parseSpread(spread) : null;
 
@@ -384,15 +387,28 @@ export function getAttackingStats({ pokemonId, levelCap, spread }) {
       level,
       atk: statValue(baseAtk, parsed.evs[EV_INDEX.atk], level, nature.atk ?? 1),
       spa: statValue(baseSpa, parsed.evs[EV_INDEX.spa], level, nature.spa ?? 1),
+      // The spread's REAL speed (EVs + nature) — the same figure the stat
+      // tooltip shows. Speed-scaled move power (Electro Ball, Gyro Ball)
+      // reads it: the user's exact speed vs the median-speed reference
+      // defender (user ruling: "We have the user's exact speed... We should
+      // be using that for the user, and the median value for the defender").
+      spe: statValue(
+        baseSpe,
+        parsed.evs[EV_INDEX.spe],
+        level,
+        natureStatMultiplier(parsed.nature, "spe"),
+      ),
     };
   }
 
-  // Fallback: invest in the stronger attacking side, leave the other bare.
+  // Fallback: invest in the stronger attacking side, leave the other bare —
+  // and without a known spread, assume no speed investment.
   const physicalIsStronger = baseAtk >= baseSpa;
   return {
     level,
     atk: statValue(baseAtk, physicalIsStronger ? 252 : 0, level, physicalIsStronger ? 1.1 : 1),
     spa: statValue(baseSpa, physicalIsStronger ? 0 : 252, level, physicalIsStronger ? 1 : 1.1),
+    spe: statValue(baseSpe, 0, level, 1),
   };
 }
 
@@ -457,9 +473,12 @@ export function estimateMoveDamage({
   if (fixed != null) return fixed;
 
   // Variable-power moves arrive with base power 0; resolve their effective
-  // power against the reference defender at this level.
+  // power against the reference defender at this level, using the attacker's
+  // exact speed when the stat line carries it.
   const resolvedPower =
-    basePower || variableMovePower(moveId, lvl, attackerId) || 0;
+    basePower ||
+    variableMovePower(moveId, lvl, attackerId, attackerStats?.spe ?? null) ||
+    0;
 
   // No base power, not fixed-damage, not variable-power: nothing to estimate.
   if (!resolvedPower) return 0;

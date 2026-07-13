@@ -853,7 +853,9 @@ const damageMemo = new Map();
 const DAMAGE_MEMO_LIMIT = 200_000;
 
 function getEstimatedDamage(move, member, attackerStats) {
-  const key = `${move.id}|${member.id}|${member.ability || ""}|${member.heldItem || ""}|${attackerStats?.atk ?? ""}|${attackerStats?.spa ?? ""}|${attackerStats?.level ?? ""}`;
+  // spe joined the key with speed-scaled variable power (Electro Ball / Gyro
+  // Ball read the attacker's exact speed).
+  const key = `${move.id}|${member.id}|${member.ability || ""}|${member.heldItem || ""}|${attackerStats?.atk ?? ""}|${attackerStats?.spa ?? ""}|${attackerStats?.spe ?? ""}|${attackerStats?.level ?? ""}`;
   const cached = damageMemo.get(key);
   if (cached !== undefined) return cached;
   const value = computeEstimatedDamage(move, member, attackerStats);

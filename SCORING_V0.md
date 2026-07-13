@@ -1642,3 +1642,20 @@ Invariants the shape encodes (each guarded by fixtures):
   Ball); no team changed. Pinned in test/validate/variable-power.test.mjs
   (speed/weight/state formulas, the Foul Play stat swap, and an end-to-end
   Electro Ball recommendation). RESULT_CACHE_VERSION 23→24.
+- **Speed formulas use the attacker's exact speed** (user ruling on the
+  variable-power change: "i'm not sure what you mean by 'invested' vs
+  'uninvested' speed. We have the user's exact speed (incl. nature and
+  EVs), we display it in a tooltip. We should be using that for the user,
+  and the median value for the defender"). The per-move investment
+  assumptions (Electro Ball assumed 252 Spe, Gyro Ball assumed none) are
+  gone: getAttackingStats now carries `spe` — the top spread's real
+  EVs + nature, the same figure the stat tooltip shows — and Electro Ball
+  / Gyro Ball read it directly, with the mon's uninvested speed as the
+  only fallback when no stat line exists. The reference defender stays
+  median-base-speed, uninvested. The damage memo key gains spe. In the
+  ANALYSIS pane (real spreads) estimates now match the displayed stat
+  line exactly; in scoring (spread-blind by design, see the makeProfile
+  NOTE) the uninvested fallback happens to land in the same power buckets
+  for every golden scenario — goldens byte-stable, validate 99/99.
+  RESULT_CACHE_VERSION 24→25 (displayed-set output can shift for
+  speed-scaled movers).
