@@ -1659,3 +1659,21 @@ Invariants the shape encodes (each guarded by fixtures):
   for every golden scenario — goldens byte-stable, validate 99/99.
   RESULT_CACHE_VERSION 24→25 (displayed-set output can shift for
   speed-scaled movers).
+- **Badge-1 shop stock: the masked berries restored** (user report with
+  in-game screenshots: the Obsidia Department Store berry floor sells 13
+  berries after Badge 1, but the shop sync offered only 7 — Oran, Cheri,
+  Pecha, Rawst, Chesto, and Aspear were missing). Root cause is in the
+  EXTRACTED sheet data itself: the original extraction merged to one row
+  per item with the earliest source winning, so any berry with a badge-0
+  hidden pickup (Oran Berry et al.) lost its Shop row at extraction time —
+  and the raw sheet is not in the repo to re-extract. Fix: a user-curated
+  SHOP_STOCK overlay in build-item-timeline.mjs (same one-line-correction
+  contract as WILD_HELD), seeded with the six verified berries at badge 1;
+  earliest badge wins when both the sheet and the overlay know an item.
+  REBORN_SHOP_ITEM_BADGES grows 84→89 entries (persim/pomeg/kelpsy/qualot/
+  hondew already credited). Pinned in item-inventory.test.mjs: all 13
+  screenshot-verified berries must be shop-purchasable at badge 1 and
+  appear in the badge-1 sync. Inventory-availability data only — no
+  scoring surface, goldens untouched. The same masking may hide other
+  find-then-shop items; corrections are one-line overlay entries as
+  they're spotted.

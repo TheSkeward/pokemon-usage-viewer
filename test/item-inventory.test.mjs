@@ -52,3 +52,27 @@ test("getPurchasableShopItems: badge-gated, owned-filtered, stable order", () =>
   // No badge selected -> nothing offered (never guess the gamestate).
   assert.equal(getPurchasableShopItems(null, {}).length, 0);
 });
+
+test("badge-1 shop stock includes the user-verified Obsidia berry floor", () => {
+  // User report with in-game screenshots: after Badge 1 the Department
+  // Store berry shop sells the six heal/status berries alongside Persim +
+  // the EV berries. The extraction had merged them away (their earliest
+  // sheet row is a badge-0 hidden find, which discarded the Shop row) —
+  // the SHOP_STOCK overlay in build-item-timeline.mjs restores them.
+  const VERIFIED_BADGE_1_BERRIES = [
+    "oranberry", "cheriberry", "pechaberry", "rawstberry", "chestoberry",
+    "aspearberry", "persimberry", "pomegberry", "kelpsyberry", "qualotberry",
+    "hondewberry", "grepaberry", "tamatoberry",
+  ];
+  for (const id of VERIFIED_BADGE_1_BERRIES) {
+    assert.equal(
+      REBORN_SHOP_ITEM_BADGES[id],
+      1,
+      `${id} must be shop-purchasable at badge 1`,
+    );
+  }
+  const offered = new Set(getPurchasableShopItems(1, {}).map((item) => item.id));
+  for (const id of VERIFIED_BADGE_1_BERRIES) {
+    assert.ok(offered.has(id), `${id} must appear in the badge-1 shop sync`);
+  }
+});

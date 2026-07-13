@@ -37,6 +37,24 @@ const WILD_HELD = {
   mentalherb: { badge: 2, holder: "Lotad (rainy Lapis)" },
 };
 
+// item id -> badge — user-verified SHOP stock whose shop-ness the extracted
+// sheet hides: the extraction merged to one row per item with the EARLIEST
+// source winning, so an item with any pickup before its shop (Oran Berry is
+// a badge-0 hidden find) lost its Shop row at extraction time and the raw
+// sheet is not in the repo to re-extract. Corrections are one-line edits,
+// same contract as WILD_HELD.
+// Badge 1: the Obsidia Department Store berry floor (user-verified in game:
+// screenshots of the full stock after Badge 1 — the six heal/status berries
+// below sit alongside Persim + the EV berries the sheet already credits).
+const SHOP_STOCK = {
+  oranberry: 1,
+  cheriberry: 1,
+  pechaberry: 1,
+  rawstberry: 1,
+  chestoberry: 1,
+  aspearberry: 1,
+};
+
 const toId = (name) =>
   String(name || "")
     .toLowerCase()
@@ -86,12 +104,23 @@ const lines = sorted.map(
 // EARLIEST source, which hides shop-ness behind any earlier one-off find.
 // Limitation, inherited from the extraction: the sheet collapsed to one row
 // per item, so an item whose earliest row is "Hidden" never reads as a shop
-// item here even if a later shop also stocks it.
-const shopSorted = Object.entries(extracted.items)
-  .filter(([, entry]) => entry.source === "Shop")
-  .map(([name, entry]) => [toId(name), entry.badges])
-  .filter(([id]) => knownIds.has(id))
-  .sort(([a], [b]) => a.localeCompare(b));
+// item here even if a later shop also stocks it — the SHOP_STOCK overlay
+// above carries the user-verified corrections (earliest badge wins when
+// both sources know an item).
+const shopTable = new Map(
+  Object.entries(extracted.items)
+    .filter(([, entry]) => entry.source === "Shop")
+    .map(([name, entry]) => [toId(name), entry.badges])
+    .filter(([id]) => knownIds.has(id)),
+);
+for (const [id, badge] of Object.entries(SHOP_STOCK)) {
+  if (!knownIds.has(id)) continue;
+  const current = shopTable.get(id);
+  if (current == null || badge < current) shopTable.set(id, badge);
+}
+const shopSorted = [...shopTable.entries()].sort(([a], [b]) =>
+  a.localeCompare(b),
+);
 const shopLines = shopSorted.map(([id, badge]) => `  ${id}: ${badge},`);
 
 writeFileSync(
