@@ -18,6 +18,7 @@ import {
   getAbilityEffectiveMoveType,
   getAttackingStats,
   isFixedDamageMove,
+  isVariablePowerMove,
   normalizeLevel,
   parseSpread,
 } from "./damageModel.js";
@@ -681,10 +682,14 @@ function isDamagingMove(move) {
   // deal real damage (damageModel.fixedMoveDamage), so they count as attacks.
   // Their offense is typeless, though — sites that reason about a move's TYPE
   // (attack-type summaries, coverage-type sets, gem assignment) must skip them
-  // via isFixedDamageMove.
+  // via isFixedDamageMove. Variable-power moves (Electro Ball, Gyro Ball,
+  // Grass Knot, ...) also report 0 in the dex but resolve real TYPED power
+  // against the reference defender (damageModel.variableMovePower).
   return (
     move.category !== "Status" &&
-    (getMovePower(move) > 0 || isFixedDamageMove(move.id))
+    (getMovePower(move) > 0 ||
+      isFixedDamageMove(move.id) ||
+      isVariablePowerMove(move.id))
   );
 }
 
@@ -887,6 +892,9 @@ function computeEstimatedDamage(move, member, attackerStats) {
     // per-hit power, not the effective-hit-scaled figure above.
     abilityMultiplier: getAbilityDamageMultiplier(member.ability, move),
     ability: member.ability,
+    // For variable-power formulas that read the user's own speed/weight
+    // (Electro Ball, Gyro Ball, Heavy Slam...). Already part of the memo key.
+    attackerId: member.id,
   });
   // Expected damage weights a hit by how often it lands, so an inaccurate nuke
   // (Focus Blast: 120 BP @ 70%) ranks below a reliable lower-power move (e.g. a

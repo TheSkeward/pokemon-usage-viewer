@@ -1,6 +1,7 @@
 import {
   GEN7_BASE_STATS,
   GEN7_BASE_HP,
+  GEN7_WEIGHTS_KG,
 } from "../generated/gen7BaseStats.generated.js";
 import { getTypeMultiplier } from "./typeChart.js";
 import { toId } from "../utils/ids.js";
@@ -179,6 +180,121 @@ export function isFixedDamageMove(moveId) {
   return fixedMoveDamage(moveId, 1) != null;
 }
 
+// ————— Variable-power moves (stat-, weight-, and state-scaled) —————
+// The dex reports base power 0 for these, which priced them at ZERO damage —
+// Electro Ball contributed nothing to any set or coverage vector. They are
+// priced against the same REFERENCE DEFENDER convention as everything else
+// (user ask: "make sure that the reference defender has the median speed for
+// the level... for other moves that care about the target's stats"): median
+// base stat across the dex, uninvested at the attacker's level — exactly the
+// base-70-defense / base-70-HP convention — plus the median dex weight for
+// the weight formulas. Medians are COMPUTED from the generated data so they
+// cannot silently drift from it (today: Spe 70, Atk 76, 30 kg).
+//
+// State-scaled moves take the model's standing "typical unconditioned turn"
+// assumptions: both sides at full HP (Crush Grip/Wring Out strong, Flail/
+// Reversal weak), nobody boosted (Punishment at its floor). Excluded and
+// left at zero, documented: Beat Up (party-dependent), Fling / Natural Gift
+// (consumes an unknown item), Present (coin-flip heal), Trump Card (PP
+// state), Spit Up (needs Stockpile in the same set).
+function medianOf(values) {
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted.length ? sorted[Math.floor(sorted.length / 2)] : 0;
+}
+const REFERENCE_SPEED_BASE = medianOf(
+  Object.values(GEN7_BASE_STATS).map((row) => row[4]),
+);
+const REFERENCE_ATTACK_BASE = medianOf(
+  Object.values(GEN7_BASE_STATS).map((row) => row[0]),
+);
+const REFERENCE_WEIGHT_KG = medianOf(
+  Object.values(GEN7_WEIGHTS_KG).filter((kg) => kg > 0),
+);
+
+const VARIABLE_POWER_MOVE_IDS = new Set([
+  "electroball",
+  "gyroball",
+  "grassknot",
+  "lowkick",
+  "heavyslam",
+  "heatcrash",
+  "punishment",
+  "crushgrip",
+  "wringout",
+  "flail",
+  "reversal",
+  "magnitude",
+]);
+
+export function isVariablePowerMove(moveId) {
+  return VARIABLE_POWER_MOVE_IDS.has(moveId);
+}
+
+// Weight-bucket power shared by Grass Knot and Low Kick (Gen 3+ table).
+function weightBucketPower(kg) {
+  if (kg >= 200) return 120;
+  if (kg >= 100) return 100;
+  if (kg >= 50) return 80;
+  if (kg >= 25) return 60;
+  if (kg >= 10) return 40;
+  return 20;
+}
+
+// Effective base power of a variable-power move at the attacker's level, vs
+// the reference defender. Returns null for moves outside the family.
+// Speed-assumption asymmetry is intentional and matches how the moves are
+// used: Electro Ball users BUILD fast (252 Spe, neutral nature), Gyro Ball
+// users want minimum speed (uninvested).
+export function variableMovePower(moveId, level, attackerId = null) {
+  if (!VARIABLE_POWER_MOVE_IDS.has(moveId)) return null;
+  const lvl = normalizeLevel(level);
+  const id = attackerId ? toId(attackerId) : null;
+  const baseSpe = (id && GEN7_BASE_STATS[id]?.[4]) || REFERENCE_SPEED_BASE;
+  const weight = (id && GEN7_WEIGHTS_KG[id]) || REFERENCE_WEIGHT_KG;
+  const referenceSpe = statValue(REFERENCE_SPEED_BASE, 0, lvl, 1);
+
+  switch (moveId) {
+    case "electroball": {
+      const userSpe = statValue(baseSpe, 252, lvl, 1);
+      const ratio = userSpe / Math.max(1, referenceSpe);
+      if (ratio >= 4) return 150;
+      if (ratio >= 3) return 120;
+      if (ratio >= 2) return 80;
+      if (ratio >= 1) return 60;
+      return 40;
+    }
+    case "gyroball": {
+      const userSpe = Math.max(1, statValue(baseSpe, 0, lvl, 1));
+      return Math.min(150, Math.floor((25 * referenceSpe) / userSpe) + 1);
+    }
+    case "grassknot":
+    case "lowkick":
+      return weightBucketPower(REFERENCE_WEIGHT_KG);
+    case "heavyslam":
+    case "heatcrash": {
+      const ratio = weight / Math.max(0.1, REFERENCE_WEIGHT_KG);
+      if (ratio >= 5) return 120;
+      if (ratio >= 4) return 100;
+      if (ratio >= 3) return 80;
+      if (ratio >= 2) return 60;
+      return 40;
+    }
+    case "punishment":
+      return 60; // unboosted reference target — the move's floor
+    case "crushgrip":
+    case "wringout":
+      return 120; // full-HP target
+    case "flail":
+    case "reversal":
+      return 20; // full-HP user
+    case "magnitude":
+      // Expected value of the 5/10/20/30/20/10/5% magnitude table.
+      return 71;
+    default:
+      return null;
+  }
+}
+
 // Damage a move actually lands into a defensive type, for coverage purposes.
 // Fixed-damage moves ignore effectiveness multipliers but NOT immunities
 // (Gen 7 rules): Seismic Toss deals its flat damage to anything Fighting can
@@ -330,6 +446,9 @@ export function estimateMoveDamage({
   // per-hit power, not the effective-hit-scaled figure passed as basePower.
   abilityMultiplier = 1,
   ability = null,
+  // The attacker's species id, for variable-power moves whose formula reads
+  // the user's own speed or weight (Electro Ball, Gyro Ball, Heavy Slam...).
+  attackerId = null,
 }) {
   const stab = abilityStab(ability, attackerTypes, type);
   const lvl = normalizeLevel(level ?? attackerStats?.level);
@@ -337,20 +456,34 @@ export function estimateMoveDamage({
   const fixed = fixedMoveDamage(moveId, lvl);
   if (fixed != null) return fixed;
 
-  // No base power and not a known fixed-damage move: nothing to estimate.
-  if (!basePower) return 0;
+  // Variable-power moves arrive with base power 0; resolve their effective
+  // power against the reference defender at this level.
+  const resolvedPower =
+    basePower || variableMovePower(moveId, lvl, attackerId) || 0;
+
+  // No base power, not fixed-damage, not variable-power: nothing to estimate.
+  if (!resolvedPower) return 0;
 
   if (!attackerStats) {
-    return Math.round(basePower * stab * itemMultiplier * abilityMultiplier);
+    return Math.round(resolvedPower * stab * itemMultiplier * abilityMultiplier);
   }
 
+  // Foul Play deals damage with the TARGET's Attack stat — the reference
+  // defender's median-Atk, uninvested at level — not the user's (the user
+  // ask that surfaced this family: moves that care about the target's stats
+  // must be priced against the reference defender's stats, like Super Fang
+  // against its median HP).
   const attack =
-    category === "Physical" ? attackerStats.atk : attackerStats.spa;
+    moveId === "foulplay"
+      ? statValue(REFERENCE_ATTACK_BASE, 0, lvl, 1)
+      : category === "Physical"
+        ? attackerStats.atk
+        : attackerStats.spa;
   const defense = statValue(REFERENCE_DEFENSE_BASE, 0, lvl, 1);
 
   const baseDamage =
     Math.floor(
-      (Math.floor(((2 * lvl) / 5 + 2) * basePower * attack) / defense) / 50,
+      (Math.floor(((2 * lvl) / 5 + 2) * resolvedPower * attack) / defense) / 50,
     ) + 2;
 
   return Math.round(baseDamage * stab * itemMultiplier * abilityMultiplier);

@@ -1609,3 +1609,36 @@ Invariants the shape encodes (each guarded by fixtures):
   ~0.5s from 1% through 98% with no silent gaps, flowing straight into the
   items phase. Reporting only — search output unchanged, goldens
   byte-stable.
+- **Variable-power moves priced against the reference defender** (user ask:
+  "for the damage calculation of Electro Ball and similar moves, I want to
+  make sure that the reference defender has the median speed for the level.
+  I think we did something like this for hp with super fang... make sure
+  that we're doing that for other moves that care about the target's
+  stats"). Worse than unpriced: the dex reports base power 0 for the whole
+  family, so Electro Ball, Gyro Ball, Grass Knot, Low Kick, Heavy Slam,
+  Heat Crash, Punishment, Crush Grip, Wring Out, Flail, Reversal, and
+  Magnitude scored ZERO damage and were not even classified as attacks —
+  and Foul Play (dex BP 95) was computed off the USER's Attack where the
+  game uses the target's. The reference defender now extends the Super
+  Fang convention: median base stat across the dex, uninvested at the
+  attacker's level, medians COMPUTED from the generated data so they can't
+  drift (today: Spe 70 — the same figure as the defense convention — Atk
+  76, and 30 kg median weight, newly emitted as GEN7_WEIGHTS_KG).
+  Formulas (Gen 7): Electro Ball buckets the user's invested speed against
+  the reference (its users build fast; even invested base-150 Electrode is
+  a 2.2x ratio → an honest 80 BP, not the vs-slow 150); Gyro Ball inverts
+  with UNinvested user speed (its users want minimum; Ferroseed reads 76
+  vs the median defender); Grass Knot/Low Kick bucket the reference's
+  30 kg → 60 BP flat; Heavy Slam/Heat Crash bucket the user-weight ratio
+  (Snorlax 120, Pikachu 40); Foul Play swaps in the reference defender's
+  Attack. State-scaled moves take the standing typical-turn assumptions:
+  full HP both sides (Crush Grip/Wring Out 120, Flail/Reversal 20),
+  nobody boosted (Punishment 60), Magnitude at its expected value 71.
+  Excluded and documented: Beat Up, Fling, Natural Gift, Present, Trump
+  Card, Spit Up (party/item/PP/stockpile state unknowable here).
+  Golden drift audited — all in-family, all upward where the moves are
+  real: Sandslash 1056→1190 (Magnitude was worth zero), Bronzong 1615→1617
+  and Forretress 1463→1465 (Gyro Ball), Pachirisu 1178→1181 (Electro
+  Ball); no team changed. Pinned in test/validate/variable-power.test.mjs
+  (speed/weight/state formulas, the Foul Play stat swap, and an end-to-end
+  Electro Ball recommendation). RESULT_CACHE_VERSION 23→24.

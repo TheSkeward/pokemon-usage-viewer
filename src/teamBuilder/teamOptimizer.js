@@ -119,12 +119,20 @@ const MAX_RESULT_CACHE = 400;
 // rank — the same inputs the analysis pane displays — and the non-passive
 // floor hardened alongside it (currentFormValue). Every line's default
 // build can change, so every score can.
+// v24: variable-power moves priced (user ask: Electro Ball-class moves must
+// score against a reference defender with the median stats for the level,
+// like Super Fang against median HP). Electro Ball / Gyro Ball / Grass Knot /
+// Low Kick / Heavy Slam / Heat Crash / Punishment / Crush Grip / Wring Out /
+// Flail / Reversal / Magnitude were priced at ZERO (dex base power 0) and
+// not even counted as attacks; Foul Play used the user's Attack instead of
+// the target's. Sets, coverage vectors, and scores change wherever these
+// moves are legal.
 //
 // NOTE: results now persist their post-analysis (confidence sweep +
 // investment plan) alongside the team — a change to the sweep grid, its
 // contender selection, or the investment projection is ALSO an output
 // change and needs a bump, even when the team itself is untouched.
-const RESULT_CACHE_VERSION = "23";
+const RESULT_CACHE_VERSION = "24";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the
