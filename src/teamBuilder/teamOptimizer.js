@@ -131,12 +131,18 @@ const MAX_RESULT_CACHE = 400;
 // spread-derived spe — the tooltip figure) instead of per-move investment
 // assumptions (user ruling: "We have the user's exact speed... We should be
 // using that for the user, and the median value for the defender").
+// v26: acquisition friction defaults zeroed (user ruling: "I would basically
+// always rather know what the best team is, and then decide for myself if I
+// don't want to spend the time grinding") — evolution requirements still
+// render as receipts and access gates still block, but friendship/item/
+// trade/time K no longer moves scores. DELAYED_EVO_FRICTION kept (an in-run
+// strength cost, not out-of-game grind).
 //
 // NOTE: results now persist their post-analysis (confidence sweep +
 // investment plan) alongside the team — a change to the sweep grid, its
 // contender selection, or the investment projection is ALSO an output
 // change and needs a bump, even when the team itself is untouched.
-const RESULT_CACHE_VERSION = "25";
+const RESULT_CACHE_VERSION = "26";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the

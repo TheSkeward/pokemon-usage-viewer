@@ -5,6 +5,11 @@
 // old meaningfulUsage-first comparator silently seated Alakazam anyway.
 // And the friction side must be honest: OWNING the Link Stone zeroes the
 // acquisition cost, at which point Alakazam's raw C advantage wins again.
+//
+// Friction DEFAULTS are now 0 (user ruling: requirements inform, the player
+// prices their own grind), so the flip scenario runs under priced overrides —
+// it pins the owned-item-zeroes-friction mechanism, which access gates still
+// rely on and a future re-enable would reactivate in scoring.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { runPool, loadShared, progressionAt } from "../helpers/harness.mjs";
@@ -12,6 +17,16 @@ import { runPool, loadShared, progressionAt } from "../helpers/harness.mjs";
 const { optimizeTeamFromPool } = await import(
   "../../src/teamBuilder/teamOptimizer.js"
 );
+const { setScoringOverrides } = await import(
+  "../../src/teamBuilder/scoringConstants.js"
+);
+
+const PRICED_FRICTION = {
+  FRIENDSHIP_FRICTION: 15,
+  ITEM_FRICTION: 20,
+  TRADE_FRICTION: 20,
+  TIME_FRICTION: 5,
+};
 
 const POOL = ["Machop", "Growlithe", "Poliwag", "Abra", "Tentacool", "Ponyta",
   "Magnemite", "Doduo", "Gastly", "Rhyhorn", "Horsea", "Scyther", "Eevee",
@@ -44,14 +59,20 @@ test("owning the Link Stone zeroes trade friction and flips the Abra verdict", a
   const { availability, pokemonIndex } = await loadShared();
   const base = progressionAt({ badge: 4, levelCap: 45 });
 
-  const withStone = await optimizeTeamFromPool({
-    availability,
-    family: "singles",
-    pokemonIndex,
-    progression: { ...base, ownedItems: { linkstone: 1 } },
-    query: POOL.join("\n"),
-    selection: "all",
-  });
+  setScoringOverrides(PRICED_FRICTION);
+  let withStone;
+  try {
+    withStone = await optimizeTeamFromPool({
+      availability,
+      family: "singles",
+      pokemonIndex,
+      progression: { ...base, ownedItems: { linkstone: 1 } },
+      query: POOL.join("\n"),
+      selection: "all",
+    });
+  } finally {
+    setScoringOverrides(null);
+  }
   const abra = lineFor(withStone, "Abra");
   const alakazam = abra.candidates.find((c) => (c.candidate?.id ?? c.pokemonId) === "alakazam");
   assert.equal(

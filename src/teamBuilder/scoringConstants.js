@@ -53,17 +53,19 @@ export const SCORING_DEFAULTS = Object.freeze({
   FUTURE_CAP: 300,
 
   // --- K: investment friction -------------------------------------------------
-  // Evolution K is a TIEBREAKER, not a price (user decision, after the
-  // Kadabra/Alakazam case): obtainability is modeled explicitly by the
-  // evolution-access gates and owned evolution items, so charging the BETTER
-  // mon hundreds of points for a purchasable stone double-counted the cost
-  // and let a pre-evolution outscore its own evolution. These values only
-  // break near-exact ties toward the cheaper line; they can never outweigh a
-  // real stat gap. (Owned items still zero them; blocked access still blocks.)
-  FRIENDSHIP_FRICTION: 15, // friendship grind per evolution step
-  ITEM_FRICTION: 20, // held-item / use-item evolution (farmable item)
-  TRADE_FRICTION: 20, // Reborn trades via Link Stone — item-like
-  TIME_FRICTION: 5, // day/night or minor special condition
+  // Evolution K is INFORMATION, not a score term (user decision, completing
+  // the arc that began with the Kadabra/Alakazam tiebreaker demotion): "I
+  // would basically always rather know what the best team is, and then
+  // decide for myself if I don't want to spend the time grinding." The
+  // requirement machinery stays — receipts ("Link Stone + Deep Sea Tooth,
+  // 5% wild-held") still render, access gates still block, owned items
+  // still short-circuit gates — but acquisition grind no longer moves any
+  // score. The pricing code paths are kept alive (and pinned by tests under
+  // explicit overrides) so re-enabling is a constants change, not a rebuild.
+  FRIENDSHIP_FRICTION: 0, // friendship grind per evolution step
+  ITEM_FRICTION: 0, // held-item / use-item evolution (farmable item)
+  TRADE_FRICTION: 0, // Reborn trades via Link Stone — item-like
+  TIME_FRICTION: 0, // day/night or minor special condition
   // Build friction is NOT a tiebreaker — delaying evolution to learn a move
   // is a real in-run cost the access model doesn't express.
   DELAYED_EVO_FRICTION: 200,

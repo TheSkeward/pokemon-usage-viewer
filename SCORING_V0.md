@@ -27,7 +27,9 @@ C   current-form usefulness = CURRENT_VALUE_SCALE × max(role scores)
 U   competitive ceiling from usage/tier, on C's scale
 O   readiness gate ∈ {0, BABY, MIDEVO, NEAR, 1} from concrete facts
 α   usage influence — upside-only, gated by O, never sovereign
-K   investment friction (evolution requirements + build friction), uniform rules
+K   investment friction — build friction only by default (delayed-evolution
+    builds); acquisition friction (evolution requirements) defaults to 0 and
+    is shown as information (see changelog: "Acquisition friction zeroed")
 F   near-future option value — computed, shown, NEVER added to V
 ```
 
@@ -1677,3 +1679,44 @@ Invariants the shape encodes (each guarded by fixtures):
   scoring surface, goldens untouched. The same masking may hide other
   find-then-shop items; corrections are one-line overlay entries as
   they're spotted.
+- **Shop data: whole class re-extracted from the Shops tab** (user ruling
+  on the berry fix: "I'd rather not fix these as they pop up, can you fix
+  the whole class?"). The committed extractor
+  (scripts/extract-item-availability.py, run against the user-supplied
+  guide xlsx) now emits a `shopItems` map read from the Shops tab
+  DIRECTLY — earlier one-off pickups can no longer mask renewable stock.
+  Sheet conditions resolved uniformly: "N Stickers" via the Stickers tab,
+  "K-M Badges" windows, Post Game, City Restoration gates; one-time
+  offers excluded; names fold quantity suffixes and accents; windowed
+  rows union with permanent sellers (Potion is "0-1 Badges" at the first
+  mart but permanent from the Medicine Vendor — no closing window
+  survives the union in today's sheet). Audited: REBORN_ITEM_UNLOCK_BADGES
+  byte-identical (zero scoring impact); REBORN_SHOP_ITEM_BADGES +113
+  entries, zero removed/changed — all previously-masked stock (Leftovers
+  17, Life Orb 17, type Gems 6, evolution stones 13, ...). SHOP_STOCK
+  overlay kept as an agreement check (the sheet now independently
+  confirms all six berries). Pinned in item-inventory.test.mjs (9
+  previously-masked rows + map floor 150). Inventory-availability data
+  only; goldens untouched.
+- **Acquisition friction zeroed: requirements inform, never price** (user
+  ruling, completing the arc of the tiebreaker demotion above: "I would
+  basically always rather know what the best team is, and then decide for
+  myself if I don't want to spend the time grinding").
+  FRIENDSHIP/ITEM/TRADE/TIME friction defaults drop 15/20/20/5 → 0: the
+  optimizer now recommends the best team as if every satisfiable
+  evolution requirement were already met, and the player reads the
+  receipts (evolution-chain proofs, "Link Stone + Deep Sea Tooth
+  (farmable-tedious: wild-held 5%)") to decide what they'll actually
+  grind. What friction was still buying is preserved by other means:
+  impossibility stays with the evolution-ACCESS gates and blocked
+  statuses (a method the player can't use yet still blocks outright);
+  owned evolution items still override gates; UNKNOWN availability is
+  still surfaced, not guessed. DELAYED_EVO_FRICTION (200) is unchanged —
+  delaying evolution to learn a move is an in-run strength cost, not
+  out-of-game grind, so it stays priced (and keeps the FRICTION_SCALE
+  sweep axes meaningful for delayed builds). The pricing machinery is
+  kept alive and pinned under explicit overrides (evolution-legality and
+  usage-sovereignty tests run the priced constants), so re-enabling is a
+  constants change. The team-panel blurb says "evolution requirements are
+  shown as information, never priced". RESULT_CACHE_VERSION 25→26.
+  Golden drift audited below the entry's commit.
