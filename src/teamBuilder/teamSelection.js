@@ -19,7 +19,7 @@ import { tunable } from "./scoringConstants.js";
 export async function choosePoolTeam(
   lines,
   opponentTypeBias = {},
-  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true, hint = false, onSearchProgress = null } = {},
+  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true, hint = false, onSearchProgress = null, onSearchStage = null } = {},
 ) {
   const resolvedLines = lines.filter((line) => line.best || line.bestNonMega);
   const unresolved = lines.filter((line) => line.unresolved);
@@ -30,6 +30,7 @@ export async function choosePoolTeam(
     benchSwaps,
     hint,
     onSearchProgress,
+    onSearchStage,
   });
   const evaluated = bestTeam.evaluated;
   // selectTeamByFit already realized concrete builds and re-ranked the top
@@ -216,6 +217,20 @@ function getDefensiveCoverTypes(profile, team) {
 // as tunables so the regret validation can raise the cap for a TRUE exact
 // baseline; countCombinations' overflow early-out keeps a fixed sibling cap.
 const COMBINATION_OVERFLOW_CAP = 3_000_000;
+
+// Cooperative main-thread yield, time-sliced (same rationale as the
+// optimizer's resolver yield): the polish/realization tail of the search
+// phase runs as long synchronous blocks; yielding ~20 times a second lets
+// the progress caption actually PAINT (user report: the caption never got
+// past "Searching team combinations" because the visible time was this
+// tail, not the worker scan).
+let lastSelectionYieldAt = 0;
+function yieldForPaint() {
+  const now = Date.now();
+  if (now - lastSelectionYieldAt < 50) return Promise.resolve();
+  lastSelectionYieldAt = now;
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
 // Hint-grade searches — the investment plan's future-cap "fast" runs. The
 // plan reads LINE scores (exact under any search path) plus a rough future
 // six for the "projected to SEAT" flag, so full enumeration was pure waste:
@@ -327,7 +342,7 @@ function queryTeamStoreTop(lines, targetSize, opponentTypeBias, topCount) {
 async function selectTeamByFit(
   lines,
   opponentTypeBias = {},
-  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true, hint = false, onSearchProgress = null } = {},
+  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true, hint = false, onSearchProgress = null, onSearchStage = null } = {},
 ) {
   const targetSize = Math.min(6, lines.length);
   if (targetSize === 0) {
@@ -380,11 +395,17 @@ async function selectTeamByFit(
     );
     prepareFitScoring(lines, opponentTypeBias);
     try {
+      onSearchStage?.("realize");
+      await yieldForPaint();
       const candidates = (refs?.top || [])
         .map((entry) => evaluatedFromRefs(entry, lines, targetSize, opponentTypeBias))
         .filter(Boolean);
       const evaluated = realizeBestTeam(candidates, opponentTypeBias);
       if (evaluated) {
+        if (benchSwaps) {
+          onSearchStage?.("bench");
+          await yieldForPaint();
+        }
         const benchSwapScores = benchSwaps
           ? scanTeamSwaps(lines, evaluated.team, opponentTypeBias).scores
           : null;
@@ -475,6 +496,8 @@ async function selectTeamByFit(
 
     // Realize concrete builds for the top relaxed teams and keep the best by
     // exact realized score (see realizeBestTeam).
+    onSearchStage?.("realize");
+    await yieldForPaint();
     let evaluated =
       realizeBestTeam(candidates || [], opponentTypeBias) || {
         team: [],
@@ -493,11 +516,18 @@ async function selectTeamByFit(
     // pool scan applied to a fixed point, and hint consumers (the investment
     // plan) read line scores plus a rough six, not an audited optimum.
     if (usedShortlist && evaluated.team.length && !hint) {
-      const polished = polishTeamBySwaps(lines, evaluated, opponentTypeBias);
+      const polished = await polishTeamBySwaps(
+        lines,
+        evaluated,
+        opponentTypeBias,
+        onSearchStage,
+      );
       evaluated = polished.evaluated;
       searchPolish = polished.record;
       benchSwapScores = polished.scanScores;
     } else if (benchSwaps) {
+      onSearchStage?.("bench");
+      await yieldForPaint();
       // Exact paths: the ranking is display-only (the bench view's "most
       // droppable" flags) and skippable — the confidence sweep only needs the
       // seated set, and this is hundreds of full team evaluations per call.
@@ -644,9 +674,11 @@ function scanTeamSwaps(lines, team, opponentTypeBias) {
 // repair count.
 const POLISH_MAX_SWAPS = 8;
 
-function polishTeamBySwaps(lines, evaluated, opponentTypeBias) {
+async function polishTeamBySwaps(lines, evaluated, opponentTypeBias, onSearchStage = null) {
   let current = evaluated;
   const swaps = [];
+  onSearchStage?.("polish", { round: 1 });
+  await yieldForPaint();
   let scan = scanTeamSwaps(lines, current.team, opponentTypeBias);
 
   while (
@@ -676,6 +708,8 @@ function polishTeamBySwaps(lines, evaluated, opponentTypeBias) {
       score: realized.score,
       megaUsed: realized.team.find((choice) => choice.isMega) || null,
     };
+    onSearchStage?.("polish", { round: swaps.length + 1 });
+    await yieldForPaint();
     scan = scanTeamSwaps(lines, current.team, opponentTypeBias);
   }
 

@@ -1340,17 +1340,25 @@ export function mountPoolOptimizer(container, options = {}) {
     return String(value);
   }
 
-  function updateOptimizeProgress({ phase = "resolve", completed, total }) {
+  function updateOptimizeProgress({ phase = "resolve", completed, total, stage, detail }) {
     const label = app.querySelector("[data-optimize-progress-label]");
     if (label) {
       label.textContent =
         phase === "search"
-          ? total
-            ? // Live sub-progress from the search workers (user ask: "surface
-              // more granularity to the progress bar caption about where we
-              // are in that subprocess").
-              `Searching team combinations — ${Math.min(99, Math.floor((100 * (completed || 0)) / total))}% of ${formatComboCount(total)}...`
-            : "Searching team combinations..."
+          ? stage === "synergy"
+            ? "Search prep — loading teammate synergy..."
+            : stage === "polish"
+              ? `Search done — auditing shortlist swaps (round ${detail?.round || 1})...`
+              : stage === "realize"
+                ? "Search done — realizing best builds..."
+                : stage === "bench"
+                  ? "Search done — ranking bench swaps..."
+                  : total
+                  ? // Live sub-progress from the search workers (user ask:
+                    // "surface more granularity to the progress bar caption
+                    // about where we are in that subprocess").
+                    `Searching team combinations — ${Math.min(99, Math.floor((100 * (completed || 0)) / total))}% of ${formatComboCount(total)}...`
+                  : "Searching team combinations..."
           : phase === "items"
             ? "Loading item usage for the team..."
             : total

@@ -1583,3 +1583,16 @@ Invariants the shape encodes (each guarded by fixtures):
   v23 scoring. The Shuckle, delayed-evolution, and regret suites all
   pass — regret's exact baselines now run with the (tunable) search cap
   raised, per the budgets change. RESULT_CACHE_VERSION 22→23.
+- **Search-phase stage captions** (user follow-up: the caption never left
+  "Searching team combinations" — because on a fast machine the worker
+  scan, the only instrumented part, finishes in about a second, and the
+  VISIBLE time under that caption was everything around it). The search
+  phase's other stages now report themselves: "Search prep — loading
+  teammate synergy..." (per-line index fetches before the scan — most of
+  the visible gap on a cold load), the live scan percentages, "Search done
+  — auditing shortlist swaps (round k)...", "— realizing best builds...",
+  and "— ranking bench swaps...". The polish loop is now async with
+  time-sliced paint yields so those captions can actually render (they
+  were synchronous blocks the browser never repainted through); each stage
+  emits once and only lingers when that stage is genuinely slow. No
+  scoring change; goldens byte-stable.

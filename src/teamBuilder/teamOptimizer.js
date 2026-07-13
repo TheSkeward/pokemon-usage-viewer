@@ -314,10 +314,13 @@ export async function optimizeTeamFromPool({
   // Phase 3: attach competitive teammate lift (first-meaningful-tier co-use)
   // to every candidate before the search — the kernel blends the hand-built
   // team fit toward it as pair trust (min of the two lines' w) grows.
-  // Missing index data degrades to trust 0 silently.
+  // Missing index data degrades to trust 0 silently. It fetches per-line
+  // index files, so on a cold load it is a visible slice of the "search"
+  // phase — captioned as its own stage.
+  onProgress?.({ phase: "search", stage: "synergy" });
   await attachTeammateLift(lines, family);
-  // Phase entry only — combination counts stream from the search workers via
-  // onSearchProgress below.
+  // Phase entry (scan) — combination counts stream from the search workers
+  // via onSearchProgress below.
   onProgress?.({ phase: "search" });
   const result = await choosePoolTeam(lines, progression.opponentTypeBias, {
     exhaustive: exhaustive && !fastMode,
@@ -335,6 +338,12 @@ export async function optimizeTeamFromPool({
     // caption ("Searching team combinations — 43%").
     onSearchProgress: (scanned, totalCombos) =>
       onProgress?.({ phase: "search", completed: scanned, total: totalCombos }),
+    // Post-scan tail stages (swap-polish audit rounds, build realization,
+    // bench ranking) — on a fast machine the worker scan is sub-second and
+    // the VISIBLE search time is this tail, so it gets its own captions
+    // (user report: the caption never left "Searching team combinations").
+    onSearchStage: (stage, detail) =>
+      onProgress?.({ phase: "search", stage, detail }),
   });
   // Wall-clock telemetry (roadmap: performance visibility): how long line
   // resolution vs the search actually took, surfaced in the provenance footer.
