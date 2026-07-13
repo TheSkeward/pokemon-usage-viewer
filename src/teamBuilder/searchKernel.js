@@ -509,11 +509,15 @@ function unrankCombination(rank, n, k) {
 // survives a worker postMessage). Pure and self-contained: it prepares and resets
 // its own fit state, so it can run in a worker or on the main thread as a fallback.
 // `lines` must carry a prepared `choiceOptions` array per line (the form options).
-// How often (in scanned combinations) the range search reports progress via
-// its optional callback — rare enough to cost nothing, frequent enough for a
-// live progress caption (a worker chews through a stride in well under a
-// second).
-export const SEARCH_PROGRESS_STRIDE = 65_536;
+// Progress reporting cadence: ~20 reports per range, clamped so tiny ranges
+// don't spam and huge ones still stride at most every 64k combos. A fixed
+// 64k stride proved WORSE than none for typical shortlist scans — a worker's
+// whole range was often under two strides, so the caption sat silent for
+// 10+ seconds and then jumped (user report: "the rightmost approximately 80%
+// just shows searching team combinations").
+export const SEARCH_PROGRESS_MAX_STRIDE = 65_536;
+const SEARCH_PROGRESS_MIN_STRIDE = 2_048;
+const SEARCH_PROGRESS_REPORTS_PER_RANGE = 20;
 
 export function searchCombinationRange(lines, targetSize, opponentTypeBias, start, end, topCount = 1, onProgress = null) {
   for (const line of lines) line._choiceOptions = line.choiceOptions;
@@ -521,17 +525,29 @@ export function searchCombinationRange(lines, targetSize, opponentTypeBias, star
 
   const top = createTopTeams(topCount);
   const n = lines.length;
+  const stride = onProgress
+    ? Math.max(
+        SEARCH_PROGRESS_MIN_STRIDE,
+        Math.min(
+          SEARCH_PROGRESS_MAX_STRIDE,
+          Math.floor((end - start) / SEARCH_PROGRESS_REPORTS_PER_RANGE) ||
+            SEARCH_PROGRESS_MIN_STRIDE,
+        ),
+      )
+    : 0;
   const idx = unrankCombination(start, n, targetSize);
   if (idx) {
     for (let pos = start; pos < end; pos++) {
       const comboLines = idx.map((i) => lines[i]);
       const candidate = bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
       if (candidate) offerTopTeam(top, candidate);
-      if (onProgress && (pos - start + 1) % SEARCH_PROGRESS_STRIDE === 0) {
+      if (onProgress && (pos - start + 1) % stride === 0) {
         onProgress(pos - start + 1);
       }
       if (!nextCombination(idx, n, targetSize)) break;
     }
+    // Final report so the aggregate drains to 100% as ranges complete.
+    if (onProgress) onProgress(end - start);
   }
 
   resetFitScoring(lines);

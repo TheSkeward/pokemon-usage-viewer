@@ -1596,3 +1596,16 @@ Invariants the shape encodes (each guarded by fixtures):
   were synchronous blocks the browser never repainted through); each stage
   emits once and only lingers when that stage is genuinely slow. No
   scoring change; goldens byte-stable.
+- **Adaptive search-progress stride** (user follow-up with screenshot: the
+  stage captions "go by really fast" but "the rightmost approximately 80%
+  just shows 'searching team combinations'"). Root cause measured with a
+  timestamped caption timeline: the fixed 65,536-combo reporting stride was
+  LARGER than most of a worker's whole range on typical shortlist scans
+  (377k combos split across workers ≈ 50–190k each), so a worker emitted
+  0–3 progress events total — an 11-second silent gap before the first
+  percentage and another after the last one. The stride now adapts to ~20
+  reports per range (clamped 2k–64k), and each range emits a final report
+  so the aggregate drains to 100%. Re-measured: percentages tick every
+  ~0.5s from 1% through 98% with no silent gaps, flowing straight into the
+  items phase. Reporting only — search output unchanged, goldens
+  byte-stable.
