@@ -37,12 +37,10 @@ const WILD_HELD = {
   mentalherb: { badge: 2, holder: "Lotad (rainy Lapis)" },
 };
 
-// item id -> badge — user-verified SHOP stock whose shop-ness the extracted
-// sheet hides: the extraction merged to one row per item with the EARLIEST
-// source winning, so an item with any pickup before its shop (Oran Berry is
-// a badge-0 hidden find) lost its Shop row at extraction time and the raw
-// sheet is not in the repo to re-extract. Corrections are one-line edits,
-// same contract as WILD_HELD.
+// item id -> badge — user-verified SHOP stock kept as a belt-and-braces
+// overlay on the sheet's shopItems map (earliest badge wins). The extraction
+// now reads the Shops tab directly, so these should always agree with the
+// sheet; a disagreement below is a signal one of the two is wrong.
 // Badge 1: the Obsidia Department Store berry floor (user-verified in game:
 // screenshots of the full stock after Badge 1 — the six heal/status berries
 // below sit alongside Persim + the EV berries the sheet already credits).
@@ -99,23 +97,33 @@ const lines = sorted.map(
 );
 
 // Shop-sourced held items (renewable: buy as many as needed once the shop is
-// reachable), keyed to the badge the sheet times the shop at. Built from
-// source === "Shop" rows DIRECTLY — the merged table above keeps only the
-// EARLIEST source, which hides shop-ness behind any earlier one-off find.
-// Limitation, inherited from the extraction: the sheet collapsed to one row
-// per item, so an item whose earliest row is "Hidden" never reads as a shop
-// item here even if a later shop also stocks it — the SHOP_STOCK overlay
-// above carries the user-verified corrections (earliest badge wins when
-// both sources know an item).
-const shopTable = new Map(
-  Object.entries(extracted.items)
-    .filter(([, entry]) => entry.source === "Shop")
-    .map(([name, entry]) => [toId(name), entry.badges])
-    .filter(([id]) => knownIds.has(id)),
-);
+// reachable), from the extraction's shopItems map — built from the Shops tab
+// DIRECTLY, so an item with an earlier one-off pickup keeps its shop row
+// (the bug the SHOP_STOCK overlay was born to patch). An entry with `until`
+// would be a stock window that permanently closes; the current sheet has
+// none (every windowed mart row chains into a permanent seller), and the
+// simple id -> badge table below can't express one, so surface it loudly
+// rather than silently promise expired stock forever.
+const shopTable = new Map();
+for (const [name, entry] of Object.entries(extracted.shopItems)) {
+  const id = toId(name);
+  if (!knownIds.has(id)) continue;
+  if (entry.until != null) {
+    console.warn(
+      `[item-timeline] WARNING: shop window for ${name} closes at badge ${entry.until}; expiry is unmodeled — item will read as purchasable forever`,
+    );
+  }
+  const current = shopTable.get(id);
+  if (current == null || entry.badge < current) shopTable.set(id, entry.badge);
+}
 for (const [id, badge] of Object.entries(SHOP_STOCK)) {
   if (!knownIds.has(id)) continue;
   const current = shopTable.get(id);
+  if (current == null) {
+    console.warn(`[item-timeline] SHOP_STOCK ${id} missing from sheet shopItems`);
+  } else if (current !== badge) {
+    console.warn(`[item-timeline] SHOP_STOCK ${id} badge ${badge} disagrees with sheet ${current}`);
+  }
   if (current == null || badge < current) shopTable.set(id, badge);
 }
 const shopSorted = [...shopTable.entries()].sort(([a], [b]) =>

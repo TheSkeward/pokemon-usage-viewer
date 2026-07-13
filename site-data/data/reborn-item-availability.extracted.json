@@ -1,5 +1,5 @@
 {
- "provenance": "Community \"Pokemon Reborn Ep19 Items & Services Guide\" (user-supplied xlsx): All Items Locations + Shops + Arcade Lottery + Mining Items tabs; fight order mapped to badge counts (Corey/Kiki/Saphira award no badge; post-game collapses to 18).",
+ "provenance": "Community \"Pokemon Reborn Ep19 Items & Services Guide\" (user-supplied xlsx; scripts/extract-item-availability.py): All Items Locations + Shops + Arcade Lottery + Mining Items tabs; fight order mapped to badge counts (Corey/Kiki/Saphira award no badge; post-game collapses to 18); shopItems resolves sticker/badge-window/restoration conditions and excludes one-time offers.",
  "items": {
   "1 Coin": {
    "badges": 11,
@@ -145,6 +145,14 @@
    "badges": 14,
    "source": "Story"
   },
+  "Amethyst Pendant": {
+   "badges": 7,
+   "source": "Story"
+  },
+  "Amethyst Star": {
+   "badges": 18,
+   "source": "Star"
+  },
   "Ampharosite": {
    "badges": 8,
    "source": "Pok\u00e9 Ball"
@@ -168,6 +176,10 @@
   "Apophyll Application": {
    "badges": 13,
    "source": "NPC"
+  },
+  "Archive Key": {
+   "badges": 3,
+   "source": "Pok\u00e9 Ball"
   },
   "Aspear Berry": {
    "badges": 1,
@@ -197,6 +209,14 @@
    "badges": 11,
    "source": "NPC"
   },
+  "Battle Pass- Fury": {
+   "badges": 9,
+   "source": "Story"
+  },
+  "Battle Pass- Gravity": {
+   "badges": 11,
+   "source": "Story"
+  },
   "Battle Pass- Suspension": {
    "badges": 12,
    "source": "Story"
@@ -225,6 +245,14 @@
    "badges": 18,
    "source": "Hidden"
   },
+  "Beryl Grid Key": {
+   "badges": 12,
+   "source": "Pok\u00e9 Ball"
+  },
+  "Bicycle": {
+   "badges": 2,
+   "source": "NPC"
+  },
   "Big Mushroom": {
    "badges": 3,
    "source": "Hidden"
@@ -240,6 +268,10 @@
   "Big Root": {
    "badges": 2,
    "source": "Pok\u00e9 Ball"
+  },
+  "Bike Voucher": {
+   "badges": 2,
+   "source": "NPC"
   },
   "Binding Band": {
    "badges": 2,
@@ -329,6 +361,14 @@
    "badges": 0,
    "source": "Hidden"
   },
+  "Cage Key": {
+   "badges": 16,
+   "source": "Pok\u00e9 Ball"
+  },
+  "Cain's Earring": {
+   "badges": 4,
+   "source": "Shiny Spot"
+  },
   "Calcium": {
    "badges": 0,
    "source": "Hidden"
@@ -352,6 +392,22 @@
   "Careful Mint": {
    "badges": 0,
    "source": "Password"
+  },
+  "Catching Charm: Amethyst": {
+   "badges": 13,
+   "source": "Pok\u00e9 Ball"
+  },
+  "Catching Charm: Emerald": {
+   "badges": 18,
+   "source": "NPC"
+  },
+  "Catching Charm: Ruby": {
+   "badges": 16,
+   "source": "Pok\u00e9 Ball"
+  },
+  "Catching Charm: Sapphire": {
+   "badges": 18,
+   "source": "Pok\u00e9 Ball"
   },
   "Cell Battery": {
    "badges": 12,
@@ -453,6 +509,10 @@
    "badges": 13,
    "source": "Application"
   },
+  "Classified Information": {
+   "badges": 13,
+   "source": "NPC"
+  },
   "Clever Wing": {
    "badges": 0,
    "source": "Hidden"
@@ -464,6 +524,10 @@
   "Cocoon Badge": {
    "badges": 3,
    "source": "Story"
+  },
+  "Coin Case": {
+   "badges": 1,
+   "source": "NPC"
   },
   "Colbur Berry": {
    "badges": 4,
@@ -481,6 +545,10 @@
    "badges": 14,
    "source": "NPC"
   },
+  "Coral Key": {
+   "badges": 13,
+   "source": "Pok\u00e9 Ball"
+  },
   "Corrupted Poke Ball": {
    "badges": 5,
    "source": "Pok\u00e9 Ball"
@@ -497,6 +565,26 @@
    "badges": 13,
    "source": "Application"
   },
+  "Crystal Ball": {
+   "badges": 13,
+   "source": "NPC"
+  },
+  "Crystal Key: Blue": {
+   "badges": 8,
+   "source": "Pok\u00e9 Ball"
+  },
+  "Crystal Key: Green": {
+   "badges": 8,
+   "source": "Pok\u00e9 Ball"
+  },
+  "Crystal Key: Purple": {
+   "badges": 8,
+   "source": "Pok\u00e9 Ball"
+  },
+  "Crystal Key: Red": {
+   "badges": 8,
+   "source": "Story"
+  },
   "Custap Berry": {
    "badges": 7,
    "source": "Berry"
@@ -508,6 +596,14 @@
   "Cyndaquil": {
    "badges": 8,
    "source": "Shop"
+  },
+  "DJ Arc Autograph": {
+   "badges": 13,
+   "source": "NPC"
+  },
+  "DNA Splicers": {
+   "badges": 18,
+   "source": "Pok\u00e9 Ball"
   },
   "Damp Mulch": {
    "badges": 13,
@@ -601,6 +697,14 @@
    "badges": 2,
    "source": "Shop"
   },
+  "Devon Scope Model": {
+   "badges": 13,
+   "source": "Pok\u00e9 Ball"
+  },
+  "Diamond Ring": {
+   "badges": 13,
+   "source": "Shiny Spot"
+  },
   "Diancite": {
    "badges": 18,
    "source": "Pok\u00e9 Ball"
@@ -661,6 +765,10 @@
    "badges": 11,
    "source": "Pok\u00e9 Ball"
   },
+  "Dull Key": {
+   "badges": 3,
+   "source": "Pok\u00e9 Ball"
+  },
   "Durin Berry": {
    "badges": 13,
    "source": "Shop"
@@ -681,6 +789,14 @@
    "badges": 13,
    "source": "NPC"
   },
+  "Ebony Key": {
+   "badges": 18,
+   "source": "Story"
+  },
+  "Ebony Stonepiece": {
+   "badges": 18,
+   "source": "NPC"
+  },
   "Eclipse Badge": {
    "badges": 9,
    "source": "Story"
@@ -688,6 +804,10 @@
   "Eevium-Z": {
    "badges": 5,
    "source": "Pok\u00e9 Ball"
+  },
+  "Egg Incubator": {
+   "badges": 13,
+   "source": "NPC"
   },
   "Eject Button": {
    "badges": 8,
@@ -721,6 +841,14 @@
    "badges": 3,
    "source": "Hidden"
   },
+  "Emerald Brooch": {
+   "badges": 4,
+   "source": "Story"
+  },
+  "Emerald Star": {
+   "badges": 18,
+   "source": "Star"
+  },
   "Energy Powder": {
    "badges": 2,
    "source": "Hidden"
@@ -752,6 +880,10 @@
   "Ex. Share": {
    "badges": 1,
    "source": "NPC"
+  },
+  "Exp. All": {
+   "badges": 0,
+   "source": "Password"
   },
   "Exp. All Upgrade": {
    "badges": 18,
@@ -785,6 +917,26 @@
    "badges": 13,
    "source": "NPC"
   },
+  "Explosives": {
+   "badges": 0,
+   "source": "Story"
+  },
+  "F1 Key": {
+   "badges": 13,
+   "source": "Shiny Spot"
+  },
+  "F10 Key": {
+   "badges": 13,
+   "source": "Shiny Spot"
+  },
+  "F14 Key": {
+   "badges": 13,
+   "source": "Shiny Spot"
+  },
+  "F34 Key": {
+   "badges": 13,
+   "source": "Shiny Spot"
+  },
   "Fairium-Z": {
    "badges": 17,
    "source": "Pok\u00e9 Ball"
@@ -796,6 +948,10 @@
   "Fairy Memory": {
    "badges": 11,
    "source": "Pok\u00e9 Ball"
+  },
+  "Family Picture": {
+   "badges": 16,
+   "source": "Hidden"
   },
   "Fast Ball": {
    "badges": 1,
@@ -945,6 +1101,10 @@
    "badges": 5,
    "source": "Pok\u00e9 Ball"
   },
+  "Field Notes app": {
+   "badges": 0,
+   "source": "Story"
+  },
   "Field effect Read-Out 13. Icy Field": {
    "badges": 7,
    "source": "Pok\u00e9 Ball"
@@ -1045,6 +1205,10 @@
    "badges": 1,
    "source": "NPC"
   },
+  "GUM Key": {
+   "badges": 14,
+   "source": "NPC"
+  },
   "Galladite": {
    "badges": 16,
    "source": "NPC"
@@ -1060,6 +1224,10 @@
   "Gardevoirite": {
    "badges": 16,
    "source": "Pok\u00e9 Ball"
+  },
+  "Gather Cube": {
+   "badges": 18,
+   "source": "Story"
   },
   "Gengarite": {
    "badges": 18,
@@ -1089,6 +1257,10 @@
    "badges": 8,
    "source": "Pok\u00e9 Ball"
   },
+  "Gift Box": {
+   "badges": 0,
+   "source": "Pok\u00e9 Ball"
+  },
   "Glalitite": {
    "badges": 13,
    "source": "Pok\u00e9 Ball"
@@ -1101,9 +1273,21 @@
    "badges": 13,
    "source": "Pok\u00e9 Ball"
   },
+  "Gold Key": {
+   "badges": 18,
+   "source": "Story"
+  },
+  "Good Rod": {
+   "badges": 5,
+   "source": "Pok\u00e9 Ball"
+  },
   "Gooey Mulch": {
    "badges": 13,
    "source": "Hidden"
+  },
+  "Gracidea": {
+   "badges": 18,
+   "source": "Gracidea"
   },
   "Grass Gem": {
    "badges": 0,
@@ -1173,6 +1357,10 @@
    "badges": 4,
    "source": "Shop"
   },
+  "Harbor Key": {
+   "badges": 4,
+   "source": "Story"
+  },
   "Hard Stone": {
    "badges": 13,
    "source": "Shop"
@@ -1180,6 +1368,10 @@
   "Hasty Mint": {
    "badges": 0,
    "source": "Password"
+  },
+  "Headphones": {
+   "badges": 13,
+   "source": "NPC"
   },
   "Heal Ball": {
    "badges": 13,
@@ -1225,9 +1417,17 @@
    "badges": 14,
    "source": "NPC"
   },
+  "House Key": {
+   "badges": 5,
+   "source": "Pok\u00e9 Ball"
+  },
   "Hyper Potion": {
    "badges": 2,
    "source": "Pok\u00e9 Ball"
+  },
+  "ID Tag": {
+   "badges": 13,
+   "source": "NPC"
   },
   "Iapapa Berry": {
    "badges": 13,
@@ -1289,6 +1489,14 @@
    "badges": 14,
    "source": "Pok\u00e9 Ball"
   },
+  "Itemfinder": {
+   "badges": 2,
+   "source": "NPC"
+  },
+  "Ivory Key": {
+   "badges": 18,
+   "source": "Story"
+  },
   "Jaboca Berry": {
    "badges": 13,
    "source": "Berry"
@@ -1304,6 +1512,22 @@
   "Jolly Mint": {
    "badges": 0,
    "source": "Password"
+  },
+  "K2 Key": {
+   "badges": 13,
+   "source": "Shiny Spot"
+  },
+  "K22 Key": {
+   "badges": 13,
+   "source": "Shiny Spot"
+  },
+  "K33 Key": {
+   "badges": 13,
+   "source": "Shiny Spot"
+  },
+  "K5 Key": {
+   "badges": 13,
+   "source": "Shiny Spot"
   },
   "Kangaskhanite": {
    "badges": 16,
@@ -1324,6 +1548,14 @@
   "Kelpsy Berry": {
    "badges": 1,
    "source": "Shop"
+  },
+  "Key Handle": {
+   "badges": 11,
+   "source": "Story"
+  },
+  "Key Head": {
+   "badges": 11,
+   "source": "Story"
   },
   "King's Rock": {
    "badges": 13,
@@ -1501,6 +1733,10 @@
    "badges": 8,
    "source": "Shop"
   },
+  "Manaphy Gem": {
+   "badges": 18,
+   "source": "Gem"
+  },
   "Manectite": {
    "badges": 16,
    "source": "Pok\u00e9 Ball"
@@ -1541,6 +1777,10 @@
    "badges": 1,
    "source": "NPC"
   },
+  "McKrezzy Autograph": {
+   "badges": 13,
+   "source": "NPC"
+  },
   "Meadow Plate": {
    "badges": 8,
    "source": "Pok\u00e9 Ball"
@@ -1552,6 +1792,14 @@
   "Medicine Application": {
    "badges": 13,
    "source": "Application"
+  },
+  "Mega-Z Ring": {
+   "badges": 0,
+   "source": "Password"
+  },
+  "Membership Card": {
+   "badges": 1,
+   "source": "NPC"
   },
   "Mental Herb": {
    "badges": 2,
@@ -1568,6 +1816,10 @@
   "Metal Powder": {
    "badges": 8,
    "source": "Shop"
+  },
+  "Meteor Card": {
+   "badges": 16,
+   "source": "Pok\u00e9 Ball"
   },
   "Metronome": {
    "badges": 2,
@@ -1604,6 +1856,10 @@
   "Mind Plate": {
    "badges": 13,
    "source": "Pok\u00e9 Ball"
+  },
+  "Mining Kit": {
+   "badges": 3,
+   "source": "NPC"
   },
   "Mining Rock": {
    "badges": 3,
@@ -1644,6 +1900,14 @@
   "Mystic Water": {
    "badges": 5,
    "source": "Pok\u00e9 Ball"
+  },
+  "N-Lunarizer": {
+   "badges": 18,
+   "source": "Pok\u00e9 Ball"
+  },
+  "N-Solarizer": {
+   "badges": 18,
+   "source": "Z-Cell"
   },
   "Naive Mint": {
    "badges": 0,
@@ -1705,6 +1969,10 @@
    "badges": 11,
    "source": "NPC"
   },
+  "Old Rod": {
+   "badges": 0,
+   "source": "NPC"
+  },
   "Omen Badge": {
    "badges": 4,
    "source": "Story"
@@ -1712,6 +1980,14 @@
   "Oran Berry": {
    "badges": 0,
    "source": "Hidden"
+  },
+  "Orphanage Key": {
+   "badges": 17,
+   "source": "Shiny Spot"
+  },
+  "Oval Charm": {
+   "badges": 4,
+   "source": "Pok\u00e9 Ball"
   },
   "Oval Stone": {
    "badges": 8,
@@ -1777,6 +2053,10 @@
    "badges": 2,
    "source": "Shop"
   },
+  "Pink Pearl": {
+   "badges": 13,
+   "source": "NPC"
+  },
   "Pinsirite": {
    "badges": 16,
    "source": "Pok\u00e9 Ball"
@@ -1821,6 +2101,14 @@
    "badges": 0,
    "source": "Pok\u00e9 Ball"
   },
+  "Pokedex": {
+   "badges": 0,
+   "source": "Story"
+  },
+  "Pokegear": {
+   "badges": 0,
+   "source": "Story"
+  },
   "Pomeg Berry": {
    "badges": 1,
    "source": "Shop"
@@ -1837,6 +2125,10 @@
    "badges": 0,
    "source": "NPC"
   },
+  "Powder Vial": {
+   "badges": 9,
+   "source": "Story"
+  },
   "Power Anklet": {
    "badges": 2,
    "source": "Shop"
@@ -1852,6 +2144,10 @@
   "Power Bracer": {
    "badges": 2,
    "source": "Shop"
+  },
+  "Power Cable": {
+   "badges": 11,
+   "source": "Story"
   },
   "Power Herb": {
    "badges": 2,
@@ -1881,6 +2177,14 @@
    "badges": 12,
    "source": "Pok\u00e9 Ball"
   },
+  "Prison Bottle": {
+   "badges": 18,
+   "source": "Pok\u00e9 Ball"
+  },
+  "Program Disc": {
+   "badges": 11,
+   "source": "Story"
+  },
   "Protective Pads": {
    "badges": 1,
    "source": "Pok\u00e9 Ball"
@@ -1904,6 +2208,10 @@
   "Psychium-Z": {
    "badges": 16,
    "source": "NPC"
+  },
+  "Pulse Dex app": {
+   "badges": 2,
+   "source": "Story"
   },
   "Pulse Read-Out 00.  Pulse Garbodor": {
    "badges": 4,
@@ -1993,6 +2301,14 @@
    "badges": 5,
    "source": "Pok\u00e9 Ball"
   },
+  "R' Key": {
+   "badges": 13,
+   "source": "NPC"
+  },
+  "Radio Transceiver": {
+   "badges": 13,
+   "source": "Shiny Spot"
+  },
   "Rare Bone": {
    "badges": 14,
    "source": "Hidden"
@@ -2000,6 +2316,10 @@
   "Rare Candy": {
    "badges": 1,
    "source": "Shop"
+  },
+  "Rare Candy'": {
+   "badges": 8,
+   "source": "Hidden"
   },
   "Rash Mint": {
    "badges": 0,
@@ -2070,8 +2390,8 @@
    "source": "Pok\u00e9 Ball"
   },
   "Remote PC": {
-   "badges": 18,
-   "source": "Shop"
+   "badges": 0,
+   "source": "Password"
   },
   "Repeat Ball": {
    "badges": 10,
@@ -2113,6 +2433,10 @@
    "badges": 4,
    "source": "Hidden"
   },
+  "Reveal Glass": {
+   "badges": 18,
+   "source": "Pok\u00e9 Ball"
+  },
   "Revival Herb": {
    "badges": 13,
    "source": "Shop"
@@ -2120,6 +2444,10 @@
   "Revive": {
    "badges": 0,
    "source": "Hidden"
+  },
+  "Ribbon Collar": {
+   "badges": 17,
+   "source": "Case Machine"
   },
   "Rime Badge": {
    "badges": 6,
@@ -2173,6 +2501,30 @@
    "badges": 13,
    "source": "Berry"
   },
+  "Ruby Ring": {
+   "badges": 7,
+   "source": "Story"
+  },
+  "Ruby Star": {
+   "badges": 18,
+   "source": "Star"
+  },
+  "Running Shoes": {
+   "badges": 0,
+   "source": "Story"
+  },
+  "S12 Key": {
+   "badges": 13,
+   "source": "Shiny Spot"
+  },
+  "S4 Key": {
+   "badges": 13,
+   "source": "Shiny Spot"
+  },
+  "S9 Key": {
+   "badges": 13,
+   "source": "Shiny Spot"
+  },
   "SOLICE Application": {
    "badges": 14,
    "source": "Application"
@@ -2212,6 +2564,18 @@
   "Salt-Water Taffy": {
    "badges": 1,
    "source": "Shop"
+  },
+  "Sanctum Key": {
+   "badges": 13,
+   "source": "NPC"
+  },
+  "Sapphire Bracelets": {
+   "badges": 12,
+   "source": "Story"
+  },
+  "Sapphire Star": {
+   "badges": 18,
+   "source": "Star"
   },
   "Sassy Mint": {
    "badges": 0,
@@ -2257,6 +2621,10 @@
    "badges": 1,
    "source": "Shop"
   },
+  "Shiny Charm": {
+   "badges": 0,
+   "source": "Password"
+  },
   "Shiny Stone": {
    "badges": 4,
    "source": "Pok\u00e9 Ball"
@@ -2285,9 +2653,21 @@
    "badges": 13,
    "source": "NPC"
   },
+  "Silver Card": {
+   "badges": 12,
+   "source": "Pok\u00e9 Ball"
+  },
   "Silver Powder": {
    "badges": 7,
    "source": "Hidden"
+  },
+  "Silver Ring": {
+   "badges": 2,
+   "source": "Pok\u00e9 Ball"
+  },
+  "Silvon Scope": {
+   "badges": 13,
+   "source": "NPC"
   },
   "Sitrus Berry": {
    "badges": 7,
@@ -2365,6 +2745,10 @@
    "badges": 8,
    "source": "Pok\u00e9 Ball"
   },
+  "Spirit Tracker": {
+   "badges": 18,
+   "source": "NPC"
+  },
   "Splash Plate": {
    "badges": 13,
    "source": "Pok\u00e9 Ball"
@@ -2440,6 +2824,10 @@
   "Super Repel": {
    "badges": 2,
    "source": "Hidden"
+  },
+  "Super Rod": {
+   "badges": 13,
+   "source": "NPC"
   },
   "Suspension Badge": {
    "badges": 13,
@@ -3021,6 +3409,14 @@
    "badges": 4,
    "source": "Shop"
   },
+  "Wailmer Pail": {
+   "badges": 2,
+   "source": "NPC"
+  },
+  "Warehouse Key": {
+   "badges": 1,
+   "source": "Pok\u00e9 Ball"
+  },
   "Water Gem": {
    "badges": 0,
    "source": "NPC"
@@ -3109,6 +3505,10 @@
    "badges": 13,
    "source": "Pok\u00e9 Ball"
   },
+  "Yureyu Key": {
+   "badges": 8,
+   "source": "Pok\u00e9 Ball"
+  },
   "Z-Cell": {
    "badges": 18,
    "source": "Z-Cell"
@@ -3126,58 +3526,1053 @@
    "source": "Pok\u00e9 Ball"
   }
  },
+ "shopItems": {
+  "50 Coins": {
+   "badge": 1
+  },
+  "500 Coins": {
+   "badge": 1
+  },
+  "Ability Capsule": {
+   "badge": 8
+  },
+  "Absorb Bulb": {
+   "badge": 2
+  },
+  "Adamant Mint": {
+   "badge": 18
+  },
+  "Adrenaline Orb": {
+   "badge": 8
+  },
+  "Air Balloon": {
+   "badge": 2
+  },
+  "Amplifield Rock": {
+   "badge": 13
+  },
+  "Antidote": {
+   "badge": 0
+  },
+  "Apicot Berry": {
+   "badge": 13
+  },
+  "Aspear Berry": {
+   "badge": 1
+  },
+  "Awakening": {
+   "badge": 1
+  },
+  "Babiri Berry": {
+   "badge": 4
+  },
+  "Beast Ball": {
+   "badge": 18
+  },
+  "Belue Berry": {
+   "badge": 13
+  },
+  "Berry Ice Cream": {
+   "badge": 0
+  },
+  "Berry Ice Cream (+extra Blue Moon Ice Cream on random)": {
+   "badge": 1
+  },
+  "Big Root": {
+   "badge": 7
+  },
+  "Binding Band": {
+   "badge": 2
+  },
+  "Black Belt": {
+   "badge": 13
+  },
+  "Black Glasses": {
+   "badge": 13
+  },
+  "Black Sludge": {
+   "badge": 16
+  },
+  "Blast Powder": {
+   "badge": 8
+  },
+  "Blue Moon Ice Cream": {
+   "badge": 0
+  },
+  "Bold Mint": {
+   "badge": 18
+  },
+  "Brave Mint": {
+   "badge": 18
+  },
+  "Bright Powder": {
+   "badge": 7
+  },
+  "Bubble Tea": {
+   "badge": 18
+  },
+  "Bug Gem": {
+   "badge": 6
+  },
+  "Burn Heal": {
+   "badge": 1
+  },
+  "Calcium": {
+   "badge": 3
+  },
+  "Calm Mint": {
+   "badge": 18
+  },
+  "Carbos": {
+   "badge": 3
+  },
+  "Careful Mint": {
+   "badge": 18
+  },
+  "Cell Battery": {
+   "badge": 18
+  },
+  "Charcoal": {
+   "badge": 8
+  },
+  "Charti Berry": {
+   "badge": 4
+  },
+  "Cheri Berry": {
+   "badge": 1
+  },
+  "Cherish Ball": {
+   "badge": 13
+  },
+  "Chesto Berry": {
+   "badge": 1
+  },
+  "Chewing Gum": {
+   "badge": 1
+  },
+  "Chilan Berry": {
+   "badge": 4
+  },
+  "Choc Ice Cream": {
+   "badge": 0
+  },
+  "Choc Ice Cream (+extra Blue Moon Ice Cream on random)": {
+   "badge": 1
+  },
+  "Choice Band": {
+   "badge": 18
+  },
+  "Choice Scarf": {
+   "badge": 18
+  },
+  "Choice Specs": {
+   "badge": 18
+  },
+  "Chople Berry": {
+   "badge": 4
+  },
+  "Coba Berry": {
+   "badge": 4
+  },
+  "Colbur Berry": {
+   "badge": 4
+  },
+  "Common Candy": {
+   "badge": 0
+  },
+  "Common Candy (+1 random)": {
+   "badge": 13
+  },
+  "Cotton Candy": {
+   "badge": 1
+  },
+  "Custap Berry": {
+   "badge": 13
+  },
+  "Damp Rock": {
+   "badge": 2
+  },
+  "Dark Gem": {
+   "badge": 6
+  },
+  "Data Chip": {
+   "badge": 8
+  },
+  "Dawn Stone": {
+   "badge": 13
+  },
+  "Deep Sea Scale": {
+   "badge": 16
+  },
+  "Deep Sea Tooth": {
+   "badge": 16
+  },
+  "Destiny Knot": {
+   "badge": 2
+  },
+  "Dire Hit": {
+   "badge": 7
+  },
+  "Dive Ball": {
+   "badge": 1
+  },
+  "Dome Fossil": {
+   "badge": 13
+  },
+  "Dragon Fang": {
+   "badge": 13
+  },
+  "Dragon Gem": {
+   "badge": 6
+  },
+  "Dragon Scale": {
+   "badge": 16
+  },
+  "Dream Ball": {
+   "badge": 13
+  },
+  "Dubious Disc": {
+   "badge": 16
+  },
+  "Durin Berry": {
+   "badge": 13
+  },
+  "Dusk Ball": {
+   "badge": 13
+  },
+  "Dusk Stone": {
+   "badge": 13
+  },
+  "EV Booster": {
+   "badge": 18
+  },
+  "EV Tuner": {
+   "badge": 18
+  },
+  "Eject Button": {
+   "badge": 8
+  },
+  "Eject button": {
+   "badge": 2
+  },
+  "Electirizer": {
+   "badge": 16
+  },
+  "Electric Gem": {
+   "badge": 6
+  },
+  "Elemental Seed": {
+   "badge": 13
+  },
+  "Energy Powder": {
+   "badge": 6
+  },
+  "Energy Root": {
+   "badge": 13
+  },
+  "Escape Rope": {
+   "badge": 1
+  },
+  "Everstone": {
+   "badge": 2
+  },
+  "Eviolite": {
+   "badge": 9
+  },
+  "Exp. Candy L": {
+   "badge": 7
+  },
+  "Exp. Candy M": {
+   "badge": 4
+  },
+  "Exp. Candy S": {
+   "badge": 2
+  },
+  "Exp. Candy XL": {
+   "badge": 9
+  },
+  "Exp. Candy XS": {
+   "badge": 1
+  },
+  "Exp. Share": {
+   "badge": 17
+  },
+  "Expert Belt": {
+   "badge": 16
+  },
+  "Fairy Gem": {
+   "badge": 6
+  },
+  "Fast Ball": {
+   "badge": 1
+  },
+  "Fighting Gem": {
+   "badge": 6
+  },
+  "Fire Gem": {
+   "badge": 6
+  },
+  "Fire Stone": {
+   "badge": 13
+  },
+  "Flame Orb": {
+   "badge": 16
+  },
+  "Float Stone": {
+   "badge": 2
+  },
+  "Floral Charm": {
+   "badge": 2
+  },
+  "Flying Gem": {
+   "badge": 6
+  },
+  "Focus Band": {
+   "badge": 7
+  },
+  "Focus Sash": {
+   "badge": 17
+  },
+  "Fresh Water": {
+   "badge": 2
+  },
+  "Fresh Water (+1 random)": {
+   "badge": 1
+  },
+  "Friend Ball": {
+   "badge": 1
+  },
+  "Full Heal": {
+   "badge": 3
+  },
+  "Full Incense": {
+   "badge": 13
+  },
+  "Full Restore": {
+   "badge": 13
+  },
+  "Ganlon Berry": {
+   "badge": 13
+  },
+  "Gentle Mint": {
+   "badge": 18
+  },
+  "Ghost Gem": {
+   "badge": 6
+  },
+  "Glitter Ball": {
+   "badge": 18
+  },
+  "Grass Gem": {
+   "badge": 6
+  },
+  "Great Ball": {
+   "badge": 3
+  },
+  "Grepa Berry": {
+   "badge": 1
+  },
+  "Grip Claw": {
+   "badge": 2
+  },
+  "Ground Gem": {
+   "badge": 6
+  },
+  "Guard Spec.": {
+   "badge": 7
+  },
+  "HP Up": {
+   "badge": 3
+  },
+  "Haban Berry": {
+   "badge": 4
+  },
+  "Hard Stone": {
+   "badge": 13
+  },
+  "Hasty Mint": {
+   "badge": 18
+  },
+  "Heal Ball": {
+   "badge": 13
+  },
+  "Heal Powder": {
+   "badge": 6
+  },
+  "Heart Scale": {
+   "badge": 18
+  },
+  "Heat Rock": {
+   "badge": 2
+  },
+  "Heavy Ball": {
+   "badge": 1
+  },
+  "Herbal Extract": {
+   "badge": 6
+  },
+  "Hondew Berry": {
+   "badge": 1
+  },
+  "Honey": {
+   "badge": 2
+  },
+  "Hyper Potion": {
+   "badge": 9
+  },
+  "Ice Gem": {
+   "badge": 6
+  },
+  "Ice Heal": {
+   "badge": 1
+  },
+  "Ice Stone": {
+   "badge": 13
+  },
+  "Icy Rock": {
+   "badge": 2
+  },
+  "Ill-Fated Doll": {
+   "badge": 8
+  },
+  "Impish Mint": {
+   "badge": 18
+  },
+  "Iron": {
+   "badge": 3
+  },
+  "Iron Ball": {
+   "badge": 2
+  },
+  "Jaboca Berry": {
+   "badge": 13
+  },
+  "Jolly Mint": {
+   "badge": 18
+  },
+  "Kasib Berry": {
+   "badge": 4
+  },
+  "Kebia Berry": {
+   "badge": 4
+  },
+  "Kee Berry": {
+   "badge": 13
+  },
+  "Kelpsy Berry": {
+   "badge": 1
+  },
+  "King's Rock": {
+   "badge": 16
+  },
+  "Lagging Tail": {
+   "badge": 2
+  },
+  "Lax Incense": {
+   "badge": 13
+  },
+  "Lax Mint": {
+   "badge": 18
+  },
+  "Leaf Stone": {
+   "badge": 13
+  },
+  "Leftovers": {
+   "badge": 17
+  },
+  "Lemonade": {
+   "badge": 2
+  },
+  "Lemonade (+1 random)": {
+   "badge": 9
+  },
+  "Leppa Berry": {
+   "badge": 17
+  },
+  "Level Ball": {
+   "badge": 13
+  },
+  "Liechi Berry": {
+   "badge": 13
+  },
+  "Life Orb": {
+   "badge": 17
+  },
+  "Light Ball": {
+   "badge": 8
+  },
+  "Light Clay": {
+   "badge": 2
+  },
+  "Link Stone": {
+   "badge": 13
+  },
+  "Lonely Mint": {
+   "badge": 18
+  },
+  "Love Ball": {
+   "badge": 1
+  },
+  "Luck Incense": {
+   "badge": 13
+  },
+  "Luck Punch": {
+   "badge": 8
+  },
+  "Lum Berry": {
+   "badge": 13
+  },
+  "Lure Ball": {
+   "badge": 13
+  },
+  "Luxury Ball": {
+   "badge": 13
+  },
+  "Magical Seed": {
+   "badge": 13
+  },
+  "Magmarizer": {
+   "badge": 16
+  },
+  "Magnet": {
+   "badge": 13
+  },
+  "Magnet Powder": {
+   "badge": 8
+  },
+  "Mantyke": {
+   "badge": 1
+  },
+  "Maranga Berry": {
+   "badge": 13
+  },
+  "Max Potion": {
+   "badge": 17
+  },
+  "Max Repel": {
+   "badge": 10
+  },
+  "Mental Herb": {
+   "badge": 2
+  },
+  "Metal Coat": {
+   "badge": 13
+  },
+  "Metal Powder": {
+   "badge": 8
+  },
+  "Metronome": {
+   "badge": 2
+  },
+  "Mild Mint": {
+   "badge": 18
+  },
+  "Miracle Seed": {
+   "badge": 13
+  },
+  "Modest Mint": {
+   "badge": 18
+  },
+  "Moon Ball": {
+   "badge": 1
+  },
+  "Moon Stone": {
+   "badge": 13
+  },
+  "Muscle Band": {
+   "badge": 16
+  },
+  "Mystic Water": {
+   "badge": 13
+  },
+  "Naive Mint": {
+   "badge": 18
+  },
+  "Naughty Mint": {
+   "badge": 18
+  },
+  "Nest Ball": {
+   "badge": 1
+  },
+  "Net Ball": {
+   "badge": 1
+  },
+  "Never-Melt Ice": {
+   "badge": 13
+  },
+  "Nidoran M": {
+   "badge": 1
+  },
+  "Normal Gem": {
+   "badge": 6
+  },
+  "Occa Berry": {
+   "badge": 4
+  },
+  "Odd Incense": {
+   "badge": 13
+  },
+  "Oran Berry": {
+   "badge": 1
+  },
+  "Oval Stone": {
+   "badge": 8
+  },
+  "PP All": {
+   "badge": 18
+  },
+  "PP Up": {
+   "badge": 13
+  },
+  "Paralyze Heal": {
+   "badge": 1
+  },
+  "Passho Berry": {
+   "badge": 4
+  },
+  "Payapa Berry": {
+   "badge": 4
+  },
+  "Pecha Berry": {
+   "badge": 1
+  },
+  "Peppermint": {
+   "badge": 1
+  },
+  "Persim Berry": {
+   "badge": 1
+  },
+  "Petaya Berry": {
+   "badge": 13
+  },
+  "Pink Nectar": {
+   "badge": 2
+  },
+  "Pixie Plate": {
+   "badge": 13
+  },
+  "Poison Gem": {
+   "badge": 6
+  },
+  "Poke Ball": {
+   "badge": 0
+  },
+  "Poke Doll": {
+   "badge": 3
+  },
+  "PokeSnax": {
+   "badge": 0
+  },
+  "Pomeg Berry": {
+   "badge": 1
+  },
+  "Pop Rocks": {
+   "badge": 1
+  },
+  "Posion Barb": {
+   "badge": 13
+  },
+  "Potion": {
+   "badge": 0
+  },
+  "Power Anklet": {
+   "badge": 2
+  },
+  "Power Band": {
+   "badge": 2
+  },
+  "Power Belt": {
+   "badge": 2
+  },
+  "Power Bracer": {
+   "badge": 2
+  },
+  "Power Herb": {
+   "badge": 2
+  },
+  "Power Lens": {
+   "badge": 2
+  },
+  "Power Weight": {
+   "badge": 2
+  },
+  "Prism Scale": {
+   "badge": 13
+  },
+  "Protector": {
+   "badge": 16
+  },
+  "Protein": {
+   "badge": 3
+  },
+  "Psychic Gem": {
+   "badge": 6
+  },
+  "Pure Incense": {
+   "badge": 13
+  },
+  "Purple Nectar": {
+   "badge": 2
+  },
+  "Qualot Berry": {
+   "badge": 1
+  },
+  "Quick Ball": {
+   "badge": 13
+  },
+  "Quick Claw": {
+   "badge": 7
+  },
+  "Quick Powder": {
+   "badge": 8
+  },
+  "Rare Candy": {
+   "badge": 1
+  },
+  "Rash Mint": {
+   "badge": 18
+  },
+  "Rawst Berry": {
+   "badge": 1
+  },
+  "Razor Claw": {
+   "badge": 16
+  },
+  "Razor Fang": {
+   "badge": 16
+  },
+  "Reaper Cloth": {
+   "badge": 16
+  },
+  "Reborn Ball": {
+   "badge": 18
+  },
+  "Red Card": {
+   "badge": 2
+  },
+  "Red Nectar": {
+   "badge": 2
+  },
+  "Red-Hots": {
+   "badge": 1
+  },
+  "Relaxed Mint": {
+   "badge": 18
+  },
+  "Repeat Ball": {
+   "badge": 13
+  },
+  "Repel": {
+   "badge": 1
+  },
+  "Reset Disc- ALL": {
+   "badge": 17
+  },
+  "Revival Herb": {
+   "badge": 13
+  },
+  "Revive": {
+   "badge": 13
+  },
+  "Rindo Berry": {
+   "badge": 4
+  },
+  "Ring Target": {
+   "badge": 2
+  },
+  "Rock Gem": {
+   "badge": 6
+  },
+  "Rock Incense": {
+   "badge": 13
+  },
+  "Rocky Helmet": {
+   "badge": 16
+  },
+  "Root Fossil": {
+   "badge": 13
+  },
+  "Rose Incense": {
+   "badge": 2
+  },
+  "Roseli Berry": {
+   "badge": 4
+  },
+  "Rowap Berry": {
+   "badge": 13
+  },
+  "Sachet": {
+   "badge": 2
+  },
+  "Sacred Ash": {
+   "badge": 18
+  },
+  "Safety Goggles": {
+   "badge": 16
+  },
+  "Salac Berry": {
+   "badge": 13
+  },
+  "Salt-Water Taffy": {
+   "badge": 1
+  },
+  "Sassy Mint": {
+   "badge": 18
+  },
+  "Scope Lens": {
+   "badge": 7
+  },
+  "Sea Incense": {
+   "badge": 13
+  },
+  "Serious Mint": {
+   "badge": 18
+  },
+  "Sharp Beak": {
+   "badge": 13
+  },
+  "Shed Shell": {
+   "badge": 16
+  },
+  "Shinx": {
+   "badge": 1
+  },
+  "Shiny Stone": {
+   "badge": 13
+  },
+  "Shuca Berry": {
+   "badge": 4
+  },
+  "Silk Scarf": {
+   "badge": 13
+  },
+  "Silver Powder": {
+   "badge": 13
+  },
+  "Sitrus Berry": {
+   "badge": 17
+  },
+  "Skull Fossil": {
+   "badge": 13
+  },
+  "Slugma": {
+   "badge": 1
+  },
+  "Smoke Ball": {
+   "badge": 2
+  },
+  "Smooth Rock": {
+   "badge": 2
+  },
+  "Snover": {
+   "badge": 1
+  },
+  "Snowball": {
+   "badge": 2
+  },
+  "Soda Pop": {
+   "badge": 2
+  },
+  "Soda Pop (+1 random)": {
+   "badge": 9
+  },
+  "Soft Sand": {
+   "badge": 13
+  },
+  "Soul Candle": {
+   "badge": 8
+  },
+  "Spell Tag": {
+   "badge": 13
+  },
+  "Steel Gem": {
+   "badge": 6
+  },
+  "Stick": {
+   "badge": 8
+  },
+  "Sticky Barb": {
+   "badge": 2
+  },
+  "Sun Stone": {
+   "badge": 13
+  },
+  "Super Potion": {
+   "badge": 2
+  },
+  "Super Repel": {
+   "badge": 2
+  },
+  "Synthetic Seed": {
+   "badge": 13
+  },
+  "TM22 Solar Beam": {
+   "badge": 13
+  },
+  "TM42 Facade": {
+   "badge": 1
+  },
+  "TM45 Attract": {
+   "badge": 1
+  },
+  "TM90 Substitute": {
+   "badge": 1
+  },
+  "Tamato Berry": {
+   "badge": 1
+  },
+  "Tanga Berry": {
+   "badge": 4
+  },
+  "Telluric Seed": {
+   "badge": 13
+  },
+  "Thick Club": {
+   "badge": 13
+  },
+  "Thunder Stone": {
+   "badge": 13
+  },
+  "Time Ball": {
+   "badge": 1
+  },
+  "Timid Mint": {
+   "badge": 18
+  },
+  "Toxic Orb": {
+   "badge": 16
+  },
+  "Twisted Spoon": {
+   "badge": 13
+  },
+  "Ultra Ball": {
+   "badge": 9
+  },
+  "Ultra Potion": {
+   "badge": 13
+  },
+  "Up-Grade": {
+   "badge": 13
+  },
+  "Vanilla Ice Cream": {
+   "badge": 0
+  },
+  "Vanilla Ice Cream (+extra Blue Moon Ice Cream on random)": {
+   "badge": 1
+  },
+  "Wacan Berry": {
+   "badge": 4
+  },
+  "Water Gem": {
+   "badge": 6
+  },
+  "Water Stone": {
+   "badge": 13
+  },
+  "Watmel Berry": {
+   "badge": 13
+  },
+  "Wave Incense": {
+   "badge": 13
+  },
+  "Weakness Policy": {
+   "badge": 17
+  },
+  "Whipped Dream": {
+   "badge": 1
+  },
+  "White Herb": {
+   "badge": 2
+  },
+  "Wide Lens": {
+   "badge": 16
+  },
+  "Wise Glasses": {
+   "badge": 16
+  },
+  "X Accuracy": {
+   "badge": 7
+  },
+  "X Attack": {
+   "badge": 7
+  },
+  "X Defend": {
+   "badge": 7
+  },
+  "X Sp.Atk": {
+   "badge": 7
+  },
+  "X Sp.Def": {
+   "badge": 7
+  },
+  "X Speed": {
+   "badge": 7
+  },
+  "Yache Berry": {
+   "badge": 4
+  },
+  "Yellow Nectar": {
+   "badge": 2
+  },
+  "Zinc": {
+   "badge": 3
+  },
+  "Zoom Lens": {
+   "badge": 7
+  }
+ },
  "miningItems": [
-  "Amplifield Rock",
-  "Armor Fossil",
-  "Blue Shard",
-  "Claw Fossil",
-  "Damp Rock",
-  "Dawn Stone",
-  "Dome Fossil",
-  "Draco Plate",
+  "Insect Plate",
   "Dread Plate",
-  "Dusk Stone",
-  "Earth Plate",
-  "Everstone",
-  "Fire Stone",
+  "Draco Plate",
+  "Zap Plate",
   "Fist Plate",
   "Flame Plate",
-  "Green Shard",
-  "Hard Stone",
-  "Heart Scale",
-  "Helix Fossil",
-  "Ice Stone",
-  "Icicle Plate",
-  "Icy Rock",
-  "Insect Plate",
-  "Iron Ball",
-  "Iron Plate",
-  "Leaf Stone",
-  "Light Clay",
-  "Max Revive",
   "Meadow Plate",
-  "Mind Plate",
-  "Moon Stone",
-  "Odd Keystone",
-  "Oval Stone",
-  "Pixie Plate",
-  "Purple Shard",
-  "Rare Bone",
-  "Red Shard",
-  "Revive",
-  "Root Fossil",
-  "Shiny Stone",
-  "Skull Fossil",
-  "Sky Plate",
-  "Smooth Rock",
-  "Splash Plate",
-  "Spooky Plate",
-  "Star Piece",
-  "Stone Plate",
-  "Sun Stone",
-  "Thunder Stone",
+  "Earth Plate",
+  "Icicle Plate",
   "Toxic Plate",
+  "Mind Plate",
+  "Stone Plate",
+  "Sky Plate",
+  "Spooky Plate",
+  "Iron Plate",
+  "Splash Plate",
+  "Pixie Plate",
+  "Dome Fossil",
+  "Root Fossil",
+  "Claw Fossil",
+  "Skull Fossil",
+  "Armor Fossil",
+  "Helix Fossil",
+  "Fire Stone",
   "Water Stone",
-  "Zap Plate"
+  "Thunder Stone",
+  "Leaf Stone",
+  "Moon Stone",
+  "Sun Stone",
+  "Dusk Stone",
+  "Ice Stone",
+  "Dawn Stone",
+  "Shiny Stone",
+  "Oval Stone",
+  "Star Piece",
+  "Rare Bone",
+  "Light Clay",
+  "Icy Rock",
+  "Damp Rock",
+  "Smooth Rock",
+  "Amplifield Rock",
+  "Everstone",
+  "Hard Stone",
+  "Iron Ball",
+  "Odd Keystone",
+  "Revive",
+  "Max Revive",
+  "Blue Shard",
+  "Red Shard",
+  "Green Shard",
+  "Purple Shard",
+  "Heart Scale"
  ]
 }

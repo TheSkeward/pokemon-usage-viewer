@@ -31,8 +31,8 @@ test("addRebornOwnedItems raises, clamps, and never lowers", () => {
 
 test("getPurchasableShopItems: badge-gated, owned-filtered, stable order", () => {
   assert.ok(
-    Object.keys(REBORN_SHOP_ITEM_BADGES).length >= 50,
-    "the generated shop map should cover the guide's shop stock",
+    Object.keys(REBORN_SHOP_ITEM_BADGES).length >= 150,
+    "the generated shop map should cover the guide's full shop stock",
   );
 
   const atFour = getPurchasableShopItems(4, {});
@@ -56,9 +56,11 @@ test("getPurchasableShopItems: badge-gated, owned-filtered, stable order", () =>
 test("badge-1 shop stock includes the user-verified Obsidia berry floor", () => {
   // User report with in-game screenshots: after Badge 1 the Department
   // Store berry shop sells the six heal/status berries alongside Persim +
-  // the EV berries. The extraction had merged them away (their earliest
-  // sheet row is a badge-0 hidden find, which discarded the Shop row) —
-  // the SHOP_STOCK overlay in build-item-timeline.mjs restores them.
+  // the EV berries. The original extraction had merged them away (their
+  // earliest sheet row is a badge-0 hidden find, which discarded the Shop
+  // row); the extraction now reads the Shops tab directly and the
+  // SHOP_STOCK overlay in build-item-timeline.mjs stays as an agreement
+  // check on these user-verified rows.
   const VERIFIED_BADGE_1_BERRIES = [
     "oranberry", "cheriberry", "pechaberry", "rawstberry", "chestoberry",
     "aspearberry", "persimberry", "pomegberry", "kelpsyberry", "qualotberry",
@@ -74,5 +76,31 @@ test("badge-1 shop stock includes the user-verified Obsidia berry floor", () => 
   const offered = new Set(getPurchasableShopItems(1, {}).map((item) => item.id));
   for (const id of VERIFIED_BADGE_1_BERRIES) {
     assert.ok(offered.has(id), `${id} must appear in the badge-1 shop sync`);
+  }
+});
+
+test("shop rows masked by earlier one-off pickups survive extraction", () => {
+  // The whole-class fix for the berry-floor bug: the guide's Shops tab is
+  // now read directly, so an item with ANY earlier non-shop pickup (a
+  // hidden find, a story gift) still gets its renewable shop timing.
+  // Pins are sheet rows spot-audited during the re-extraction; none of
+  // these existed in REBORN_SHOP_ITEM_BADGES before it.
+  const MASKED_SHOP_ROWS = {
+    leftovers: 17,
+    lifeorb: 17,
+    choiceband: 18,
+    firegem: 6, // the badge-6 type-gem vendor stocks all gems
+    darkgem: 6,
+    firestone: 13, // post-restoration Department Store stone floor
+    duskstone: 13,
+    metalcoat: 13,
+    kingsrock: 16,
+  };
+  for (const [id, badge] of Object.entries(MASKED_SHOP_ROWS)) {
+    assert.equal(
+      REBORN_SHOP_ITEM_BADGES[id],
+      badge,
+      `${id} must be shop-purchasable at badge ${badge}`,
+    );
   }
 });
