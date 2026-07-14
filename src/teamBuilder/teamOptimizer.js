@@ -141,12 +141,17 @@ const MAX_RESULT_CACHE = 400;
 // the only model; the UI toggle, the scoringModel option, and the per-model
 // cache signature suffix are gone, so every pre-v27 entry (v0- or v1-scored)
 // must retire rather than answer a run that can no longer say which it was.
+// v28: the two-clause convergence law (user-ratified) replaces "at w = 1 the
+// score IS the prior": dead lines (no meaningful usage in any tier) still
+// converge fully, but present-prior lines cap downward trust at
+// PRIOR_DRAG_CAP — every converged over-performer's score rises, and lines
+// carry linePriorPresent for the sweep's re-scoring.
 //
 // NOTE: results now persist their post-analysis (confidence sweep +
 // investment plan) alongside the team — a change to the sweep grid, its
 // contender selection, or the investment projection is ALSO an output
 // change and needs a bump, even when the team itself is untouched.
-const RESULT_CACHE_VERSION = "27";
+const RESULT_CACHE_VERSION = "28";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the
@@ -646,6 +651,12 @@ async function resolvePoolLine({
   const lineRamp = repEntry
     ? computeUsageRamp(repEntry.builds?.variants?.[0]?.profile || null, levelCap)
     : 0;
+  // Absence vs bounded-trust law selector: does ANY form of this line have a
+  // real competitive prior? The representative holds the line's best
+  // first-meaningful tier, so its rank answers for the whole line.
+  const linePriorPresent = Boolean(
+    repRank && repRank.tierRank < repRank.totalTiers,
+  );
 
   // Pass 2: score every build of every form under the line-anchored w.
   const scored = prepared.map(({ candidate, bundle, builds, error }) => {
@@ -675,6 +686,7 @@ async function resolvePoolLine({
             levelCap,
             opponentTypeBias: progression.opponentTypeBias,
             lineRamp,
+            linePriorPresent,
           });
 
         const scoredBuilds = builds.variants
@@ -772,6 +784,7 @@ async function resolvePoolLine({
       bestNonMega: null,
       candidates: scored,
       lineRamp,
+      linePriorPresent,
       degraded,
     };
   }
@@ -797,12 +810,15 @@ async function resolvePoolLine({
       : null,
     choiceOptions: buildChoiceOptions(input, ranked, best, bestNonMega),
     candidates: ranked,
-    // The line-anchored usage trust (V1): every form of this line was scored
+    // The line-anchored usage trust: every form of this line was scored
     // under this ONE ramp. Carried on the line so the confidence sweep's
     // re-scoring uses the same anchor — its scoreCandidate calls would
     // otherwise fall back to per-form ramps, re-introducing the exact
-    // pre-evo-dodges-the-drag bug the anchoring exists to prevent.
+    // pre-evo-dodges-the-drag bug the anchoring exists to prevent. The
+    // prior-presence flag rides along for the same reason (law selection
+    // must not flip between the run and the sweep).
     lineRamp,
+    linePriorPresent,
     degraded,
   };
 }

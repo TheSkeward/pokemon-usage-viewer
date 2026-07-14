@@ -26,12 +26,26 @@ export const MIN_MEANINGFUL_USAGE_PERCENT = tunable(
 //   C       current-form usefulness (currentFormValue.js) — role-based, stage-
 //           relative, usage-independent. On a [0, CURRENT_VALUE_SCALE] scale.
 //   U_rank  the usage prior as a tier-dominant rank scalar on C's scale.
-//   w       usage trust: w_up = max(α·O, ramp), w_down = ramp — the earned
-//           part (the ramp: how complete the canonical set is) blends fully
-//           and can drag an over-performing C down toward the prior; the α·O
-//           floor stays upside-only. At full convergence (w = 1) the score IS
-//           the usage prior (+ bias); at ramp = 0 it reduces to the historic
-//           V0 shape: C + α·O·[U − C]₊ + bias − K.
+//   w_up    max(α·O, ramp) — upward convergence is FULL trust: presence of
+//           usage transfers across the PvP→PvE domain gap (it proves the
+//           body performs somewhere), so a famous line converges all the
+//           way up to its prior.
+//   w_down  two-clause law (user-ratified; the calibration corpus's Meowstic
+//           trajectory 1543 → 587 is the measured counterexample that killed
+//           the old "at w = 1 the score IS the prior" law):
+//           - ABSENCE law (dead lines): a line with no meaningful usage in
+//             ANY tier converges fully — w_down = ramp. Absence everywhere
+//             is the one usage signal strong enough to override the
+//             mechanical model (it is domain-transferable: thousands of
+//             players found nothing).
+//           - BOUNDED-TRUST law (present priors): a line with real
+//             competitive presence anywhere has its downward trust capped —
+//             w_down = min(ramp, PRIOR_DRAG_CAP) — so the prior may claim at
+//             most that fraction of the mon's measured excess, no matter how
+//             converged. The MAGNITUDE of a deep prior is meta-confounded
+//             for PvE; set-completion cannot shrink that domain error.
+//           At ramp = 0 both clauses reduce to the historic V0 shape:
+//           C + α·O·[U − C]₊ + bias − K.
 //   O       online/readiness gate in [0,1]: how much the fielded form
 //           resembles the final competitive form.
 //   K       build friction (delayed-evolution builds); acquisition friction
@@ -51,6 +65,11 @@ export function scoreCandidate({
   opponentTypeBias,
   // The line-anchored usage trust (see comment at the use site).
   lineRamp = null,
+  // Whether ANY form of this line has a real competitive prior (the line
+  // representative's first-meaningful tier exists) — selects between the
+  // absence law and the bounded-trust law. Callers without line context
+  // fall back to this form's own rank.
+  linePriorPresent = null,
 }) {
   const usage = bundle?.usage;
 
@@ -133,15 +152,22 @@ export function scoreCandidate({
       ? Math.max(0, legalityProfile?.abilitySensitivity || 0)
       : 0;
 
-  // The α·O floor stays upside-only, but the EARNED part of w (the ramp)
-  // blends fully — it can drag an over-performing C down toward the usage
-  // prior, and it melts friction/ability caution away, so at w_down = 1 the
-  // score IS the usage prior (+ bias). At ramp = 0 this reduces to the
-  // historic V0 shape (with U as the tier-dominant rank scalar).
+  // The α·O floor stays upside-only; the earned ramp lifts at full trust.
+  // Downward, the two-clause law applies (see the header): dead lines
+  // converge fully toward their ~zero prior; present-prior lines keep at
+  // least (1 − PRIOR_DRAG_CAP) of C at every w.
   const uRank = usageRankScore(rank, currentValue);
+  const priorPresent =
+    linePriorPresent != null
+      ? linePriorPresent
+      : rank.tierRank < rank.totalTiers;
   const wUp = Math.max(alpha * online, ramp);
-  const wDown = ramp;
-  const usageWeight = wDown;
+  const wDown = priorPresent
+    ? Math.min(ramp, tunable("PRIOR_DRAG_CAP"))
+    : ramp;
+  // Exposed trust is the RAMP (how much instance evidence has accrued);
+  // the drag applied is wDown, which the bounded-trust law may cap below it.
+  const usageWeight = ramp;
   const value =
     currentValue +
     wUp * Math.max(0, uRank - currentValue) -
@@ -171,9 +197,11 @@ export function scoreCandidate({
     // First-meaningful-tier rank (lower = shallower tier), for consumers that
     // need the usage-prior ordering itself (convergence tests, displays).
     tierRank: rank.tierRank,
-    // How much of the score is the usage prior (0 = pure C shape, 1 = fully
-    // converged). Exposed for the convergence/monotonicity tests and the
-    // explanation layer.
+    // The earned usage trust (the ramp): 0 = pure C shape, 1 = full instance
+    // evidence. NOTE: since the two-clause law, this is NOT the applied
+    // downward weight — present-prior lines cap that at PRIOR_DRAG_CAP.
+    // Exposed for the convergence/monotonicity tests, the usage-trust
+    // tooltip, and the explanation layer.
     usageWeight,
   };
 }

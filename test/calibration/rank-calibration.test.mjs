@@ -95,18 +95,24 @@ for (const badgeKey of Object.keys(buckets)) {
           : ""),
     );
 
+    // Collect EVERY violation (no fail-fast): each is an independent
+    // constraint on the model, and a hidden failure is a lost finding.
+    const violations = [];
     for (const name of AMAZING) {
-      assert.ok(
-        scoreOf(name) >= q75,
-        `badge ${badge}: ${describe(name)} — must be in the top score quartile (q75 ${Math.round(q75)})`,
-      );
+      if (!(scoreOf(name) >= q75)) {
+        violations.push(`${describe(name)} — must be in the top score quartile (q75 ${Math.round(q75)})`);
+      }
     }
     for (const name of GARBAGE) {
       if (!bucket.includes(name)) continue; // waits until attainable
-      assert.ok(
-        scoreOf(name) <= q25,
-        `badge ${badge}: ${describe(name)} — must be in the bottom score quartile (q25 ${Math.round(q25)})`,
-      );
+      if (!(scoreOf(name) <= q25)) {
+        violations.push(`${describe(name)} — must be in the bottom score quartile (q25 ${Math.round(q25)})`);
+      }
     }
+    assert.deepEqual(
+      violations,
+      [],
+      `badge ${badge}: ${violations.length} rank violations`,
+    );
   });
 }

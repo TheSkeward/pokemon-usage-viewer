@@ -93,6 +93,17 @@ export const SCORING_DEFAULTS = Object.freeze({
   // --- Usage-convergence blend (formerly SCORING_V1, now the sole model;
   // see SCORING.md — V0 retired as Rejuvenation prep) -------------------------
   USAGE_RAMP_EXPONENT: 2, // w ramps as (cap/L*)^k — back-loaded handoff
+  // Bounded-trust law (user-ratified): for a line with a real competitive
+  // prior ANYWHERE, downward convergence saturates here — the prior may
+  // claim at most this fraction of the mon's measured excess over it,
+  // however converged (the calibration corpus's Meowstic, C 1543 dragged to
+  // its 587 prior at w = 1, is the counterexample that killed unbounded
+  // drag). Dead lines (no meaningful usage in any tier) are exempt and
+  // converge fully — absence everywhere is domain-transferable evidence.
+  // Calibration bracket (offline sweep): the Meowstic-class assertions cap
+  // it from above (fails materialize as it approaches ~0.3); the value sits
+  // low in the band pending the full calibration pass.
+  PRIOR_DRAG_CAP: 0.15,
   // Tier dominance: strictly greater than any possible usage % (100), so a
   // shallower first-meaningful tier ALWAYS outranks any within-tier usage.
   // (User proposed 50/100; 50 fails on >50%-usage mons, 100 ties at exactly

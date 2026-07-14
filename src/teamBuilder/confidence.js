@@ -236,6 +236,7 @@ function rescoreLine(line, context) {
         // re-scored under a different w regime than the baseline it's
         // compared against (the pre-evo-dodges-the-drag bug, resurrected).
         lineRamp: line.lineRamp ?? 0,
+        linePriorPresent: line.linePriorPresent ?? null,
       }),
     };
     if (choice.buildAlternatives?.length) {

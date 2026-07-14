@@ -35,10 +35,17 @@ U_rank  the usage prior as a tier-dominant rank scalar on C's scale:
           101·tierIndex + quantize(usage%, 0.001) + ε·C, monotonically
           rescaled — a shallower first-meaningful tier always dominates
           within-tier usage; ε·C provably only breaks exact quantized ties
-w       usage trust: w_up = max(α·O, ramp), w_down = ramp,
+w       usage trust: w_up = max(α·O, ramp);
+          w_down = ramp for DEAD lines (no meaningful usage in any tier:
+          the absence law — absence everywhere transfers to PvE), but
+          min(ramp, PRIOR_DRAG_CAP) for lines with a real prior anywhere
+          (the bounded-trust law — a deep prior's MAGNITUDE is
+          meta-confounded, so it may claim at most that fraction of C's
+          excess, however converged);
           ramp = O_rep · min((cap/L*)², r_now), LINE-anchored (the line's
           representative — best first-meaningful tier — sets ONE w for every
-          form in the line, each blended against its OWN prior)
+          form in the line, each blended against its OWN prior; the
+          representative's tier also answers dead-vs-present for the line)
 O       readiness gate ∈ {0, BABY, MIDEVO, NEAR, 1} from concrete facts
 α       usage influence floor — upside-only, gated by O, never sovereign
 K       investment friction — build friction only by default (delayed-
@@ -52,7 +59,10 @@ At ramp = 0 (early game, or a fielded form that is not the line's usage
 representative) this reduces to the historic V0 shape
 `C + α·O·[U − C]₊ + bias − K`: usage upside-only, caution fully priced. As
 the canonical competitive set assembles, the earned ramp blends the score
-toward the usage prior — at w = 1 the score IS the prior (+ bias).
+toward the usage prior — at w = 1 the score IS the prior for a DEAD line,
+while a present-prior line converges upward without limit but downward only
+to the (1 − PRIOR_DRAG_CAP)·C floor (see the changelog: "The two-clause
+convergence law").
 
 Team value:
 
@@ -1824,3 +1834,62 @@ Invariants the shape encodes (each guarded by fixtures):
   pinned Shuckle case: the floor lifts PvP-good/PvE-bad up, and the drag
   erases the mechanical evidence for PvE-good/PvP-mid. Both open
   questions now share one calibration instrument.
+- **The two-clause convergence law** (user-ratified, replacing "at w = 1
+  the score IS the prior"). The rank-calibration corpus produced the
+  measured counterexample: Meowstic — real (deep) PvP presence,
+  consensus-cracked in PvE, mechanical C 1543 at cap 85 — was dragged to
+  its 587 prior at full convergence, benching it below mid-pool filler;
+  Sharpedo froze at its converged 1430 prior while pools strengthened
+  past it. The same corpus showed the drag doing CORRECT work on the
+  consensus-garbage anchors, whose lines have no competitive presence in
+  ANY tier. The two verdicts split cleanly on prior PRESENCE (every
+  amazing anchor's line has a real first-meaningful tier; every garbage
+  anchor is a dead line), which grounds the amendment:
+  ABSENCE law — a dead line converges fully (w_down = ramp): absence
+  everywhere is domain-transferable negative evidence ("thousands of
+  players across every tier found nothing"), and full collapse is what
+  keeps the Unown/Raticate-class verdicts honest.
+  BOUNDED-TRUST law — a line with real presence anywhere caps downward
+  trust at PRIOR_DRAG_CAP (new tunable, 0.15): presence proves the body
+  performs somewhere, so upward convergence stays full trust, but the
+  MAGNITUDE of a deep prior is meta-confounded for PvE and no amount of
+  set-completion shrinks that domain error — the score keeps at least
+  (1 − 0.15)·C at every w. The 0.15 sits low in the offline feasible
+  band (the Meowstic-class calibration assertions cap it from above;
+  the full calibration pass will pin it properly).
+  Implementation: linePriorPresent (the line representative's tier
+  answers for the whole line, same anchor as lineRamp) plumbed through
+  the optimizer and the confidence sweep; the exposed usageWeight is now
+  the RAMP (earned instance evidence), not the applied downward weight.
+  The old endgame pairwise-order test is replaced by three class-based
+  invariants: converged dead lines collapse (Sunflora/Ledian at cap 100
+  score < 15% of C; Delibird would be the third pin but its
+  trace-sourced canonical set is unassemblable in Reborn — 0/4 moves
+  ready at badge 18 — so its ramp never engages, a flagged follow-up),
+  converged present-prior lines keep the (1 − cap)·C floor (Meowstic),
+  and upward convergence still carries a famous line above its C
+  (Aegislash 1372 → 1905; Arcanine instead demonstrates the mild
+  bounded drag, 1459 → 1438, because its prior sits below its C).
+  CONSEQUENCE PENDING A RULING — the SYNERGY_SCALE anchor: the
+  regenerator-core endgame A/B ("the core seats at 4, not ≤3.5") was
+  measured against margins where deep-prior strangers (Ambipom C 1756,
+  Dodrio C 1717) had been dragged to ~1400s; under the new law they
+  retain their C, the seat gaps are 150-340 points, and no defensible
+  scale flips the trio (measured: not at 4, 8, or 12; flips at 20).
+  The synergy test is reframed as a causal bracket (trio seats at the
+  diagnostic scale 20, never at 0) with the shipped-scale team logged;
+  whether to recalibrate SYNERGY_SCALE or accept that PvP stall cores
+  are not PvE-optimal awaits the user. Calibration corpus effect,
+  measured honestly (the suite also lost its fail-fast in this commit —
+  it was hiding all but the first violation per bucket): the DECAY
+  pathology is gone — Meowstic holds ~1305–1400 flat across every badge
+  (was 1375 → 587) and Sharpedo rises to ~1570 and passes through badge
+  12 (was frozen at 1430) — but the total count is roughly unchanged
+  (51 measured violations vs ~42 estimated pre-law) because every
+  present-prior pool mon retained its C too, raising the quartile bars
+  with the anchors. The remaining work is RELATIVE rank (amazing
+  anchors' C clearing top-quartile among retained-C pools; early
+  garbage separating on C), which is the scoped follow-up, not this
+  law. RESULT_CACHE_VERSION 27→28. Golden drift audited in this commit
+  (three files score-only rises; one seat change — midgame-broad seats
+  Muk, a present-prior line retaining its C, over Primeape).
