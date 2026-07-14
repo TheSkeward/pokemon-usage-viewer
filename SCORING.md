@@ -1796,3 +1796,31 @@ Invariants the shape encodes (each guarded by fixtures):
   (late-broad-froakie now pins Rattata fielded over Raticate at w = 1,
   both ~0) — pre-existing live-app behavior, now visible in a golden;
   flagged rather than silently patched.
+- **Rank-calibration corpus installed** (user plan: "hand you some pokemon
+  that are universally agreed, within the fanbase, to be utterly cracked,
+  and some others that are universally agreed to be hot garbage... install
+  these as new validations"). `npm run validate:calibration` (deliberately
+  NOT in the main validate — 19 optimizer runs): the user-supplied Reborn
+  per-badge availability buckets (test/calibration/badge-buckets.json;
+  Aevian Misdreavus removed as a Rejuvenation-crossover password event)
+  become rolling-delta pools (badge N = newcomers at N + newcomers at
+  N−1), the seven consensus-amazing anchors (Excadrill, Scizor, Blaziken,
+  Sharpedo, Aegislash, Primarina, Meowstic) are injected into every pool
+  as their OWNED evolved forms and must rank in the top score quartile,
+  and the seven consensus-garbage anchors (Tropius, Dunsparce, Sunflora,
+  Ledian, Luvdisc, Delibird, Unown) must rank in the bottom quartile from
+  their unlock bucket. This is the lower-bound corpus the α-floor sweep
+  showed was missing. Installed RED by design — failures are open
+  constraints pending rulings, recorded in the suite's console tables:
+  at badge 0 (w ≈ 0, pure C + floor) every anchor lands correctly; the
+  failures begin exactly where earned convergence begins. Meowstic decays
+  1375 → 587 as w → 1 (dragged to its deep PvP prior despite consensus-
+  cracked PvE value), Sharpedo freezes at its converged prior ~1430 and
+  drifts down the strengthening pools from badge 9 on, Scizor/Primarina
+  miss the late-game quartile marginally the same way, and Sunflora at
+  badge 1 sits mid-pack on pure C (1071 vs q25 929) — the only C-side
+  miss among 14 anchors. The corpus indicts the w = 1 law ("the score IS
+  the prior") for the PvE domain from the opposite direction as the
+  pinned Shuckle case: the floor lifts PvP-good/PvE-bad up, and the drag
+  erases the mechanical evidence for PvE-good/PvP-mid. Both open
+  questions now share one calibration instrument.
