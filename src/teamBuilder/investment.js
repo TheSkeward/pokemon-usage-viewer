@@ -39,10 +39,6 @@ export async function computeInvestmentPlan({
   query,
   selection,
   result,
-  // MUST match the model `result` was scored under: gain compares a future
-  // score against result's now-score, and optimizeTeamFromPool resets the
-  // session-global usage model to its argument on every call.
-  scoringModel = null,
   // Checked before each future-cap optimize. A user optimize awaits the whole
   // post-analysis before it starts (the sweep's override handshake), so
   // without this hook a click landing mid-investment queued behind BOTH
@@ -85,7 +81,6 @@ export async function computeInvestmentPlan({
         progression: { ...progression, levelCap: String(cap) },
         query,
         selection,
-        scoringModel,
         searchMode: "fast",
       }),
     });

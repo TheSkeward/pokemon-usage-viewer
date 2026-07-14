@@ -42,14 +42,18 @@ test("shortlist regret on exact-feasible 36-mon pool (sizes 24/28/32)", async ()
 });
 
 test("swap-polish repairs a shortlist miss back to the exact optimum", async () => {
-  // At tiny forced shortlist sizes the heuristics provably miss a seat on
-  // this fixture (measured: Wormadam-Trash, ranked 18/36 by individual
-  // score, wins no gate slot — the team-context blind spot the audit exists
-  // for). The polish must (a) detect it — swaps recorded with attribution —
-  // and (b) repair it all the way back to the true exact team. If a future
-  // shortlist improvement makes size 8 lossless, this fails with swaps=0:
-  // re-plant the miss at a smaller size rather than deleting the assert.
-  const fixture = loadFixture("early-weak-froakie");
+  // At tiny forced shortlist sizes the heuristics provably miss a seat —
+  // the team-context blind spot the audit exists for. The polish must (a)
+  // detect it — swaps recorded with attribution — and (b) repair it all the
+  // way back to the true exact team. Re-planted when the model changes: the
+  // usage-convergence defaults rank early-weak-froakie's exact six at the
+  // very top (no plantable miss there at any legal size), so the miss now
+  // lives in the midgame-broad pool at size 6 (measured: one seat off, one
+  // strictly-improving swap recovers the exact optimum; sizes 7-8 diverge
+  // by three seats — beyond the 1-swap audit's contract and far below the
+  // production SHORTLIST_MAX of 28). If a future improvement makes size 6
+  // lossless too, re-plant the miss rather than deleting the assert.
+  const fixture = loadFixture("midgame-broad");
   const exact = await runPool({
     pool: fixture.pool,
     badge: fixture.badge,
@@ -63,7 +67,7 @@ test("swap-polish repairs a shortlist miss back to the exact optimum", async () 
     pool: fixture.pool,
     badge: fixture.badge,
     levelCap: fixture.levelCap,
-    overrides: { FORCE_SHORTLIST: true, SHORTLIST_MAX: 8 },
+    overrides: { FORCE_SHORTLIST: true, SHORTLIST_MAX: 6 },
   });
   const polish = repaired.searchPolish;
   assert.ok(polish, "shortlist path must run the audit");
@@ -83,7 +87,12 @@ test("swap-polish repairs a shortlist miss back to the exact optimum", async () 
     exactTeam,
     "the polished team must recover the exact optimum",
   );
-  assert.equal(repaired.teamScore, exact.teamScore, "and its exact score");
+  // Same team, but the two search paths sum member/coverage terms in a
+  // different order — equal to float round-off, not bit-for-bit.
+  assert.ok(
+    Math.abs(repaired.teamScore - exact.teamScore) < 1e-9,
+    `and its exact score (${repaired.teamScore} vs ${exact.teamScore})`,
+  );
   assert.ok(
     repaired.benchSwapScores instanceof Map && repaired.benchSwapScores.size > 0,
     "the audit's final scan doubles as the bench swap map",

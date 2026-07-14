@@ -1,6 +1,5 @@
-// SCORING_V1 (usage-convergence blend, Phase 2) invariants — all opt-in via
-// USAGE_MODEL override; the frozen V0 defaults and their goldens are untouched
-// by this suite existing.
+// Usage-convergence blend invariants (formerly SCORING_V1, the sole model
+// since V0's retirement — these run at plain defaults).
 //
 // User-ratified design under test:
 //   - U_rank = TIER_STEP·tierIndex + quantize(usage%) + ε·C: a shallower
@@ -17,13 +16,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { runPool, bestChoice } from "../helpers/harness.mjs";
 import { progressionAt } from "../helpers/harness.mjs";
-import { checkGolden } from "../helpers/fixtureRunner.mjs";
 import {
   SCORING_DEFAULTS,
 } from "../../src/teamBuilder/scoringConstants.js";
 import { usageRankScore } from "../../src/teamBuilder/candidateScoring.js";
-
-const V1 = { USAGE_MODEL: "v1" };
 
 test("ε·C guarantee and tier dominance are provable from the constants", () => {
   assert.ok(
@@ -58,7 +54,6 @@ test("endgame: fully-assembled final forms rank exactly by the usage prior", asy
       daycareUnlocked: true,
       moveRelearnerUnlocked: true,
     },
-    overrides: V1,
   });
 
   const converged = result.lines
@@ -103,7 +98,6 @@ test("w is monotone non-decreasing in cap at a fixed unlock schedule", async () 
         ...progressionAt({ badge: 18, levelCap }),
         daycareUnlocked: true,
       },
-      overrides: V1,
     });
     weights.push(
       Object.fromEntries(
@@ -122,12 +116,11 @@ test("w is monotone non-decreasing in cap at a fixed unlock schedule", async () 
 
 test("a fielded pre-evolution (not the usage representative) never ramps", async () => {
   // Cap 20: Dratini can't be Dragonite; its fielded form isn't the
-  // representative, so V1 must keep the V0 α·O treatment (usageWeight 0).
+  // representative, so it must keep the upside-only α·O treatment (usageWeight 0).
   const result = await runPool({
     pool: ["Dratini", "Rattata", "Pidgey"],
     badge: 1,
     levelCap: 20,
-    overrides: V1,
   });
   const dratini = bestChoice(result, "Dratini");
   assert.ok(dratini);
@@ -148,7 +141,6 @@ test("w is line-anchored: a pre-evo can't dodge the drag its real form converges
   const result = await runPool({
     pool: ["Doduo"],
     progression: { ...DEFAULT_REBORN_PROGRESSION, levelCap: "100" },
-    overrides: V1,
   });
   const line = result.lines[0];
   const byId = Object.fromEntries(
@@ -168,12 +160,3 @@ test("w is line-anchored: a pre-evo can't dodge the drag its real form converges
   assert.equal(fielded, "dodrio");
 });
 
-test("V1 golden: midgame-broad pool under the blend (drift shows up in review)", async () => {
-  const result = await runPool({
-    pool: ["Machop","Growlithe","Poliwag","Abra","Tentacool","Ponyta","Magnemite","Doduo","Gastly","Rhyhorn","Horsea","Scyther","Eevee","Dratini","Mareep","Hoppip"],
-    badge: 4,
-    levelCap: 45,
-    overrides: V1,
-  });
-  checkGolden({ name: "v1-midgame-broad", golden: true }, result);
-});

@@ -120,7 +120,7 @@ export function checkGolden(fixture, result) {
   assert.deepEqual(
     snapshot.team,
     golden.team,
-    `${fixture.name}: team drifted from golden — if intentional, update goldens and record why in SCORING_V0.md`,
+    `${fixture.name}: team drifted from golden — if intentional, update goldens and record why in SCORING.md`,
   );
   assert.equal(snapshot.searchExact, golden.searchExact);
   for (const [name, expected] of Object.entries(golden.lines)) {

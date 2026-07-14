@@ -71,7 +71,7 @@ scripts/                       Data generation scripts
 test/                          Unit tests, validation scenarios, golden snapshots
 ```
 
-The scoring model and its change policy are documented in `SCORING_V0.md`.
+The scoring model and its change policy are documented in `SCORING.md`.
 Read that before changing optimizer behavior or scoring constants.
 
 ## Data And Cache Notes

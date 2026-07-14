@@ -123,7 +123,7 @@ test("missing teammate-index files degrade silently under v1", async () => {
   // all) — so the term must be inert end-to-end even at endgame trust.
   const pool = ["Psyduck", "Whismur", "Azurill", "Doduo", "Mareep", "Rhyhorn"];
   const run = (scale) =>
-    runPool({ pool, ...ENDGAME, overrides: { USAGE_MODEL: "v1", SYNERGY_SCALE: scale } });
+    runPool({ pool, ...ENDGAME, overrides: { SYNERGY_SCALE: scale } });
   const on = await run(4);
   const off = await run(0);
   assert.deepEqual(teamInputNames(on), teamInputNames(off));
@@ -153,7 +153,7 @@ test("endgame: the gen7uu regenerator core wins its seats from the synergy term"
     "Altaria", "Golduck", "Exploud", "Swampert", "Gardevoir", "Dodrio",
   ];
   const core = ["Blissey", "Quagsire", "Alomomola"];
-  const withSynergy = await runPool({ pool, ...NO_DAYCARE, overrides: { USAGE_MODEL: "v1" } });
+  const withSynergy = await runPool({ pool, ...NO_DAYCARE });
   const seated = teamSet(withSynergy);
   for (const name of core) {
     assert.ok(seated.has(name), `${name} missing from ${[...seated].join(", ")}`);
@@ -161,7 +161,7 @@ test("endgame: the gen7uu regenerator core wins its seats from the synergy term"
   const without = await runPool({
     pool,
     ...NO_DAYCARE,
-    overrides: { USAGE_MODEL: "v1", SYNERGY_SCALE: 0 },
+    overrides: { SYNERGY_SCALE: 0 },
   });
   const seatedOff = teamSet(without);
   assert.ok(

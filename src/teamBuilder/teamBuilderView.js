@@ -94,13 +94,11 @@ function renderStandaloneHeader({ baseUrl }) {
   `;
 }
 
-// Live numbers instead of a model essay: under V1, hovering the scoring
-// toggle reports how converged THIS run's pool is — the spread of usage
-// trust (w, the share of each line's score taken by the usage prior) and
-// how many lines are fully there. Before a run (or under V0) there's
-// nothing to report, so no tooltip.
-function scoringModelTooltip(state) {
-  if (state.scoringModel === "v0") return "";
+// Live numbers instead of a model essay: hovering the Optimize button
+// reports how converged THIS run's pool is — the spread of usage trust (w,
+// the share of each line's score taken by the usage prior) and how many
+// lines are fully there. Before a run there's nothing to report, no tooltip.
+function usageTrustTooltip(state) {
   const weights = (state.result?.lines || [])
     .map((line) => (line.best || line.bestNonMega)?.usageWeight)
     .filter((weight) => typeof weight === "number")
@@ -211,14 +209,7 @@ function renderPoolControls({ embedded, poolStats, state }) {
       </div>
 
       <div class="toolbar">
-        <button class="view-tab primary-action" id="optimize-button">${state.loading ? "Optimizing..." : "Normalize + optimize team"}</button>
-        <label class="scoring-model-toggle"${scoringModelTooltip(state) ? ` title="${escapeAttr(scoringModelTooltip(state))}"` : ""}>
-          <span class="muted">Scoring</span>
-          <select id="scoring-model-select">
-            <option value="v1" ${state.scoringModel === "v0" ? "" : "selected"}>V1 · usage-convergent</option>
-            <option value="v0" ${state.scoringModel === "v0" ? "selected" : ""}>V0 · frozen</option>
-          </select>
-        </label>
+        <button class="view-tab primary-action" id="optimize-button"${usageTrustTooltip(state) ? ` title="${escapeAttr(usageTrustTooltip(state))}"` : ""}>${state.loading ? "Optimizing..." : "Normalize + optimize team"}</button>
         <button class="view-tab" id="copy-pool-button">Copy pool</button>
         <button class="view-tab" id="export-gamestate-button" title="Download pool + progression + inventory as a JSON backup file. Everything lives in this browser's local storage — one data clear loses it all without a backup.">Export gamestate</button>
         <button class="view-tab" id="import-gamestate-button" title="Restore a downloaded gamestate backup (replaces the current pool and progression).">Import gamestate</button>
@@ -541,7 +532,7 @@ function renderInvestmentSection(state) {
 
   // Progressive delivery: the first future cap renders as soon as it lands;
   // this note says the deeper cap is still cooking (hint-grade projections
-  // are default-build shortlist runs — see SCORING_V0.md).
+  // are default-build shortlist runs — see SCORING.md).
   const partialNote = plan.partial
     ? `<p class="muted">Cap ${escapeHtml((plan.pendingCaps || []).join(" / "))} still computing — this list may grow.</p>`
     : "";

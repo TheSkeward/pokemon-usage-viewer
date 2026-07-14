@@ -1,4 +1,10 @@
-# Scoring model — frozen core
+# Scoring model
+
+(Formerly SCORING_V0.md. The historic "frozen V0" shape and the V1
+usage-convergence blend ran side by side behind an A/B toggle until V0's
+retirement — see the changelog entry "Scoring V0 retired". The blend below is
+now the sole model; the changelog remains the audited history of every shape
+and constant change across both.)
 
 This document freezes the scoring model's SHAPE. The main danger to this
 project is no longer a missing feature — it is "one more clever tweak" turning
@@ -13,25 +19,40 @@ author already believed. So:
 > must be regenerated in the same commit, and unexplained snapshot drift is a
 > review blocker, not a formality.
 
-## The frozen shape (v0)
+## The shape (usage-convergence blend)
 
 Individual value of a fielded build:
 
 ```
-V = C + α·O·[U − C]₊ + bias − K          (selection uses V; F is display-only)
+V = C + w_up·[U_rank − C]₊ − w_down·[C − U_rank]₊ + bias − (1 − w_down)·(K + ability)
+                                         (selection uses V; F is display-only)
 
-C   current-form usefulness = CURRENT_VALUE_SCALE × max(role scores)
-      roles: fast_attacker, bulky_attacker, bulky_utility, fast_utility
-      from stage-relative mechanical features (damage_q, speed_q, bulk_q,
-      utility_q), geometric means so a role needs ALL its axes
-U   competitive ceiling from usage/tier, on C's scale
-O   readiness gate ∈ {0, BABY, MIDEVO, NEAR, 1} from concrete facts
-α   usage influence — upside-only, gated by O, never sovereign
-K   investment friction — build friction only by default (delayed-evolution
-    builds); acquisition friction (evolution requirements) defaults to 0 and
-    is shown as information (see changelog: "Acquisition friction zeroed")
-F   near-future option value — computed, shown, NEVER added to V
+C       current-form usefulness = CURRENT_VALUE_SCALE × max(role scores)
+          roles: fast_attacker, bulky_attacker, bulky_utility, fast_utility
+          from stage-relative mechanical features (damage_q, speed_q, bulk_q,
+          utility_q), geometric means so a role needs ALL its axes
+U_rank  the usage prior as a tier-dominant rank scalar on C's scale:
+          101·tierIndex + quantize(usage%, 0.001) + ε·C, monotonically
+          rescaled — a shallower first-meaningful tier always dominates
+          within-tier usage; ε·C provably only breaks exact quantized ties
+w       usage trust: w_up = max(α·O, ramp), w_down = ramp,
+          ramp = O_rep · min((cap/L*)², r_now), LINE-anchored (the line's
+          representative — best first-meaningful tier — sets ONE w for every
+          form in the line, each blended against its OWN prior)
+O       readiness gate ∈ {0, BABY, MIDEVO, NEAR, 1} from concrete facts
+α       usage influence floor — upside-only, gated by O, never sovereign
+K       investment friction — build friction only by default (delayed-
+        evolution builds); acquisition friction (evolution requirements)
+        defaults to 0 and is shown as information (see changelog:
+        "Acquisition friction zeroed")
+F       near-future option value — computed, shown, NEVER added to V
 ```
+
+At ramp = 0 (early game, or a fielded form that is not the line's usage
+representative) this reduces to the historic V0 shape
+`C + α·O·[U − C]₊ + bias − K`: usage upside-only, caution fully priced. As
+the canonical competitive set assembles, the earned ramp blends the score
+toward the usage prior — at w = 1 the score IS the prior (+ bias).
 
 Team value:
 
@@ -46,8 +67,12 @@ A(member, type) = min(1, best real hit into type / stage reference hit)
 
 Invariants the shape encodes (each guarded by fixtures):
 
-1. **Usage is upside-only** — reputation can lift a mon toward its ceiling,
-   never drag down a mon that outperforms it now (`[U − C]₊`).
+1. **Unearned usage is upside-only** — the α·O floor can lift a mon toward
+   its ceiling but never drag down a mon that outperforms it now
+   (`[U_rank − C]₊`); only the EARNED ramp (a fielded representative whose
+   canonical set is actually assembling) may blend an over-performing C down
+   toward the prior. And usage is never sovereign: no boolean usage gate may
+   override score (see "usage sovereignty removed").
 2. **A famous ceiling cannot carry a body that can't express it** — the O gate;
    a pre-evo that can't deal stage-real damage is a baby (`happiny-swap`,
    `weak-shell`, `high-ceiling-babies`).
@@ -69,7 +94,7 @@ Invariants the shape encodes (each guarded by fixtures):
   every default, sweepable via `setScoringOverrides`). Anything not in that
   file is a mechanical observation, not a preference.
 - **C features/roles**: `src/teamBuilder/currentFormValue.js`
-- **V assembly, U, O, bias**: `src/teamBuilder/candidateScoring.js`
+- **V assembly, U_rank, ramp, O, bias**: `src/teamBuilder/candidateScoring.js`
 - **Team coverage/defense**: `src/teamBuilder/searchKernel.js`
 - **Evolution legality + friction**: `src/reborn/evolutionRequirements.js`,
   surfaced through `src/reborn/currentSpecies.js`
@@ -1720,3 +1745,54 @@ Invariants the shape encodes (each guarded by fixtures):
   constants change. The team-panel blurb says "evolution requirements are
   shown as information, never priced". RESULT_CACHE_VERSION 25→26.
   Golden drift audited below the entry's commit.
+- **Scoring V0 retired: the usage-convergence blend is the only model**
+  (user ruling, as preparation for Pokémon Rejuvenation support: "v1 has
+  been thoroughly tested and seems pretty sane"). The blend had been the
+  app default since Phase 2, with V0 kept behind an A/B toggle; carrying
+  two shapes into a second game doubles every golden, every cache
+  signature, and every "which model was this scored under?" question, so
+  V0 goes first. Removed: the V0 formula branch in candidateScoring, the
+  USAGE_MODEL tunable + setActiveUsageModel session global, the UI toggle
+  (the usage-trust tooltip moved to the Optimize button), the scoringModel
+  option/plumbing through optimizer → investment → post-analysis, the
+  gamestate-export field (old backups importing the retired field are
+  accepted and the field ignored — pinned by test), and the per-model cache
+  signature suffix. This file renamed SCORING_V0.md → SCORING.md; the
+  header now states the blend as THE shape (invariant 1 reworded: the
+  UNEARNED α·O floor is upside-only; earned convergence may drag down —
+  the semantics ratified at Phase 2). Goldens regenerated under the blend
+  in this commit — the former V0 goldens now carry blend scores (the
+  v1-midgame-broad dual golden retired as redundant; the new midgame-broad
+  golden equals it, which is the audit that nothing changed but the
+  default). RESULT_CACHE_VERSION 26→27, SCORING_VERSION 1.0.0→2.0.0.
+  Retiring the toggle exposed the V0-pinned fixtures to the blend. Two
+  consequences, audited:
+  1. *high-utility-low-offense reframed (PENDING USER RULING)*: under the
+     blend Shuckle seats in that badge-1 pool (score 1293: C = 1010 after
+     the hardened non-passive floor — it passes the can-act test at
+     damage_q 0.34 — plus a +283 α·O floor lift because U_rank values its
+     3.03% shallow-tier webs usage at ~top-of-scale, where V0's smoother
+     ceiling gave ~+165). The old mustNotSeat verdict was ALSO protected
+     by V0 scoring of the competition: Raticate held the contested seat
+     at ~1340, and the blend's ratified earned drag (Dodrio law)
+     collapses early-complete empty-prior lines — Raticate w = 0.5 at
+     cap 25 → 670. Both forces are design, not bugs, and this is what
+     the live app (blend default) has done since Phase 2. The fixture
+     now asserts what invariant 7 still guarantees — the genuine threats
+     (Growlithe/Ponyta/Voltorb/Zubat) all seat; Shuckle may take a
+     marginal seat but cannot bench a real attacker's slot below them —
+     with the mustNotSeat pin retired pending an explicit ruling. An
+     attempted uniform counter-fix (unearned floor lifts toward the
+     smooth ceiling, fading with w) was measured insufficient (Shuckle
+     1293→1161, still seats over Doduo 1128 because Raticate stays
+     collapsed) and reverted rather than stacked.
+  2. *Swap-polish regret miss re-planted*: the blend ranks
+     early-weak-froakie's exact six at the top at every legal shortlist
+     size, so the planted miss moved to midgame-broad at size 6 (one
+     seat off; one strictly-improving swap recovers the exact optimum).
+  Observed and deferred for a ruling: a fully-converged line whose prior
+  is EMPTY (never meaningfully used anywhere, tierRank = totalTiers)
+  collapses to ~0 and can field its base form on trace tie-breaks
+  (late-broad-froakie now pins Rattata fielded over Raticate at w = 1,
+  both ~0) — pre-existing live-app behavior, now visible in a golden;
+  flagged rather than silently patched.

@@ -22,7 +22,6 @@ import { normalizeName } from "./nameUtils";
 import {
   tunable,
   scoringOverridesSignature,
-  setActiveUsageModel,
 } from "./scoringConstants.js";
 import { utilityTagVector } from "./currentFormValue.js";
 import {
@@ -137,12 +136,17 @@ const MAX_RESULT_CACHE = 400;
 // render as receipts and access gates still block, but friendship/item/
 // trade/time K no longer moves scores. DELAYED_EVO_FRICTION kept (an in-run
 // strength cost, not out-of-game grind).
+// v27: scoring V0 retired (user ruling, Rejuvenation prep: "v1 has been
+// thoroughly tested and seems pretty sane") — the usage-convergence blend is
+// the only model; the UI toggle, the scoringModel option, and the per-model
+// cache signature suffix are gone, so every pre-v27 entry (v0- or v1-scored)
+// must retire rather than answer a run that can no longer say which it was.
 //
 // NOTE: results now persist their post-analysis (confidence sweep +
 // investment plan) alongside the team — a change to the sweep grid, its
 // contender selection, or the investment projection is ALSO an output
 // change and needs a bump, even when the team itself is untouched.
-const RESULT_CACHE_VERSION = "26";
+const RESULT_CACHE_VERSION = "27";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the
@@ -181,11 +185,6 @@ export async function optimizeTeamFromPool({
   selection,
   onProgress,
   exhaustive = true,
-  // "v1" opts this run into the usage-convergence blend (SCORING_V1); the
-  // frozen defaults stay V0 so goldens and tests are untouched unless a test
-  // opts in itself. Folded into every cache signature via
-  // scoringOverridesSignature().
-  scoringModel = null,
   // "fast" is for background projections (the investment plan's future-cap
   // runs): line scores stay exact — they never depend on the search — but the
   // team search runs shortlist-budget with no bench-swap ranking, and the run
@@ -198,7 +197,6 @@ export async function optimizeTeamFromPool({
   searchMode = "full",
 }) {
   const fastMode = searchMode === "fast";
-  setActiveUsageModel(scoringModel);
   const setupStart = Date.now();
   const groups = buildInputGroups(query, pokemonIndex);
   const total = groups.length;
@@ -621,7 +619,7 @@ async function resolvePoolLine({
     }),
   );
 
-  // SCORING_V1, user law (Doduo/Dodrio report): usage trust (w) is a property
+  // User law (Doduo/Dodrio report): usage trust (w) is a property
   // of the LINE, anchored to its representative — the form with the best
   // first-meaningful tier (higher usage % breaks ties; FEAR-class pre-evos
   // win this legitimately). Every form then blends under that SAME w against
@@ -1106,7 +1104,7 @@ async function resolveCandidateBuilds({
     : { friction: 0, steps: [], blocked: [] };
 
   // Canonical-set readiness (Phase 1) — a property of the LINE, shared by
-  // every build variant. Display-only under V0; SCORING_V1's w ramp reads it.
+  // every build variant. Feeds the readiness badges and the w ramp.
   const setReadiness = computeSetReadiness({
     legalMoveData,
     availableMoves: moves,

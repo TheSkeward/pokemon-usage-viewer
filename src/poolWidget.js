@@ -66,7 +66,6 @@ import {
 const POOL_STORAGE_KEY = "pokemon-usage-viewer:owned-pool:v1";
 const TEAM_SORT_STORAGE_KEY = "pokemon-usage-viewer:pool-team-sort:v1";
 const TEAM_SORT_DIR_STORAGE_KEY = "pokemon-usage-viewer:pool-team-sort-dir:v1";
-const SCORING_MODEL_STORAGE_KEY = "pokemon-usage-viewer:scoring-model:v1";
 const POST_ANALYSIS_MAX_POOL_SIZE = 80;
 const POST_ANALYSIS_MAX_BUILDS = 200;
 
@@ -90,9 +89,6 @@ export function mountPoolOptimizer(container, options = {}) {
     // a ladder stat, informative but not the seating order.
     teamSort: getParam("teamSort") || loadSavedTeamSort() || "score",
     teamSortDir: getParam("teamSortDir") || loadSavedTeamSortDir() || "desc",
-    // A/B: "v1" = usage-convergence blend (default), "v0" = frozen model.
-    scoringModel:
-      readLocalStorage(SCORING_MODEL_STORAGE_KEY, "") === "v0" ? "v0" : "v1",
     result: null,
     resultProgressionKey: "",
     loading: false,
@@ -195,11 +191,7 @@ export function mountPoolOptimizer(container, options = {}) {
       // Snapshot the inputs this run is actually computed against. The key
       // used to be stamped from live state AFTER the await, so an edit made
       // mid-optimize marked the old-input result as fresh.
-      const runScoringModel = state.scoringModel;
-      const runProgressionKey = getProgressionKey(
-        state.progression,
-        runScoringModel,
-      );
+      const runProgressionKey = getProgressionKey(state.progression);
 
       const result = await optimizeTeamFromPool({
         availability,
@@ -213,7 +205,6 @@ export function mountPoolOptimizer(container, options = {}) {
         // search; only background auto-reoptimize accepts the fast approximation
         // when the pool is too large to enumerate exactly.
         exhaustive,
-        scoringModel: runScoringModel,
       });
       if (runToken !== optimizeRunToken) return;
       state.result = result;
@@ -291,7 +282,6 @@ export function mountPoolOptimizer(container, options = {}) {
         pipelineStart,
         phases,
         totalMs,
-        scoringModel: runScoringModel,
         // Background-triggered runs (page load, auto-reoptimize, import) must
         // never PAY for post-analysis — see the deferral in runPostAnalysis.
         background,
@@ -421,11 +411,6 @@ export function mountPoolOptimizer(container, options = {}) {
         query: state.query,
         selection: state.selection,
         result: forResult,
-        // The future-cap runs must score under the SAME model as forResult:
-        // omitting this reset the session model to V0 mid-run and compared
-        // V1 now-scores against V0 future-scores (phantom ~+400 "gains" on
-        // converged lines).
-        scoringModel: pipeline?.scoringModel ?? state.scoringModel,
         shouldAbort: () => sweepAbortRequested || state.result !== forResult,
         // Progressive: render the first future cap's plan as soon as it
         // lands (marked partial in the panel) instead of sitting on it
@@ -979,19 +964,6 @@ export function mountPoolOptimizer(container, options = {}) {
       });
 
     app
-      .querySelector("#scoring-model-select")
-      ?.addEventListener("change", (event) => {
-        state.scoringModel = event.target.value === "v0" ? "v0" : "v1";
-        writeLocalStorage(SCORING_MODEL_STORAGE_KEY, state.scoringModel);
-        const stale = markResultProgressionStale();
-        updateProgressionStatusMessage(
-          `Scoring model: ${state.scoringModel === "v0" ? "V0 (frozen)" : "V1 (usage-convergent)"}.`,
-        );
-        render();
-        scheduleAutoReoptimize(stale);
-      });
-
-    app
       .querySelector("#copy-pool-button")
       ?.addEventListener("click", async () => {
         await copyPool();
@@ -1018,7 +990,6 @@ export function mountPoolOptimizer(container, options = {}) {
             buildGamestateExport({
               query: state.query,
               progression: state.progression,
-              scoringModel: state.scoringModel,
             }),
           ],
           { type: "application/json" },
@@ -1061,8 +1032,6 @@ export function mountPoolOptimizer(container, options = {}) {
         }
         state.query = imported.pool;
         savePool(state.query);
-        state.scoringModel = imported.scoringModel;
-        writeLocalStorage(SCORING_MODEL_STORAGE_KEY, state.scoringModel);
         // Round-trip the imported progression through the normal save/load
         // path so it gets the same normalization (terrain-seed migration,
         // count clamps, unknown-field drops) as any other stored state.
@@ -1497,8 +1466,7 @@ export function mountPoolOptimizer(container, options = {}) {
     return Boolean(
       state.result &&
         state.resultProgressionKey &&
-        state.resultProgressionKey !==
-          getProgressionKey(state.progression, state.scoringModel),
+        state.resultProgressionKey !== getProgressionKey(state.progression),
     );
   }
 
@@ -1616,13 +1584,12 @@ function waitForPaint() {
   });
 }
 
-function getProgressionKey(progression, scoringModel = "") {
+function getProgressionKey(progression) {
   // Ordinary owned items drive item recommendations (recomputed every render),
   // not the team optimization, so they must not flag an optimized team as
   // stale. Owned EVOLUTION items are the exception: they zero evolution
   // friction and override access gates, so adding/removing one must
-  // re-optimize. The scoring-model choice (V0/V1) re-scores everything, so it
-  // is part of the key.
+  // re-optimize.
   const { ownedItems, ...rest } = progression || {};
   const evolutionItems = {};
   for (const id of getEvolutionItemIds()) {
@@ -1632,7 +1599,7 @@ function getProgressionKey(progression, scoringModel = "") {
   // and progression objects are built by several helpers — two equal
   // progressions with different field orders would spuriously flag the team
   // stale (never the reverse, but noise erodes trust in the warning).
-  return stableKeyStringify({ ...rest, evolutionItems, scoringModel });
+  return stableKeyStringify({ ...rest, evolutionItems });
 }
 
 function stableKeyStringify(value) {

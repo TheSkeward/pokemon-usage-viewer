@@ -1,15 +1,15 @@
 // Gamestate backup (user ask: "this should be a quick fix... I prefer the
 // version with a downloadable file"). Everything that defines a playthrough
-// lives in localStorage — the pool text, the full Reborn progression
-// (badge/caps, TM/tutor checks, item inventory, evolution access, bias), and
-// the scoring model — and localStorage is one browser-data clear away from
-// gone. This module is the pure serialize/parse half; the widget wires it to
-// a download link and a file picker.
+// lives in localStorage — the pool text and the full Reborn progression
+// (badge/caps, TM/tutor checks, item inventory, evolution access, bias) —
+// and localStorage is one browser-data clear away from gone. This module is
+// the pure serialize/parse half; the widget wires it to a download link and
+// a file picker.
 
 const FORMAT = "pokemon-usage-viewer-gamestate";
 const VERSION = 1;
 
-export function buildGamestateExport({ query, progression, scoringModel }) {
+export function buildGamestateExport({ query, progression }) {
   return JSON.stringify(
     {
       format: FORMAT,
@@ -17,18 +17,19 @@ export function buildGamestateExport({ query, progression, scoringModel }) {
       exportedAt: new Date().toISOString(),
       pool: String(query || ""),
       progression: progression || {},
-      scoringModel: scoringModel === "v0" ? "v0" : "v1",
     },
     null,
     2,
   );
 }
 
-// Parses an export back into {pool, progression, scoringModel}; throws with
-// a human-readable message on anything that isn't a gamestate file. The
-// progression object is passed through as-is — the caller routes it through
-// the normal save/load path so normalizeRebornProgression sanitizes it the
-// same way it sanitizes every other stored progression.
+// Parses an export back into {pool, progression}; throws with a
+// human-readable message on anything that isn't a gamestate file. Old
+// exports carry a scoringModel field (the retired V0/V1 toggle) — ignored,
+// not an error, so every v1-format backup still restores. The progression
+// object is passed through as-is — the caller routes it through the normal
+// save/load path so normalizeRebornProgression sanitizes it the same way it
+// sanitizes every other stored progression.
 export function parseGamestateImport(text) {
   let parsed;
   try {
@@ -53,7 +54,6 @@ export function parseGamestateImport(text) {
   return {
     pool: parsed.pool,
     progression: parsed.progression,
-    scoringModel: parsed.scoringModel === "v0" ? "v0" : "v1",
   };
 }
 

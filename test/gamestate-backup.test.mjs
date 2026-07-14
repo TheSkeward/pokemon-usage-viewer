@@ -8,7 +8,7 @@ import {
   parseGamestateImport,
 } from "../src/teamBuilder/gamestateBackup.js";
 
-test("export/import round-trips pool, progression, and scoring model", () => {
+test("export/import round-trips pool and progression", () => {
   const progression = {
     checkpoint: "badge-8",
     levelCap: "45",
@@ -20,18 +20,24 @@ test("export/import round-trips pool, progression, and scoring model", () => {
   const text = buildGamestateExport({
     query: "Froakie\nOnix (Sturdy)\nSpearow",
     progression,
-    scoringModel: "v0",
   });
   const back = parseGamestateImport(text);
   assert.equal(back.pool, "Froakie\nOnix (Sturdy)\nSpearow");
   assert.deepEqual(back.progression, progression);
-  assert.equal(back.scoringModel, "v0");
+});
 
-  // Defaulting: anything that isn't the frozen model reads as v1.
-  const v1 = parseGamestateImport(
-    buildGamestateExport({ query: "", progression: {}, scoringModel: "weird" }),
-  );
-  assert.equal(v1.scoringModel, "v1");
+test("old exports carrying the retired scoringModel field still import", () => {
+  const old = JSON.stringify({
+    format: "pokemon-usage-viewer-gamestate",
+    version: 1,
+    pool: "Froakie",
+    progression: { levelCap: "20" },
+    scoringModel: "v0",
+  });
+  const back = parseGamestateImport(old);
+  assert.equal(back.pool, "Froakie");
+  assert.deepEqual(back.progression, { levelCap: "20" });
+  assert.ok(!("scoringModel" in back), "retired field must not round-trip");
 });
 
 test("parser rejects non-gamestate input with readable messages", () => {

@@ -1,17 +1,18 @@
-// THE single home for every tunable preference in the scoring model ("frozen
-// v0" policy — see SCORING_V0.md). Mechanical observations (stats, types, move
-// data) live in the data layer; everything here is a JUDGEMENT with a default,
-// and every judgement is sweepable by the confidence layer.
+// THE single home for every tunable preference in the scoring model (see
+// SCORING.md). Mechanical observations (stats, types, move data) live in the
+// data layer; everything here is a JUDGEMENT with a default, and every
+// judgement is sweepable by the confidence layer.
 //
 // Change policy: a default here only moves when a regression fixture or an
-// explicit roadmap item justifies it, and SCORING_V0.md's changelog records why.
+// explicit roadmap item justifies it, and SCORING.md's changelog records why.
 //
 // Override API: reads go through tunable(key). The confidence sweep (and tests)
 // set a plain object of overrides; production never sets one, so defaults apply.
 // Hot loops (searchKernel) snapshot values once per search in prepareFitScoring
 // rather than calling tunable() per team.
 
-export const SCORING_VERSION = "1.0.0";
+// 2.0.0: scoring V0 retired — the usage-convergence blend is the sole model.
+export const SCORING_VERSION = "2.0.0";
 
 export const SCORING_DEFAULTS = Object.freeze({
   // --- Individual value: V = C + α·O·[U−C]₊ + bias − K ----------------------
@@ -89,10 +90,8 @@ export const SCORING_DEFAULTS = Object.freeze({
   // --- Ability assumption (when the caught mon's ability is unknown) ----------
   ABILITY_ASSUMPTION: "primary", // "secondary" flips unknown mons for the sweep
 
-  // --- SCORING_V1: usage-convergence blend (Phase 2; see SCORING_V0.md) -------
-  // Selected per run (UI toggle → setActiveUsageModel), never a default:
-  // the frozen defaults keep every V0 golden byte-stable.
-  USAGE_MODEL: "v0",
+  // --- Usage-convergence blend (formerly SCORING_V1, now the sole model;
+  // see SCORING.md — V0 retired as Rejuvenation prep) -------------------------
   USAGE_RAMP_EXPONENT: 2, // w ramps as (cap/L*)^k — back-loaded handoff
   // Tier dominance: strictly greater than any possible usage % (100), so a
   // shallower first-meaningful tier ALWAYS outranks any within-tier usage.
@@ -142,17 +141,7 @@ export const SCORING_DEFAULTS = Object.freeze({
 export function tunable(key) {
   const overrides = globalThis.__SCORING_OVERRIDES__;
   if (overrides && key in overrides) return overrides[key];
-  // The scoring model is a SESSION selection (UI toggle), deliberately outside
-  // the overrides object so the confidence sweep's setScoringOverrides calls
-  // can't silently reset it mid-run.
-  if (key === "USAGE_MODEL" && activeUsageModel) return activeUsageModel;
   return SCORING_DEFAULTS[key];
-}
-
-let activeUsageModel = null;
-
-export function setActiveUsageModel(model) {
-  activeUsageModel = model === "v1" ? "v1" : null;
 }
 
 export function setScoringOverrides(overrides) {
@@ -168,12 +157,9 @@ export function getScoringOverrides() {
 // a sweep or a test never poisons the production caches (and vice versa).
 export function scoringOverridesSignature() {
   const overrides = globalThis.__SCORING_OVERRIDES__;
-  const model = activeUsageModel ? `|model=${activeUsageModel}` : "";
-  if (!overrides) return `base${model}`;
-  return (
-    Object.keys(overrides)
-      .sort()
-      .map((key) => `${key}=${overrides[key]}`)
-      .join(",") + model
-  );
+  if (!overrides) return "base";
+  return Object.keys(overrides)
+    .sort()
+    .map((key) => `${key}=${overrides[key]}`)
+    .join(",");
 }

@@ -17,22 +17,26 @@ export const MIN_MEANINGFUL_USAGE_PERCENT = tunable(
 );
 
 // ---------------------------------------------------------------------------
-// Individual value model (frozen v0 shape — see SCORING_V0.md):
+// Individual value model (the usage-convergence blend, formerly SCORING_V1 —
+// the sole model since V0's retirement; see SCORING.md):
 //
-//     V = C + α·O·[U − C]₊ + bias − K      (F is computed but NOT spent here)
+//     V = C + w_up·[U_rank − C]₊ − w_down·[C − U_rank]₊ + bias
+//         − (1 − w_down)·(K + ability)          (F is computed but NOT spent)
 //
-//   C  current-form usefulness (currentFormValue.js) — role-based, stage-
-//      relative, usage-independent. On a [0, CURRENT_VALUE_SCALE] scale.
-//   U  the line's competitive ceiling, from usage/tier, on the SAME scale as C.
-//   O  online/readiness gate in [0,1]: how much the fielded form resembles the
-//      final competitive form (1 = you ARE it, ~0 = a baby that only promises it).
-//   α  how much competitive usage may matter even when fully online.
-//   K  investment friction: evolution requirements (friendship/item/time) plus
-//      build friction (e.g. a move that requires delaying evolution).
+//   C       current-form usefulness (currentFormValue.js) — role-based, stage-
+//           relative, usage-independent. On a [0, CURRENT_VALUE_SCALE] scale.
+//   U_rank  the usage prior as a tier-dominant rank scalar on C's scale.
+//   w       usage trust: w_up = max(α·O, ramp), w_down = ramp — the earned
+//           part (the ramp: how complete the canonical set is) blends fully
+//           and can drag an over-performing C down toward the prior; the α·O
+//           floor stays upside-only. At full convergence (w = 1) the score IS
+//           the usage prior (+ bias); at ramp = 0 it reduces to the historic
+//           V0 shape: C + α·O·[U − C]₊ + bias − K.
+//   O       online/readiness gate in [0,1]: how much the fielded form
+//           resembles the final competitive form.
+//   K       build friction (delayed-evolution builds); acquisition friction
+//           defaults to 0 — see SCORING.md "Acquisition friction zeroed".
 //
-// [U − C]₊ makes usage upside-only: it can lift a pre-evo toward its famous
-// ceiling but never drag down a mon already outperforming its reputation now.
-// Gated by O, so a high ceiling can't carry a body that can't express it.
 // All judgement constants live in scoringConstants.js and are sweepable.
 const ONLINE_FINAL = 1.0;
 const ONLINE_DEAD = 0.0;
@@ -45,7 +49,7 @@ export function scoreCandidate({
   legalityProfile,
   levelCap = 0,
   opponentTypeBias,
-  // SCORING_V1: the line-anchored usage trust (see comment at the use site).
+  // The line-anchored usage trust (see comment at the use site).
   lineRamp = null,
 }) {
   const usage = bundle?.usage;
@@ -74,18 +78,17 @@ export function scoreCandidate({
   const current = currentFormValue(legalityProfile, levelCap);
   const currentValue = current.value;
 
-  // U — competitive ceiling on C's scale.
+  // Ceiling — a smooth tier+usage blend on C's scale. Not part of V (U_rank
+  // is the scored prior); it feeds the display-only future value below and
+  // is surfaced per candidate for the investment/explanation layers.
   const ceiling = usageCeiling(rank);
 
   // O — how much the fielded form resembles the ceiling form.
   const online = getReadinessGate(legalityProfile, current.features);
 
-  // Usage pulls C toward the ceiling: gated by O, capped by α, upside-only.
   const alpha = tunable("USAGE_INFLUENCE");
   const headroom = Math.max(0, ceiling - currentValue);
-  const usagePull = alpha * online * headroom;
 
-  // --- SCORING_V1 (usage-convergence blend, Phase 2) ------------------------
   // w ramps with how far the canonical competitive set is toward complete.
   // `lineRamp` (the optimizer's line-anchored w — computed from the LINE's
   // representative, the form with the best first-meaningful tier) is the
@@ -95,13 +98,8 @@ export function scoreCandidate({
   // Dodrio by keeping its raw C while Dodrio converged to its NU prior).
   // Callers without line context (display paths) fall back to this form's
   // own ramp.
-  const model = tunable("USAGE_MODEL");
   const ramp =
-    model === "v1"
-      ? lineRamp != null
-        ? lineRamp
-        : computeUsageRamp(legalityProfile, levelCap)
-      : 0;
+    lineRamp != null ? lineRamp : computeUsageRamp(legalityProfile, levelCap);
 
   // F — display-only near-future value; NOT added to V. The investment view
   // (Phase 9) owns "worth training toward"; selection judges the present.
@@ -135,30 +133,21 @@ export function scoreCandidate({
       ? Math.max(0, legalityProfile?.abilitySensitivity || 0)
       : 0;
 
-  // V0: V = C + α·O·[U−C]₊ + bias − K (usage upside-only, friction always).
-  // V1 generalizes it: the α·O floor stays upside-only, but the EARNED part of
-  // w (the ramp) blends fully — it can drag an over-performing C down toward
-  // the usage prior, and it melts friction/ability caution away, so at
-  // w_down = 1 the score IS the usage prior (+ bias):
-  //   V1 = C + w_up·[U−C]₊ − w_down·[C−U]₊ + bias − (1−w_down)·(K + ability)
-  // At ramp = 0 this is exactly the V0 shape (with U redefined to the
-  // tier-dominant rank scalar).
-  let value;
-  let usageWeight = 0;
-  if (model === "v1") {
-    const uRank = usageRankScore(rank, currentValue);
-    const wUp = Math.max(alpha * online, ramp);
-    const wDown = ramp;
-    usageWeight = wDown;
-    value =
-      currentValue +
-      wUp * Math.max(0, uRank - currentValue) -
-      wDown * Math.max(0, currentValue - uRank) +
-      biasScore -
-      (1 - wDown) * (friction + abilityPenalty);
-  } else {
-    value = currentValue + usagePull + biasScore - friction - abilityPenalty;
-  }
+  // The α·O floor stays upside-only, but the EARNED part of w (the ramp)
+  // blends fully — it can drag an over-performing C down toward the usage
+  // prior, and it melts friction/ability caution away, so at w_down = 1 the
+  // score IS the usage prior (+ bias). At ramp = 0 this reduces to the
+  // historic V0 shape (with U as the tier-dominant rank scalar).
+  const uRank = usageRankScore(rank, currentValue);
+  const wUp = Math.max(alpha * online, ramp);
+  const wDown = ramp;
+  const usageWeight = wDown;
+  const value =
+    currentValue +
+    wUp * Math.max(0, uRank - currentValue) -
+    wDown * Math.max(0, currentValue - uRank) +
+    biasScore -
+    (1 - wDown) * (friction + abilityPenalty);
 
   const meaningfulUsage =
     (usagePercent >= MIN_MEANINGFUL_USAGE_PERCENT && online >= onlineFloor) ||
@@ -180,20 +169,20 @@ export function scoreCandidate({
     rawCount,
     leadPercent,
     // First-meaningful-tier rank (lower = shallower tier), for consumers that
-    // need the usage-prior ordering itself (V1 convergence tests, displays).
+    // need the usage-prior ordering itself (convergence tests, displays).
     tierRank: rank.tierRank,
-    // V1 only: how much of the score is the usage prior (0 = pure V0 shape,
-    // 1 = fully converged). Exposed for the convergence/monotonicity tests
-    // and the explanation layer; always 0 under V0.
+    // How much of the score is the usage prior (0 = pure C shape, 1 = fully
+    // converged). Exposed for the convergence/monotonicity tests and the
+    // explanation layer.
     usageWeight,
   };
 }
 
-// SCORING_V1's w before the α·O floor:
+// The usage trust w before the α·O floor:
 //   ramp = O_rep · min((cap/L*)^k, r_now)
 // O_rep: only a fielded form that IS this profile's usage representative can
 // ramp — the usage prior describes THAT form; a deliberately unevolved
-// pre-evo keeps the V0 α·O treatment. L* comes from the Phase 1 readiness
+// pre-evo keeps the upside-only α·O treatment. L* comes from the Phase 1 readiness
 // schedule; r_now (canonical moves actually assembled) caps it so "reachable
 // but not picked up yet" never scores as done. Items influence w only through
 // L* — endgame items are purchasable at will, so an unowned Eviolite must not
@@ -229,7 +218,7 @@ export function computeUsageRamp(legalityProfile, levelCap) {
   return Math.min(schedule, rNow);
 }
 
-// SCORING_V1's U: a tier-dominant rank scalar on C's scale (user design).
+// U_rank: a tier-dominant rank scalar on C's scale (user design).
 //   U_rank = TIER_STEP·tierIndex + quantize(usage%) + ε·C
 // TIER_STEP (101) strictly exceeds any usage %, so a shallower
 // first-meaningful tier ALWAYS dominates within-tier usage; usage is
