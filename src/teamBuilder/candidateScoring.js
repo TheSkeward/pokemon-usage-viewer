@@ -215,24 +215,24 @@ export function scoreCandidate({
 // but not picked up yet" never scores as done. Items influence w only through
 // L* — endgame items are purchasable at will, so an unowned Eviolite must not
 // hold w below 1 at cap 100.
+// The id the player actually FIELDS to express an archetype: a mega
+// representative is fielded by fielding its BASE form (the mega happens in
+// battle, and currentSpecies never walks onto mega ids). Readiness — both O
+// and the w ramp — must judge the fielded form against this, or a
+// mega-anchored archetype reads as perpetually "near-final" (never online,
+// never converging) even when the base form is in hand.
+export function fieldableRepresentativeId(representativeId) {
+  if (!representativeId) return representativeId;
+  const record = GEN7_PROGRESSION_SPECIES[representativeId];
+  return record?.isMega ? record.baseSpeciesId || representativeId : representativeId;
+}
+
 export function computeUsageRamp(legalityProfile, levelCap) {
   const readiness = legalityProfile?.setReadiness || null;
-  // A mega representative is "fielded" by fielding its BASE form — the mega
-  // happens in battle, and currentSpecies never walks onto mega ids, so
-  // currentId can never literally equal a mega representativeId. Without the
-  // base-form equivalence a mega-anchored line could NEVER converge under V1
-  // (audit: Mega Lopunny anchors its line per the spec, so the whole line
-  // silently kept the V0 shape forever, even at cap 100 with a full set).
   const representativeId = legalityProfile?.representativeId;
-  const representativeRecord = representativeId
-    ? GEN7_PROGRESSION_SPECIES[representativeId]
-    : null;
-  const fieldableRepresentativeId = representativeRecord?.isMega
-    ? representativeRecord.baseSpeciesId || representativeId
-    : representativeId;
   const isRepresentativeForm =
     !representativeId ||
-    legalityProfile?.currentId === fieldableRepresentativeId;
+    legalityProfile?.currentId === fieldableRepresentativeId(representativeId);
   if (!readiness || !isRepresentativeForm) return 0;
 
   const cap = Math.max(1, Math.min(100, levelCap || 0));
@@ -351,7 +351,14 @@ function scoreOpponentTypeBias(opponentTypeBias, profile) {
 function getReadinessGate(profile, features) {
   const currentId = profile?.currentId;
   const representativeId = profile?.representativeId;
-  if (!currentId || !representativeId || currentId === representativeId) {
+  // Match against the FIELDABLE representative (mega → base): a base form in
+  // hand that megas in battle IS the competitive object, so it is online,
+  // not merely near-final. Consistent with computeUsageRamp.
+  if (
+    !currentId ||
+    !representativeId ||
+    currentId === fieldableRepresentativeId(representativeId)
+  ) {
     return ONLINE_FINAL;
   }
   if ((profile?.legalMoveCount || 0) === 0) return ONLINE_DEAD;
