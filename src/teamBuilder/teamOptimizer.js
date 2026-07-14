@@ -151,7 +151,11 @@ const MAX_RESULT_CACHE = 400;
 // investment plan) alongside the team — a change to the sweep grid, its
 // contender selection, or the investment projection is ALSO an output
 // change and needs a bump, even when the team itself is untouched.
-const RESULT_CACHE_VERSION = "28";
+// v29: Dream Eater is gated on the set carrying an opponent-sleep move (it
+// deals zero into a non-sleeping target); mega readiness gate fixed
+// (fieldableRepresentativeId). Damage-coverage builds that leaned on a
+// phantom Dream Eater lose it, shifting sets and scores where it appeared.
+const RESULT_CACHE_VERSION = "29";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the

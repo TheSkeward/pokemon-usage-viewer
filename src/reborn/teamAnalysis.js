@@ -693,24 +693,47 @@ function isDamagingMove(move) {
   );
 }
 
-// Snore only deals damage while the user is asleep, so it's a dead move unless
-// its own SET can put the user to sleep (Rest is the only reliable self-sleep
-// move). Callers pass the relevant context: the recommender passes the set
-// being built — Rest merely existing in the legal pool doesn't make Snore
-// usable in a set that didn't take Rest.
+// Sleep-conditional attacks are dead moves unless THIS SET can create the
+// sleep they rely on — the enabler merely existing in the legal pool doesn't
+// count. Callers pass the relevant context (the recommender passes the set
+// being built):
+//   Snore       needs the USER asleep      → a self-sleep move (Rest).
+//   Dream Eater needs the TARGET asleep    → a sleep-inducing move in the set;
+//               otherwise it lands for zero and must not read as coverage
+//               (user report: Meowstic's damage-coverage build was winning
+//               build-selection on a Dream Eater it can never fire).
 const SLEEP_GATED_DAMAGING_MOVE_IDS = new Set(["snore"]);
 const SELF_SLEEP_MOVE_IDS = new Set(["rest"]);
+const OPPONENT_SLEEP_GATED_DAMAGING_MOVE_IDS = new Set(["dreameater"]);
+// Reliable opponent-sleep moves (Yawn's delayed sleep counts — it still puts
+// the target under). Chip-accuracy or gimmick sleepers are included where they
+// exist in the Reborn movepools; this only needs to answer "can this set sleep
+// the target at all".
+const OPPONENT_SLEEP_MOVE_IDS = new Set([
+  "spore", "sleeppowder", "hypnosis", "sing", "grasswhistle", "lovelykiss",
+  "darkvoid", "yawn",
+]);
 
 function hasSelfSleepMove(moves) {
   return moves.some((move) => SELF_SLEEP_MOVE_IDS.has(move.id));
 }
+function hasOpponentSleepMove(moves) {
+  return moves.some((move) => OPPONENT_SLEEP_MOVE_IDS.has(move.id));
+}
 
-// Like isDamagingMove, but accounts for moveset-conditional attacks (Snore).
+// Like isDamagingMove, but accounts for moveset-conditional attacks (Snore,
+// Dream Eater).
 function isUsableDamagingMove(move, moves) {
   if (!isDamagingMove(move)) return false;
   if (
     SLEEP_GATED_DAMAGING_MOVE_IDS.has(move.id) &&
     !hasSelfSleepMove(moves)
+  ) {
+    return false;
+  }
+  if (
+    OPPONENT_SLEEP_GATED_DAMAGING_MOVE_IDS.has(move.id) &&
+    !hasOpponentSleepMove(moves)
   ) {
     return false;
   }
