@@ -57,9 +57,12 @@ test("absence law: converged dead lines collapse to their ~zero prior", async ()
   // fully assembled (w = 1) — the score must collapse toward the empty
   // prior even though the mechanical C stays substantial. (This is the
   // behavior that keeps Unown/Raticate-class verdicts honest.)
-  // Delibird would be the natural third pin but its trace-sourced canonical
-  // set is unassemblable in Reborn (0/4 moves ready even at badge 18), so
-  // its ramp never engages — a known follow-up finding.
+  // Delibird is deliberately NOT a pin here: its entire canonical set is
+  // egg moves, and egg-move readiness is pool-conditional by design (it
+  // needs chain parents IN THE POOL), so its ramp depends on which donors
+  // the test pool contains — with donor lines present it converges
+  // normally (verified: Sneasel/Squirtle donors flip Ice Shard/Rapid Spin
+  // to ready and w reaches 0.5).
   const result = await runPool({
     pool: ["Ledian", "Sunflora", "Arcanine"],
     progression: {

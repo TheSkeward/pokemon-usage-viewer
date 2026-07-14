@@ -1863,9 +1863,12 @@ Invariants the shape encodes (each guarded by fixtures):
   the RAMP (earned instance evidence), not the applied downward weight.
   The old endgame pairwise-order test is replaced by three class-based
   invariants: converged dead lines collapse (Sunflora/Ledian at cap 100
-  score < 15% of C; Delibird would be the third pin but its
-  trace-sourced canonical set is unassemblable in Reborn — 0/4 moves
-  ready at badge 18 — so its ramp never engages, a flagged follow-up),
+  score < 15% of C; Delibird is deliberately not the third pin — its
+  entire canonical set is EGG moves, and egg-move readiness is
+  pool-conditional by design ("needs a chain parent in your pool"), so
+  its ramp depends on which donors the test pool happens to contain —
+  verified: with donor lines present it converges normally, CORRECTING
+  this entry's earlier draft claim that the set was unassemblable),
   converged present-prior lines keep the (1 − cap)·C floor (Meowstic),
   and upward convergence still carries a famous line above its C
   (Aegislash 1372 → 1905; Arcanine instead demonstrates the mild
