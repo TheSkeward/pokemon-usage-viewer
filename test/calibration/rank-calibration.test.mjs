@@ -7,7 +7,8 @@
 //   - AMAZING mons ("universally agreed to be utterly cracked") are injected
 //     into EVERY bucket as their evolved forms — inputting "Excadrill" means
 //     the player OWNS an Excadrill; the app must trust that, not quietly
-//     evaluate Drilbur — and must rank in the pool's top score quartile.
+//     evaluate Drilbur — and must clear the rolling bucket's top-quartile
+//     score. Injected probes receive scores but never move that reference bar.
 //   - GARBAGE mons ("universally agreed to be hot garbage") wait until their
 //     own unlock bucket and must rank in the bottom quartile there.
 //   - Pools are ROLLING deltas (user refinement): badge N's pool is the mons
@@ -17,11 +18,11 @@
 //
 // Assertions are on SCORE RANK (score is sovereign), never on seating —
 // seating is coverage/team-context-dependent and three injected water types
-// can't all take chairs. Failures here are FINDINGS for a ruling, not bugs
-// to patch silently: each one is a new constraint on the floor/drag design
-// (see SCORING.md "Retire scoring V0" and the pinned Shuckle question).
+// can't all take chairs. This badge-bucket corpus is the scoring calibration
+// contract. Failures are findings to understand against the user's anchors,
+// not invitations to preserve an older scenario verdict.
 //
-// Deliberately NOT part of `npm run validate` (19 optimizer runs):
+// Run separately from the fast mechanical/correctness suite (19 optimizer runs):
 //   npm run validate:calibration
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -77,9 +78,15 @@ for (const badgeKey of Object.keys(buckets)) {
     );
 
     const scoreOf = (name) => bestChoice(result, name).score;
-    const scores = pool.map(scoreOf).sort((a, b) => a - b);
-    const q75 = quantile(scores, 0.75);
-    const q25 = quantile(scores, 0.25);
+    // The rolling bucket is the reference population. The amazing mons are
+    // injected probes: including them in the quantile would let the test
+    // subjects move their own bar and crowd one another out of a small
+    // bucket's top quartile. They still share this optimizer run, so excluding
+    // them from q75/q25 costs no extra resolution work. Poor anchors are never
+    // injected; when attainable they remain part of the bucket and its q25.
+    const referenceScores = bucket.map(scoreOf).sort((a, b) => a - b);
+    const q75 = quantile(referenceScores, 0.75);
+    const q25 = quantile(referenceScores, 0.25);
 
     const rankOf = (name) =>
       1 + pool.filter((other) => scoreOf(other) > scoreOf(name)).length;
@@ -88,7 +95,7 @@ for (const badgeKey of Object.keys(buckets)) {
 
     // Readable findings record, pass or fail.
     console.log(
-      `badge ${badge} (cap ${CAP[badge]}, ${pool.length} mons) q75=${Math.round(q75)} q25=${Math.round(q25)}\n` +
+      `badge ${badge} (cap ${CAP[badge]}, ${bucket.length} reference + ${injected.length} probes) q75=${Math.round(q75)} q25=${Math.round(q25)}\n` +
         `  amazing: ${AMAZING.map(describe).join("; ")}\n` +
         (GARBAGE.some((g) => bucket.includes(g))
           ? `  garbage: ${GARBAGE.filter((g) => bucket.includes(g)).map(describe).join("; ")}\n`

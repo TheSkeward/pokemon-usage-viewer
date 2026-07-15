@@ -1,6 +1,6 @@
 // Test harness that runs the REAL optimizer against the committed site data —
 // the same modules the browser runs, with fetch/localStorage shimmed to the
-// filesystem. Used by the golden-snapshot and scenario-fixture suites.
+// filesystem. Used by the badge-bucket calibration suite.
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

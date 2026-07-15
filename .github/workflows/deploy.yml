@@ -70,6 +70,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Keep deployment gated by the cheap mechanical/correctness suite. The
+      # badge corpus is a product-calibration instrument and may stay red while
+      # its findings are being resolved, so it is deliberately not a CI gate.
+      - name: Run fast tests
+        run: npm test
+
       # refresh:data rewrites BOTH trees (site-data/data JSON and the
       # src/generated/*.js modules); build:manifest must run after it so the
       # committed manifest's hashes/dataSignature describe the refreshed data.

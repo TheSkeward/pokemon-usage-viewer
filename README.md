@@ -44,10 +44,11 @@ npm run preview
 ## Useful Commands
 
 ```bash
-npm test               # fast unit tests
-npm run validate       # full optimizer validation suite; slower, run before commits
-npm run build:site     # manifest + Vite build + copied static data
-npm run refresh:data   # regenerate checked-in Smogon/Reborn-derived data
+npm test                       # fast mechanical/correctness tests
+npm run validate:calibration   # badge-bucket scorer calibration
+npm run e2e                    # browser-level smoke tests
+npm run build:site             # manifest + Vite build + copied static data
+npm run refresh:data           # regenerate checked-in Smogon/Reborn-derived data
 ```
 
 The app is fully static. Runtime data is checked in under `site-data/data/`,
@@ -68,7 +69,7 @@ src/setDetails/                Precomputed set-detail loading
 src/generated/                 Checked-in generated modules
 site-data/data/                Checked-in runtime JSON
 scripts/                       Data generation scripts
-test/                          Unit tests, validation scenarios, golden snapshots
+test/                          Fast correctness, E2E, and badge-anchor calibration
 ```
 
 The scoring model and its change policy are documented in `SCORING.md`.
