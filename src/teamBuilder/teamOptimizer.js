@@ -155,7 +155,12 @@ const MAX_RESULT_CACHE = 400;
 // deals zero into a non-sleeping target); mega readiness gate fixed
 // (fieldableRepresentativeId). Damage-coverage builds that leaned on a
 // phantom Dream Eater lose it, shifting sets and scores where it appeared.
-const RESULT_CACHE_VERSION = "29";
+// v30: attacker offense is per-build and additive (user: four good attacks
+// beat one) — damage_q = buildPeak·(1 − w·(1 − breadth)) over the build's OWN
+// recommended attacks, replacing the profile-global peak shared across all
+// builds. Scale-preserving (full coverage builds ≈ old peak); thin builds
+// drop, so build variants of a mon genuinely differentiate.
+const RESULT_CACHE_VERSION = "30";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the

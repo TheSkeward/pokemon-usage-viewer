@@ -37,7 +37,7 @@ export const CONFIDENCE_GRID = [
   { key: "coverage-scale-low", overrides: { COVERAGE_SCALE: 80 } },
   { key: "coverage-scale-high", overrides: { COVERAGE_SCALE: 150 } },
   { key: "portfolio-off", overrides: { PORTFOLIO_WEIGHT: 0 } },
-  { key: "portfolio-heavy", overrides: { PORTFOLIO_WEIGHT: 0.25 } },
+  { key: "portfolio-heavy", overrides: { PORTFOLIO_WEIGHT: 0.5 } },
   { key: "utility-strict", overrides: { UTILITY_ROLE_WEIGHT: 0.55 } },
   { key: "utility-generous", overrides: { UTILITY_ROLE_WEIGHT: 0.9 } },
   {

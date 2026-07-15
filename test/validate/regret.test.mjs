@@ -45,15 +45,14 @@ test("swap-polish repairs a shortlist miss back to the exact optimum", async () 
   // At tiny forced shortlist sizes the heuristics provably miss a seat —
   // the team-context blind spot the audit exists for. The polish must (a)
   // detect it — swaps recorded with attribution — and (b) repair it all the
-  // way back to the true exact team. Re-planted when the model changes: the
-  // usage-convergence defaults rank early-weak-froakie's exact six at the
-  // very top (no plantable miss there at any legal size), so the miss now
-  // lives in the midgame-broad pool at size 6 (measured: one seat off, one
-  // strictly-improving swap recovers the exact optimum; sizes 7-8 diverge
-  // by three seats — beyond the 1-swap audit's contract and far below the
-  // production SHORTLIST_MAX of 28). If a future improvement makes size 6
-  // lossless too, re-plant the miss rather than deleting the assert.
-  const fixture = loadFixture("midgame-broad");
+  // way back to the true exact team. Re-planted whenever the scoring model
+  // changes (the plantable pool/size is model-dependent): under the
+  // per-build additive-damage model the miss lives in the late-broad-froakie
+  // pool at size 6 (measured: shortlist misses, the polish records swaps and
+  // repairs all the way to the exact optimum; production SHORTLIST_MAX is 28,
+  // far above this). If a future change makes this lossless, re-plant the
+  // miss rather than deleting the assert.
+  const fixture = loadFixture("late-broad-froakie");
   const exact = await runPool({
     pool: fixture.pool,
     badge: fixture.badge,

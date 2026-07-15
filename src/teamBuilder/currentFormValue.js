@@ -255,28 +255,38 @@ export function currentFormFeatures(profile, levelCap) {
   const softRate = tunable("DAMAGE_SOFT_RATE");
   const soft = (d) => 1 - Math.exp(-softRate * (d / ref));
 
+  // The nonPassive gate ("can this mon threaten anything at all") uses the
+  // mon's GLOBAL best attack — build-independent, so a support build keeps
+  // its utility roles even when it personally runs few attacks.
   const peakDamage = Math.max(
     profile?.bestStabMove?.estimatedDamage || 0,
     profile?.bestDamagingMove?.estimatedDamage || 0,
   );
   const peak_damage_q = soft(peakDamage);
 
-  const portfolio = (profile?.recommendedMoves || [])
+  // Attacker-role offense is PER-BUILD and ADDITIVE (user: a build with four
+  // good attacks beats a build with one). The build's OWN best attack is the
+  // ceiling; its SECONDARY attacks fill a bounded breadth factor via noisy-OR,
+  // so each extra attack adds less and breadth can never push past the peak
+  // threat. A thin build pays a penalty down to (1 − PORTFOLIO_WEIGHT) of its
+  // peak; a full coverage build sits at its peak. SCALE-PRESERVING: the top of
+  // the distribution is unchanged from the old peak-dominated form (a full set
+  // ≈ peak), so only thin builds move — which is exactly what differentiates a
+  // coverage build from a support build of the same mon (the support build's
+  // attacker role drops, letting its utility role win the role max). Was:
+  // (1−w)·globalPeak + w·(mean top-3 damage), which shared one global peak
+  // across every build and barely differentiated them.
+  const attackQ = (profile?.recommendedMoves || [])
     .filter((m) => m.category !== "Status" && (m.estimatedDamage || 0) > 0)
-    .map((m) => m.estimatedDamage)
-    .sort((a, b) => b - a)
-    .slice(0, 3);
-  // Fixed 3-slot denominator: a set with fewer real attacks pays for its thin
-  // offense instead of averaging it away (otherwise a 2-attack utility build
-  // weakly dominates the standard set by dropping its weakest attack).
-  const portfolio_q = portfolio.length
-    ? portfolio.map(soft).reduce((a, b) => a + b, 0) / 3
-    : 0;
-
-  // Attacker damage leans mostly on the peak hit plus a small, capped portfolio
-  // term — "one role" doesn't mean "one move", but breadth must not dominate peak.
+    .map((m) => soft(m.estimatedDamage))
+    .sort((a, b) => b - a);
+  const buildPeak = attackQ[0] || 0;
+  const breadth =
+    attackQ.length > 1
+      ? 1 - attackQ.slice(1).reduce((p, d) => p * (1 - d), 1)
+      : 0;
   const w = tunable("PORTFOLIO_WEIGHT");
-  const damage_q = (1 - w) * peak_damage_q + w * portfolio_q;
+  const damage_q = buildPeak * (1 - w * (1 - breadth));
 
   const cr = capRefs(levelCap);
   const speed_q = stagePercentile(speedOf(currentId), SPEED_REF, cr.speed);

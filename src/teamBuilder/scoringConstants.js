@@ -34,7 +34,10 @@ export const SCORING_DEFAULTS = Object.freeze({
 
   // --- C: current-form value --------------------------------------------------
   CURRENT_VALUE_SCALE: 2000, // points scale shared by C and U
-  PORTFOLIO_WEIGHT: 0.15, // attacker damage_q = (1−w)·peak + w·top-3 portfolio
+  // Attacker offense is per-build & additive: damage_q = buildPeak·(1 − w·(1 −
+  // breadth)). w is the THINNESS PENALTY DEPTH — a one-attack build scores
+  // (1−w)·peak, a full coverage build sits at peak (see currentFormValue).
+  PORTFOLIO_WEIGHT: 0.3,
   UTILITY_ROLE_WEIGHT: 0.75, // utility roles score below attacker roles
   REACHABLE_BLEND: 0.5, // speed/bulk percentiles: global vs reachable-at-cap
   DAMAGE_SOFT_RATE: 1.2, // soft saturation rate of damage_q
