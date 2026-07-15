@@ -140,13 +140,15 @@ export function scoreCandidate({
   // evolution-chain friction for profiles built elsewhere (display paths).
   const friction =
     (legalityProfile?.frictionCost ??
-      evolutionChainProof(legalityProfile?.currentId).friction) *
+      evolutionChainProof(
+        legalityProfile?.fieldedId || legalityProfile?.currentId,
+      ).friction) *
     tunable("FRICTION_SCALE");
 
   // If the caught mon's ability is unknown and the sweep asks "what if it has the
   // secondary ability?", subtract the build's measured sensitivity (V under
-  // primary minus V under secondary, damage-derived; 0 when ability is known or
-  // the build is ability-insensitive).
+  // primary minus V under secondary, including damage and priority utility;
+  // 0 when ability is known or the build is ability-insensitive).
   const abilityPenalty =
     tunable("ABILITY_ASSUMPTION") === "secondary"
       ? Math.max(0, legalityProfile?.abilitySensitivity || 0)
@@ -230,9 +232,10 @@ export function fieldableRepresentativeId(representativeId) {
 export function computeUsageRamp(legalityProfile, levelCap) {
   const readiness = legalityProfile?.setReadiness || null;
   const representativeId = legalityProfile?.representativeId;
+  const fieldedId = legalityProfile?.fieldedId || legalityProfile?.currentId;
   const isRepresentativeForm =
     !representativeId ||
-    legalityProfile?.currentId === fieldableRepresentativeId(representativeId);
+    fieldedId === fieldableRepresentativeId(representativeId);
   if (!readiness || !isRepresentativeForm) return 0;
 
   const cap = Math.max(1, Math.min(100, levelCap || 0));
@@ -349,7 +352,7 @@ function scoreOpponentTypeBias(opponentTypeBias, profile) {
 // ONLINE_JITTER (sweep axis) shifts every non-final judgement one category, so
 // the confidence layer can ask "what if my gate calls are one notch off?".
 function getReadinessGate(profile, features) {
-  const currentId = profile?.currentId;
+  const currentId = profile?.fieldedId || profile?.currentId;
   const representativeId = profile?.representativeId;
   // Match against the FIELDABLE representative (mega → base): a base form in
   // hand that megas in battle IS the competitive object, so it is online,

@@ -29,6 +29,7 @@ import { toId } from "../utils/ids.js";
 import { MAX_OPPONENT_TYPE_BIAS } from "./progression.js";
 import { getItemDamageMultiplier } from "./itemDamage.js";
 import { stageReferenceDamage } from "../teamBuilder/currentFormValue.js";
+import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
 
 export { REBORN_ANALYSIS_TYPES };
 
@@ -99,17 +100,27 @@ async function buildMemberLegalMoveEntry({
   itemAware = false,
 }) {
   const currentSpecies = getCurrentRebornSpeciesForChoice(row, progression);
+  const representativeRecord = GEN7_PROGRESSION_SPECIES[row.pokemonId];
+  const megaBaseId = representativeRecord?.isMega
+    ? representativeRecord.baseSpeciesId || null
+    : null;
+  const megaReady = Boolean(
+    megaBaseId && currentSpecies?.id === megaBaseId,
+  );
+  const battleSpeciesId = megaReady
+    ? row.pokemonId
+    : currentSpecies?.id || row.pokemonId;
   const legalMoveData = await loadRebornLegalMoveData(
-    currentSpecies?.id || row.pokemonId,
+    battleSpeciesId,
   );
   const memberProgression = applyBreedingContextToProgression(
     progression,
-    legalMoveData?.pokemonId,
+    currentSpecies?.id || legalMoveData?.pokemonId,
     breedingContext,
   );
   const member = {
-    id: currentSpecies?.id || row.pokemonId,
-    name: currentSpecies?.name || row.name,
+    id: battleSpeciesId,
+    name: megaReady ? row.name : currentSpecies?.name || row.name,
     inputName: row.inputName || row.name,
     representativeId: row.pokemonId,
     representativeName: currentSpecies?.differsFromRepresentative
@@ -138,6 +149,22 @@ async function buildMemberLegalMoveEntry({
   ) {
     topSet = await loadTopSet({ family, pokemonId: member.id, selection });
   }
+  const caughtTopSet = representativeRecord?.isMega
+    ? await loadTopSet({ family, pokemonId: megaBaseId, selection })
+    : topSet;
+  const assumedAbility =
+    row.legalityProfile?.assumedAbility ||
+    (megaReady
+      ? topSet.ability
+      : caughtTopSet?.ability || topSet.ability);
+  const preMegaAbility = megaReady
+    ? row.legalityProfile?.preMegaAbility || caughtTopSet?.ability || null
+    : null;
+  // The panel retains the representative's canonical spread/moves/item, but
+  // its displayed and damage-active ability must match the form in battle.
+  if (assumedAbility !== topSet.ability) {
+    topSet = { ...topSet, ability: assumedAbility };
+  }
   const attackerStats = getAttackingStats({
     pokemonId: member.id,
     levelCap: progression.levelCap,
@@ -163,6 +190,16 @@ async function buildMemberLegalMoveEntry({
     ability: topSet.ability,
     opponentTypeBias: progression.opponentTypeBias,
   });
+  profile.fieldedId = currentSpecies?.id || member.id;
+  profile.fieldedName = currentSpecies?.name || member.name;
+  profile.preMegaAbility = preMegaAbility;
+  profile.megaReady = megaReady;
+  profile.abilityKnown = Boolean(row.legalityProfile?.abilityKnown);
+  profile.abilityOptions = row.legalityProfile?.abilityOptions || [];
+  profile.legalityProof.fielded = profile.fieldedId;
+  if (profile.currentId !== profile.fieldedId) {
+    profile.legalityProof.battleForm = profile.currentId;
+  }
 
   // Display-only: how much of the represented form's competitive set is
   // assemblable now, and the cap where it completes (Phase 1 readiness).
@@ -1392,5 +1429,4 @@ const UTILITY_MOVE_WEIGHTS = {
   reflect: 65,
   lightscreen: 65,
 };
-
 

@@ -23,7 +23,10 @@ import {
   tunable,
   scoringOverridesSignature,
 } from "./scoringConstants.js";
-import { utilityTagVector } from "./currentFormValue.js";
+import {
+  hasReliableTempoRamp,
+  utilityTagVector,
+} from "./currentFormValue.js";
 import {
   MIN_MEANINGFUL_USAGE_PERCENT,
   compareScoredCandidates,
@@ -155,12 +158,24 @@ const MAX_RESULT_CACHE = 400;
 // deals zero into a non-sleeping target); mega readiness gate fixed
 // (fieldableRepresentativeId). Damage-coverage builds that leaned on a
 // phantom Dream Eater lose it, shifting sets and scores where it appeared.
-// v30: attacker offense is per-build and additive (user: four good attacks
-// beat one) — damage_q = buildPeak·(1 − w·(1 − breadth)) over the build's OWN
-// recommended attacks, replacing the profile-global peak shared across all
-// builds. Scale-preserving (full coverage builds ≈ old peak); thin builds
-// drop, so build variants of a mon genuinely differentiate.
-const RESULT_CACHE_VERSION = "30";
+// v31: support moves that genuinely act at priority (intrinsic priority or
+// Prankster) gain a distinct priority-utility role, and build dominance sees
+// the same mechanical priority tag. Ability-sensitive support now affects the
+// existing primary-vs-secondary probe as well as the selected build.
+// v32: a type-resilient bulky-attacker role lets strong offense use its better
+// defensive side only when the full defensive typing supplies enough broadly
+// favorable switch-in matchups. Current-feature and role output both change.
+// v33: Speed Boost gains a post-turn tempo-attacker role with an explicit
+// protected-ramp fact. Reachable Mega candidates now score their actual battle
+// form while preserving the fielded base and its pre-Mega ability for
+// readiness, annotations, sensitivity, and Speed Boost carryover.
+// v34: the ordinary balanced-bulk attacker and utility routes now adjust raw
+// two-sided bulk by broad defensive type resilience. Neutral typing is fixed;
+// vulnerable and favorable typings move effective bulk symmetrically.
+// v35: the fast-attacker route now applies a small bounded access discount
+// only where middling Speed and poor effective bulk overlap. Current-feature
+// output and the confidence grid expose the new judgement.
+const RESULT_CACHE_VERSION = "35";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the
@@ -848,16 +863,24 @@ function pruneDominatedBuilds(rows) {
     // recovery build and a status build are incomparable, so both survive —
     // a weighted scalar here could smuggle a judgement into what must stay a
     // sweep-invariant candidate set.
-    utility: utilityTagVector(row.legalityProfile?.recommendedMoves),
+    utility: utilityTagVector(
+      row.legalityProfile?.recommendedMoves,
+      row.legalityProfile?.assumedAbility,
+    ),
     peak: Math.max(
       row.legalityProfile?.bestStabMove?.estimatedDamage || 0,
       row.legalityProfile?.bestDamagingMove?.estimatedDamage || 0,
     ),
+    // Protect-style moves are intentionally not generic utility. They are a
+    // distinct mechanical fact only when they complete a Speed Boost ramp,
+    // so a coverage build cannot dominate away the canonical tempo set.
+    tempoRamp: hasReliableTempoRamp(row.legalityProfile),
     friction: row.legalityProfile?.frictionCost || 0,
   }));
   const dominates = (a, b) => {
     if (facts[a].friction > facts[b].friction) return false;
     if (facts[a].peak < facts[b].peak - 1e-9) return false;
+    if (Number(facts[a].tempoRamp) < Number(facts[b].tempoRamp)) return false;
     const ua = facts[a].utility;
     const ub = facts[b].utility;
     for (let i = 0; i < ub.length; i++) {
@@ -1072,18 +1095,34 @@ async function resolveCandidateBuilds({
     name: candidate.name,
   };
   const currentSpecies = getCurrentRebornSpeciesForChoice(choice, progression);
+  const candidateRecord = GEN7_PROGRESSION_SPECIES[candidate.id];
+  const megaBaseId = candidateRecord?.isMega
+    ? candidateRecord.baseSpeciesId || null
+    : null;
+  // A mega's usage representative is reachable only once its base species is
+  // the form the player can field. Before then, the pre-evolution keeps its
+  // own battle stats/typing/ability; once ready, combat uses the mega form
+  // while evolution/readiness still tracks the fielded base.
+  const megaReady = Boolean(
+    candidate.isMega &&
+      megaBaseId &&
+      currentSpecies?.id === megaBaseId,
+  );
+  const battleSpeciesId = megaReady
+    ? candidate.id
+    : currentSpecies?.id || candidate.id;
   const legalMoveData = await loadRebornLegalMoveData(
-    currentSpecies?.id || candidate.id,
+    battleSpeciesId,
   );
   const memberProgression = applyBreedingContextToProgression(
     progression,
-    legalMoveData?.pokemonId,
+    currentSpecies?.id || legalMoveData?.pokemonId,
     breedingContext,
   );
   const member = {
-    id: currentSpecies?.id || candidate.id,
+    id: battleSpeciesId,
     inputName: input.name,
-    name: currentSpecies?.name || candidate.name,
+    name: megaReady ? candidate.name : currentSpecies?.name || candidate.name,
     representativeId: candidate.id,
     representativeName: currentSpecies?.differsFromRepresentative
       ? currentSpecies.representativeName
@@ -1098,26 +1137,41 @@ async function resolveCandidateBuilds({
   const delayedMoves = moves.filter((move) => move.delayedEvolution);
 
   // Ability: a user annotation ("Froakie (Torrent)") pins the caught mon's real
-  // ability; otherwise assume the represented form's primary competitive
-  // ability (what the usage prior itself reflects) and measure sensitivity
-  // against the secondary.
+  // ability; otherwise assume its primary competitive ability and measure
+  // sensitivity against the secondary. A reachable Mega has two simultaneous
+  // facts: the base's caught ability before Mega Evolution and the Mega's fixed
+  // active ability afterward. Damage uses the latter; tempo can use either.
   const topSet = await loadTopSet({
     family,
     pokemonId: candidate.id,
     selection,
   });
-  const abilityChoices = topSet?.abilities || [];
+  const caughtTopSet = candidate.isMega
+    ? await loadTopSet({
+        family,
+        pokemonId: megaBaseId,
+        selection,
+      })
+    : topSet;
+  const abilitySource = caughtTopSet || topSet;
+  const abilityChoices = abilitySource?.abilities || [];
   const matchedOverride = abilityOverride
     ? abilityChoices.find(
         (entry) => entry.name.toLowerCase() === abilityOverride.toLowerCase(),
       )?.name || null
     : null;
-  const assumedAbility = matchedOverride || topSet?.ability || null;
+  const caughtAssumedAbility =
+    matchedOverride || abilitySource?.ability || topSet?.ability || null;
+  const assumedAbility = megaReady
+    ? topSet?.ability || caughtAssumedAbility
+    : caughtAssumedAbility;
+  const preMegaAbility = megaReady ? caughtAssumedAbility : null;
   const abilityKnown = Boolean(matchedOverride);
   const secondaryAbility =
     !abilityKnown && abilityChoices.length > 1
-      ? abilityChoices.find((entry) => entry.name !== assumedAbility)?.name ||
-        null
+      ? abilityChoices.find(
+          (entry) => entry.name !== caughtAssumedAbility,
+        )?.name || null
       : null;
 
   const evolution = currentSpecies
@@ -1143,9 +1197,9 @@ async function resolveCandidateBuilds({
   // what-you-show and REVERTED: competitive singles spreads are often
   // defensive (Arcanine's canonical spread is Impish 248 HP/252 Def —
   // Growlithe's scored Atk fell 91→68), which collapsed PvE attacker offense
-  // pool-wide and let zero-offense walls displace real attackers (the
-  // high-utility-low-offense Shuckle guard). A playthrough mon's investment
-  // is the player's choice, so scoring prices the attacking potential —
+  // pool-wide and let zero-offense walls displace real attackers. A
+  // playthrough mon's investment is the player's choice, so scoring prices
+  // the attacking potential —
   // "best obtainable", the same philosophy as the assumed ability — while
   // the pane displays the competitive spread it recommends.
   const makeProfile = ({
@@ -1153,6 +1207,7 @@ async function resolveCandidateBuilds({
     buildMoves,
     buildFriction = 0,
     ability,
+    preMegaAbility: buildPreMegaAbility = null,
     usageAnchored = false,
   }) => {
     const profile = buildCandidateLegalityProfile({
@@ -1172,6 +1227,14 @@ async function resolveCandidateBuilds({
         ? { moveUsage: topSet.moveUsage, moveRank: topSet.moveRank }
         : {}),
     });
+    profile.fieldedId = currentSpecies?.id || member.id;
+    profile.fieldedName = currentSpecies?.name || member.name;
+    profile.preMegaAbility = buildPreMegaAbility;
+    profile.megaReady = megaReady;
+    profile.legalityProof.fielded = profile.fieldedId;
+    if (profile.currentId !== profile.fieldedId) {
+      profile.legalityProof.battleForm = profile.currentId;
+    }
     profile.abilityKnown = abilityKnown;
     profile.abilityOptions = abilityChoices;
     profile.setReadiness = setReadiness;
@@ -1186,6 +1249,7 @@ async function resolveCandidateBuilds({
         movePreference: "default",
         buildMoves: naturalMoves,
         ability: assumedAbility,
+        preMegaAbility,
         usageAnchored: true,
       }),
     },
@@ -1202,6 +1266,7 @@ async function resolveCandidateBuilds({
           movePreference: "coverage",
           buildMoves: naturalMoves,
           ability: assumedAbility,
+          preMegaAbility,
         }),
       },
       {
@@ -1211,6 +1276,7 @@ async function resolveCandidateBuilds({
           movePreference: "utility",
           buildMoves: naturalMoves,
           ability: assumedAbility,
+          preMegaAbility,
         }),
       },
     );
@@ -1220,6 +1286,7 @@ async function resolveCandidateBuilds({
         movePreference: "default",
         buildMoves: [...naturalMoves, ...delayedMoves],
         ability: assumedAbility,
+        preMegaAbility,
         usageAnchored: true,
       });
       const delayedIds = new Set(delayedMoves.map((move) => move.id));
@@ -1251,7 +1318,8 @@ async function resolveCandidateBuilds({
       ? makeProfile({
           movePreference: "default",
           buildMoves: naturalMoves,
-          ability: secondaryAbility,
+          ability: megaReady ? assumedAbility : secondaryAbility,
+          preMegaAbility: megaReady ? secondaryAbility : null,
           usageAnchored: true,
         })
       : null;

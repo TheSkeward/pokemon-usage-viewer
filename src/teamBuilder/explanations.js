@@ -10,8 +10,11 @@ import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.ge
 const ROLE_LABELS = {
   fast_attacker: "fast attacker",
   bulky_attacker: "bulky attacker",
+  specialist_bulky_attacker: "type-resilient bulky attacker",
+  tempo_attacker: "Speed Boost tempo attacker",
   bulky_utility: "bulky utility",
   fast_utility: "fast utility",
+  priority_utility: "priority utility",
 };
 
 function speciesName(id) {
@@ -51,8 +54,60 @@ export function explainSeatedChoice(choice, team, confidenceEntry) {
     featureBits.push(`damage ${formatPercent(features.damage_q)}`);
   if (features.speed_q != null)
     featureBits.push(`speed ${formatPercent(features.speed_q)}`);
-  if (features.bulk_q != null)
+  if (
+    choice.currentRole === "tempo_attacker" &&
+    features.tempo_speed_q != null
+  ) {
+    featureBits.push(
+      `after one boost ${formatPercent(features.tempo_speed_q)}`,
+    );
+    if (features.tempo_reliability_q) featureBits.push("protected ramp");
+  }
+  if (
+    choice.currentRole === "specialist_bulky_attacker" &&
+    features.physical_bulk_q != null &&
+    features.special_bulk_q != null
+  ) {
+    featureBits.push(
+      `best-side bulk ${formatPercent(
+        Math.max(features.physical_bulk_q, features.special_bulk_q),
+      )}`,
+    );
+    if (features.type_resilience_q != null) {
+      featureBits.push(
+        `type resilience ${formatPercent(features.type_resilience_q)}`,
+      );
+    }
+  } else if (
+    ["bulky_attacker", "bulky_utility"].includes(choice.currentRole) &&
+    features.effective_bulk_q != null
+  ) {
+    featureBits.push(
+      `effective bulk ${formatPercent(features.effective_bulk_q)}`,
+    );
+    if (
+      features.bulk_q != null &&
+      features.type_resilience_q != null
+    ) {
+      featureBits.push(
+        `raw bulk ${formatPercent(features.bulk_q)}, type resilience ${formatPercent(features.type_resilience_q)}`,
+      );
+    }
+  } else if (
+    choice.currentRole === "fast_attacker" &&
+    features.fast_attacker_penalty_q != null
+  ) {
+    featureBits.push(
+      `effective bulk ${formatPercent(features.effective_bulk_q || 0)}`,
+    );
+    if (features.fast_attacker_penalty_q >= 0.005) {
+      featureBits.push(
+        `frailty discount ${formatPercent(features.fast_attacker_penalty_q)}`,
+      );
+    }
+  } else if (features.bulk_q != null) {
     featureBits.push(`bulk ${formatPercent(features.bulk_q)}`);
+  }
   lines.push(`Seats as ${role} (${featureBits.join(", ")}).`);
 
   if (choice.buildKey && choice.buildKey !== "default") {
@@ -62,7 +117,28 @@ export function explainSeatedChoice(choice, team, confidenceEntry) {
   const moves = (profile.recommendedMoves || []).map((move) => move.name);
   if (moves.length) lines.push(`Set: ${moves.join(" / ")}.`);
 
-  if (profile.assumedAbility) {
+  if (profile.preMegaAbility && profile.assumedAbility) {
+    const sameAbility =
+      profile.preMegaAbility.toLowerCase() ===
+      profile.assumedAbility.toLowerCase();
+    const sensitivity = choice.abilitySensitivity || 0;
+    if (profile.abilityKnown) {
+      lines.push(
+        sameAbility
+          ? `Ability: ${profile.preMegaAbility} (yours), retained after Mega Evolution.`
+          : `Ability path: ${profile.preMegaAbility} (yours), then ${profile.assumedAbility} after Mega Evolution.`,
+      );
+    } else {
+      const path = sameAbility
+        ? `${profile.preMegaAbility} before and after Mega Evolution`
+        : `${profile.preMegaAbility} before Mega Evolution, then ${profile.assumedAbility}`;
+      lines.push(
+        sensitivity > 100
+          ? `Assumes ${path} â€” the score leans on the starting ability (âˆ’${sensitivity} with the other ability); pin it with "${choice.inputName} (${profile.preMegaAbility})" if yours matches.`
+          : `Assumes ${path}; the starting ability is not required for inclusion (âˆ’${sensitivity} with the other ability).`,
+      );
+    }
+  } else if (profile.assumedAbility) {
     if (profile.abilityKnown) {
       lines.push(`Ability: ${profile.assumedAbility} (yours).`);
     } else {

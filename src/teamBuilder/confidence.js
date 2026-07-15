@@ -38,8 +38,52 @@ export const CONFIDENCE_GRID = [
   { key: "coverage-scale-high", overrides: { COVERAGE_SCALE: 150 } },
   { key: "portfolio-off", overrides: { PORTFOLIO_WEIGHT: 0 } },
   { key: "portfolio-heavy", overrides: { PORTFOLIO_WEIGHT: 0.5 } },
-  { key: "utility-strict", overrides: { UTILITY_ROLE_WEIGHT: 0.55 } },
-  { key: "utility-generous", overrides: { UTILITY_ROLE_WEIGHT: 0.9 } },
+  {
+    key: "type-specialist-strict",
+    overrides: { TYPE_RESILIENCE_FULL_SURPLUS: 6 },
+  },
+  {
+    key: "type-specialist-generous",
+    overrides: { TYPE_RESILIENCE_FULL_SURPLUS: 3 },
+  },
+  {
+    key: "balanced-bulk-type-light",
+    overrides: { BALANCED_BULK_TYPE_WEIGHT: 0.2 },
+  },
+  {
+    key: "balanced-bulk-type-heavy",
+    overrides: { BALANCED_BULK_TYPE_WEIGHT: 0.4 },
+  },
+  {
+    key: "fast-frailty-light",
+    overrides: { FAST_ATTACKER_FRAILTY_WEIGHT: 0.02 },
+  },
+  {
+    key: "fast-frailty-heavy",
+    overrides: { FAST_ATTACKER_FRAILTY_WEIGHT: 0.05 },
+  },
+  {
+    key: "tempo-strict",
+    overrides: { TEMPO_RELIABILITY_BONUS: 0.1 },
+  },
+  {
+    key: "tempo-generous",
+    overrides: { TEMPO_RELIABILITY_BONUS: 0.2 },
+  },
+  {
+    key: "utility-strict",
+    overrides: {
+      UTILITY_ROLE_WEIGHT: 0.55,
+      PRIORITY_UTILITY_ROLE_WEIGHT: 0.75,
+    },
+  },
+  {
+    key: "utility-generous",
+    overrides: {
+      UTILITY_ROLE_WEIGHT: 0.9,
+      PRIORITY_UTILITY_ROLE_WEIGHT: 1,
+    },
+  },
   {
     key: "collapse-mild",
     overrides: { SHARED_WEAK_PENALTY: 120, UNCOVERED_WEAK_PENALTY: 170 },
@@ -148,7 +192,7 @@ export async function computeTeamConfidence({
     }
     // Yield a real macrotask between settings. Each setting's search resolves
     // synchronously (shortlist path, no worker round-trip), so without this
-    // the whole 21-setting sweep runs inside ONE task — no paints, no fetch
+    // the whole sweep runs inside ONE task — no paints, no fetch
     // callbacks, and the async Team Analysis (movesets) panel starves behind
     // it (measured: the panel landed ~40s late on a 65-mon pool).
     await new Promise((resolve) => setTimeout(resolve, 0));

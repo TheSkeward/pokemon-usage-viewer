@@ -8,12 +8,21 @@
 //
 //   damage_q   how hard it hits now, vs a stage-typical strong hit
 //   speed_q    base Speed percentile across the whole species dex
-//   bulk_q     HP+Def+SpD percentile across the whole species dex
+//   physical_bulk_q / special_bulk_q  side-specific HP x defense percentiles
+//   bulk_q     geometric mean of the two bulk sides
+//   type_resilience_q  defensive type balance, with neutral centered at 0.5
+//   effective_bulk_q  balanced bulk adjusted by broad defensive typing
+//   fast_attacker_penalty_q  bounded failure-to-act discount when both speed
+//              and effective bulk are poor
 //   reliability_q  does it have a functional attacking kit (a few real options)
 //   utility_q  role-aware utility value — recovery / setup / hazards / speed
 //              control tags from the move meta, accuracy-weighted, saturating
 //              at UTILITY_SATURATION (real infrastructure counts; chip status
 //              barely does)
+//   priority_utility_q  the utility_q subset that acts with positive priority,
+//              either intrinsically or through the assumed ability
+//   tempo_speed_q  post-turn +1 Speed percentile supplied by Speed Boost
+//   tempo_reliability_q  does the set carry a full-protect ramp turn
 //
 // Then a few role scores (geometric means, so a role needs ALL its axes) and
 // C = max(role). A fast frail attacker, a bulky pivot, and a hard hitter each get
@@ -28,6 +37,10 @@ import {
   GEN7_BASE_STAT_TOTALS,
 } from "../generated/gen7BaseStats.generated.js";
 import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
+import {
+  getTypeMultiplier,
+  REBORN_ANALYSIS_TYPES,
+} from "../reborn/typeChart.js";
 import { SCORING_DEFAULTS, tunable } from "./scoringConstants.js";
 
 // Points scale for C; shared with the usage ceiling U so the two are directly
@@ -176,6 +189,19 @@ function geomean(values) {
 }
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 
+// Signed standalone defensive value in neutral-hit equivalents. This is the
+// same type chart the team-fit layer uses, but it answers a different question:
+// whether one member's strong defensive side has enough broadly useful switch-
+// in opportunities to count as a real specialist role. Neutral matchups add 0;
+// resistance 0.5, immunity 1, weakness -1, and a 4x weakness -3.
+export function defensiveTypeBalance(defenseTypes = []) {
+  return REBORN_ANALYSIS_TYPES.reduce(
+    (total, attackType) =>
+      total + (1 - getTypeMultiplier(attackType, defenseTypes)),
+    0,
+  );
+}
+
 // How much each utility role is worth as team infrastructure. Recovery / hazards /
 // speed control / setup are real jobs; a lone status or priority tag is minor.
 const ROLE_WEIGHTS = {
@@ -212,13 +238,69 @@ const UTILITY_TAGS = Object.freeze([
   "priority",
 ]);
 
-export function utilityTagVector(recommendedMoves) {
+function normalizedAbility(ability) {
+  return String(ability || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+const RELIABLE_TEMPO_RAMP_MOVES = new Set([
+  "banefulbunker",
+  "detect",
+  "kingsshield",
+  "protect",
+  "spikyshield",
+]);
+
+// Mega Evolution happens after the pre-Mega ability has had a chance to
+// matter. A Sharpedo that begins the turn with Speed Boost and then becomes
+// Mega Sharpedo therefore keeps the earned boost even though Strong Jaw is
+// the active ability used by its attacks.
+export function hasSpeedBoostTempo(profile) {
+  return [profile?.preMegaAbility, profile?.assumedAbility].some(
+    (ability) => normalizedAbility(ability) === "speedboost",
+  );
+}
+
+export function hasReliableTempoRamp(profile) {
+  if (!hasSpeedBoostTempo(profile)) return false;
+  return (profile?.recommendedMoves || []).some((move) =>
+    RELIABLE_TEMPO_RAMP_MOVES.has(
+      normalizedAbility(move?.id || move?.name),
+    ),
+  );
+}
+
+// Priority utility is deliberately narrower than either "status move" or
+// "priority move": it must perform a scored support job, be a Status move,
+// and actually execute above normal priority. Prankster supplies that last
+// fact for every Status move on the assumed build. Protect-style priority
+// with no infrastructure role and damaging priority attacks do not qualify.
+export function isPriorityUtilityMove(move, assumedAbility = null) {
+  if (move?.category !== "Status") return false;
+  const hasUtilityRole = (move.roles || []).some(
+    (role) => role !== "priority" && (ROLE_WEIGHTS[role] || 0) > 0,
+  );
+  if (!hasUtilityRole) return false;
+  const intrinsicPriority = move.priority || 0;
+  const pranksterMakesPositive =
+    normalizedAbility(assumedAbility) === "prankster" && intrinsicPriority >= 0;
+  return intrinsicPriority > 0 || pranksterMakesPositive;
+}
+
+export function utilityTagVector(recommendedMoves, assumedAbility = null) {
   const vector = new Array(UTILITY_TAGS.length).fill(0);
   for (const move of recommendedMoves || []) {
     const hitRate = (move.accuracy ?? 100) / 100;
     for (const role of move.roles || []) {
       const index = UTILITY_TAGS.indexOf(role);
       if (index >= 0) vector[index] += hitRate;
+    }
+    if (
+      isPriorityUtilityMove(move, assumedAbility) &&
+      !(move.roles || []).includes("priority")
+    ) {
+      vector[UTILITY_TAGS.indexOf("priority")] += hitRate;
     }
   }
   return vector;
@@ -240,7 +322,25 @@ export function utilityValue(recommendedMoves) {
   return total;
 }
 
-// The five features for the fielded form, all in [0,1].
+export function priorityUtilityValue(recommendedMoves, assumedAbility = null) {
+  let total = 0;
+  for (const move of recommendedMoves || []) {
+    if (!isPriorityUtilityMove(move, assumedAbility)) continue;
+    let bestRole = 0;
+    for (const role of move.roles || []) {
+      if (role === "priority") continue;
+      bestRole = Math.max(bestRole, ROLE_WEIGHTS[role] || 0);
+    }
+    // Priority is an additional property of delivering the support job, not
+    // an alternative label for it: a priority screen is worth screen +
+    // priority, while the ordinary utility scalar still counts only screen.
+    total +=
+      (bestRole + ROLE_WEIGHTS.priority) * ((move.accuracy ?? 100) / 100);
+  }
+  return total;
+}
+
+// The fielded form's features, all in [0,1].
 export function currentFormFeatures(profile, levelCap) {
   const currentId = profile?.currentId;
 
@@ -290,12 +390,50 @@ export function currentFormFeatures(profile, levelCap) {
 
   const cr = capRefs(levelCap);
   const speed_q = stagePercentile(speedOf(currentId), SPEED_REF, cr.speed);
+  const speedBoostTempo = hasSpeedBoostTempo(profile);
+  const tempo_speed_q = speedBoostTempo
+    ? stagePercentile(speedOf(currentId) * 1.5, SPEED_REF, cr.speed)
+    : 0;
+  const tempo_reliability_q = hasReliableTempoRamp(profile) ? 1 : 0;
   // General bulk is the geometric mean of the two sides — a wall that's fake on
   // one axis (Happiny: real SpD, paper Def) scores as the frail thing it is.
-  const bulk_q = geomean([
-    stagePercentile(physBulkOf(currentId), PHYS_BULK_REF, cr.phys),
-    stagePercentile(specBulkOf(currentId), SPEC_BULK_REF, cr.spec),
-  ]);
+  const physical_bulk_q = stagePercentile(
+    physBulkOf(currentId),
+    PHYS_BULK_REF,
+    cr.phys,
+  );
+  const special_bulk_q = stagePercentile(
+    specBulkOf(currentId),
+    SPEC_BULK_REF,
+    cr.spec,
+  );
+  const bulk_q = geomean([physical_bulk_q, special_bulk_q]);
+  const typeSpan = Math.max(
+    0.1,
+    tunable("TYPE_RESILIENCE_FULL_SURPLUS"),
+  );
+  const type_resilience_q = clamp01(
+    0.5 +
+      defensiveTypeBalance(profile?.currentTypes) / (2 * typeSpan),
+  );
+  // Raw HP x defenses answer how many neutral hits the body can take. Bulky
+  // roles also need to answer whether its actual typing exposes that body to
+  // broadly stronger or weaker incoming hits. Neutral typing is the fixed
+  // point; this deliberately does not replace either side-specific stat.
+  const effective_bulk_q = clamp01(
+    bulk_q +
+      tunable("BALANCED_BULK_TYPE_WEIGHT") *
+        (type_resilience_q - 0.5),
+  );
+  // Moving first and surviving a reply are alternate ways for an attacker to
+  // access its damage. The fast route remains fully legitimate for a true
+  // glass cannon: the joint deficit vanishes as Speed approaches complete.
+  // Only the overlap between "may move second" and "cannot take the hit" is
+  // discounted, and even the worst overlap is bounded by the tunable weight.
+  const fast_attacker_penalty_q =
+    tunable("FAST_ATTACKER_FRAILTY_WEIGHT") *
+    (1 - speed_q) *
+    (1 - effective_bulk_q);
 
   // Functional attacking kit: a couple of real damaging options.
   const damagingOptions = profile?.recommendedDamagingMoveCount || 0;
@@ -308,8 +446,33 @@ export function currentFormFeatures(profile, levelCap) {
   const utility_q = clamp01(
     utilityValue(profile?.recommendedMoves) / tunable("UTILITY_SATURATION"),
   );
+  // Acting first is its own route to delivering support: it does not need the
+  // user's base Speed or bulk to stand in as a proxy for whether the move gets
+  // a turn. The feature still prices the actual role quality and depth, so one
+  // minor priority status move cannot masquerade as a complete support kit.
+  const priority_utility_q = clamp01(
+    priorityUtilityValue(
+      profile?.recommendedMoves,
+      profile?.assumedAbility,
+    ) / tunable("UTILITY_SATURATION"),
+  );
 
-  return { damage_q, peak_damage_q, speed_q, bulk_q, reliability_q, utility_q };
+  return {
+    damage_q,
+    peak_damage_q,
+    speed_q,
+    physical_bulk_q,
+    special_bulk_q,
+    bulk_q,
+    type_resilience_q,
+    effective_bulk_q,
+    fast_attacker_penalty_q,
+    reliability_q,
+    utility_q,
+    priority_utility_q,
+    tempo_speed_q,
+    tempo_reliability_q,
+  };
 }
 
 // C = max over a few mechanically-derived roles. Returns the score in points plus
@@ -332,24 +495,49 @@ export function currentFormValue(profile, levelCap) {
   // it only inflates every score, and accuracy — the part that would discriminate
   // — is already folded into damage_q by the damage estimate. Kept in features for
   // display, unused here.
-  // Utility roles are valued but capped below attacker roles: a support movepool
-  // (recovery/hazards/setup) is real, but in this PvE context it must not let a
-  // mediocre mon outscore a genuine threat — otherwise a full-TM utility body
-  // benches a strong attacker at high level caps.
+  // Ordinary speed/bulk utility roles remain capped below attacker roles. A
+  // complete priority-support kit has its separate, mechanically narrower route
+  // to the common role ceiling below.
   const utilityWeight = tunable("UTILITY_ROLE_WEIGHT");
+  const priorityUtilityWeight = tunable("PRIORITY_UTILITY_ROLE_WEIGHT");
+  const specialistBulk = Math.max(
+    f.physical_bulk_q,
+    f.special_bulk_q,
+  );
   // The non-passive gate multiplies the utility roles OUTSIDE the geomean.
-  // Inside it, the cube root softened the gate into a suggestion — a mon at
-  // 29% of the floor kept 66% of its utility value, which stayed latent only
-  // while passive mons' canonical utility moves went unpriced. When score-
-  // what-you-show anchored Shuckle's real Sticky Web/Encore set, the soft
-  // gate let a base-10-offense wall (1045→1277) displace a real attacker —
-  // exactly what this floor is documented to prevent. Mons at or above the
-  // floor are untouched (nonPassive clamps to 1).
+  // Keeping it outside makes the floor real instead of softening it through a
+  // root. Mons at or above the floor are untouched (nonPassive clamps to 1).
   const roles = {
-    fast_attacker: geomean([f.damage_q, f.speed_q]),
-    bulky_attacker: geomean([f.damage_q, f.bulk_q]),
-    bulky_utility: utilityWeight * nonPassive * geomean([f.bulk_q, f.utility_q]),
+    fast_attacker:
+      geomean([f.damage_q, f.speed_q]) *
+      (1 - f.fast_attacker_penalty_q),
+    bulky_attacker: geomean([f.damage_q, f.effective_bulk_q]),
+    // A one-sided bulky attacker earns a separate route only when its typing
+    // supplies enough broadly useful switch-in opportunities. The signed type
+    // adjustment prevents a special wall with many weaknesses from laundering
+    // one good stat into a complete role. The common clamp preserves C's ceiling.
+    specialist_bulky_attacker: clamp01(
+      geomean([f.damage_q, specialistBulk]) +
+        (f.type_resilience_q - 0.5),
+    ),
+    // Speed Boost is an earned-tempo attacker route: the mon must still hit
+    // hard, and its post-turn +1 Speed is measured against the same stage
+    // reference as ordinary Speed. A full-protect move makes that ramp
+    // reliable enough to complete, but never exceed, the common C ceiling.
+    tempo_attacker: clamp01(
+      geomean([f.damage_q, f.tempo_speed_q]) +
+        tunable("TEMPO_RELIABILITY_BONUS") * f.tempo_reliability_q,
+    ),
+    bulky_utility:
+      utilityWeight *
+      nonPassive *
+      geomean([f.effective_bulk_q, f.utility_q]),
     fast_utility: utilityWeight * nonPassive * geomean([f.speed_q, f.utility_q]),
+    // A substantial support kit that really acts at priority does not need
+    // speed or bulk as a proxy for getting its job done. It may share, never
+    // exceed, the perfect-attacker ceiling and uses the same non-passive guard.
+    priority_utility:
+      priorityUtilityWeight * nonPassive * f.priority_utility_q,
   };
 
   let bestRole = "fast_attacker";

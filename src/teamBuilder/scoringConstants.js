@@ -3,8 +3,9 @@
 // data layer; everything here is a JUDGEMENT with a default, and every
 // judgement is sweepable by the confidence layer.
 //
-// Change policy: a default here only moves when a regression fixture or an
-// explicit roadmap item justifies it, and SCORING.md's changelog records why.
+// Change policy: a default here moves only when the badge-anchor corpus, a
+// concrete mechanical correction, or an explicit user decision justifies it.
+// SCORING.md records the current contract and measured calibration effect.
 //
 // Override API: reads go through tunable(key). The confidence sweep (and tests)
 // set a plain object of overrides; production never sets one, so defaults apply.
@@ -26,10 +27,8 @@ export const SCORING_DEFAULTS = Object.freeze({
   // odds of appearing at least once across 25 games. ≈ 2.7345%. Baked into
   // the resolver/set indexes at build time: regenerate both in the same
   // commit as any change here. Safe as a non-gate ONLY because
-  // meaningfulUsage no longer outranks score in any comparator — it briefly
-  // did, and the boolean silently seated Alakazam over a higher-scoring
-  // Kadabra; see the changelog's "usage sovereignty" entry before making
-  // this a gate again.
+  // meaningfulUsage no longer outranks score in any comparator. Making this a
+  // gate again would violate SCORING.md's score-sovereignty invariant.
   MIN_MEANINGFUL_USAGE_PERCENT: 100 * (1 - 0.5 ** (1 / 25)),
 
   // --- C: current-form value --------------------------------------------------
@@ -39,6 +38,25 @@ export const SCORING_DEFAULTS = Object.freeze({
   // (1−w)·peak, a full coverage build sits at peak (see currentFormValue).
   PORTFOLIO_WEIGHT: 0.3,
   UTILITY_ROLE_WEIGHT: 0.75, // utility roles score below attacker roles
+  PRIORITY_UTILITY_ROLE_WEIGHT: 1, // complete first-action support shares C's role ceiling
+  // A protected Speed Boost turn makes the post-boost attacker route reliable.
+  // The role itself still requires real damage and the observed +1 Speed
+  // percentile; this is only the completion bonus for carrying a full-protect
+  // ramp move such as Protect or Detect.
+  TEMPO_RELIABILITY_BONUS: 0.15,
+  // Defensive type balance is centered at neutral. A resistance contributes
+  // +0.5 neutral-hit equivalents, an immunity +1, a weakness -1, and a 4x
+  // weakness -3. This many net favorable equivalents moves the normalized
+  // feature from neutral (0.5) to complete (1.0); the negative side mirrors it.
+  TYPE_RESILIENCE_FULL_SURPLUS: 4,
+  // How strongly broad defensive typing adjusts the raw two-sided bulk used
+  // by ordinary bulky roles. Neutral typing (type_resilience_q = 0.5) is
+  // unchanged; favorable/vulnerable typing moves bulk symmetrically.
+  BALANCED_BULK_TYPE_WEIGHT: 0.3,
+  // A fast attacker normally gets its move by acting first. When it is neither
+  // reliably first nor able to absorb the reply, apply a small bounded access
+  // discount. A complete speed or effective-bulk axis removes the discount.
+  FAST_ATTACKER_FRAILTY_WEIGHT: 0.03,
   REACHABLE_BLEND: 0.5, // speed/bulk percentiles: global vs reachable-at-cap
   DAMAGE_SOFT_RATE: 1.2, // soft saturation rate of damage_q
   NON_PASSIVE_FLOOR: 0.25, // peak damage_q that fully unlocks utility roles
