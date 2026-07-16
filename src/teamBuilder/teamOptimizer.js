@@ -32,6 +32,7 @@ import {
   compareScoredCandidates,
   computeUsageRamp,
   getUsageRanking,
+  hasCompetitivePriorEvidence,
   scoreCandidate,
 } from "./candidateScoring";
 import { resolveRepresentativeLightBundle } from "./representativeBundle";
@@ -175,7 +176,11 @@ const MAX_RESULT_CACHE = 400;
 // v35: the fast-attacker route now applies a small bounded access discount
 // only where middling Speed and poor effective bulk overlap. Current-feature
 // output and the confidence grid expose the new judgement.
-const RESULT_CACHE_VERSION = "35";
+// v36: executable single-action team protection is a complete support route,
+// and sustained trace usage in a shallow format prevents the absence law from
+// treating a competitively present line as dead. Move/build facts and score
+// breakdowns change, so persisted results must retire.
+const RESULT_CACHE_VERSION = "36";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the
@@ -675,11 +680,18 @@ async function resolvePoolLine({
   const lineRamp = repEntry
     ? computeUsageRamp(repEntry.builds?.variants?.[0]?.profile || null, levelCap)
     : 0;
-  // Absence vs bounded-trust law selector: does ANY form of this line have a
-  // real competitive prior? The representative holds the line's best
-  // first-meaningful tier, so its rank answers for the whole line.
-  const linePriorPresent = Boolean(
-    repRank && repRank.tierRank < repRank.totalTiers,
+  // Absence vs bounded-trust law selector: a meaningful rank OR sustained
+  // shallow-format trace on any form proves the line is not absent. Trace
+  // remains unranked and cannot raise U_rank; it changes only which downward
+  // trust law applies.
+  const linePriorPresent = prepared.some(
+    (entry) =>
+      !entry.error &&
+      hasCompetitivePriorEvidence(
+        entry.bundle,
+        formatOrder,
+        cutoffPriority,
+      ),
   );
 
   // Pass 2: score every build of every form under the line-anchored w.

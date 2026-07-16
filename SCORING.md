@@ -37,7 +37,7 @@ never added to `V`.
 ### Current usefulness: C
 
 `C` is usage-independent, stage-relative mechanical value on a 0–2000 scale.
-It is the maximum of seven role scores:
+It is the maximum of eight role scores:
 
 ```text
 fast_attacker_penalty_q = fast_frailty_weight
@@ -59,6 +59,8 @@ tempo_attacker = clamp01(
 fast_utility   = utility_weight * non_passive * geomean(speed_q, utility_q)
 bulky_utility  = utility_weight * non_passive * geomean(effective_bulk_q, utility_q)
 priority_utility = priority_utility_weight * non_passive * priority_utility_q
+screen_support = non_passive
+  * geomean(screen_protection_q, screen_delivery_q)
 ```
 
 Geometric means require every axis of a role to be credible. Speed and bulk are
@@ -112,6 +114,18 @@ the existing priority-role value. A complete priority-support kit may share but
 never exceed the same 2000-point ceiling as a complete attacker, and it keeps
 the same non-passive guard.
 
+`screen_support` values the amount of team protection delivered by one
+executable action. Reflect or Light Screen protects one of the physical/special
+axes, so either is `screen_protection_q = 0.5`; carrying both does not union two
+turns into one action. Aurora Veil protects both axes and reaches `1.0`, but only
+when hail is supplied by Snow Warning or a carried Hail move. Delivery is
+complete when the screen genuinely acts at positive priority (including
+Prankster), otherwise it is the user's stage-relative Speed percentile. A
+complete protection action shares, but cannot exceed, the common 2000-point C
+ceiling and keeps the non-passive guard. The same per-action fact participates
+in build dominance, so a two-axis screen is not pruned as equivalent to a
+one-axis screen.
+
 The tempo-attacker route prices the unconditional turn-by-turn speed earned
 from Speed Boost. `tempo_speed_q` is the form's +1 Speed percentile after one
 turn, measured against the same stage reference as ordinary Speed. A set with
@@ -161,6 +175,13 @@ The split encodes two decisions:
 - **Bounded-trust law:** presence somewhere proves that the body functions, but
   the magnitude of a deep PvP prior is meta-confounded for PvE. Downward drag is
   capped; upward convergence remains available.
+
+Prior presence normally means a first-meaningful-tier ranking. A sustained
+trace of at least `1%` in one of the ordered ladder's first three formats also
+selects bounded downward trust: it is evidence against "absence everywhere,"
+but remains a trace. It does not create `U_rank`, raise the score, or alter the
+bench tier ordering. Deep-tier traces and weaker shallow traces remain under
+the absence law.
 
 ### Online gate, friction, and bias
 
@@ -299,6 +320,27 @@ it to 907, and `0.05` was unnecessary. At the selected `0.03`, all 19 badge
 buckets pass, every strong anchor clears q75, and every attainable poor anchor
 clears q25. The confidence grid sweeps `0.02` and `0.05`, and result cache
 version 35 invalidates older outputs.
+
+The blinded follow-up cohort exposed two independent general signals. First,
+team protection was being treated only as ordinary utility, so Aurora Veil's
+two-axis protection in one action was indistinguishable from a conventional
+screen. The new `screen_support` route measures single-action coverage,
+execution requirements, and delivery. Second, a line just below the meaningful
+usage bar in OU or higher was being treated as competitively absent. Sustained
+shallow trace now selects bounded downward trust without receiving a rank or
+upward credit.
+
+With both corrections, the permanent badge calibration remains 19/19 green.
+Among the six objective-compatible blinded best candidates, every candidate
+meets the preregistered 10/19 minimum: Volcarona 19, Azumarill 13, Lucario 19,
+Alakazam 19, Salamence 19, and Ninetales-Alola 10 (up from 4). The even best
+cohort totals 48/57 against its preregistered 43/57 threshold. The six
+objective-compatible weak candidates pass all 12 attainable bottom-quartile
+checks, including Bastiodon evaluated through its Shieldon unlock. Rotom and
+Simisear remain interpretation exclusions because their community penalties
+price form flexibility and scarce-stone opportunity cost, respectively, while
+the optimizer deliberately scores the strongest satisfiable team. Result
+cache version 36 invalidates older outputs.
 
 After each scoring-output change, bump `RESULT_CACHE_VERSION` in
 `src/teamBuilder/teamOptimizer.js`. If generated data changes, regenerate the

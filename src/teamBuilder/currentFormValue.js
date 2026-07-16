@@ -21,6 +21,10 @@
 //              barely does)
 //   priority_utility_q  the utility_q subset that acts with positive priority,
 //              either intrinsically or through the assumed ability
+//   screen_protection_q  physical/special axes protected by one executable
+//              screen action (Aurora Veil covers both; ordinary screens one)
+//   screen_delivery_q  whether that action arrives by priority or base Speed
+//   screen_support_q  geometric completion of protection and delivery
 //   tempo_speed_q  post-turn +1 Speed percentile supplied by Speed Boost
 //   tempo_reliability_q  does the set carry a full-protect ramp turn
 //
@@ -235,6 +239,10 @@ const UTILITY_TAGS = Object.freeze([
   "screen",
   "disruption",
   "status",
+  // Maximum protection axes delivered by ONE screen action. Kept separate
+  // from the ordinary screen count so Reflect + Light Screen cannot dominate
+  // away an Aurora Veil build merely by unioning two turns of work.
+  "screen_compression",
   "priority",
 ]);
 
@@ -288,6 +296,67 @@ export function isPriorityUtilityMove(move, assumedAbility = null) {
   return intrinsicPriority > 0 || pranksterMakesPositive;
 }
 
+function weatherIsAvailable(weather, recommendedMoves, assumedAbility) {
+  if (!weather) return true;
+  const weatherId = normalizedAbility(weather);
+  if (
+    weatherId === "hail" &&
+    normalizedAbility(assumedAbility) === "snowwarning"
+  ) {
+    return true;
+  }
+  return (recommendedMoves || []).some(
+    (move) =>
+      normalizedAbility(move?.id || move?.name) === weatherId,
+  );
+}
+
+// Team protection is valued per action, not by unioning a whole set. A normal
+// screen covers one damage axis; Aurora Veil covers both, but only when its
+// hail requirement is actually supplied by the set or assumed ability.
+// Priority is complete delivery; otherwise the user's measured Speed is the
+// delivery axis. Return the best executable single screen action on the set.
+export function singleActionScreenSupport(
+  recommendedMoves,
+  assumedAbility = null,
+  speed_q = 0,
+) {
+  let best = {
+    protection_q: 0,
+    delivery_q: 0,
+    value_q: 0,
+  };
+  for (const move of recommendedMoves || []) {
+    const axes = new Set(
+      (move?.screenAxes || []).filter(
+        (axis) => axis === "physical" || axis === "special",
+      ),
+    );
+    if (!axes.size) continue;
+    if (
+      !weatherIsAvailable(
+        move?.requiresWeather,
+        recommendedMoves,
+        assumedAbility,
+      )
+    ) {
+      continue;
+    }
+    const protection_q = clamp01(axes.size / 2);
+    const delivery_q = isPriorityUtilityMove(move, assumedAbility)
+      ? 1
+      : clamp01(speed_q);
+    const value_q = geomean([protection_q, delivery_q]);
+    if (
+      value_q > best.value_q ||
+      (value_q === best.value_q && protection_q > best.protection_q)
+    ) {
+      best = { protection_q, delivery_q, value_q };
+    }
+  }
+  return best;
+}
+
 export function utilityTagVector(recommendedMoves, assumedAbility = null) {
   const vector = new Array(UTILITY_TAGS.length).fill(0);
   for (const move of recommendedMoves || []) {
@@ -303,6 +372,9 @@ export function utilityTagVector(recommendedMoves, assumedAbility = null) {
       vector[UTILITY_TAGS.indexOf("priority")] += hitRate;
     }
   }
+  vector[UTILITY_TAGS.indexOf("screen_compression")] =
+    singleActionScreenSupport(recommendedMoves, assumedAbility, 0)
+      .protection_q;
   return vector;
 }
 
@@ -456,6 +528,11 @@ export function currentFormFeatures(profile, levelCap) {
       profile?.assumedAbility,
     ) / tunable("UTILITY_SATURATION"),
   );
+  const screenSupport = singleActionScreenSupport(
+    profile?.recommendedMoves,
+    profile?.assumedAbility,
+    speed_q,
+  );
 
   return {
     damage_q,
@@ -470,6 +547,9 @@ export function currentFormFeatures(profile, levelCap) {
     reliability_q,
     utility_q,
     priority_utility_q,
+    screen_protection_q: screenSupport.protection_q,
+    screen_delivery_q: screenSupport.delivery_q,
+    screen_support_q: screenSupport.value_q,
     tempo_speed_q,
     tempo_reliability_q,
   };
@@ -496,8 +576,8 @@ export function currentFormValue(profile, levelCap) {
   // — is already folded into damage_q by the damage estimate. Kept in features for
   // display, unused here.
   // Ordinary speed/bulk utility roles remain capped below attacker roles. A
-  // complete priority-support kit has its separate, mechanically narrower route
-  // to the common role ceiling below.
+  // complete priority-support kit or complete single-action team protection
+  // has a separate, mechanically narrower route to the common role ceiling.
   const utilityWeight = tunable("UTILITY_ROLE_WEIGHT");
   const priorityUtilityWeight = tunable("PRIORITY_UTILITY_ROLE_WEIGHT");
   const specialistBulk = Math.max(
@@ -538,6 +618,10 @@ export function currentFormValue(profile, levelCap) {
     // exceed, the perfect-attacker ceiling and uses the same non-passive guard.
     priority_utility:
       priorityUtilityWeight * nonPassive * f.priority_utility_q,
+    // One action that protects both defensive axes is a complete support job.
+    // Conventional one-axis screens remain partial even when a set carries
+    // both, because they require two actions. Delivery is priority or Speed.
+    screen_support: nonPassive * f.screen_support_q,
   };
 
   let bestRole = "fast_attacker";

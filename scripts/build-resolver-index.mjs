@@ -52,8 +52,9 @@ async function buildFamilyAllIndex(availability, family) {
       // clears the meaningful bar — the signal used to rank low-usage mons
       // against each other, since the headline tier's raw count is noise.
       ranking: rankingByPokemon[pokemonId] || null,
-      // DISPLAY-ONLY (bench tail labels): best sub-bar row for mons with no
-      // ranking anywhere. Scoring never reads it.
+      // Best sub-bar row for mons with no ranking anywhere. Presentation uses
+      // it for bench-tail labels; scoring may use only a sustained shallow-row
+      // presence bit to choose the bounded downward-trust law. It never ranks.
       trace: traceByPokemon[pokemonId] || null,
     };
   }
@@ -70,12 +71,12 @@ async function buildFamilyAllIndex(availability, family) {
 async function resolveAllPokemonUsage(availability, family) {
   const resolved = {}; // first tier the mon appears in at all (the headline)
   const ranking = {}; // first tier whose usage clears the meaningful bar
-  // DISPLAY-ONLY: for mons that never clear the meaningful bar anywhere, the
+  // TRACE: for mons that never clear the meaningful bar anywhere, the
   // single best sub-bar row (highest average usage; earliest tier on ties) —
   // the row that first qualifies as the bar relaxes ("50% chance of being
   // seen within N games" for growing N). The bench tail labels no-usage-data
-  // mons with it. Scoring must NEVER read this field: the whole point is
-  // that it changes what the tail SAYS, not what anything computes.
+  // mons with it. Scoring may consume only the bounded prior-presence
+  // predicate documented above; trace never becomes U_rank or orders scores.
   const trace = {};
   let tierRank = -1;
 

@@ -30,6 +30,12 @@ export const SCORING_DEFAULTS = Object.freeze({
   // meaningfulUsage no longer outranks score in any comparator. Making this a
   // gate again would violate SCORING.md's score-sovereignty invariant.
   MIN_MEANINGFUL_USAGE_PERCENT: 100 * (1 - 0.5 ** (1 / 25)),
+  // A sustained trace in one of the ladder's strongest formats is evidence
+  // that a line is not competitively absent, even when it falls below the
+  // first-meaningful-tier ranking bar. It selects only the bounded downward-
+  // trust law; it never creates a rank or raises U_rank.
+  SHALLOW_TRACE_PRIOR_MIN_PERCENT: 1,
+  SHALLOW_TRACE_PRIOR_FORMAT_DEPTH: 3,
 
   // --- C: current-form value --------------------------------------------------
   CURRENT_VALUE_SCALE: 2000, // points scale shared by C and U

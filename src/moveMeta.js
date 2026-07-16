@@ -73,8 +73,8 @@ export function getMoveMetaById(id) {
 
 // Rejoins a stripped legal-move entry ({ id, sources }) with its central
 // metadata, reproducing the fully-populated move object the rest of the app
-// consumes. Unknown ids fall back to inert defaults so a missing entry can't
-// crash a render.
+// consumes, including screen mechanics. Unknown ids fall back to inert
+// defaults so a missing entry can't crash a render.
 export function hydrateLegalMove(rawMove) {
   const meta = MOVE_META[rawMove.id] || null;
   return {
@@ -88,6 +88,10 @@ export function hydrateLegalMove(rawMove) {
     // Utility role kinds (recovery / setup / hazard_set / speed_control / ...),
     // so utility scoring can value real team infrastructure over chip status.
     roles: meta?.roles ?? [],
+    // Per-action screen coverage and any weather gate. This lets scoring
+    // distinguish Aurora Veil from one-axis screens without naming a user.
+    screenAxes: meta?.screenAxes ?? [],
+    requiresWeather: meta?.requiresWeather,
     // Hit rate (0–100) so the damage estimate can weight by expected accuracy.
     accuracy: meta?.accuracy ?? 100,
     // Multi-hit / recharge / charge flags feed the effective-power damage model.

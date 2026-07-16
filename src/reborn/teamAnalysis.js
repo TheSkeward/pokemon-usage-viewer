@@ -827,6 +827,8 @@ function formatProfileMove(move, member, attackerStats) {
     // Utility role kinds + hit rate, so utility scoring can value real
     // infrastructure (recovery/hazards/speed control) above chip status.
     roles: move.roles || [],
+    screenAxes: move.screenAxes || [],
+    requiresWeather: move.requiresWeather,
     accuracy: typeof move.accuracy === "number" ? move.accuracy : 100,
   };
 }
@@ -1429,4 +1431,3 @@ const UTILITY_MOVE_WEIGHTS = {
   reflect: 65,
   lightscreen: 65,
 };
-

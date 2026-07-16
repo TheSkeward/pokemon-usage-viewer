@@ -30,6 +30,12 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runPool, bestChoice } from "../helpers/harness.mjs";
+import {
+  activePoorAnchors,
+  poorAnchor,
+  poorAnchorInput,
+  poorAnchorLabel,
+} from "../helpers/calibrationAnchors.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const { buckets } = JSON.parse(
@@ -41,8 +47,13 @@ const AMAZING = [
   "Meowstic",
 ];
 const GARBAGE = [
-  "Tropius", "Dunsparce", "Sunflora", "Ledian", "Luvdisc", "Delibird",
-  "Unown",
+  poorAnchor("Tropius"),
+  poorAnchor("Dunsparce"),
+  poorAnchor("Sunflora"),
+  poorAnchor("Ledian"),
+  poorAnchor("Luvdisc"),
+  poorAnchor("Delibird"),
+  poorAnchor("Unown"),
 ];
 
 // Level cap per badge, from the checkpoint schedule (badgeTimeline.js).
@@ -92,13 +103,18 @@ for (const badgeKey of Object.keys(buckets)) {
       1 + pool.filter((other) => scoreOf(other) > scoreOf(name)).length;
     const describe = (name) =>
       `${name} score ${Math.round(scoreOf(name))} rank ${rankOf(name)}/${pool.length}`;
+    const activeGarbage = activePoorAnchors(GARBAGE, bucket);
+    const describePoor = (anchor) => {
+      const input = poorAnchorInput(anchor);
+      return `${poorAnchorLabel(anchor)} score ${Math.round(scoreOf(input))} rank ${rankOf(input)}/${pool.length}`;
+    };
 
     // Readable findings record, pass or fail.
     console.log(
       `badge ${badge} (cap ${CAP[badge]}, ${bucket.length} reference + ${injected.length} probes) q75=${Math.round(q75)} q25=${Math.round(q25)}\n` +
         `  amazing: ${AMAZING.map(describe).join("; ")}\n` +
-        (GARBAGE.some((g) => bucket.includes(g))
-          ? `  garbage: ${GARBAGE.filter((g) => bucket.includes(g)).map(describe).join("; ")}\n`
+        (activeGarbage.length
+          ? `  garbage: ${activeGarbage.map(describePoor).join("; ")}\n`
           : ""),
     );
 
@@ -110,10 +126,10 @@ for (const badgeKey of Object.keys(buckets)) {
         violations.push(`${describe(name)} — must be in the top score quartile (q75 ${Math.round(q75)})`);
       }
     }
-    for (const name of GARBAGE) {
-      if (!bucket.includes(name)) continue; // waits until attainable
-      if (!(scoreOf(name) <= q25)) {
-        violations.push(`${describe(name)} — must be in the bottom score quartile (q25 ${Math.round(q25)})`);
+    for (const anchor of activeGarbage) {
+      const input = poorAnchorInput(anchor);
+      if (!(scoreOf(input) <= q25)) {
+        violations.push(`${describePoor(anchor)} — must be in the bottom score quartile (q25 ${Math.round(q25)})`);
       }
     }
     assert.deepEqual(

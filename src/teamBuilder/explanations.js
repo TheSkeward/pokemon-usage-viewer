@@ -15,6 +15,7 @@ const ROLE_LABELS = {
   bulky_utility: "bulky utility",
   fast_utility: "fast utility",
   priority_utility: "priority utility",
+  screen_support: "single-action team protection",
 };
 
 function speciesName(id) {
@@ -62,6 +63,17 @@ export function explainSeatedChoice(choice, team, confidenceEntry) {
       `after one boost ${formatPercent(features.tempo_speed_q)}`,
     );
     if (features.tempo_reliability_q) featureBits.push("protected ramp");
+  }
+  if (
+    choice.currentRole === "screen_support" &&
+    features.screen_protection_q != null
+  ) {
+    featureBits.push(
+      `one-action protection ${formatPercent(features.screen_protection_q)}`,
+    );
+    featureBits.push(
+      `delivery ${formatPercent(features.screen_delivery_q || 0)}`,
+    );
   }
   if (
     choice.currentRole === "specialist_bulky_attacker" &&

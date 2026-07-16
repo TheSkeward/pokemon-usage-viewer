@@ -65,10 +65,9 @@ export function scoreCandidate({
   opponentTypeBias,
   // The line-anchored usage trust (see comment at the use site).
   lineRamp = null,
-  // Whether ANY form of this line has a real competitive prior (the line
-  // representative's first-meaningful tier exists) — selects between the
-  // absence law and the bounded-trust law. Callers without line context
-  // fall back to this form's own rank.
+  // Whether ANY form of this line has real competitive evidence (a meaningful
+  // rank or sustained shallow-format trace) — selects between the absence law
+  // and the bounded-trust law. Callers without line context use this bundle.
   linePriorPresent = null,
 }) {
   const usage = bundle?.usage;
@@ -162,7 +161,11 @@ export function scoreCandidate({
   const priorPresent =
     linePriorPresent != null
       ? linePriorPresent
-      : rank.tierRank < rank.totalTiers;
+      : hasCompetitivePriorEvidence(
+          bundle,
+          formatOrder,
+          cutoffPriority,
+        );
   const wUp = Math.max(alpha * online, ramp);
   const wDown = priorPresent
     ? Math.min(ramp, tunable("PRIOR_DRAG_CAP"))
@@ -315,6 +318,33 @@ export function getUsageRanking(bundle, formatOrder = [], cutoffPriority = []) {
   }
 
   return { tierRank: totalTiers, value, rawCount, totalTiers };
+}
+
+// Competitive evidence used only to select the downward-trust law. A ranked
+// row is already meaningful. Below that bar, sustained trace usage in one of
+// the ordered ladder's first few formats is enough to reject "absence
+// everywhere" without manufacturing a rank from noisy tail data.
+export function hasCompetitivePriorEvidence(
+  bundle,
+  formatOrder = [],
+  cutoffPriority = [],
+) {
+  const rank = getUsageRanking(bundle, formatOrder, cutoffPriority);
+  if (rank.tierRank < rank.totalTiers) return true;
+
+  const trace = bundle?.trace;
+  if (
+    !trace ||
+    Math.max(0, trace.value || 0) <
+      tunable("SHALLOW_TRACE_PRIOR_MIN_PERCENT")
+  ) {
+    return false;
+  }
+  const formatIndex = formatOrder.indexOf(trace.formatId);
+  return (
+    formatIndex >= 0 &&
+    formatIndex < tunable("SHALLOW_TRACE_PRIOR_FORMAT_DEPTH")
+  );
 }
 
 // Rewards a pick for being prepared against the biased opponent types: resisting
