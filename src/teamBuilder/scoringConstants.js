@@ -45,6 +45,14 @@ export const SCORING_DEFAULTS = Object.freeze({
   PORTFOLIO_WEIGHT: 0.3,
   UTILITY_ROLE_WEIGHT: 0.75, // utility roles score below attacker roles
   PRIORITY_UTILITY_ROLE_WEIGHT: 1, // complete first-action support shares C's role ceiling
+  // Saturating role ceiling: role values are identity up to the knee, then
+  // approach (never reach) 1 asymptotically. Replaces the hard clamp01 on the
+  // additive role routes, which pinned five of the seven calibration gods at
+  // an identical C = 2000 — destroying ordering among them and flattening the
+  // local gradient the confidence sweep needs (a clamped role reads as
+  // "stable" under every knob). Everything below the knee is bit-identical to
+  // the old clamp; only the elite band decompresses.
+  ROLE_CEILING_KNEE: 0.9,
   // A protected Speed Boost turn makes the post-boost attacker route reliable.
   // The role itself still requires real damage and the observed +1 Speed
   // percentile; this is only the completion bonus for carrying a full-protect

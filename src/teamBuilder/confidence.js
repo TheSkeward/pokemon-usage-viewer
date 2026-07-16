@@ -71,6 +71,14 @@ export const CONFIDENCE_GRID = [
     overrides: { TEMPO_RELIABILITY_BONUS: 0.2 },
   },
   {
+    key: "ceiling-knee-low",
+    overrides: { ROLE_CEILING_KNEE: 0.85 },
+  },
+  {
+    key: "ceiling-knee-high",
+    overrides: { ROLE_CEILING_KNEE: 0.95 },
+  },
+  {
     key: "utility-strict",
     overrides: {
       UTILITY_ROLE_WEIGHT: 0.55,

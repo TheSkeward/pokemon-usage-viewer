@@ -180,7 +180,10 @@ const MAX_RESULT_CACHE = 400;
 // and sustained trace usage in a shallow format prevents the absence law from
 // treating a competitively present line as dead. Move/build facts and score
 // breakdowns change, so persisted results must retire.
-const RESULT_CACHE_VERSION = "36";
+// v37: the additive role routes (specialist bulk, tempo, priority utility)
+// saturate through a soft knee instead of a hard clamp at 1, so elite roles
+// stay ordered instead of tying at C = 2000. Sub-knee scores are unchanged.
+const RESULT_CACHE_VERSION = "37";
 
 // TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
 // full search against a warm incremental one in the same process (the

@@ -193,6 +193,20 @@ function geomean(values) {
 }
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 
+// Saturating ceiling for the additive role routes: identity below the knee,
+// asymptotic to (never reaching) 1 above it. A hard clamp01 here erased real
+// differences exactly where the strongest roles live — overshoots of 1.01 and
+// 1.09 both read as a flat 1.0, tying the top mons and blinding the confidence
+// sweep (a clamped role is locally flat under every knob). Sub-knee values are
+// bit-identical to the old clamp, so only the elite band decompresses.
+export function softCeiling(x) {
+  if (x <= 0) return 0;
+  const knee = tunable("ROLE_CEILING_KNEE");
+  if (x <= knee) return x;
+  const band = 1 - knee;
+  return knee + band * (1 - Math.exp(-(x - knee) / band));
+}
+
 // Signed standalone defensive value in neutral-hit equivalents. This is the
 // same type chart the team-fit layer uses, but it answers a different question:
 // whether one member's strong defensive side has enough broadly useful switch-
@@ -522,7 +536,7 @@ export function currentFormFeatures(profile, levelCap) {
   // user's base Speed or bulk to stand in as a proxy for whether the move gets
   // a turn. The feature still prices the actual role quality and depth, so one
   // minor priority status move cannot masquerade as a complete support kit.
-  const priority_utility_q = clamp01(
+  const priority_utility_q = softCeiling(
     priorityUtilityValue(
       profile?.recommendedMoves,
       profile?.assumedAbility,
@@ -595,16 +609,17 @@ export function currentFormValue(profile, levelCap) {
     // A one-sided bulky attacker earns a separate route only when its typing
     // supplies enough broadly useful switch-in opportunities. The signed type
     // adjustment prevents a special wall with many weaknesses from laundering
-    // one good stat into a complete role. The common clamp preserves C's ceiling.
-    specialist_bulky_attacker: clamp01(
+    // one good stat into a complete role. The soft ceiling preserves C's
+    // bound while keeping overshoots ordered instead of tied at 1.
+    specialist_bulky_attacker: softCeiling(
       geomean([f.damage_q, specialistBulk]) +
         (f.type_resilience_q - 0.5),
     ),
     // Speed Boost is an earned-tempo attacker route: the mon must still hit
     // hard, and its post-turn +1 Speed is measured against the same stage
     // reference as ordinary Speed. A full-protect move makes that ramp
-    // reliable enough to complete, but never exceed, the common C ceiling.
-    tempo_attacker: clamp01(
+    // reliable enough to approach, but never exceed, the common C ceiling.
+    tempo_attacker: softCeiling(
       geomean([f.damage_q, f.tempo_speed_q]) +
         tunable("TEMPO_RELIABILITY_BONUS") * f.tempo_reliability_q,
     ),

@@ -48,11 +48,11 @@ effective_bulk_q = clamp01(
   bulk_q + balanced_bulk_type_weight * (type_resilience_q - 0.5)
 )
 bulky_attacker = geomean(damage_q, effective_bulk_q)
-specialist_bulky_attacker = clamp01(
+specialist_bulky_attacker = soft_ceiling(
   geomean(damage_q, max(physical_bulk_q, special_bulk_q))
   + type_resilience_q - 0.5
 )
-tempo_attacker = clamp01(
+tempo_attacker = soft_ceiling(
   geomean(damage_q, tempo_speed_q)
   + tempo_reliability_bonus * tempo_reliability_q
 )
@@ -66,6 +66,23 @@ screen_support = non_passive
 Geometric means require every axis of a role to be credible. Speed and bulk are
 percentiles blended between the full dex and forms reachable at the current
 cap. Damage is measured against a stage-reference hit.
+
+The additive routes (specialist bulk, tempo, and the priority-utility
+saturation) can overshoot 1, so they saturate through `soft_ceiling` rather
+than a hard clamp: identity up to a knee (default `0.9`), then asymptotic to —
+never reaching — 1 above it:
+
+```text
+soft_ceiling(x) = x                                        for x <= knee
+soft_ceiling(x) = knee + (1 - knee)
+  * (1 - exp(-(x - knee) / (1 - knee)))                    for x > knee
+```
+
+A hard clamp mapped every overshoot to exactly 1, which tied several elite
+mons at an identical `C = 2000` and flattened the local gradient the
+confidence sweep depends on (a clamped role reads as stable under every
+knob). The knee preserves the 2000-point bound and strict ordering; every
+sub-knee score is unchanged.
 
 The fast-attacker route receives a small, bounded action-access discount when
 the build is both likely to move second and unable to absorb the reply. The
@@ -83,8 +100,8 @@ useful switch-in opportunities. Type balance sums
 `+0.5`, immunity `+1`, weakness `-1`, and a 4x weakness `-3`. Neutral balance
 is normalized to `type_resilience_q = 0.5`; a net four favorable equivalents
 reaches `1.0`, with the negative side mirrored. The signed adjustment is added
-only inside this alternate role, and the common clamp preserves the 2000-point
-ceiling. This lets a real one-sided tank count without letting a broadly
+only inside this alternate role, and the soft ceiling preserves the 2000-point
+bound. This lets a real one-sided tank count without letting a broadly
 vulnerable body launder one high defensive stat.
 
 Attacker offense is per-build and additive:

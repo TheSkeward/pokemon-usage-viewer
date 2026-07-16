@@ -103,7 +103,10 @@ test("priority support is a distinct current-value role", () => {
   const prankster = currentFormFeatures(pranksterProfile, 85);
 
   assert.equal(ordinary.priority_utility_q, 0);
-  assert.equal(prankster.priority_utility_q, 1);
+  // A saturated kit approaches the ceiling through the soft knee instead of
+  // pinning at exactly 1, so deeper kits still order above shallower ones.
+  assert.ok(prankster.priority_utility_q > 0.95);
+  assert.ok(prankster.priority_utility_q < 1);
   assert.equal(
     currentFormValue(pranksterProfile, 85).bestRole,
     "priority_utility",
