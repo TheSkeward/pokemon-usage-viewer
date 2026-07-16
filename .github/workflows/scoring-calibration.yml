@@ -1,0 +1,101 @@
+name: Scoring calibration
+
+on:
+  pull_request:
+    paths:
+      # Scoring/runtime mechanics. Keep presentation-only modules excluded so
+      # ordinary UI work does not pay for the 19 optimizer runs.
+      - "src/data.js"
+      - "src/manifest.js"
+      - "src/moveMeta.js"
+      - "src/natures.js"
+      - "src/generated/**"
+      - "src/reborn/**"
+      - "!src/reborn/legalMovesView.js"
+      - "!src/reborn/progressionView.js"
+      - "!src/reborn/teamAnalysisView.js"
+      - "src/teamBuilder/**"
+      - "!src/teamBuilder/availabilityExport.js"
+      - "!src/teamBuilder/explanations.js"
+      - "!src/teamBuilder/gamestateBackup.js"
+      - "!src/teamBuilder/teamBuilderView.js"
+      - "!src/teamBuilder/telemetry.js"
+      - "!src/teamBuilder/traceUsage.js"
+      - "src/utils/dataUrl.js"
+      - "src/utils/fetchJsonCached.js"
+      - "src/utils/ids.js"
+      - "site-data/data/**"
+      - "scripts/build-*.mjs"
+      - "scripts/config.mjs"
+      - "scripts/extract-item-availability.py"
+      - "scripts/reborn/**"
+      - "scripts/set-index/**"
+      - "test/calibration/**"
+      - "test/helpers/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/scoring-calibration.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/data.js"
+      - "src/manifest.js"
+      - "src/moveMeta.js"
+      - "src/natures.js"
+      - "src/generated/**"
+      - "src/reborn/**"
+      - "!src/reborn/legalMovesView.js"
+      - "!src/reborn/progressionView.js"
+      - "!src/reborn/teamAnalysisView.js"
+      - "src/teamBuilder/**"
+      - "!src/teamBuilder/availabilityExport.js"
+      - "!src/teamBuilder/explanations.js"
+      - "!src/teamBuilder/gamestateBackup.js"
+      - "!src/teamBuilder/teamBuilderView.js"
+      - "!src/teamBuilder/telemetry.js"
+      - "!src/teamBuilder/traceUsage.js"
+      - "src/utils/dataUrl.js"
+      - "src/utils/fetchJsonCached.js"
+      - "src/utils/ids.js"
+      - "site-data/data/**"
+      - "scripts/build-*.mjs"
+      - "scripts/config.mjs"
+      - "scripts/extract-item-availability.py"
+      - "scripts/reborn/**"
+      - "scripts/set-index/**"
+      - "test/calibration/**"
+      - "test/helpers/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/scoring-calibration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scoring-calibration-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run fast tests
+        run: npm test
+
+      - name: Validate scoring calibration
+        run: npm run validate:calibration

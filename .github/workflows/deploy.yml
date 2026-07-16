@@ -70,9 +70,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Keep deployment gated by the cheap mechanical/correctness suite. The
-      # badge corpus is a product-calibration instrument and may stay red while
-      # its findings are being resolved, so it is deliberately not a CI gate.
+      # Keep every deployment gated by the cheap mechanical/correctness suite.
+      # Scoring-affecting paths additionally run the badge corpus in the
+      # separate scoring-calibration workflow, without forcing docs-only work
+      # through a subjective optimizer run.
       - name: Run fast tests
         run: npm test
 

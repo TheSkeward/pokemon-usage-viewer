@@ -235,8 +235,9 @@ npm run e2e
 - `npm test` is the fast mechanical/correctness suite. It should stay focused
   and cheap enough to run routinely.
 - `npm run validate:calibration` runs the 19 real badge buckets. It is the only
-  score-ranking calibration contract and may remain red while findings are
-  actively being resolved.
+  score-ranking calibration contract. CI runs it whenever the scoring engine or
+  its inputs change; scoring-affecting changes must not land while it is red.
+  UI-only and documentation-only changes do not run this expensive suite.
 - `npm run e2e` covers a small browser-level product smoke surface.
 
 The calibration injects seven consensus-strong anchors into every rolling badge
