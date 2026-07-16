@@ -20,6 +20,7 @@ import {
   recordOptimizerSample,
 } from "./teamBuilder/telemetry.js";
 import { loadManifest } from "./manifest.js";
+import { getActiveGame } from "./games/registry.js";
 import { renderRebornLegalMovesPanel } from "./reborn/legalMovesView";
 import { renderRebornTeamAnalysisPanel } from "./reborn/teamAnalysisView";
 import { getCurrentRebornSpeciesForChoice } from "./reborn/currentSpecies.js";
@@ -63,7 +64,9 @@ import {
   writeLocalStorage,
 } from "./storage/safeLocalStorage";
 
-const POOL_STORAGE_KEY = "pokemon-usage-viewer:owned-pool:v1";
+// Per-game: each game's owned pool is its own saved state (the descriptor
+// pins Reborn's pre-registry literal so existing saves survive).
+const poolStorageKey = () => getActiveGame().storage.pool;
 const TEAM_SORT_STORAGE_KEY = "pokemon-usage-viewer:pool-team-sort:v1";
 const TEAM_SORT_DIR_STORAGE_KEY = "pokemon-usage-viewer:pool-team-sort-dir:v1";
 const POST_ANALYSIS_MAX_POOL_SIZE = 80;
@@ -1056,7 +1059,7 @@ export function mountPoolOptimizer(container, options = {}) {
       state.statusMessage = "Saved pool cleared";
 
       setDetails.cancel();
-      removeLocalStorage(POOL_STORAGE_KEY);
+      removeLocalStorage(poolStorageKey());
       writeUrl();
       render();
     });
@@ -1540,11 +1543,11 @@ export function mountPoolOptimizer(container, options = {}) {
 }
 
 export function savePool(value) {
-  return writeLocalStorage(POOL_STORAGE_KEY, value);
+  return writeLocalStorage(poolStorageKey(), value);
 }
 
 export function loadSavedPool() {
-  return readLocalStorage(POOL_STORAGE_KEY, "");
+  return readLocalStorage(poolStorageKey(), "");
 }
 
 function saveTeamSort(value) {

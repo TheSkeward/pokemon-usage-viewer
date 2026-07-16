@@ -1,5 +1,6 @@
 import { dataUrl } from "../utils/dataUrl.js";
 import { fetchJsonCached } from "../utils/fetchJsonCached.js";
+import { getActiveGame } from "../games/registry.js";
 import { getRebornMoveId } from "../reborn/legalMoves.js";
 import { hydrateLegalMove } from "../moveMeta.js";
 
@@ -186,7 +187,9 @@ async function fetchSetDetail({ family, pokemonId, selection }) {
 
 async function fetchLegalMoves(pokemonId) {
   try {
-    return await fetchJsonCached(dataUrl(`reborn-legal-moves/all/${pokemonId}.json`));
+    return await fetchJsonCached(
+      dataUrl(`${getActiveGame().data.legalMovesDir}/all/${pokemonId}.json`),
+    );
   } catch {
     return null;
   }

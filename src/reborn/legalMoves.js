@@ -5,6 +5,7 @@ import {
 } from "./progressionOptions.js";
 import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
 import { dataUrl } from "../utils/dataUrl.js";
+import { getActiveGame } from "../games/registry.js";
 import { hydrateLegalMove } from "../moveMeta.js";
 import { toId as normalizeId } from "../utils/ids.js";
 
@@ -14,11 +15,17 @@ const tmxByMoveId = mapOptionsByMoveId(REBORN_TMX_OPTIONS);
 const tutorByMoveId = mapOptionsByMoveId(REBORN_TUTOR_OPTIONS);
 
 export async function loadRebornLegalMoveData(pokemonId) {
+  const game = getActiveGame();
   const id = toId(pokemonId);
   if (!id) return null;
-  if (legalMoveCache.has(id)) return legalMoveCache.get(id);
+  // Keyed by game so switching games can't serve one game's learnset for
+  // another (the ids overlap almost entirely).
+  const cacheKey = `${game.id}|${id}`;
+  if (legalMoveCache.has(cacheKey)) return legalMoveCache.get(cacheKey);
 
-  const response = await fetch(dataUrl(`reborn-legal-moves/all/${id}.json`));
+  const response = await fetch(
+    dataUrl(`${game.data.legalMovesDir}/all/${id}.json`),
+  );
   if (response.status === 404) {
     legalMoveCache.set(id, null);
     return null;

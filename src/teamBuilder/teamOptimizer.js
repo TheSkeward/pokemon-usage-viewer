@@ -1,4 +1,5 @@
 import { getLineRepresentativeCandidates } from "../data";
+import { getActiveGame } from "../games/registry.js";
 import {
   applyBreedingContextToProgression,
   buildRebornBreedingContext,
@@ -281,7 +282,10 @@ export async function optimizeTeamFromPool({
   // stale fast entries while every exact result stays warm (a full
   // RESULT_CACHE_VERSION bump here would have forced yet another cold main
   // search on every user for an investment-only change).
-  const contextSig = `${family}|${selection}|${progressionSig}|${breedingSig}|${abilitySig}|${scoringOverridesSignature()}|${dataSignature}${
+  // The game id leads the signature: every cache layer keyed by contextSig
+  // (line cache, result cache, persisted results) is per-game, so switching
+  // games can never serve one game's verdicts to another.
+  const contextSig = `${getActiveGame().id}|${family}|${selection}|${progressionSig}|${breedingSig}|${abilitySig}|${scoringOverridesSignature()}|${dataSignature}${
     fastMode ? "|search:fast2" : ""
   }`;
 

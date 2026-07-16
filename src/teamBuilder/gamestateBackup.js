@@ -6,6 +6,8 @@
 // the pure serialize/parse half; the widget wires it to a download link and
 // a file picker.
 
+import { getActiveGame } from "../games/registry.js";
+
 const FORMAT = "pokemon-usage-viewer-gamestate";
 const VERSION = 1;
 
@@ -14,6 +16,9 @@ export function buildGamestateExport({ query, progression }) {
     {
       format: FORMAT,
       version: VERSION,
+      // Which game this playthrough belongs to. Absent on pre-registry
+      // exports, which are all Reborn by construction.
+      game: getActiveGame().id,
       exportedAt: new Date().toISOString(),
       pool: String(query || ""),
       progression: progression || {},
@@ -54,6 +59,10 @@ export function parseGamestateImport(text) {
   return {
     pool: parsed.pool,
     progression: parsed.progression,
+    // Pre-registry exports carry no game field; they are all Reborn. The
+    // caller decides how to route a backup for a different game than the
+    // active one (today there is only one game, so this is a pass-through).
+    game: typeof parsed.game === "string" ? parsed.game : "reborn",
   };
 }
 

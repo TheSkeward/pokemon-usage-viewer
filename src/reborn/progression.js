@@ -12,8 +12,11 @@ import { TERRAIN_SEED_MIGRATION } from "./rebornSeeds";
 import { REBORN_ANALYSIS_TYPES } from "./typeChart.js";
 import { EVOLUTION_ACCESS_FIELDS } from "./evolutionRequirements.js";
 import { getRebornCheckpoint } from "./badgeTimeline.js";
+import { getActiveGame } from "../games/registry.js";
 
-const PROGRESSION_STORAGE_KEY = "pokemon-usage-viewer:reborn-progression:v1";
+// Per-game: each game's playthrough progression is its own saved state (the
+// descriptor pins Reborn's pre-registry literal so existing saves survive).
+const progressionStorageKey = () => getActiveGame().storage.progression;
 
 // Highest tracked held-item quantity; the picker treats this as "6 or more".
 export const MAX_TRACKED_ITEM_COUNT = 6;
@@ -35,7 +38,7 @@ export const DEFAULT_REBORN_PROGRESSION = {
 };
 
 export function loadSavedRebornProgression() {
-  const raw = readLocalStorage(PROGRESSION_STORAGE_KEY, "");
+  const raw = readLocalStorage(progressionStorageKey(), "");
 
   if (!raw) return { ...DEFAULT_REBORN_PROGRESSION };
 
@@ -50,13 +53,13 @@ export function loadSavedRebornProgression() {
 
 export function saveRebornProgression(progression) {
   return writeLocalStorage(
-    PROGRESSION_STORAGE_KEY,
+    progressionStorageKey(),
     JSON.stringify(normalizeRebornProgression(progression)),
   );
 }
 
 export function clearSavedRebornProgression() {
-  return removeLocalStorage(PROGRESSION_STORAGE_KEY);
+  return removeLocalStorage(progressionStorageKey());
 }
 
 export function normalizeRebornProgression(progression = {}) {
