@@ -113,7 +113,22 @@ for (const pokemon of pokemonIndex) {
     return sourcesByMove.get(moveId);
   };
 
-  for (const [level, moveId] of learnset.levelUp) get(moveId).levelUp.push(level);
+  // A level-1 block longer than four entries contains RELISTS: the game
+  // gives a level-1 mon only the LAST four moves of its ≤1 learnset
+  // (Essentials takes the tail), so head entries — conventionally the
+  // relearner catalog, e.g. Mawile's Play Rough / Iron Head — are never
+  // actually known at level 1 (user report: a level-1 Mawile always has
+  // Astonish, Fairy Wind, Growl, Taunt). Those entries become a
+  // levelOneRelist flag (move-relearner route) instead of a phantom
+  // "Level 1" source; a later natural level (Iron Head @45) is unaffected.
+  const ownRelists = levelOneRelistIds(learnset);
+  for (const [level, moveId] of learnset.levelUp) {
+    if (level === 1 && ownRelists.has(moveId)) {
+      get(moveId).levelOneRelist = true;
+      continue;
+    }
+    get(moveId).levelUp.push(level);
+  }
   for (const moveId of learnset.evolutionMoves) get(moveId).evolutionMove = true;
   for (const moveId of learnset.eggMoves) get(moveId).egg = true;
   for (const moveId of learnset.relearnerMoves) get(moveId).rebornRelearner = true;
@@ -157,7 +172,15 @@ for (const pokemon of pokemonIndex) {
     const preLearnset = learnsets[preEvoId];
     if (!preLearnset) continue;
     for (const moveId of preLearnset.eggMoves) get(moveId).egg = true;
+    // A pre-evo's own head-of-block relists must not be inherited as real
+    // @1 entries either — but they stay relearner-teachable on this line
+    // (relearn on the pre-evo, then evolve), so they carry the same flag.
+    const preRelists = levelOneRelistIds(preLearnset);
     for (const [level, moveId] of preLearnset.levelUp) {
+      if (level === 1 && preRelists.has(moveId)) {
+        get(moveId).levelOneRelist = true;
+        continue;
+      }
       if (!preEvoLevelUp.has(moveId)) preEvoLevelUp.set(moveId, []);
       // Attributed: WHICH ancestor learns it decides which evolution must be
       // delayed (Slaking's Play Rough is Slakoth@38 — delay Slakoth — while
@@ -201,6 +224,23 @@ for (const pokemon of pokemonIndex) {
 }
 
 console.log(`[reborn-legal-moves] wrote ${written} Pokémon files (from Reborn mons.dat)`);
+
+// The level-1 entries that are relists rather than genuine starting moves:
+// everything in the ≤1 block except its last four entries. Genuine evolution
+// moves are exempt — they're granted on evolving and tracked separately.
+function levelOneRelistIds(learnset) {
+  const block = learnset.levelUp
+    .filter(([level]) => level <= 1)
+    .map(([, moveId]) => moveId);
+  if (block.length <= 4) return new Set();
+  const natural = new Set(block.slice(-4));
+  const evolution = new Set(learnset.evolutionMoves);
+  return new Set(
+    block.filter(
+      (moveId) => !natural.has(moveId) && !evolution.has(moveId),
+    ),
+  );
+}
 
 // Pre-evolution ids (closest first) via @pkmn/dex relationships, walked from the
 // base species so alternate forms (Megas, etc.) inherit the base line's chain.

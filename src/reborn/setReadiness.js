@@ -142,7 +142,11 @@ export function computeSetReadiness({
       candidates.push({ cap: level, detail: `level-up @${level}` });
     }
     const hasLevelOneRelist =
-      speciesIsEvolved && (raw.sources?.levelUp || []).includes(1);
+      (speciesIsEvolved && (raw.sources?.levelUp || []).includes(1)) ||
+      // Head-of-block level-1 relists (flagged at build time) are
+      // relearner-only on ANY form — a level-1 mon knows just the last four
+      // moves of its ≤1 learnset, never the relist catalog above them.
+      Boolean(raw.sources?.levelOneRelist);
     if (raw.sources?.tm || raw.sources?.tmx || raw.sources?.tutor) {
       const badge = MACHINE_BADGE_BY_MOVE.get(id);
       if (badge != null) {

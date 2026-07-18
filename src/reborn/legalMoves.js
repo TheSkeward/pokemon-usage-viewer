@@ -27,7 +27,7 @@ export async function loadRebornLegalMoveData(pokemonId) {
     dataUrl(`${game.data.legalMovesDir}/all/${id}.json`),
   );
   if (response.status === 404) {
-    legalMoveCache.set(id, null);
+    legalMoveCache.set(cacheKey, null);
     return null;
   }
 
@@ -43,7 +43,7 @@ export async function loadRebornLegalMoveData(pokemonId) {
     ...data,
     moves: (data.moves || []).map(hydrateLegalMove),
   };
-  legalMoveCache.set(id, hydrated);
+  legalMoveCache.set(cacheKey, hydrated);
   return hydrated;
 }
 
@@ -76,11 +76,11 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
   //   - level:      the recorded evolution level (Slakoth departs at 18).
   //   - friendship / affection: Infinity — the grind builds gradually while
   //     training, so the pre-evo naturally spans levels; nothing is delayed.
-  //   - item / trade / location / party (elective triggers): 0 — the default
-  //     path takes them the moment they're available, so EVERY pre-evo
-  //     level-up move requires deliberately keeping the form unevolved
-  //     (Musharna via Moon Stone learns nothing itself; Munna's Moonlight@17
-  //     / Calm Mind@35 / Psychic@37 are all classic stone-gated moves).
+  //   - item / trade / location / party (elective triggers): the departing
+  //     form's arrival level — the default path takes them as soon as
+  //     available, so moves the form knows at arrival carry over free and
+  //     any later entry means deliberately keeping it unevolved (Munna's
+  //     Calm Mind@35).
   //   - level-while-knowing-a-move: the move's own learn level.
   const hopDeparture = (child) => {
     const evoType = child?.evoType || "";
@@ -99,15 +99,9 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         ? child.evoMoveLevel
         : Infinity;
     }
-    // useItem / levelHold / trade / remaining levelExtra (locations, party
-    // conditions): elective. The default path takes these ASAP — i.e. the
-    // moment the form ARRIVES — so entries above arrival are delay-gated
-    // (user ruling, the Musharna report: Munna's Calm Mind@35 means fielding
-    // a Munna to 35, a real cost). But the departure is the ARRIVAL level,
-    // not 0: an empty [arrival, 0] window priced even moves the form already
-    // KNOWS at arrival as delayed — hatch moves (Munna's level-1 Psywave)
-    // and moves learned in the same moment the pre-evo becomes eligible
-    // (Kirlia's level-20 moves on Gallade) carry over at zero cost.
+    // Elective triggers (useItem / levelHold / trade / remaining
+    // levelExtra): departure = the departing form's arrival level, per the
+    // rule documented above.
     const departing = GEN7_PROGRESSION_SPECIES[child?.prevoId];
     if (!departing?.prevoId) return 1;
     return (departing.evoType || "") === "" && Number.isFinite(departing.evoLevel)
@@ -127,12 +121,10 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
   const directDeparture = hopDeparture(speciesRecord);
   const departureOf = (fromId) =>
     fromId ? (departureByAncestor.get(fromId) ?? directDeparture) : directDeparture;
-  // A form's ARRIVAL: the level at which it starts existing. A pre-evo
-  // level-up entry BELOW its form's arrival is unreachable by leveling —
-  // Vigoroth "learns" Uproar at 1 and 9 but only exists from 18 (Slakoth's
-  // departure), so those entries are move-relearner-only (user report:
-  // Slaking was recommended as an Uproar breeding donor "@1"). Base forms
-  // arrive at 1 (hatch/catch); non-level evolutions arrive whenever taken.
+  // A form's ARRIVAL: the level at which it starts existing (base forms at
+  // 1; level evolutions at their evolution level; others whenever taken).
+  // An entry below a form's arrival can't be leveled through on the default
+  // path — it's a candy-down route at level 2+, relearner-only at level 1.
   const arrivalOf = (formId) => {
     const form = GEN7_PROGRESSION_SPECIES[formId];
     if (!form?.prevoId) return 1;
@@ -153,15 +145,11 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       (entry) =>
         typeof entry === "number" ? { level: entry, from: null } : entry,
     );
-    // Reachable-by-leveling window per entry: at or above the form's arrival
-    // (it must EXIST at that level) and at or below its natural departure.
-    // The fielded form's OWN entries obey the same arrival bound — a fielded
-    // Drapion (arrives at 40) does not "learn Pin Missile at 9" by leveling;
-    // its own below-arrival entries are candy-down routes exactly like a
-    // pre-evo's (user report: Pineco's Pin Missile donor priced Drapion@9 as
-    // if natural, beating the honest Skorupi@9 on an alphabetical tie).
-    // Keep the learner form structured; breeding-chain provenance must say
-    // "Skitty @1", not the currently fielded Delcatty that inherited the move.
+    // Reachable-by-leveling window per entry: at or above the learner
+    // form's arrival (it must exist at that level) and at or below its
+    // natural departure — the fielded form's OWN entries obey the same
+    // arrival bound. Entries stay attributed to the form that learns them so
+    // breeding-chain provenance names the real learner.
     const ownArrival = arrivalOf(pokemonId);
     const naturalLevelUpSources = [
       ...allLevelUpLevels
@@ -195,13 +183,11 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
           entry.level <= levelCap,
       )
       .sort((a, b) => a.level - b.level);
-    // Entries below their form's arrival at level 2+ ARE reachable in Reborn
-    // (user-verified): Common Candy the form back below the level, then level
-    // up through it — Vigoroth (exists from 18) candies down to 8 and learns
-    // Uproar at 9. Requires the form to be reachable at the cap. Level-1
-    // entries stay relearner-only: you never level UP to 1. The fielded
-    // form's own below-arrival entries take the same route (Drapion candies
-    // down for its own level-9 Pin Missile).
+    // Below-arrival entries at level 2+ are reachable by Common Candy:
+    // candy the form back below the level, then level up through it
+    // (requires the form itself to be reachable at the cap). Level-1
+    // entries are relearner-only — you never level UP to 1. The fielded
+    // form's own below-arrival entries take the same candy-down route.
     const candyEntries = [
       ...allLevelUpLevels
         .filter(
@@ -235,18 +221,16 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     // form — e.g. Combusken's Double Kick — so it's directly available whenever
     // you're fielding that form, not gated behind the move relearner.
     const isEvolutionMove = Boolean(move.sources?.evolutionMove);
-    // A level-1 move relisted on an evolved form that ISN'T a genuine evolution
-    // move (e.g. Blaziken's Flare Blitz, Honchkrow's Sucker Punch) is
-    // teachable on this form through the move relearner — REGARDLESS of what
-    // its pre-evolutions do. Requiring "no pre-evolution entries" here erased
-    // the move entirely whenever the pre-evo's own entries were out of reach
-    // (audit: Honchkrow Sucker Punch — Murkrow@55 unreachable at cap 50, so
-    // the signature move had NO source at all; 101 such cases at cap 50).
+    // A non-evolution level-1 entry — an evolved form's relist (Blaziken's
+    // Flare Blitz) or a build-time-flagged head-of-block relist (Mawile's
+    // Play Rough) — is relearner-teachable regardless of what the
+    // pre-evolutions do.
     const hasRelearnerOnlyLevelOne =
       !isEvolutionMove &&
-      allLevelUpLevels.some((level) =>
-        isEvolvedLevelOneMove(level, evolvedSpecies),
-      );
+      (Boolean(move.sources?.levelOneRelist) ||
+        allLevelUpLevels.some((level) =>
+          isEvolvedLevelOneMove(level, evolvedSpecies),
+        ));
 
     if (levelSources.length > 0) {
       const best = levelSources[0];
@@ -303,14 +287,9 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       });
     }
 
-    // A level-1 relist (or an unreachable level-1 pre-evo entry) makes the
-    // move relearner-teachable on this form INDEPENDENTLY of the branches
-    // above — a candy-down or delayed pre-evo route must not swallow it.
-    // As the last else-if it did: Honchkrow's Sucker Punch (own [1],
-    // Murkrow@55) was relearner-only at cap 50, but at cap 55 the delayed
-    // branch won the chain and the zero-cost Heart Scale route VANISHED —
-    // the move got strictly worse by raising the cap (delayed friction on
-    // builds, donor pricing @55 instead of the relearner's last-resort 200).
+    // Relearner eligibility is judged INDEPENDENTLY of the branches above:
+    // a candy-down or delayed pre-evo route must not swallow the zero-cost
+    // relearner option (as the last else-if it once did).
     if (
       (hasRelearnerOnlyLevelOne || hasLevelOnePreEvoOnly || hasOwnBelowArrival) &&
       moveRelearnerUnlocked &&
