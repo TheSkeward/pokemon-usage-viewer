@@ -60,7 +60,7 @@ export function renderMovesetPanel(container, options = {}) {
     );
   if (stitched)
     notes.push(
-      "Additional set options are shown with source tags instead of misleading percentages.",
+      "Fallback-tier set options (shallower tiers first, starting from AG @ 1760) are appended with source tags instead of misleading percentages.",
     );
 
   notes.push("Other and Nothing are hidden.");

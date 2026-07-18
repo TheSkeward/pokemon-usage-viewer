@@ -24,10 +24,10 @@ export function renderResolverResults(
   }
   container.innerHTML = `
     <section class="panel">
-      <div class="panel-header"><div><h2>Set Lookup Results</h2><p>${rows.length} Pokémon resolved for ${selectionLabel}</p><p>Sorted by Lead % descending. Click a row to load movesets.</p></div></div>
+      <div class="panel-header"><div><h2>Set Lookup Results</h2><p>${rows.length} Pokémon resolved for ${selectionLabel}</p><p>Usage % and Source show the canonical tier — the first tier the Pokémon is meaningfully played in (its best trace tier when it never clears the bar). Shallower fallback tiers are noted and their sets appear tagged in the details below. Sorted by Lead % descending. Click a row to load movesets.</p></div></div>
       ${loadingNotice}
       <table class="usage-table resolver-results-table"><thead><tr><th>Pokémon</th><th>Usage %</th><th>Lead %</th><th>Source</th></tr></thead><tbody>
-        ${rows.map((row) => `<tr data-resolver-pokemon-id="${row.pokemonId}" class="${row.pokemonId === state.resolverSelectedPokemon ? "selected" : ""}"><td>${renderPokemonCell(row)}</td><td>${row.bundle.usage ? row.bundle.usage.value.toFixed(2) : "—"}</td><td>${row.bundle.leads ? row.bundle.leads.value.toFixed(1) : "—"}</td><td>${renderSourceCell(row.bundle, formatsIndex)}</td></tr>`).join("")}
+        ${rows.map((row) => `<tr data-resolver-pokemon-id="${row.pokemonId}" class="${row.pokemonId === state.resolverSelectedPokemon ? "selected" : ""}"><td>${renderPokemonCell(row)}</td><td>${renderUsageCell(row.bundle)}</td><td>${row.bundle.leads ? row.bundle.leads.value.toFixed(1) : "—"}</td><td>${renderSourceCell(row.bundle, formatsIndex)}</td></tr>`).join("")}
       </tbody></table>
     </section>`;
 }
@@ -67,22 +67,63 @@ function getRepresentativeNote(row) {
   return parts.join(" · ");
 }
 
+// The canonical tier is the row's headline verdict — the same sourcing the
+// team builder uses (first meaningful tier; best trace tier below the bar).
+// The shallowest tier of ANY appearance (typically AG @ 1760, where a fringe
+// mon's 0.005% is a handful of teams) is demoted to an explicit fallback
+// line: it used to BE the headline, which read as "this mon's set is its AG
+// set" — the exact confusion this layout exists to prevent.
+function canonicalTierOf(bundle) {
+  return bundle.ranking || bundle.trace || null;
+}
+
+function renderUsageCell(bundle) {
+  const canonical = canonicalTierOf(bundle);
+  if (canonical) {
+    const traceTag = bundle.ranking
+      ? ""
+      : `<div class="source-subline">trace</div>`;
+    return `${canonical.value.toFixed(2)}${traceTag}`;
+  }
+  return bundle.usage ? bundle.usage.value.toFixed(2) : "—";
+}
+
 function renderSourceCell(bundle, formatsIndex) {
+  const canonical = canonicalTierOf(bundle);
   const usageSource = bundle.usage,
     leadSource = bundle.leads;
-  if (!usageSource && !leadSource) return "—";
-  if (sameSource(usageSource, leadSource))
-    return `<div class="source-lines"><div>${formatSource(usageSource, formatsIndex)}</div></div>`;
+  if (!canonical && !usageSource && !leadSource) return "—";
+
   const lines = [];
-  if (usageSource)
+  if (canonical) {
     lines.push(
-      `<div class="source-subline"><strong>Usage:</strong> ${formatSource(usageSource, formatsIndex)}</div>`,
+      `<div>${formatTier(canonical, formatsIndex)} — canonical${bundle.ranking ? "" : " (trace)"}</div>`,
     );
-  if (leadSource)
+    if (usageSource && !sameTier(canonical, usageSource)) {
+      lines.push(
+        `<div class="source-subline">fallback: ${formatSource(usageSource, formatsIndex)}</div>`,
+      );
+    }
+  } else if (usageSource) {
+    lines.push(`<div>${formatSource(usageSource, formatsIndex)}</div>`);
+  }
+  if (leadSource && (!usageSource || !sameSource(usageSource, leadSource))) {
     lines.push(
       `<div class="source-subline"><strong>Lead:</strong> ${formatSource(leadSource, formatsIndex)}</div>`,
     );
+  }
   return `<div class="source-lines">${lines.join("")}</div>`;
+}
+
+function formatTier(tier, formatsIndex) {
+  const label =
+    formatsIndex.find((format) => format.id === tier.formatId)?.label ||
+    tier.formatId;
+  return `${label} @ ${tier.cutoff}`;
+}
+
+function sameTier(a, b) {
+  return Boolean(a && b && a.formatId === b.formatId && a.cutoff === b.cutoff);
 }
 function sameSource(a, b) {
   return Boolean(

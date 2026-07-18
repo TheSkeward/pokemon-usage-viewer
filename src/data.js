@@ -293,7 +293,20 @@ export async function resolveBestAvailableLightBundle({ availability, family, se
   const usage = await resolveBestAvailableUsage({ availability, family, selection, pokemonId });
   const leads = await resolveBestAvailableLeads({ availability, family, selection, pokemonId });
 
-  const bundle = { usage, leads };
+  // Canonical-tier facts (first meaningful tier, best trace tier) are
+  // long-run properties of the mon, so they come from the all-period index
+  // even when a single month is selected: one month of a fringe mon is
+  // noise, and the tier a set should be sourced from doesn't flap month to
+  // month. The monthly usage/leads rows above keep their period semantics.
+  const allIndex = await loadResolverIndex(family, "all");
+  const canonical = allIndex?.pokemon?.[pokemonId] || null;
+
+  const bundle = {
+    usage,
+    leads,
+    ranking: canonical?.ranking ?? null,
+    trace: canonical?.trace ?? null,
+  };
   resolverSummaryCache.set(cacheKey, bundle);
   return bundle;
 }

@@ -139,7 +139,7 @@ export function createPrecomputedSetDetailsLoader({
 export function describePrecomputedSetSource(source) {
   const fallback = source?.selectionFallback;
 
-  const base =
+  const tier =
     source?.primarySource?.sourceText ||
     source?.sourceText ||
     (source?.selection === "all"
@@ -147,6 +147,12 @@ export function describePrecomputedSetSource(source) {
       : source?.formatId
         ? `${source.formatId} @ ${source.cutoff}`
         : "");
+
+  // The primary set is the CANONICAL set — sourced from the first tier the
+  // mon is meaningfully played in (its best trace tier below the bar), the
+  // same policy the team builder uses. Say so, so the headline can't be
+  // misread as "whatever tier ranked first".
+  const base = source?.primarySource ? `canonical tier ${tier}` : tier;
 
   if (fallback) {
     return `${base} · all-period details shown for ${fallback.requested}`;
