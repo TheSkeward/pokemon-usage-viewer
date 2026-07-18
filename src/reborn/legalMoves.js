@@ -386,6 +386,9 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         label: eggSource.label || "Egg",
         detail: eggSource.detail || "Breeding chain",
         sourceTitle: eggSource.sourceTitle || eggSource.detail || "",
+        // The direct donor the chain fathers the move from — the analysis
+        // page's interim-donor guide keys on this.
+        donorName: eggSource.donorName || null,
       });
     }
 

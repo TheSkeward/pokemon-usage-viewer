@@ -302,6 +302,7 @@ function renderSetCard(profile) {
         }
       </div>
       ${renderSetReadiness(profile.setReadiness)}
+      ${renderDonorInterimGuides(profile.donorInterimGuides)}
       <div class="team-set-foot">
         <small>${profile.superEffectiveTargetCount}/${REBORN_ANALYSIS_TYPES.length} types hit super effectively</small>
       </div>
@@ -350,6 +351,42 @@ function renderSetReadiness(readiness) {
       <small>Competitive set: ${escapeHtml(parts.join(" · "))}</small>
     </div>
   `;
+}
+
+// The set above leans on a breeding donor the player will field in the
+// interim (catch the donor, level it to the egg move, breed). This panel
+// answers "how do I use the donor meanwhile": its own recommended moves at
+// the current progression, from the same pipeline as every team member.
+function renderDonorInterimGuides(guides) {
+  if (!guides?.length) return "";
+
+  return guides
+    .map((guide) => {
+      const forText = guide.forMoves.map((move) => move.name).join(", ");
+      const chainTip = guide.forMoves
+        .map((move) => `${move.name}${move.detail ? ` — ${move.detail}` : ""}`)
+        .join("\n");
+      const fieldedNote =
+        guide.fieldedName && guide.fieldedName !== guide.donorName
+          ? ` (field ${guide.fieldedName} for now)`
+          : "";
+
+      return `
+        <details class="team-set-donor">
+          <summary title="${escapeAttr(chainTip)}"><small>Interim donor: ${escapeHtml(
+            guide.donorName,
+          )}${escapeHtml(fieldedNote)} — supplies ${escapeHtml(forText)}</small></summary>
+          <div class="team-set-moves">
+            ${
+              guide.moves.length
+                ? guide.moves.map(renderSetMove).join("")
+                : `<small class="muted">No usable damaging moves at the current cap.</small>`
+            }
+          </div>
+        </details>
+      `;
+    })
+    .join("");
 }
 
 function renderSetMove(move) {

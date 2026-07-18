@@ -65,6 +65,20 @@ export async function buildRebornTeamAnalysis(
       return entry;
     }),
   );
+  // Donor interim guides (user story: "I put a male Beedrill onto my team in
+  // the Forretress' slot, temporarily... I would really like to know how to
+  // use the Beedrill"). Any recommended move whose best acquisition is
+  // breeding already names its donor; attach the donor's own current-form
+  // recommended moves so the player fielding it in the interim knows what to
+  // run. Display-only — nothing here feeds scoring or selection.
+  await attachDonorInterimGuides({
+    legalMoveEntries,
+    progression,
+    breedingContext,
+    family,
+    selection,
+  });
+
   const members = legalMoveEntries.map((entry) => entry.member);
   const defensive = analyzeDefensiveProfile(members);
   const offensive = analyzeOffensiveCoverage(legalMoveEntries);
@@ -211,6 +225,94 @@ async function buildMemberLegalMoveEntry({
   });
 
   return { member, moves, profile, topSet, row };
+}
+
+// Which breeding donors a member's recommended set actually leans on: every
+// recommended move whose BEST acquisition (same priority order the source
+// chips use) is an egg source carrying a donor name. Exported for tests.
+export function collectEggDonorRequests(profile) {
+  const byDonor = new Map();
+  for (const move of profile?.recommendedMoves || []) {
+    const best = [...(move.availableSources || [])].sort(
+      (a, b) => getSourcePriority(a) - getSourcePriority(b),
+    )[0];
+    if (!best || best.kind !== "egg" || !best.donorName) continue;
+    const donorId = toId(best.donorName);
+    if (!donorId) continue;
+    if (!byDonor.has(donorId)) {
+      byDonor.set(donorId, {
+        donorId,
+        donorName: best.donorName,
+        moves: [],
+      });
+    }
+    byDonor.get(donorId).moves.push({
+      name: move.name,
+      detail: best.detail || "",
+    });
+  }
+  return [...byDonor.values()];
+}
+
+// Builds each unique donor ONCE per analysis (a Smeargle-style donor can back
+// several members) through the same member pipeline the team itself uses, so
+// its interim moves respect the current cap, TM/tutor unlocks, and the
+// fielded-form mapping (a donor named as its evolved form still guides the
+// pre-evo the player can actually field at this cap).
+async function attachDonorInterimGuides({
+  legalMoveEntries,
+  progression,
+  breedingContext,
+  family,
+  selection,
+}) {
+  const guideCache = new Map();
+
+  const buildGuide = async ({ donorId, donorName }) => {
+    try {
+      const entry = await buildMemberLegalMoveEntry({
+        row: { pokemonId: donorId, name: donorName, inputName: donorName },
+        progression,
+        breedingContext,
+        family,
+        selection,
+      });
+      return {
+        donorId,
+        donorName,
+        fieldedId: entry.profile.fieldedId || entry.member.id,
+        fieldedName: entry.profile.fieldedName || entry.member.name,
+        moves: (entry.profile.recommendedMoves || []).map((move) => ({
+          name: move.name,
+          type: move.type,
+          category: move.category,
+          basePower: move.basePower,
+          estimatedDamage: move.estimatedDamage,
+          sourceLabel: move.sourceLabel,
+          sourceTitle: move.sourceTitle,
+        })),
+      };
+    } catch {
+      // A donor outside the legal-move data (or any load failure) simply gets
+      // no guide — the breeding receipt itself still renders.
+      return null;
+    }
+  };
+
+  for (const entry of legalMoveEntries) {
+    const requests = collectEggDonorRequests(entry.profile);
+    if (!requests.length) continue;
+
+    const guides = [];
+    for (const request of requests) {
+      if (!guideCache.has(request.donorId)) {
+        guideCache.set(request.donorId, buildGuide(request));
+      }
+      const guide = await guideCache.get(request.donorId);
+      if (guide) guides.push({ ...guide, forMoves: request.moves });
+    }
+    if (guides.length) entry.profile.donorInterimGuides = guides;
+  }
 }
 
 // Per-member context the item recommender needs but can only get from the move

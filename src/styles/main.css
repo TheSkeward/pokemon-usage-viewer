@@ -1310,6 +1310,25 @@ input {
   font-size: inherit;
 }
 
+/* Interim-donor panel: the set above breeds a move from this donor, so the
+   player fields the donor for a while — collapsed by default, expands to the
+   donor's own recommended moves at the current progression. */
+.team-set-donor {
+  border-top: 1px dashed #2b3645;
+  margin-top: 0.25rem;
+  padding-top: 0.3rem;
+}
+
+.team-set-donor > summary {
+  cursor: pointer;
+  color: #c9b8ff;
+  font-size: 0.75rem;
+}
+
+.team-set-donor[open] > summary {
+  margin-bottom: 0.25rem;
+}
+
 .team-analysis-explanation {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
