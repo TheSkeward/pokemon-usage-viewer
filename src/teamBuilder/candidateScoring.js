@@ -146,10 +146,6 @@ export function scoreCandidate({
       ? Math.max(0, legalityProfile?.abilitySensitivity || 0)
       : 0;
 
-  // The α·O floor stays upside-only; the earned ramp lifts at full trust.
-  // Downward, the two-clause law applies (see the header): dead lines
-  // converge fully toward their ~zero prior; present-prior lines keep at
-  // least (1 − PRIOR_DRAG_CAP) of C at every w.
   const uRank = usageRankScore(rank, currentValue);
   const priorPresent =
     linePriorPresent != null
@@ -163,8 +159,6 @@ export function scoreCandidate({
   const wDown = priorPresent
     ? Math.min(ramp, tunable("PRIOR_DRAG_CAP"))
     : ramp;
-  // Exposed trust is the RAMP (how much instance evidence has accrued);
-  // the drag applied is wDown, which the bounded-trust law may cap below it.
   const usageWeight = ramp;
   const value =
     currentValue +

@@ -341,8 +341,7 @@ export function normalizeLevel(levelCap) {
   return parsed;
 }
 
-// Parses a Smogon spread string "Nature:HP/Atk/Def/SpA/SpD/Spe" into a nature id
-// and the six EVs. Returns null when it can't be read.
+// Smogon spread strings look like "Nature:HP/Atk/Def/SpA/SpD/Spe".
 export function parseSpread(spreadName) {
   if (typeof spreadName !== "string") return null;
   const [naturePart, evPart] = spreadName.split(":");
@@ -394,8 +393,7 @@ export function getAttackingStats({ pokemonId, levelCap, spread }) {
     };
   }
 
-  // Fallback: invest in the stronger attacking side, leave the other bare —
-  // and without a known spread, assume no speed investment.
+  // Without a known spread, additionally assume no speed investment.
   const physicalIsStronger = baseAtk >= baseSpa;
   return {
     level,
@@ -473,7 +471,6 @@ export function estimateMoveDamage({
     variableMovePower(moveId, lvl, attackerId, attackerStats?.spe ?? null) ||
     0;
 
-  // No base power, not fixed-damage, not variable-power: nothing to estimate.
   if (!resolvedPower) return 0;
 
   if (!attackerStats) {

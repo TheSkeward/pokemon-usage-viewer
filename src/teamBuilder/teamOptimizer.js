@@ -361,12 +361,8 @@ export async function optimizeTeamFromPool({
       : null;
 
   const searchStart = Date.now();
-  // Attach competitive teammate lift (first-meaningful-tier co-use) to every
-  // candidate before the search — the kernel blends the hand-built team fit
-  // toward it as pair trust (min of the two lines' w) grows. Missing index
-  // data degrades to trust 0 silently. It fetches per-line index files, so on
-  // a cold load it is a visible slice of the "search" phase — captioned as
-  // its own stage.
+  // Teammate-lift attachment fetches per-line index files, so on a cold load
+  // it is a visible slice of the "search" phase — captioned as its own stage.
   onProgress?.({ phase: "search", stage: "synergy" });
   await attachTeammateLift(lines, family);
   onProgress?.({ phase: "search" });
@@ -394,10 +390,9 @@ export async function optimizeTeamFromPool({
     resolveMs: searchStart - resolveStart,
     searchMs: Date.now() - searchStart,
   };
-  // Telemetry facts for the caller (poolWidget records the sample; this only
-  // describes the run). Warm = anything short of from-scratch: line-cache
-  // hits and/or an incremental (grown) search. Cold = every line resolved
-  // fresh AND a full search.
+  // Warm = anything short of from-scratch: line-cache hits and/or an
+  // incremental (grown) search. Cold = every line resolved fresh AND a full
+  // search.
   result.telemetryMeta = {
     cache: hitLineKeys.size > 0 || incremental ? "warm" : "cold",
     poolSize: lines.length,
@@ -415,16 +410,14 @@ export async function optimizeTeamFromPool({
   if (result.degraded) {
     searchCache = null;
   } else {
-    // Fast runs never seed the incremental cache (their shortlist-grade
-    // optimum would null the exact Layer-2 state the next pool edit needs);
-    // everything else — memory memo AND persistence — they share, because a
-    // cold investment plan is two full future-cap runs.
+    // Fast runs never seed the incremental cache (same shortlist-grade rule
+    // as the memo-hit path); memory memo AND persistence they DO share,
+    // because a cold investment plan is two full future-cap runs.
     if (!fastMode) seedSearchCache(result, lines, searchKey);
     // The key rides on the result so persistPostAnalysis can write the
     // analysis back through to the same record later.
     result.poolKey = poolKey;
     storeResult(poolKey, result);
-    // Persist for future sessions (fire-and-forget; failures are silent no-ops).
     persistResult(RESULT_CACHE_VERSION, poolKey, result);
   }
 
@@ -796,8 +789,8 @@ async function resolvePoolLine({
   const ranked = scored
     .filter((candidate) => Number.isFinite(candidate.score))
     .sort(compareScoredCandidates);
-  // True when any candidate died on an error (as opposed to being legitimately
-  // unscoreable): the line still renders, but no cache may keep its verdict.
+  // True when any candidate died on an error (as opposed to being
+  // legitimately unscoreable).
   const degraded = scored.some((candidate) => candidate.error) || undefined;
 
   if (!ranked.length) {
@@ -1080,9 +1073,8 @@ async function resolveCandidateBuilds({
   // future team; its stated bar is "shortlist-grade hint".
   fastMode = false,
 }) {
-  // Profile building is the optimizer's dominant synchronous CPU block; the
-  // time-sliced yield keeps the browser main thread interactive through a
-  // long resolve pass.
+  // Profile building is the optimizer's dominant synchronous CPU block —
+  // hence the yield here.
   await yieldToEventLoop();
   const choice = {
     inputPokemonId: input.id,
@@ -1250,8 +1242,6 @@ async function resolveCandidateBuilds({
     },
   ];
 
-  // Hint-grade fast runs stop at the default build (see the fastMode param
-  // doc); exact runs resolve the full variant family.
   if (!fastMode) {
     variants.push(
       {
@@ -1306,8 +1296,7 @@ async function resolveCandidateBuilds({
     }
   }
 
-  // Sensitivity probe: same default set, secondary ability. Never a competing
-  // build — only a measurement, skipped on hint-grade fast runs.
+  // Sensitivity probe: same default set, secondary ability.
   const sensitivityProbe =
     !fastMode && secondaryAbility
       ? makeProfile({

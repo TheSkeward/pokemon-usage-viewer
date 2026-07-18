@@ -39,7 +39,6 @@ test("extender ownership scales exactly the field-setting move's contribution", 
   const expected =
     base + terrainAlone * SCORING_DEFAULTS.FIELD_EXTENDER_UTILITY_BONUS;
   assert.ok(Math.abs(boosted - expected) < 1e-12);
-  // Non-setter kits are untouched.
   assert.equal(utilityValue([recoveryMove], true), utilityValue([recoveryMove], false));
 });
 

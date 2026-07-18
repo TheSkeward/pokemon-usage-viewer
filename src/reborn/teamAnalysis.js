@@ -563,9 +563,6 @@ export function buildCandidateLegalityProfile({
   };
 }
 
-// Assembles a complete recommended set for a pick: its current species, the
-// owned-item recommendation (falling back to the top competitive item), the most-
-// used ability and EV spread + nature, the level cap, and the recommended moves.
 function buildRecommendedSet({ member, profile, topSet, assignedItem, levelCap }) {
   const parsed = topSet.spread ? parseSpread(topSet.spread) : null;
 
@@ -583,7 +580,6 @@ function buildRecommendedSet({ member, profile, topSet, assignedItem, levelCap }
 
 const EV_LABELS = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"];
 
-// Renders the team's recommended sets as Showdown/poképaste text.
 export function formatTeamPokepaste(sets = []) {
   return sets.filter(Boolean).map(formatShowdownSet).join("\n\n");
 }

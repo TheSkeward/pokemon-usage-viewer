@@ -560,8 +560,6 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 
   function bindEvents() {
-    // <details> groups (evolution access, TMs, items…) re-render on every
-    // optimizer run; persist the user's open/closed toggles across renders.
     bindPersistentDetails(app);
 
     // Gamestate-strip chips: open (and scroll to) the control that changes
@@ -951,9 +949,8 @@ export function mountPoolOptimizer(container, options = {}) {
       .querySelector("#compute-post-analysis-button")
       ?.addEventListener("click", () => {
         if (!state.result || state.analysisPending) return;
-        // Explicit request: run the full post-analysis for the current
-        // result. Tracked as activeAnalysis so the next optimize's abort
-        // handshake covers it like any other sweep.
+        // Tracked as activeAnalysis so the next optimize's abort handshake
+        // covers it like any other sweep.
         activeAnalysis = runPostAnalysis(state.result, null);
       });
 
@@ -1300,7 +1297,6 @@ export function mountPoolOptimizer(container, options = {}) {
       : "";
   }
 
-  // Compact combination counts for the search caption (1,947,792 → "1.9M").
   function formatComboCount(value) {
     if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
     if (value >= 1_000) return `${Math.round(value / 1_000)}k`;

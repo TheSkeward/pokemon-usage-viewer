@@ -23,7 +23,6 @@ const ZERO_COVERAGE = new Float64Array(TYPE_COUNT);
 
 let fitReady = false;
 let coverageWeights = null; // per-defense-type multiplier from opponent bias
-// Tunables snapshotted per search (prepareFitScoring) for the hot loop.
 let ACTIVE = snapshotFitTunables();
 
 function snapshotFitTunables() {
@@ -75,7 +74,6 @@ function precomputeFit(choice, opponentTypeBias) {
     resistMask,
     fitWeight: 1 - biasCounterExemption(profile, opponentTypeBias),
     // Phase 3: line-anchored usage trust + competitive co-use lift (id -> %).
-    // Pair trust t = min of the two trusts, only where lift data exists.
     trust: Math.max(0, Math.min(1, choice.usageWeight || 0)),
     teammates: choice._teammates || null,
     repId: choice.pokemonId || null,
@@ -192,8 +190,8 @@ export function getUsagePercent(choice) {
   return Math.max(0, choice.bundle?.usage?.value || 0);
 }
 
-// Sums each member's `teamScore`, falling back to `score` for any choice
-// built without one (scoreCandidate currently emits them equal).
+// scoreCandidate currently emits `teamScore` and `score` equal; the fallback
+// covers choices built elsewhere without a `teamScore`.
 function sumTeamScore(team) {
   return team.reduce((sum, row) => sum + (row.teamScore ?? row.score ?? 0), 0);
 }
@@ -203,9 +201,6 @@ function scoreTeamFit(team, opponentTypeBias = {}) {
     .map((choice) => choice.legalityProfile)
     .filter(Boolean);
   const weights = computeCoverageWeights(opponentTypeBias);
-  // Per-member fit-penalty weight: a pick that counters a biased opponent type
-  // (resists/is immune to it, or hits it super-effectively) is shielded from
-  // shared-weakness penalties in proportion to that type's bias level.
   const fitWeights = profiles.map(
     (profile) => 1 - biasCounterExemption(profile, opponentTypeBias),
   );
@@ -215,9 +210,7 @@ function scoreTeamFit(team, opponentTypeBias = {}) {
   const resistStackBonus = tunable("RESIST_STACK_BONUS");
   const synergyScale = tunable("SYNERGY_SCALE");
 
-  // Same Phase 3 blend as fastTeamFit (kept in lockstep): synergy fades in
-  // per-pair, hand-built judgements fade out with mean pair trust, the
-  // bias-boosted share of coverage never fades.
+  // Same Phase 3 blend as fastTeamFit — kept in lockstep.
   let synergy = 0;
   let pairTrustSum = 0;
   let pairCount = 0;
@@ -240,9 +233,8 @@ function scoreTeamFit(team, opponentTypeBias = {}) {
   const handBuilt = 1 - (pairCount ? pairTrustSum / pairCount : 0);
   let score = synergy * synergyScale;
 
-  // Damage-aware coverage: noisy-OR over members' per-type A values. This exact
-  // path scores the members' REAL coverage vectors (their concrete builds), not
-  // the optimistic selection relaxation.
+  // This exact path scores the members' REAL coverage vectors (their concrete
+  // builds), not the optimistic selection relaxation.
   for (let j = 0; j < TYPE_COUNT; j++) {
     let miss = 1;
     for (const profile of profiles) {
@@ -252,7 +244,6 @@ function scoreTeamFit(team, opponentTypeBias = {}) {
     score += (handBuilt + (weights[j] - 1)) * (1 - miss) * coverageScale;
   }
 
-  // Defensive shared-weakness term.
   for (let j = 0; j < TYPE_COUNT; j++) {
     const attackType = REBORN_ANALYSIS_TYPES[j];
     let weakWeight = 0;
@@ -396,9 +387,6 @@ export function evaluateTeam(team, megaUsed, targetSize, opponentTypeBias) {
   };
 }
 
-// Lazily computes a team's identity from its (snapshotted) members and caches it,
-// so the running best's key is built at most once no matter how many candidates
-// tie it.
 export function identityOf(evaluated) {
   if (evaluated._identityKey === undefined) {
     evaluated._identityKey = teamIdentityKey(evaluated.team);
@@ -409,9 +397,7 @@ export function identityOf(evaluated) {
 // Strictly-better test with a deterministic identity tie-break, so equal-scoring
 // teams resolve the same way no matter what order they were enumerated in. Score
 // is the sole quality key (usage tier is already folded into score, so we do NOT
-// gate on meaningful-pick count). The identity tie-break is only reached when size
-// and score match exactly, so identityOf() runs for a vanishing fraction of
-// comparisons.
+// gate on meaningful-pick count).
 export function betterEvaluated(a, b) {
   if (a.sizePriority !== b.sizePriority) return a.sizePriority > b.sizePriority;
   if (a.score !== b.score) return a.score > b.score;

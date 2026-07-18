@@ -129,8 +129,6 @@ export function progressionAt({ badge = 1, levelCap = 25, opponentTypeBias = {} 
   };
 }
 
-// Runs the full optimizer on a pool at a gamestate, optionally under scoring
-// overrides (cleared afterwards so state never leaks between tests).
 export async function runPool({
   pool,
   badge = 1,

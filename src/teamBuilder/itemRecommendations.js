@@ -14,7 +14,6 @@ import {
 import { GEN7_BASE_STATS } from "../generated/gen7BaseStats.generated.js";
 
 const TERRAIN_SEED_IDS = GEN7_TERRAIN_SEEDS.map((name) => toId(name));
-// seedId -> { name, vector } from the normalized stat profiles.
 const REBORN_SEED_BY_ID = new Map(
   REBORN_SEEDS.map((name) => [
     toId(name),
@@ -22,8 +21,6 @@ const REBORN_SEED_BY_ID = new Map(
   ]),
 );
 
-// Map each Z-Crystal id to the gem it stands in for, so a member's Z-Crystal
-// usage can be reused as a proxy for the equivalent Reborn type Gem.
 const GEM_BY_Z_CRYSTAL_ID = new Map(
   TYPE_GEMS.map((gem) => [
     toId(gem.zCrystalName),
@@ -33,8 +30,6 @@ const GEM_BY_Z_CRYSTAL_ID = new Map(
 
 const GEM_IDS = new Set(TYPE_GEMS.map((gem) => toId(gem.gemName)));
 
-// gemId -> the move type it boosts, so a gem is only handed to a member whose
-// recommended moves actually include a move of that type.
 const GEM_TYPE_BY_ID = new Map(
   TYPE_GEMS.map((gem) => [toId(gem.gemName), gem.type]),
 );
@@ -231,7 +226,6 @@ async function fetchMemberItems({ family, pokemonId, selection, unburden }) {
 
   if (!data?.items && !gen5Items.length) return [];
 
-  // Keep the best (highest-weight) entry per item id across primary + tail.
   const byId = new Map();
   let tailRank = 0;
 

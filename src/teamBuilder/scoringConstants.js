@@ -43,21 +43,15 @@ export const SCORING_DEFAULTS = Object.freeze({
   PORTFOLIO_WEIGHT: 0.3,
   UTILITY_ROLE_WEIGHT: 0.75, // utility roles score below attacker roles
   PRIORITY_UTILITY_ROLE_WEIGHT: 1, // complete first-action support shares C's role ceiling
-  // Saturating role ceiling: role values are identity up to the knee, then
-  // approach (never reach) 1 asymptotically. Below the knee this is identical
-  // to a hard clamp01; only the elite band decompresses — a hard clamp ties
-  // the top mons at identical C and flattens the local gradient the
-  // confidence sweep needs.
+  // Knee of the saturating role ceiling — see softCeiling (currentFormValue).
   ROLE_CEILING_KNEE: 0.9,
-  // A protected Speed Boost turn makes the post-boost attacker route reliable.
-  // The role itself still requires real damage and the observed +1 Speed
-  // percentile; this is only the completion bonus for carrying a full-protect
-  // ramp move such as Protect or Detect.
+  // A protected Speed Boost turn makes the post-boost attacker route reliable;
+  // this is only the completion bonus for carrying a full-protect ramp move
+  // such as Protect or Detect.
   TEMPO_RELIABILITY_BONUS: 0.15,
-  // Defensive type balance is centered at neutral. A resistance contributes
-  // +0.5 neutral-hit equivalents, an immunity +1, a weakness -1, and a 4x
-  // weakness -3. This many net favorable equivalents moves the normalized
-  // feature from neutral (0.5) to complete (1.0); the negative side mirrors it.
+  // Net favorable neutral-hit equivalents (defensiveTypeBalance's scale) that
+  // move the normalized feature from neutral (0.5) to complete (1.0); the
+  // negative side mirrors it.
   TYPE_RESILIENCE_FULL_SURPLUS: 4,
   // How strongly broad defensive typing adjusts the raw two-sided bulk used
   // by ordinary bulky roles. Neutral typing (type_resilience_q = 0.5) is
@@ -130,11 +124,9 @@ export const SCORING_DEFAULTS = Object.freeze({
 
   // --- Usage-convergence blend (see SCORING.md) -------------------------------
   USAGE_RAMP_EXPONENT: 2, // w ramps as (cap/L*)^k — back-loaded handoff
-  // Bounded-trust law: for a line with a real competitive prior ANYWHERE,
-  // downward convergence saturates here — the prior may claim at most this
-  // fraction of the mon's measured excess over it, however converged. Dead
-  // lines (no meaningful usage in any tier) are exempt and converge fully —
-  // absence everywhere is domain-transferable evidence.
+  // Bounded-trust law saturation (see candidateScoring's model header): the
+  // prior may claim at most this fraction of the mon's measured excess over
+  // it, however converged.
   // Calibration bracket (offline sweep): the Meowstic-class assertions cap
   // it from above (fails materialize as it approaches ~0.3); the value sits
   // low in the band pending the full calibration pass.

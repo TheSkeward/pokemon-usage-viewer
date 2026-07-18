@@ -34,7 +34,6 @@ export function saveDetailsOpen(id, open) {
   writeLocalStorage(DETAILS_STATE_KEY, JSON.stringify(map));
 }
 
-// Call after each render to record the user's toggles.
 export function bindPersistentDetails(root) {
   root.querySelectorAll("details[data-details-id]").forEach((element) => {
     element.addEventListener("toggle", () =>

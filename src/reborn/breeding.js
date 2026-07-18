@@ -73,7 +73,7 @@ export async function buildRebornBreedingContext({
       for (const move of target.legalMoveData.moves || []) {
         if (!move.sources?.egg) continue;
         const intrinsic = target.costs.get(move.id);
-        if (intrinsic && intrinsic.hops === 0) continue; // has it without breeding
+        if (intrinsic && intrinsic.hops === 0) continue;
 
         let best = null;
         for (const donor of entries) {
@@ -378,8 +378,6 @@ export function compareBreedingCosts(a, b) {
   if (a.hops !== b.hops) return a.hops - b.hops;
   if (a.level !== b.level) return a.level - b.level;
   return (
-    // Equal-level routes differ in real work: a candy-down/delayed @9 loses
-    // to a plain level-up @9. Never overrides a level advantage.
     (a.hassle || 0) - (b.hassle || 0) ||
     (a.path || []).join("→").localeCompare((b.path || []).join("→")) ||
     String(a.how || "").localeCompare(String(b.how || "")) ||
@@ -528,8 +526,6 @@ function getBreedableEggGroups(pokemonId) {
   return [...groups];
 }
 
-// Every species record in the family: walk down to the root, then up through
-// every branch.
 function familyForms(pokemonId) {
   const forms = [];
   const walked = new Set();
@@ -561,9 +557,7 @@ function familyRootOf(pokemonId) {
 // family-level gender check passes (Combee drones exist but never learn
 // Vespiquen's moves). WITHIN the family the mother carries it instead
 // (Gen 6+ mothers pass egg moves; her hatchling IS the family), so no
-// father is needed there. Multi-hop intermediates need no extra check: a
-// received egg move rides the whole family's hatchlings, and canBreed's
-// family-level male check already covers that.
+// father is needed there.
 function hasMaleCapableKnower(learnerId) {
   const visit = (id) => {
     const record = GEN7_PROGRESSION_SPECIES[id];

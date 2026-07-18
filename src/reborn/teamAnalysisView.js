@@ -521,7 +521,6 @@ function formatPower(value) {
   return Math.round(value).toLocaleString();
 }
 
-// "142 dmg · Phys" style label from a formatted move (estimatedDamage + category).
 function formatDamage(move) {
   if (!move) return "";
 

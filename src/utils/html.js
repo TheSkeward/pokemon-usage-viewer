@@ -1,5 +1,3 @@
-// HTML-escaping helpers shared by every view that builds markup from strings.
-
 export function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")

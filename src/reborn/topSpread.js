@@ -6,7 +6,7 @@ import { toId } from "../utils/ids.js";
 // index — top EV spread + nature ("Nature:HP/Atk/Def/SpA/SpD/Spe"), ability, and
 // item — so the damage model can use the real investment and the analysis can
 // show a complete Showdown set. Shares the URL-keyed fetch cache with the item
-// recommender. Falls back through the "all" selection.
+// recommender.
 export async function loadTopSet({ family, pokemonId, selection }) {
   const data =
     (await fetchSetIndex({ family, pokemonId, selection })) ||

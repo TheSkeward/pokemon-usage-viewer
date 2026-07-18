@@ -36,7 +36,7 @@ test("timeline shape: 19 badge checkpoints + 10 post-game tiers, caps non-decrea
   const badgeCheckpoints = REBORN_PROGRESSION_CHECKPOINTS.filter(
     (checkpoint) => !checkpoint.postgame,
   );
-  assert.equal(badgeCheckpoints.length, 19); // 0 through 18 badges
+  assert.equal(badgeCheckpoints.length, 19);
   assert.deepEqual(
     badgeCheckpoints.map((checkpoint) => checkpoint.badges),
     Array.from({ length: 19 }, (_, index) => index),
@@ -140,7 +140,6 @@ test("item timeline: sheet + mining + wild-held sources merge to earliest badge"
     "../src/generated/rebornItemTimeline.generated.js"
   );
 
-  // Broad coverage: the generated table times most of the held-item catalog.
   assert.ok(
     Object.keys(REBORN_ITEM_UNLOCK_BADGES).length > 300,
     "expected 300+ timed items",
@@ -157,7 +156,6 @@ test("item timeline: sheet + mining + wild-held sources merge to earliest badge"
   // Mining items unlock with the Mining Kit (badge 3, after Shelly).
   assert.ok((REBORN_ITEM_UNLOCK_BADGES.hardstone?.badge ?? 99) <= 3);
 
-  // Every generated badge is a sane checkpoint value.
   for (const [id, entry] of Object.entries(REBORN_ITEM_UNLOCK_BADGES)) {
     assert.ok(
       entry.badge >= 0 && entry.badge <= 18,

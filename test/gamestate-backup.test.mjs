@@ -1,5 +1,3 @@
-// Gamestate backup round-trip: the export must parse back to exactly what
-// went in, and the parser must reject everything that isn't a gamestate.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {

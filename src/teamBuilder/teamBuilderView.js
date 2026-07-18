@@ -492,7 +492,6 @@ function renderExplanationsSection(state) {
         result,
         alternativesByInput.get(choice.inputPokemonId),
       );
-      // The summary states the actual margin, not just "benched".
       const margin = weakestSeat
         ? Math.round((weakestSeat.teamScore ?? 0) - (choice.teamScore ?? 0))
         : 0;

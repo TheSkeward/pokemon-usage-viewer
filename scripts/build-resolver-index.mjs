@@ -72,8 +72,7 @@ async function resolveAllPokemonUsage(availability, family) {
   const resolved = {}; // first tier the mon appears in at all (the headline)
   const ranking = {}; // first tier whose usage clears the meaningful bar
   // For mons that never clear the meaningful bar anywhere: the single best
-  // sub-bar row (highest average usage; earliest tier on ties). Consumed as
-  // documented at the emit site in buildFamilyAllIndex; it never ranks.
+  // sub-bar row (highest average usage; earliest tier on ties).
   const trace = {};
   let tierRank = -1;
 

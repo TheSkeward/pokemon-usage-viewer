@@ -65,7 +65,6 @@ test("analysis attaches donor guides with the donor's own interim moves", async 
     },
   );
 
-  // Profiles ride on the analysis return; find Delibird's.
   const delibird = (analysis.profiles || []).find(
     (p) => p.currentId === "delibird",
   );

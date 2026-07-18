@@ -115,7 +115,6 @@ async function dispatch(compactLines, targetSize, bias, total, topCount, onProgr
   const pool = total >= PARALLEL_THRESHOLD ? getWorkerPool() : null;
 
   if (!pool || pool.length < 2) {
-    // Synchronous fallback (small job, or no workers): identical code path.
     return searchCombinationRange(compactLines, targetSize, bias, 0, total, topCount, onProgress);
   }
 

@@ -12,7 +12,6 @@ export function stitchPokemonSetDetail({
   selection,
   sourceAggregates,
 }) {
-  // Every tier the mon actually appears in, in format×cutoff priority order.
   const present = [];
   for (const { aggregateByPokemon } of sourceAggregates) {
     const aggregate = aggregateByPokemon.get(pokemon.id);
@@ -34,8 +33,6 @@ export function stitchPokemonSetDetail({
   });
   const seen = createSeenState(detail);
 
-  // Every other tier enriches the move/item/ability/spread pools as additional
-  // entries, in priority order — the primary already carries the headline set.
   for (let index = 0; index < present.length; index += 1) {
     if (index === primaryIndex) continue;
 

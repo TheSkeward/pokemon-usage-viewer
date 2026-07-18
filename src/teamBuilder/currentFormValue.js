@@ -48,9 +48,7 @@ import {
 } from "../reborn/typeChart.js";
 import { SCORING_DEFAULTS, tunable } from "./scoringConstants.js";
 
-// Points scale for C; shared with the usage ceiling U so the two are directly
-// comparable (see candidateScoring). Not sweepable — it defines the scale the
-// other judgements are expressed in.
+// Not sweepable — it defines the scale the other judgements are expressed in.
 export const CURRENT_VALUE_SCALE = SCORING_DEFAULTS.CURRENT_VALUE_SCALE;
 
 function statsOf(id) {
@@ -80,7 +78,7 @@ function specBulkOf(id) {
   if (!s || hp == null) return null;
   return hp * s[3]; // HP × SpD
 }
-// Combined bulk (used to bucket readiness): the whole non-attacking mass.
+// The whole non-attacking mass.
 function bulkOf(id) {
   const s = statsOf(id);
   const hp = hpOf(id);
@@ -92,7 +90,7 @@ function mainAttackOf(id) {
   return s ? Math.max(s[0], s[2]) : null; // better of Atk / SpA
 }
 
-// Reference distributions for stage-independent stat percentiles, built once.
+// Reference distributions for stage-independent stat percentiles.
 function buildSorted(fn) {
   const arr = [];
   for (const id of Object.keys(GEN7_BASE_STATS)) {
@@ -112,11 +110,10 @@ const SPEC_BULK_REF = buildSorted(specBulkOf);
 // evolution chain is satisfiable — level steps at or below the cap; friendship/
 // item steps assumed grindable. Percentiles blend global and R_cap by
 // REACHABLE_BLEND so the reference shifts with progression without lurching.
-// Reference arrays cached per cap (built at most once each).
 function reachableByCap(id, cap) {
   const s = GEN7_PROGRESSION_SPECIES[id];
   if (!s || !s.prevoId) return true; // base form / unknown: always available
-  if (s.evoLevel != null && s.evoLevel > cap) return false; // level evo above cap
+  if (s.evoLevel != null && s.evoLevel > cap) return false;
   return reachableByCap(s.prevoId, cap);
 }
 const capRefCache = new Map();
@@ -145,7 +142,6 @@ function capRefs(levelCap) {
   }
   return refs;
 }
-// Percentile blended between the full dex and the reachable-at-cap set.
 function stagePercentile(value, globalRef, capRef) {
   const blend = tunable("REACHABLE_BLEND");
   return (
@@ -392,10 +388,6 @@ export function utilityTagVector(recommendedMoves, assumedAbility = null) {
   return vector;
 }
 
-// Summed utility value of a recommended set: each move contributes its best
-// role's weight, scaled by hit rate. Saturated by the caller. (The weighted
-// scalar is a JUDGEMENT — used by utility_q scoring, never by dominance
-// pruning, which must stay weight-free.)
 // The moves whose area-altering effect a duration-extender item prolongs.
 export const FIELD_SETTING_MOVE_IDS = new Set([
   "electricterrain",
@@ -413,11 +405,6 @@ export function utilityValue(recommendedMoves, fieldExtenderOwned = false) {
     }
     if (best > 0) {
       let value = best * ((move.accuracy ?? 100) / 100);
-      // Field-extender bonus (Amplifield Rock): the holder's field-setting
-      // move runs 8 turns instead of 5. Applies ONLY to items outside the
-      // usage prior's universe — mainline extenders (Light Clay, Terrain
-      // Extender) are already priced into their holders' usage ranks, and
-      // an explicit bonus there would double-count.
       if (fieldExtenderOwned && FIELD_SETTING_MOVE_IDS.has(move.id)) {
         value *= 1 + tunable("FIELD_EXTENDER_UTILITY_BONUS");
       }
@@ -531,14 +518,9 @@ export function currentFormFeatures(profile, levelCap) {
     (1 - speed_q) *
     (1 - effective_bulk_q);
 
-  // Functional attacking kit: a couple of real damaging options.
   const damagingOptions = profile?.recommendedDamagingMoveCount || 0;
   const reliability_q = clamp01((damagingOptions + 1) / 4);
 
-  // Utility, role-aware and accuracy-weighted: real team infrastructure
-  // (recovery, hazards, speed control, setup, pivot) counts far more than chip
-  // status, so an annoying baby's Sweet Kiss / Charm doesn't read as support.
-  // A 75%-accurate move is discounted vs reliable ones.
   const utility_q = clamp01(
     utilityValue(
       profile?.recommendedMoves,
@@ -602,9 +584,6 @@ export function currentFormValue(profile, levelCap) {
   // it only inflates every score, and accuracy — the part that would discriminate
   // — is already folded into damage_q by the damage estimate. Kept in features for
   // display, unused here.
-  // Ordinary speed/bulk utility roles remain capped below attacker roles. A
-  // complete priority-support kit or complete single-action team protection
-  // has a separate, mechanically narrower route to the common role ceiling.
   const utilityWeight = tunable("UTILITY_ROLE_WEIGHT");
   const priorityUtilityWeight = tunable("PRIORITY_UTILITY_ROLE_WEIGHT");
   const specialistBulk = Math.max(
@@ -622,8 +601,7 @@ export function currentFormValue(profile, levelCap) {
     // A one-sided bulky attacker earns a separate route only when its typing
     // supplies enough broadly useful switch-in opportunities. The signed type
     // adjustment prevents a special wall with many weaknesses from laundering
-    // one good stat into a complete role. The soft ceiling preserves C's
-    // bound while keeping overshoots ordered instead of tied at 1.
+    // one good stat into a complete role.
     specialist_bulky_attacker: softCeiling(
       geomean([f.damage_q, specialistBulk]) +
         (f.type_resilience_q - 0.5),
@@ -641,14 +619,10 @@ export function currentFormValue(profile, levelCap) {
       nonPassive *
       geomean([f.effective_bulk_q, f.utility_q]),
     fast_utility: utilityWeight * nonPassive * geomean([f.speed_q, f.utility_q]),
-    // A substantial support kit that really acts at priority does not need
-    // speed or bulk as a proxy for getting its job done. It may share, never
-    // exceed, the perfect-attacker ceiling and uses the same non-passive guard.
+    // May share, never exceed, the perfect-attacker ceiling (rationale at
+    // priority_utility_q).
     priority_utility:
       priorityUtilityWeight * nonPassive * f.priority_utility_q,
-    // One action that protects both defensive axes is a complete support job.
-    // Conventional one-axis screens remain partial even when a set carries
-    // both, because they require two actions. Delivery is priority or Speed.
     screen_support: nonPassive * f.screen_support_q,
   };
 

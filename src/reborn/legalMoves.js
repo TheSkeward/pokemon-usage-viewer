@@ -99,9 +99,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         ? child.evoMoveLevel
         : Infinity;
     }
-    // Elective triggers (useItem / levelHold / trade / remaining
-    // levelExtra): departure = the departing form's arrival level, per the
-    // rule documented above.
+    // Elective triggers (useItem / levelHold / trade / remaining levelExtra).
     const departing = GEN7_PROGRESSION_SPECIES[child?.prevoId];
     if (!departing?.prevoId) return 1;
     return (departing.evoType || "") === "" && Number.isFinite(departing.evoLevel)
@@ -259,8 +257,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         learnerId: best.from || null,
         learnerName: learner,
         sourceTitle: `${learner} learns ${move.name} at level ${best.level} after being candied down.`,
-        // Structured flag for donor pricing: a candy-down at level N is more
-        // work than a plain level-up at N, so it loses equal-level ties.
+        // Structured flag for donor pricing (breeding.js).
         candyDown: true,
       });
     } else if (delayedEntries.length > 0) {

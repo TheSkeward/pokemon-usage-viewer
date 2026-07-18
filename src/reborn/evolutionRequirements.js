@@ -69,9 +69,6 @@ function needsApophyll(species) {
   return species?.evoRegion === "Alola" && species?.id !== "marowakalola";
 }
 
-// How many of `itemName` the player tracked as owned (progression.ownedItems,
-// keyed by normalized id). An owned evolution item removes BOTH the access
-// gate and the acquisition friction for its step — it's in the bag.
 function ownedItemCount(access, itemName) {
   if (!access?.ownedItems) return 0;
   const id = String(itemName || "")
@@ -91,8 +88,6 @@ const ITEM_GATE_KEYS = new Set([
   "evoAccessOtherEvoItems",
 ]);
 
-// The gate for an evolution's required item: its own stone key when it's an
-// elemental stone, else the shared other-items gate.
 function evoItemAccessKey(evoItem) {
   const id = String(evoItem || "")
     .toLowerCase()
@@ -100,7 +95,6 @@ function evoItemAccessKey(evoItem) {
   return STONE_KEY_BY_ITEM_ID.get(id) || "evoAccessOtherEvoItems";
 }
 
-// The access gate a requirement depends on, or null when none applies.
 function requiredAccessKeys(evoType, condition, species) {
   const regionKeys = needsApophyll(species) ? ["evoAccessApophyll"] : [];
   if (evoType === "levelFriendship") return ["evoAccessFriendship", ...regionKeys];
@@ -450,9 +444,6 @@ export function describeEvolutionPath(fromId, toId) {
   return `${attachedLevel}${tokens.length ? ` (${tokens.join(", ")})` : ""}`;
 }
 
-// Walks the chain from the family's base form up to `fieldedId`, summing
-// friction and collecting a human-auditable proof of each evolution step.
-// Assumes the fielded form was already validated as reachable.
 // Walks from the fielded form down toward the family base, or — when the
 // player's input form is on the chain — stops there: evolutions below the
 // owned form are already done, so they carry no pending requirement and no

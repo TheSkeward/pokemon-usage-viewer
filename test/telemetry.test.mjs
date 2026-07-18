@@ -225,11 +225,9 @@ test("performance report is redacted and self-describing", () => {
 
 test("run budget comes from bucket history, falls back to defaults", () => {
   clearTelemetry();
-  // No history: static fallback for the bucket.
   const cold = estimateRunBudget(65);
   assert.ok(cold.resolveMs > 0 && cold.searchMs > 0 && cold.tailMs > 0);
 
-  // History in the same bucket: medians win.
   for (const [resolve, search] of [[1000, 3000], [1200, 3400], [900, 2800]]) {
     recordOptimizerSample({
       cache: "cold",

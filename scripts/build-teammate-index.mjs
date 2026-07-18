@@ -80,7 +80,6 @@ async function buildFamily(family) {
   const resolver = JSON.parse(
     readFileSync(`site-data/data/resolver-index/${family}/all.json`, "utf8"),
   );
-  // Group mons by their first-meaningful tier.
   const byTier = new Map();
   for (const [monId, entry] of Object.entries(resolver.pokemon || {})) {
     const ranking = entry.ranking;
@@ -95,7 +94,6 @@ async function buildFamily(family) {
   const results = new Map(); // monId -> { tier, teammates: Map(other -> {sum, weight}) }
 
   for (const tier of byTier.values()) {
-    // Highest-volume months for this format, from the moveset files we track.
     const dir = `site-data/data/movesets/${tier.formatId}`;
     if (!existsSync(dir)) continue;
     const months = readdirSync(dir)

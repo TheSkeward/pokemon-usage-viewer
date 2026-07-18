@@ -33,8 +33,6 @@ export async function choosePoolTeam(
     onSearchStage,
   });
   const evaluated = bestTeam.evaluated;
-  // selectTeamByFit already realized concrete builds and re-ranked the top
-  // relaxed teams by exact realized score; evaluated.team is the final team.
   const team = addTeamFitNotes(evaluated.team);
   const megaUsed = evaluated.megaUsed
     ? team.find(
@@ -200,17 +198,13 @@ function getDefensiveCoverTypes(profile, team) {
 // affordable; pools beyond the budget reduce to a coverage-preserving
 // shortlist that is itself enumerated exactly (see buildShortlist).
 //
-// Budgets are in number of team combinations C(N, size), and interactive
-// latency rules them, not search purity. Big searches run across Web Workers,
-// so they're off the main thread and core-count faster; most edits never hit
-// them anyway — the incremental path is exact regardless of budget; the
-// budget only gates a from-scratch search. Above these caps the
-// shortlist+polish path takes over — exact on the shortlist, repaired by the
-// full-pool 1-swap audit, and honest about itself in the provenance footer.
-// Background runs stay exact through ~25 mons, explicit optimizes through
-// ~32. Values live in scoringConstants as tunables so the regret validation
-// can raise the cap for a TRUE exact baseline; countCombinations' overflow
-// early-out keeps a fixed sibling cap.
+// Big searches run across Web Workers, so they're off the main thread and
+// core-count faster; most edits never hit them anyway — the incremental path
+// is exact regardless of budget; the budget only gates a from-scratch search.
+// Above the budgets (tunables — see scoringConstants) the shortlist+polish
+// path takes over — exact on the shortlist, repaired by the full-pool 1-swap
+// audit, and honest about itself in the provenance footer. countCombinations'
+// overflow early-out keeps a fixed sibling cap above the tunable budgets.
 const COMBINATION_OVERFLOW_CAP = 3_000_000;
 
 // Cooperative main-thread yield, time-sliced (same rationale as the
@@ -327,7 +321,6 @@ async function selectTeamByFit(
     return { evaluated: { team: [], megaUsed: null }, searchExact: true, benchSwapScores: new Map() };
   }
 
-  // Decide the path from cheap synchronous checks.
   const incApplies = incrementalApplicable(incremental, lines, targetSize);
   const addedCount = incApplies
     ? lines.filter((line) => !incremental.baseLineKeys.has(line.lineKey)).length
@@ -360,7 +353,6 @@ async function selectTeamByFit(
   const realizationPool = Math.max(1, tunable("REALIZATION_POOL"));
 
   if (useParallel) {
-    // The parallel path doesn't build a team store; drop any stale one.
     teamStore = null;
     const compactLines = buildCompactLines(lines);
     const refs = await parallelFullSearch(
@@ -472,8 +464,6 @@ async function selectTeamByFit(
       searchExact = false; // exact on the shortlist, not the whole pool
     }
 
-    // Realize concrete builds for the top relaxed teams and keep the best by
-    // exact realized score (see realizeBestTeam).
     onSearchStage?.("realize");
     await yieldForPaint();
     let evaluated =
@@ -482,12 +472,9 @@ async function selectTeamByFit(
         megaUsed: null,
       };
 
-    // Shortlist verdicts get the swap-polish audit: exact-on-shortlist can
-    // miss a mon the heuristics didn't keep, so scan the FULL pool for
-    // improving single swaps and apply them to a fixed point. This scan is
-    // load-bearing here (it's the exactness repair, not display), so it runs
-    // regardless of the benchSwaps option — and its final round IS the bench
-    // droppability map, so the shortlist path gets that for free.
+    // The swap-polish audit (polishTeamBySwaps) is the shortlist path's
+    // exactness repair, not display — so it runs regardless of the benchSwaps
+    // option.
     let searchPolish = null;
     let benchSwapScores = null;
     // Hint runs skip the exactness repair by contract: the polish is a full-
@@ -909,13 +896,12 @@ function buildShortlist(lines, maxSizeOverride = null) {
   };
   const coverageOf = shortlistCoverageOf;
 
-  // 1. The straightforwardly best individuals.
   for (let i = 0; i < scored.length && picked.size < coreSize; i++) {
     add(scored[i]);
   }
 
-  // 2. Best provider per defense type: real damage INTO it (damage-aware, so a
-  //    chip move doesn't qualify), a resist, and an immunity.
+  // Per defense type, damage INTO it must be real — the 0.5 bar keeps a chip
+  // move from qualifying as coverage.
   REBORN_ANALYSIS_TYPES.forEach((type, typeIndex) => {
     if (picked.size >= maxSize) return;
     add(scored.find((s) => (coverageOf(s)?.[typeIndex] || 0) >= 0.5));
@@ -939,8 +925,6 @@ function buildShortlist(lines, maxSizeOverride = null) {
     );
   });
 
-  // 3. Best specialist per capability: speed, priority access, utility
-  //    infrastructure, and a friction-free fully-online form.
   const bySpecialty = (predicate) => scored.find(predicate);
   if (picked.size < maxSize)
     add(bySpecialty((s) => (s.best?.currentFeatures?.speed_q || 0) >= 0.8));
@@ -961,7 +945,6 @@ function buildShortlist(lines, maxSizeOverride = null) {
       ),
     );
 
-  // 4. Fill any remaining seats by raw score.
   for (const s of scored) {
     if (picked.size >= maxSize) break;
     add(s);

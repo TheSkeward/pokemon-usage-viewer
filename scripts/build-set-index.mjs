@@ -58,13 +58,6 @@ async function buildFamilySetIndex({
     sourceFamilies,
   });
 
-  // The first tier (descending the format×cutoff ladder) whose usage clears
-  // the meaningful-usage bar — the same signal the resolver index ranks
-  // low-usage mons by. A mon's primary set should be sourced from this tier,
-  // not the highest tier it merely appears in (which for a sub-bar mon is a
-  // noisy handful of teams). For mons below the bar everywhere, the resolver
-  // index's `trace` (their best sub-bar tier — where they actually see play)
-  // supplies the primary instead; see choosePrimaryIndex.
   const { rankingByPokemon, traceByPokemon } = await loadFamilyRankings(family);
 
   const samePokemonDetails = buildSamePokemonDetails({
@@ -125,8 +118,6 @@ async function loadFamilyRankings(family) {
   const traceByPokemon = new Map();
   for (const [pokemonId, bundle] of Object.entries(index?.pokemon || {})) {
     if (bundle?.ranking) rankingByPokemon.set(pokemonId, bundle.ranking);
-    // Best sub-bar row (mutually exclusive with ranking) — the canonical-set
-    // tier for mons below the meaningful-usage bar everywhere.
     else if (bundle?.trace) traceByPokemon.set(pokemonId, bundle.trace);
   }
 

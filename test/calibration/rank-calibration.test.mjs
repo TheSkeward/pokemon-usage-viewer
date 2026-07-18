@@ -67,7 +67,6 @@ function quantile(sorted, q) {
 
 for (const badgeKey of Object.keys(buckets)) {
   const badge = Number(badgeKey);
-  // Rolling delta: this badge's newcomers + the previous badge's.
   const bucket = [
     ...(buckets[String(badge - 1)] || []),
     ...buckets[badgeKey],

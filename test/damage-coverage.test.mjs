@@ -19,7 +19,6 @@ test("estimateMoveDamage is NEUTRAL — it never applies target type effectivene
   // regardless of any target. The coverage vector multiplies effectiveness in
   // separately; if estimateMoveDamage also did, matchups would double-count.
   const d = estimateMoveDamage({ ...waterPulse, attackerTypes: ["Water"] });
-  // Coverage into a Fire target = neutral × 2 (single-counted).
   const intoFire = d * getTypeMultiplier("Water", ["Fire"]);
   const intoWater = d * getTypeMultiplier("Water", ["Water"]);
   assert.equal(getTypeMultiplier("Water", ["Fire"]), 2);
@@ -92,7 +91,6 @@ test("Weak chip coverage stays low even when super-effective", () => {
     attackerTypes: ["Water"],
     attackerStats: attacker,
   });
-  // Lick into a 2× target vs Hydro Pump neutral: the nuke still dwarfs the chip.
   assert.ok(lickNeutral * 2 < hydroPump);
 });
 

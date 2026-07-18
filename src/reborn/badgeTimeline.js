@@ -181,7 +181,6 @@ export function getItemUnlockBadge(itemId) {
   return REBORN_ITEM_UNLOCK_BADGES[itemId]?.badge ?? null;
 }
 
-// Short chip text: "9 badges" / "Post 3".
 export function getRebornCheckpointShortLabel(checkpoint) {
   if (!checkpoint) return "";
   if (checkpoint.postgame) return `Post ${checkpoint.postgame}`;
