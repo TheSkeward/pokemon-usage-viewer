@@ -331,7 +331,32 @@ export function getLineChoiceOptions(line) {
     unique.set(choice.pokemonId, choice);
   }
 
-  return (line._choiceOptions = [...unique.values()].slice(0, 6));
+  // One option per distinct TYPE PROFILE, megas tracked apart so the
+  // one-mega-per-team fallback always survives. The enumeration cross-
+  // multiplies option counts across the six seats, and a same-typed chain
+  // form (Pidgeotto under Pidgeot) differs from its line's best only by
+  // scoring less — it cannot patch a type hole the best form doesn't.
+  // Genuinely different-typed forms (the Wormadams) all survive. This is a
+  // relaxation-consistent trim: the search already scores the optimistic
+  // max-over-builds relaxation, and realization + the swap-polish audit
+  // re-rank and repair downstream. Measured: a 126-mon daycare-on pool
+  // averaged 2.4 options/line — ~190 team evaluations per combination and a
+  // ~2-minute search; the trim returns near-1 option per line.
+  const seenProfiles = new Set();
+  const kept = [];
+  for (const choice of unique.values()) {
+    const types = choice.legalityProfile?.currentTypes || [];
+    // Unknown-typed forms never collapse into each other.
+    const profile = types.length
+      ? [...types].sort().join("/")
+      : `id:${choice.pokemonId}`;
+    const key = `${choice.isMega ? "m" : "n"}|${profile}`;
+    if (seenProfiles.has(key)) continue;
+    seenProfiles.add(key);
+    kept.push(choice);
+  }
+
+  return (line._choiceOptions = kept.slice(0, 6));
 }
 
 // The best legal form/mega assignment for a fixed set of lines: each line offers
