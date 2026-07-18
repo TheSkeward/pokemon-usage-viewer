@@ -58,7 +58,10 @@ test("analysis attaches donor guides with the donor's own interim moves", async 
       family: "singles",
       selection: "all",
       pokemonIndex,
-      query: "Delibird\nSneasel\nSquirtle",
+      // Beartic is a deliberate temptation: it donates Icicle Crash to
+      // Sneasel by egg, and the guide must NOT recommend breeding a move
+      // onto a temporary donor.
+      query: "Delibird\nSneasel\nSquirtle\nBeartic",
     },
   );
 
@@ -98,6 +101,25 @@ test("analysis attaches donor guides with the donor's own interim moves", async 
     !sneasel.moves.some((move) => move.name === "Ice Shard"),
     "the donated move is above the donor's working cap",
   );
+
+  // A temporary donor never gets egg moves bred onto it (user ruling): no
+  // interim move may be egg-sourced unless it's a move the donor is itself
+  // passing on (a chain link reaches it by hatching). With Beartic in the
+  // pool, the pre-fix guide recommended Icicle Crash [Egg] on Sneasel.
+  assert.ok(
+    !sneasel.moves.some((move) => move.name === "Icicle Crash"),
+    "no breeding projects onto a temporary donor",
+  );
+  for (const guide of guides) {
+    const donated = new Set(guide.forMoves.map((move) => move.name));
+    for (const move of guide.moves) {
+      if (donated.has(move.name)) continue;
+      assert.ok(
+        !String(move.sourceLabel || "").startsWith("Egg"),
+        `${guide.donorName}'s interim ${move.name} must not be egg-sourced`,
+      );
+    }
+  }
   // The guides are display data only: they hang off the profile and never
   // touch the member objects that feed coverage/scoring.
   for (const member of analysis.members) {

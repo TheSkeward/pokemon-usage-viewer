@@ -247,6 +247,7 @@ export function collectEggDonorRequests(profile) {
       });
     }
     byDonor.get(donorId).moves.push({
+      id: move.id,
       name: move.name,
       detail: best.detail || "",
       donorLevel: Number.isFinite(best.donorLevel) ? best.donorLevel : null,
@@ -260,6 +261,29 @@ export function collectEggDonorRequests(profile) {
 // its interim moves respect the current cap, TM/tutor unlocks, and the
 // fielded-form mapping (a donor named as its evolved form still guides the
 // pre-evo the player can actually field at this cap).
+// A donor is temporary, so breeding moves ONTO it is never worth the
+// investment (user ruling) — its guide must not recommend pool egg moves.
+// The one exception is a chain link: a move the donor is itself passing on
+// may reach it by hatching, which is how the donor was obtained, not an
+// extra breeding project.
+function restrictBreedingContext(breedingContext, allowedMoveIds) {
+  const byPokemonId = {};
+  for (const [pokemonId, entry] of Object.entries(
+    breedingContext?.byPokemonId || {},
+  )) {
+    const moveIds = (entry.moveIds || []).filter((id) =>
+      allowedMoveIds.has(id),
+    );
+    if (!moveIds.length) continue;
+    const sources = {};
+    for (const id of moveIds) {
+      if (entry.sources?.[id]) sources[id] = entry.sources[id];
+    }
+    byPokemonId[pokemonId] = { moveIds, sources };
+  }
+  return { ...breedingContext, byPokemonId };
+}
+
 async function attachDonorInterimGuides({
   legalMoveEntries,
   progression,
@@ -270,7 +294,12 @@ async function attachDonorInterimGuides({
   const guideCache = new Map();
   const globalCap = Number.parseInt(progression.levelCap, 10) || 100;
 
-  const buildGuide = async ({ donorId, donorName, interimLevelCap }) => {
+  const buildGuide = async ({
+    donorId,
+    donorName,
+    interimLevelCap,
+    donatedMoveIds,
+  }) => {
     try {
       const entry = await buildMemberLegalMoveEntry({
         row: { pokemonId: donorId, name: donorName, inputName: donorName },
@@ -281,7 +310,10 @@ async function attachDonorInterimGuides({
         // level-31 Beedrill — and Pin Missile itself never shows as one of
         // its interim moves).
         progression: { ...progression, levelCap: String(interimLevelCap) },
-        breedingContext,
+        breedingContext: restrictBreedingContext(
+          breedingContext,
+          donatedMoveIds,
+        ),
         family,
         selection,
       });
@@ -325,9 +357,15 @@ async function attachDonorInterimGuides({
       const interimLevelCap = donorLevels.length
         ? Math.max(1, Math.min(globalCap, Math.max(...donorLevels) - 1))
         : globalCap;
-      const cacheKey = `${request.donorId}@${interimLevelCap}`;
+      const donatedMoveIds = new Set(
+        request.moves.map((move) => move.id).filter(Boolean),
+      );
+      const cacheKey = `${request.donorId}@${interimLevelCap}|${[...donatedMoveIds].sort().join(",")}`;
       if (!guideCache.has(cacheKey)) {
-        guideCache.set(cacheKey, buildGuide({ ...request, interimLevelCap }));
+        guideCache.set(
+          cacheKey,
+          buildGuide({ ...request, interimLevelCap, donatedMoveIds }),
+        );
       }
       const guide = await guideCache.get(cacheKey);
       if (guide) guides.push({ ...guide, forMoves: request.moves });
