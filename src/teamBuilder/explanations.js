@@ -146,8 +146,8 @@ export function explainSeatedChoice(choice, team, confidenceEntry) {
         : `${profile.preMegaAbility} before Mega Evolution, then ${profile.assumedAbility}`;
       lines.push(
         sensitivity > 100
-          ? `Assumes ${path} â€” the score leans on the starting ability (âˆ’${sensitivity} with the other ability); pin it with "${choice.inputName} (${profile.preMegaAbility})" if yours matches.`
-          : `Assumes ${path}; the starting ability is not required for inclusion (âˆ’${sensitivity} with the other ability).`,
+          ? `Assumes ${path} — the score leans on the starting ability (−${sensitivity} with the other ability); pin it with "${choice.inputName} (${profile.preMegaAbility})" if yours matches.`
+          : `Assumes ${path}; the starting ability is not required for inclusion (−${sensitivity} with the other ability).`,
       );
     }
   } else if (profile.assumedAbility) {
