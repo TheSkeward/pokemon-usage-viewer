@@ -93,8 +93,6 @@ export function prepareFitScoring(lines, opponentTypeBias) {
   fitReady = true;
 }
 
-// Clears the per-search fit state (so getTeamScore falls back to the exact path
-// outside a search) and the per-line option cache (so it never outlives a search).
 export function resetFitScoring(lines) {
   fitReady = false;
   coverageWeights = null;
