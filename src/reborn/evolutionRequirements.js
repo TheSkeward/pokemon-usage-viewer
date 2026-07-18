@@ -453,12 +453,16 @@ export function describeEvolutionPath(fromId, toId) {
 // Walks the chain from the family's base form up to `fieldedId`, summing
 // friction and collecting a human-auditable proof of each evolution step.
 // Assumes the fielded form was already validated as reachable.
-export function evolutionChainProof(fieldedId, access = null) {
+// Walks from the fielded form down toward the family base, or — when the
+// player's input form is on the chain — stops there: evolutions below the
+// owned form are already done, so they carry no pending requirement and no
+// friction (an input Alakazam owes nothing for Kadabra → Alakazam).
+export function evolutionChainProof(fieldedId, access = null, inputId = null) {
   const steps = [];
   let friction = 0;
   let id = fieldedId;
   const seen = new Set();
-  while (id && !seen.has(id)) {
+  while (id && id !== inputId && !seen.has(id)) {
     seen.add(id);
     const species = GEN7_PROGRESSION_SPECIES[id];
     if (!species || !species.prevoId) break;

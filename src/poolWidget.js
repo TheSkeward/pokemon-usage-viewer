@@ -1282,10 +1282,14 @@ export function mountPoolOptimizer(container, options = {}) {
     } else {
       remaining = Math.max(budget.tailMs - phaseElapsed, 120);
     }
-    const fraction = Math.min(
-      0.97,
-      elapsed / (elapsed + Math.max(remaining, 1)),
+    // Clamp to non-decreasing within a run: the remaining-time estimate
+    // switches formulas (budget guess → measured worker rate), which can jump
+    // the estimate up and would otherwise step the bar backwards.
+    const fraction = Math.max(
+      model.maxFraction || 0,
+      Math.min(0.97, elapsed / (elapsed + Math.max(remaining, 1))),
     );
+    model.maxFraction = fraction;
     bar.style.width = `${(fraction * 100).toFixed(1)}%`;
     // Running far past the search budget: pulse to say "still working" —
     // the estimate was wrong, not the run dead.

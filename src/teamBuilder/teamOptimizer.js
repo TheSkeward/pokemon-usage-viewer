@@ -189,15 +189,6 @@ const MAX_RESULT_CACHE = 400;
 // stay ordered instead of tying at C = 2000. Sub-knee scores are unchanged.
 const RESULT_CACHE_VERSION = "37";
 
-// TEST-ONLY: drops every optimizer cache layer so a test can compare a COLD
-// full search against a warm incremental one in the same process (the
-// incremental-exactness proof). Never called by production code.
-export function __resetOptimizerCachesForTests() {
-  lineCache.clear();
-  searchCache = null;
-  resultCache.clear();
-}
-
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
 let hydration = null;

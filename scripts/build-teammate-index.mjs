@@ -13,6 +13,7 @@
 
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 const MONTHS_PER_FORMAT = 3; // highest-volume months, weight-averaged
 const TOP_TEAMMATES = 24;
@@ -29,23 +30,28 @@ async function fetchText(url) {
 }
 
 // Parse the Teammates block per mon from a Smogon text moveset file.
-function parseTeammates(text) {
+// Exported for the parser unit test.
+export function parseTeammates(text) {
   const byMon = new Map();
-  const blocks = text.split(/\n \+-+\+ \n(?= \| \S)/);
   // Walk lines, tracking the current mon and whether we are in its Teammates
-  // section.
+  // section. A mon's NAME cell only ever appears as the first cell after a
+  // +---- block boundary; gating the name heuristic on that boundary keeps
+  // "Checks and Counters" rows ("Mega Scizor 78.90 (91.17±4.09)" — no colon,
+  // no %, uppercase) from being misread as new mons.
   let current = null;
   let inTeammates = false;
-  let expectName = 0;
+  let atBlockStart = false;
   for (const rawLine of text.split("\n")) {
     const line = rawLine.trim();
     if (line.startsWith("+--")) {
-      if (expectName > 0) expectName -= 1;
+      atBlockStart = true;
       inTeammates = false;
       continue;
     }
     const cell = line.replace(/^\|/, "").replace(/\|$/, "").trim();
     if (!cell) continue;
+    const startsBlock = atBlockStart;
+    atBlockStart = false;
     if (/^Teammates$/i.test(cell)) {
       inTeammates = true;
       continue;
@@ -62,9 +68,7 @@ function parseTeammates(text) {
       if (match) current.teammates.set(toId(match[1]), Number.parseFloat(match[2]));
       continue;
     }
-    // A name cell: appears alone right after a block boundary, before the
-    // "Raw count" line. Heuristic: no colon, no %, not a stat row.
-    if (!cell.includes(":") && !cell.includes("%") && /^[A-Z]/.test(cell)) {
+    if (startsBlock && !cell.includes(":") && !cell.includes("%") && /^[A-Z]/.test(cell)) {
       current = { teammates: new Map(), rawCount: 0 };
       byMon.set(toId(cell), current);
     }
@@ -194,6 +198,13 @@ async function buildFamily(family) {
   console.log(`[teammate-index] ${family}/all: ${written} mons`);
 }
 
-for (const family of ["singles", "doubles"]) {
-  await buildFamily(family);
+// Build only when run as the entry script — the parser unit test imports
+// parseTeammates from this module and must not trigger the network build.
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+  for (const family of ["singles", "doubles"]) {
+    await buildFamily(family);
+  }
 }

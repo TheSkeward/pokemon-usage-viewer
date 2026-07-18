@@ -15,7 +15,9 @@ export function captureFocusState() {
 export function restoreFocusState(focusState) {
   if (!focusState?.id) return;
 
-  const input = document.querySelector(`#${focusState.id}`);
+  // getElementById, not querySelector(`#${id}`): ids never need CSS escaping
+  // this way, so an id with a colon/period can't throw.
+  const input = document.getElementById(focusState.id);
   if (!input) return;
 
   input.focus();

@@ -20,7 +20,7 @@ export function getCurrentRebornSpeciesForChoice(choice, progression = {}) {
 
   if (!current) return null;
 
-  const proof = evolutionChainProof(current.id, progression);
+  const proof = evolutionChainProof(current.id, progression, inputId);
   // "The representative lies AHEAD of the current form" — true only when the
   // current form is an ancestor of the representative (Frogadier → Greninja).
   // When the representative is a PRE-evolution of the current form (a Noivern

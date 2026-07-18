@@ -117,3 +117,22 @@ test("chain proof sums friction with per-step reasons", () => {
     assert.equal(blissey.steps[1].method, "friendship");
   });
 });
+
+test("chain proof stops at the input form: owned evolutions are already paid", () => {
+  withPricedFriction(() => {
+    // An input Chansey owes only Chansey → Blissey; an input Blissey owes
+    // nothing at all. Only steps ABOVE the owned form are pending.
+    const fromChansey = evolutionChainProof("blissey", null, "chansey");
+    assert.equal(fromChansey.steps.length, 1);
+    assert.equal(fromChansey.steps[0].method, "friendship");
+    assert.ok(fromChansey.friction < evolutionChainProof("blissey").friction);
+
+    const fromBlissey = evolutionChainProof("blissey", null, "blissey");
+    assert.equal(fromBlissey.steps.length, 0);
+    assert.equal(fromBlissey.friction, 0);
+
+    // An off-chain input id must not truncate the walk.
+    const offChain = evolutionChainProof("blissey", null, "pikachu");
+    assert.equal(offChain.steps.length, 2);
+  });
+});
