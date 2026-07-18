@@ -1,5 +1,5 @@
-// Evolution legality-with-friction (roadmap Phase 4B). One uniform rule set —
-// nothing mon-specific, no verdict fitting:
+// Evolution legality-with-friction. One uniform rule set — nothing
+// mon-specific, no verdict fitting:
 //
 //   level evolution:      legal if the cap permits, K = 0
 //   friendship:           legal, K = friendship grind
@@ -31,8 +31,7 @@ const TEDIOUS_MULTIPLIER = 1.5;
 // a flat boolean progression field; an ABSENT field means accessible (so old
 // saved progressions and tests behave exactly as before), an explicit `false`
 // blocks the evolution — surfaced in blockedEvolutions, never silent.
-// Each elemental stone gets its own gate (user request: "check individually
-// which stones I have access to at the moment"); the rest of the item-shaped
+// Each elemental stone gets its own gate; the rest of the item-shaped
 // methods (Metal Coat, Razor Claw, ...) share one gate. Legacy saves with the
 // old blanket `evoAccessStones: false` still block all of these (see the
 // denied check below and the migration in progression.js).
@@ -63,7 +62,7 @@ export const EVOLUTION_ACCESS_FIELDS = Object.freeze([
 ]);
 
 // Region-locked evolutions (dex evoRegion "Alola") need Reborn's Alola
-// equivalent, Apophyll — the stone alone isn't enough (user-verified).
+// equivalent, Apophyll — the stone alone isn't enough.
 // Exception: Reborn removed Marowak-Alola's location requirement — Cubone
 // picks the form by time of day (Kanto by day, Alolan by night).
 function needsApophyll(species) {
@@ -451,9 +450,9 @@ export function describeEvolutionPath(fromId, toId) {
   return `${attachedLevel}${tokens.length ? ` (${tokens.join(", ")})` : ""}`;
 }
 
-// Walks the chain from the line's input form to `fieldedId`, summing friction
-// and collecting a human-auditable proof of each evolution step. Assumes the
-// fielded form was already validated as reachable.
+// Walks the chain from the family's base form up to `fieldedId`, summing
+// friction and collecting a human-auditable proof of each evolution step.
+// Assumes the fielded form was already validated as reachable.
 export function evolutionChainProof(fieldedId, access = null) {
   const steps = [];
   let friction = 0;

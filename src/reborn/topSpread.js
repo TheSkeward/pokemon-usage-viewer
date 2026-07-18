@@ -31,8 +31,7 @@ export async function loadTopSet({ family, pokemonId, selection }) {
     // comparable across tiers) and the sub-bar trace tail. The array order is
     // exactly "descending usage within the canonical tier, then each fallback
     // tier down the ladder" — the ranking the recommender's last-resort slot
-    // fill uses (user ruling; Prankster Liepard's Assist lives here, an AG
-    // set entry invisible to moveUsage).
+    // fill uses (entries here can be invisible to moveUsage).
     moveRank: moveRankMap(data?.moves),
   };
 }

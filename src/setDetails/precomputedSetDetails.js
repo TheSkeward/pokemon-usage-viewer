@@ -150,8 +150,7 @@ export function describePrecomputedSetSource(source) {
 
   // The primary set is the CANONICAL set — sourced from the first tier the
   // mon is meaningfully played in (its best trace tier below the bar), the
-  // same policy the team builder uses. Say so, so the headline can't be
-  // misread as "whatever tier ranked first".
+  // same policy the team builder uses.
   const base = source?.primarySource ? `canonical tier ${tier}` : tier;
 
   if (fallback) {

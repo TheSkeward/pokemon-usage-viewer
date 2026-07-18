@@ -56,11 +56,8 @@ test("getPurchasableShopItems: badge-gated, owned-filtered, stable order", () =>
 test("badge-1 shop stock includes the user-verified Obsidia berry floor", () => {
   // User report with in-game screenshots: after Badge 1 the Department
   // Store berry shop sells the six heal/status berries alongside Persim +
-  // the EV berries. The original extraction had merged them away (their
-  // earliest sheet row is a badge-0 hidden find, which discarded the Shop
-  // row); the extraction now reads the Shops tab directly and the
-  // SHOP_STOCK overlay in build-item-timeline.mjs stays as an agreement
-  // check on these user-verified rows.
+  // the EV berries. The SHOP_STOCK overlay in build-item-timeline.mjs is
+  // an agreement check on these user-verified rows.
   const VERIFIED_BADGE_1_BERRIES = [
     "oranberry", "cheriberry", "pechaberry", "rawstberry", "chestoberry",
     "aspearberry", "persimberry", "pomegberry", "kelpsyberry", "qualotberry",
@@ -80,11 +77,9 @@ test("badge-1 shop stock includes the user-verified Obsidia berry floor", () => 
 });
 
 test("shop rows masked by earlier one-off pickups survive extraction", () => {
-  // The whole-class fix for the berry-floor bug: the guide's Shops tab is
-  // now read directly, so an item with ANY earlier non-shop pickup (a
-  // hidden find, a story gift) still gets its renewable shop timing.
-  // Pins are sheet rows spot-audited during the re-extraction; none of
-  // these existed in REBORN_SHOP_ITEM_BADGES before it.
+  // An item with ANY earlier non-shop pickup (a hidden find, a story gift)
+  // must still get its renewable shop timing from the guide's Shops tab.
+  // Pins are spot-audited sheet rows.
   const MASKED_SHOP_ROWS = {
     leftovers: 17,
     lifeorb: 17,

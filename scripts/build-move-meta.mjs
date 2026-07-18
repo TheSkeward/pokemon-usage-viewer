@@ -2,9 +2,7 @@
 // the single source of truth for a move's intrinsic properties — name, type,
 // damage category, base power, priority, and whether it carries utility beyond
 // raw damage, including per-action screen coverage and weather requirements —
-// so that per-Pokémon legal-move files only need to reference a move by id and
-// any change to a move's stats propagates everywhere at once
-// (rather than being duplicated into every file that happens to list the move).
+// so that per-Pokémon legal-move files only need to reference a move by id.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -19,8 +17,8 @@ const ASSUMED_BASE_POWER = { return: 102 };
 
 // Coded-effect moves whose utility value isn't expressed by any dex field (a
 // Knock Off looks identical to a Tackle in the data), so they have to be listed
-// by hand. Reviewed move-by-move; see scripts notes. Status moves are always
-// utility; this set only promotes *damaging* moves to also count as utility.
+// by hand. Status moves are always utility; this set only promotes *damaging*
+// moves to also count as utility.
 const CODED_UTILITY_MOVES = new Set([
   "knockoff", "thief", "covet", "rapidspin", "pursuit", "anchorshot",
   "spiritshackle", "thousandwaves", "thousandarrows", "bugbite", "pluck",
@@ -38,12 +36,11 @@ const CODED_UTILITY_MOVES = new Set([
 // guaranteed positive self-boost, a target effect (bind / trap / grounds /
 // phaze / pivot), or a curated coded effect. Pure downside riders (recoil,
 // crash, recharge, lock-in, self-stat-drops) do NOT count.
-// NOTE (settled after a Splash-Lopunny bug hunt): status moves with no
-// structured effect are deliberately NOT excluded here. In Gen 7 every status
-// move has a Z-effect (Z-Splash = +3 Atk — a real fringe ZU Lopunny set), so
-// "does nothing" can't be decided from the dex; real usage is the arbiter.
-// The recommender's usage>0-or-weight>0 filters already keep unused filler
-// out of every utility-ranked path.
+// NOTE: status moves with no structured effect are deliberately NOT excluded
+// here. In Gen 7 every status move has a Z-effect (Z-Splash = +3 Atk), so
+// "does nothing" can't be decided from the dex; the recommender's
+// usage>0-or-weight>0 filters already keep unused filler out of every
+// utility-ranked path.
 function isUtilityMove(move) {
   if (move.category === "Status") return true;
   if (CODED_UTILITY_MOVES.has(move.id)) return true;
@@ -65,7 +62,6 @@ function isUtilityMove(move) {
   return false;
 }
 
-// Effects with no structured dex field, keyed by id.
 const HAZARD_REMOVE_MOVES = new Set(["rapidspin", "defog", "courtchange"]);
 const HAZARD_SIDE_CONDITIONS = new Set(["stealthrock", "spikes", "toxicspikes"]);
 const SCREEN_SIDE_CONDITIONS = new Set(["reflect", "lightscreen", "auroraveil"]);
@@ -73,8 +69,7 @@ const DISRUPTION_VOLATILES = new Set(["taunt", "encore", "disable", "imprison"])
 
 // Screens differ in how much of the team they protect with one action.
 // Aurora Veil is the only Gen 7 dual-axis screen, and it is only executable
-// while hail is active. These are move mechanics, not species judgments, so
-// they belong in the central generated metadata beside priority and roles.
+// while hail is active.
 function screenFacts(move) {
   if (move.sideCondition === "auroraveil") {
     return { screenAxes: ["physical", "special"], requiresWeather: "hail" };
@@ -89,8 +84,8 @@ function screenFacts(move) {
 }
 
 // A move's utility "kinds", so utility scoring can tell real team infrastructure
-// (recovery, hazards, speed control, setup) from an annoying-baby status move.
-// ~85% is read straight from @pkmn/dex effect fields; the rest is hand-coded above.
+// (recovery, hazards, speed control, setup) from mere chip status. Mostly read
+// from @pkmn/dex effect fields; the rest comes from the hand-coded sets above.
 function deriveRoles(move) {
   const roles = new Set();
   const secondaries =

@@ -1,4 +1,4 @@
-// LEVEL-CAP investment projection (roadmap Phase 9): "best six right now" and
+// LEVEL-CAP investment projection: "best six right now" and
 // "worth training soon" are different products. Selection never spends future
 // value; THIS view is where the future lives. It re-runs the real optimizer at
 // the next level cap(s) — same pool, SAME unlocks, only the cap moved — and
@@ -17,9 +17,8 @@ import { REBORN_PROGRESSION_CHECKPOINTS } from "../reborn/badgeTimeline.js";
 const TRAIN_SOON_GAIN = 250; // score points at the next cap that make a mon worth tracking
 const CLOSE_BENCH_MARGIN = 0.985; // swap score within 1.5% of the team's own score
 
-// The distinct upcoming caps, straight from the badge timeline (the single
-// source of progression truth) — a hardcoded copy here once drifted from it
-// and stopped short of the postgame tiers (105–150).
+// The distinct upcoming caps, straight from the badge timeline — the single
+// source of progression truth; never hardcode a copy here.
 export function nextLevelCaps(levelCap, count = 2) {
   const cap = Number.parseInt(levelCap, 10) || 0;
   const upcoming = [];
@@ -46,8 +45,7 @@ export async function computeInvestmentPlan({
   shouldAbort = () => false,
   // Progressive delivery: called with a `partial: true` plan the moment the
   // FIRST future cap lands, so the panel shows something useful in half the
-  // cold time (user ruling: ten minutes of blocking work is untenable
-  // anywhere). The returned plan is always the complete one.
+  // cold time. The returned plan is always the complete one.
   onPartial = null,
 }) {
   const caps = nextLevelCaps(progression.levelCap, 2);
@@ -61,14 +59,11 @@ export async function computeInvestmentPlan({
   const teamIds = new Set(result.team.map((choice) => choice.inputPokemonId));
 
   // The optimizer memoizes by (context, pool), so repeat projections at this
-  // gamestate are free. searchMode "fast" because these runs were the single
-  // biggest CPU sink in the pipeline (218s of a 160-mon cold run — each is a
-  // full optimize) and the plan barely uses their searches: `gain` compares
-  // LINE scores, which are exact under any search mode; only `seatsLater`
-  // reads the future team, and a shortlist-grade six is the right price for
-  // a "worth training soon" hint. Fast runs also resolve DEFAULT-ONLY builds
-  // (teamOptimizer's fastMode trim) — most of the remaining cold cost was
-  // full variant resolution the plan never read.
+  // gamestate are free. searchMode "fast" because the plan barely uses the
+  // searches: `gain` compares LINE scores, which are exact under any search
+  // mode; only `seatsLater` reads the future team, and a shortlist-grade six
+  // is the right price for a "worth training soon" hint. Fast runs also
+  // resolve DEFAULT-ONLY builds (teamOptimizer's fastMode trim).
   const futureResults = [];
   for (const cap of caps) {
     if (shouldAbort()) return null;
@@ -144,10 +139,10 @@ function buildInvestmentPlan({ nowByInput, teamIds, result, futureResults }) {
   holdOff.sort((a, b) => b.gain - a.gain);
 
   // Close bench: benched mons whose best swap-in barely trails the chosen
-  // team's OWN score. The old reference — the best swap score on the bench —
-  // measured "close to the best bench mon", so a uniformly weak bench called
-  // everything close (user report: "Azurill nearly seats"). Without a real
-  // reference the section stays empty rather than guessing.
+  // team's OWN score. The reference must be the team score, not the best
+  // bench swap score — that would call everything on a uniformly weak bench
+  // "close". Without a real reference the section stays empty rather than
+  // guessing.
   const closeBench = [];
   const teamReference = result.teamScore ?? result.bestEvaluated?.score;
   if (result.benchSwapScores && teamReference > 0) {

@@ -113,9 +113,9 @@ export function mountPoolOptimizer(container, options = {}) {
     onUpdate: () => render(),
   });
 
-  // Optimize-run serialization (audit findings): the newest run owns the UI,
-  // and no optimizer scoring may execute while a confidence sweep holds the
-  // global scoring overrides.
+  // Optimize-run serialization: the newest run owns the UI, and no optimizer
+  // scoring may execute while a confidence sweep holds the global scoring
+  // overrides.
   let optimizeRunToken = 0;
   let sweepAbortRequested = false;
   let activeAnalysis = Promise.resolve();
@@ -155,9 +155,8 @@ export function mountPoolOptimizer(container, options = {}) {
     setDetails.cancel();
 
     // Newest-run-wins token: any older in-flight run becomes a no-op the
-    // moment a newer one starts (it must not write state.result — the last
-    // FINISHER used to win, so a slow singles run could overwrite a doubles
-    // result that was already on screen).
+    // moment a newer one starts — it must not write state.result (a slow
+    // stale run would overwrite the newer result already on screen).
     const runToken = ++optimizeRunToken;
     // Ask any live confidence sweep to stop at its next setting boundary and
     // WAIT for it: sweep settings run under global scoring overrides, and an
@@ -180,9 +179,8 @@ export function mountPoolOptimizer(container, options = {}) {
     if (runToken !== optimizeRunToken) return;
 
     // User-perceived pipeline clock: everything between "click" and the team
-    // being on screen counts, not just the optimizer core (a 44s wait once
-    // reported itself as 2.9s because item loading and rendering were
-    // unmeasured). Recorded into telemetry when post-analysis completes.
+    // being on screen counts (item loading and rendering included), not just
+    // the optimizer core. Recorded into telemetry when post-analysis completes.
     const pipelineStart = Date.now();
     const phases = {};
 
@@ -191,9 +189,9 @@ export function mountPoolOptimizer(container, options = {}) {
 
       const saved = savePool(state.query);
 
-      // Snapshot the inputs this run is actually computed against. The key
-      // used to be stamped from live state AFTER the await, so an edit made
-      // mid-optimize marked the old-input result as fresh.
+      // Snapshot the inputs this run is actually computed against — stamping
+      // from live state after the await would let an edit made mid-optimize
+      // mark the old-input result as fresh.
       const runProgressionKey = getProgressionKey(state.progression);
 
       const result = await optimizeTeamFromPool({
@@ -255,10 +253,9 @@ export function mountPoolOptimizer(container, options = {}) {
         state.result.searchExact
           ? ""
           : " Pool too large for an exact search — used a fast approximate one.",
-        // The swap audit repairing the team is worth a sentence: it means the
-        // shortlist heuristics missed a seat and the full-pool audit caught
-        // it. The healthy case (audit ran, nothing found) lives in the
-        // provenance footer instead — this line is prime real estate.
+        // A repair by the swap audit means the shortlist heuristics missed a
+        // seat; the healthy case (audit ran, nothing found) is reported in
+        // the provenance footer instead.
         polishSwapCount
           ? ` The full-pool swap audit then improved it (${polishSwapCount} swap${polishSwapCount === 1 ? "" : "s"}).`
           : "",
@@ -344,15 +341,12 @@ export function mountPoolOptimizer(container, options = {}) {
 
       // Background-triggered optimizes (page load with a saved pool, the
       // auto-reoptimize debounce, gamestate import) never PAY for a cold
-      // post-analysis. The investment plan alone is two more full optimizer
-      // runs at future caps — ~10 minutes on a real pool after a deploy or
-      // data refresh retires the persisted copy — and auto-starting that on
-      // page open saturated every core while the player was trying to read
-      // the page (user report: "multiple minutes of loading... can't even
-      // scroll"). A persisted post-analysis (the forResult.postAnalysis hit
-      // above) still restores instantly; when there is none, the panel
-      // offers a compute-now button, and an explicit Optimize click keeps
-      // computing everything as before.
+      // post-analysis — the investment plan alone is two more full optimizer
+      // runs at future caps, minutes of saturated cores on a real pool. A
+      // persisted post-analysis (the forResult.postAnalysis hit above) still
+      // restores instantly; when there is none, the panel offers a
+      // compute-now button, and an explicit Optimize click computes
+      // everything as before.
       if (pipeline?.background) {
         state.postAnalysisDeferred = true;
         pipeline.phases.confidence = 0;
@@ -365,11 +359,10 @@ export function mountPoolOptimizer(container, options = {}) {
       const pendingHandle = render();
       // Wait for the movesets (Team Analysis panel) to land before starting
       // the sweep: its settings run as long synchronous blocks that starve
-      // every pending async continuation — measured on a 65-mon pool, the
-      // panel the user is actually reading appeared ~40s late behind the
-      // sweep. The panel build is memoized, so awaiting THIS render's handle
-      // is the same build computeAndRender kicked off. Bounded so a wedged
-      // panel can never block the analysis.
+      // every pending async continuation, delaying the panel the user is
+      // actually reading. The panel build is memoized, so awaiting THIS
+      // render's handle is the same build computeAndRender kicked off.
+      // Bounded so a wedged panel can never block the analysis.
       const panelReady =
         pendingHandle?.analysisPanelReady ||
         pipeline?.analysisPanelReady ||
@@ -520,8 +513,7 @@ export function mountPoolOptimizer(container, options = {}) {
   // dragging a bias slider, toggling several TMs — settle into one re-optimize.
   // Batch-style edits (a shop haul of items, a badge's worth of TM/tutor
   // checkboxes) pass the LONG delay: they arrive as bursts of actions each a
-  // few seconds apart, and the short debounce made every pause cost a full
-  // recompute mid-burst.
+  // few seconds apart, and must not pay a full recompute per pause.
   const AUTO_REOPTIMIZE_DELAY_MS = 600;
   const BATCH_EDIT_REOPTIMIZE_DELAY_MS = 5000;
   let autoReoptimizeTimer = null;
@@ -544,10 +536,9 @@ export function mountPoolOptimizer(container, options = {}) {
     state.resultProgressionStale = markResultProgressionStale();
 
     // A render rebuilds the whole page DOM, which resets the viewport to
-    // wherever the shrunk/grown layout lands — the "screen jumps while I'm
-    // ticking checkboxes" report. Renders triggered mid-interaction (status
-    // lines appearing, the progress bar mounting) restore the scroll the
-    // user actually had.
+    // wherever the shrunk/grown layout lands. Renders triggered
+    // mid-interaction (status lines appearing, the progress bar mounting)
+    // restore the scroll the user actually had.
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
 
@@ -733,18 +724,18 @@ export function mountPoolOptimizer(container, options = {}) {
         );
 
         // DELIBERATELY no render(): the clicked checkbox is already visually
-        // correct, and the full-page rebuild both moved the viewport (the
-        // "screen jumps while ticking boxes" report) and made a burst of
-        // checks feel glacial. Instead: sync any twin renderings of the same
-        // option (the obtainable rail duplicates rows from the main list),
-        // retoggle the highlight, and recount the summary in place. The next
-        // real render arrives with the settled re-optimize.
+        // correct, and the full-page rebuild both moves the viewport and
+        // makes a burst of checks feel glacial. Instead: sync any twin
+        // renderings of the same option (the obtainable rail duplicates rows
+        // from the main list), retoggle the highlight, and recount the
+        // summary in place. The next real render arrives with the settled
+        // re-optimize.
         patchOptionCheckboxes(field, control.value, control.checked);
         patchOptionGroupCount(field);
         if (!state.result) {
           // Without a result there is no auto-reoptimize to deliver the
-          // next render (stale banner, gamestate strip) — fall back to the
-          // old full render; there's also no team table above to jump.
+          // next render (stale banner, gamestate strip) — fall back to a
+          // full render; there's also no team table above to jump.
           render();
         }
         scheduleAutoReoptimize(stale, BATCH_EDIT_REOPTIMIZE_DELAY_MS);
@@ -1118,8 +1109,8 @@ export function mountPoolOptimizer(container, options = {}) {
 
     recomputeItemRecommendations();
     // Owned EVOLUTION items change optimizer output (they zero evolution
-    // friction), and the progression key already knows that — this was the
-    // one stale-inducing edit path that never scheduled the re-optimize.
+    // friction), so inventory edits must also check staleness and schedule
+    // the re-optimize.
     const stale = markResultProgressionStale();
     render();
     if (message || stale) {
@@ -1238,8 +1229,8 @@ export function mountPoolOptimizer(container, options = {}) {
   // advance by elapsed-vs-budget with an asymptotic tail — so the bar keeps
   // moving through the slow part instead of parking at 100% and pulsing.
   // Width = elapsed / (elapsed + estimated remaining), capped at 97% until the
-  // run actually finishes; monotone because the remaining estimate only
-  // shrinks. A ticker repaints during phases that emit no progress events.
+  // run actually finishes. A ticker repaints during phases that emit no
+  // progress events.
   let optimizeProgress = null;
 
   function startOptimizeProgress(poolSize) {
@@ -1326,10 +1317,7 @@ export function mountPoolOptimizer(container, options = {}) {
                 : stage === "bench"
                   ? "Search done — ranking bench swaps..."
                   : total
-                  ? // Live sub-progress from the search workers (user ask:
-                    // "surface more granularity to the progress bar caption
-                    // about where we are in that subprocess").
-                    `Searching team combinations — ${Math.min(99, Math.floor((100 * (completed || 0)) / total))}% of ${formatComboCount(total)}...`
+                  ? `Searching team combinations — ${Math.min(99, Math.floor((100 * (completed || 0)) / total))}% of ${formatComboCount(total)}...`
                   : "Searching team combinations..."
           : phase === "items"
             ? "Loading item usage for the team..."
@@ -1601,7 +1589,7 @@ function getProgressionKey(progression) {
   // Key-order independent: plain JSON.stringify is insertion-order sensitive,
   // and progression objects are built by several helpers — two equal
   // progressions with different field orders would spuriously flag the team
-  // stale (never the reverse, but noise erodes trust in the warning).
+  // stale.
   return stableKeyStringify({ ...rest, evolutionItems });
 }
 

@@ -71,16 +71,12 @@ export async function loadSourceData(month, formatId, cutoff, dataKind) {
   }
 }
 
-// NOTE on sourceCache memory: it retains every parsed month/format/cutoff
-// source file for the tab's lifetime — hundreds of MB on a big pool. That is
-// deliberate. A per-pipeline release was tried (perf package, reverted): any
-// fresh resolve after it — every auto-reoptimize, and especially the
-// investment plan's future-cap runs — had to re-fetch AND re-JSON.parse the
-// whole working set on the main thread, which measured as warm investment
-// 18.8s → 426s and multi-minute unresponsive stretches on a 161-mon pool.
-// The parse cost recurs per pipeline; the resident memory is paid once.
-// Shrinking this for real means smaller data (pre-aggregated per-format
-// summaries), not eviction.
+// NOTE on sourceCache memory: it deliberately retains every parsed
+// month/format/cutoff source file for the tab's lifetime — hundreds of MB on
+// a big pool. Do not add eviction: every fresh resolve would re-fetch and
+// re-JSON.parse the working set on the main thread, which is far more costly
+// than the once-paid resident memory. Shrinking this for real means smaller
+// data (pre-aggregated per-format summaries), not eviction.
 
 async function loadJson(url) {
   if (jsonCache.has(url)) return jsonCache.get(url);
@@ -131,9 +127,9 @@ export function getLatestMonth(dataset) {
 export function getMovesetLookupContext(dataset, formatsIndex, state) {
   if (!state.selectedPokemon) return null;
   if (state.month === 'all') {
-    // Real aggregate built by scripts/build-aggregate-movesets.mjs — the pane
-    // used to silently fall back to the latest month here, which for thin
-    // formats meant one player's single set shown at 100%.
+    // Real aggregate built by scripts/build-aggregate-movesets.mjs — never
+    // silently fall back to a single month here (for thin formats that shows
+    // one player's set at 100%).
     const months = dataset.months || [];
     const label = months.length
       ? `all available months (${months[0]} → ${months[months.length - 1]})`

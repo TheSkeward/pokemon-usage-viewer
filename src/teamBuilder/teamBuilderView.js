@@ -385,7 +385,7 @@ function renderPostAnalysisSkippedSection(state) {
   `;
 }
 
-// --- Confidence (roadmap Phase 5) -------------------------------------------
+// --- Confidence --------------------------------------------------------------
 // The recommendation is not "these six, full stop": it is core / likely / flex
 // with inclusion frequencies from the robustness sweep, plus the bench mons
 // that seat under plausible alternative settings.
@@ -436,7 +436,7 @@ function renderConfidenceSection(state) {
   `;
 }
 
-// --- Explanations (roadmap Phase 8) ------------------------------------------
+// --- Explanations -------------------------------------------------------------
 function renderExplanationsSection(state) {
   const result = state.result;
   if (!result?.team?.length) return "";
@@ -518,7 +518,7 @@ function renderExplanationsSection(state) {
   `;
 }
 
-// --- Investment (roadmap Phase 9) --------------------------------------------
+// --- Investment ----------------------------------------------------------------
 // "Best six right now" vs "worth training soon" are different products; future
 // value lives HERE, never in selection.
 function renderInvestmentSection(state) {
@@ -571,7 +571,7 @@ function renderInvestmentSection(state) {
   `;
 }
 
-// --- Provenance (roadmap Phase 7) --------------------------------------------
+// --- Provenance ----------------------------------------------------------------
 function renderProvenanceFooter(manifest, result) {
   const timings = result?.timings;
   if (!manifest && !timings) return "";
@@ -618,7 +618,7 @@ function renderSwapAuditText(searchPolish) {
   } — ${escapeHtml(parts.join("; "))}`;
 }
 
-// Accumulated in-browser performance percentiles (external review ask):
+// Accumulated in-browser performance percentiles:
 // p50/p90/p95 resolve and search time segmented by cache temperature AND
 // pool-size bucket, for this build/scoring/data only (stale samples from
 // before a deploy are excluded, not averaged in), plus this machine's core
@@ -754,10 +754,9 @@ function renderBenchLine(result) {
   const worstInputIds = pickWorstBench(bench, result.benchSwapScores);
 
   // The chip names the form that EARNED the group's tier and usage — the
-  // line's best-ranked form — not the representative you'd field. A Rattata
-  // line fields Raticate, but its meaningful tier is Rattata's own AG 1500
-  // 1.3% (FEAR); printing "Raticate 1.3%" there attributed one form's numbers
-  // to another. The fielded representative moves to the tooltip.
+  // line's best-ranked form — not the representative you'd field (a Rattata
+  // line fields Raticate, but its meaningful tier is Rattata's own FEAR
+  // usage). The fielded representative moves to the tooltip.
   const chipFormName = (entry) =>
     entry.ceiling?.name || entry.trace?.name || entry.representative.name;
 
@@ -813,9 +812,7 @@ function renderBenchLine(result) {
   // Ordering: meaningful tiers shallow → deep first; then the trace tail by
   // games ascending (fewer games to 50%-see one = stronger signal), and
   // WITHIN a horizon by the same ladder order as everything else — shallower
-  // tier first (user ruling: "primarily ascending N; other than that, the
-  // same sort as everything else", i.e. UU 0 (65) before ZU 1630 (65));
-  // "no usage data" dead last.
+  // tier first (UU 0 (65) before ZU 1630 (65)); "no usage data" dead last.
   const groupOrder = (a, b) => {
     if (a.hasSignal !== b.hasSignal) return a.hasSignal ? -1 : 1;
     if (a.hasSignal) return a.tierRank - b.tierRank;
@@ -893,8 +890,8 @@ function renderBenchLine(result) {
   `;
 }
 
-// Usage is truncated, not rounded — 0.16% reads as 0.1%, matching the >=0.1%
-// hard cutoff used to find the meaningful tier.
+// Usage is truncated, not rounded, so the displayed figure never overstates
+// the underlying usage.
 function truncatePercent(value) {
   return `${(Math.floor((value || 0) * 10) / 10).toFixed(1)}%`;
 }
@@ -1136,12 +1133,11 @@ function renderMeaningfulUsage(row, formatsIndex) {
   const ranking = row.bundle?.ranking;
   const headline = renderSource(row.bundle?.usage, formatsIndex);
   if (!ranking || typeof ranking.value !== "number") {
-    // Below the meaningful bar everywhere: the flat "trace" label hid the
-    // real signal (user report: Raticate/Noctowl read as interchangeable
-    // noise). Same relaxed seen-within-N-games treatment as the bench tail —
-    // "ZU 1500 (65)" reads "at its ZU-1500 usage, even odds of seeing one
-    // within 65 games" — from the resolver index's display-only trace row.
-    // Honest "no usage data" only when the form has no recorded usage at all.
+    // Below the meaningful bar everywhere: same relaxed seen-within-N-games
+    // treatment as the bench tail — "ZU 1500 (65)" reads "at its ZU-1500
+    // usage, even odds of seeing one within 65 games" — from the resolver
+    // index's display-only trace row. Honest "no usage data" only when the
+    // form has no recorded usage at all.
     const trace = row.bundle?.trace;
     const games = trace ? gamesToLikelySee(trace.value) : null;
     if (trace && games != null) {
@@ -1175,8 +1171,8 @@ function renderSelectedSetDetails({ app, pokemonIndex, setDetails, state }) {
     selectedPokemonName: selected.name,
     movesetEntry: detail,
     lookupLabel: detail ? setDetails.describeSource(detail) : "",
-    // The set is sourced from the mon's first meaningful (>=0.1%) usage tier,
-    // which is why this evolution stage was chosen over (or instead of) another.
+    // The set is sourced from the mon's first meaningful usage tier, which is
+    // why this evolution stage was chosen over (or instead of) another.
     // Surface that tier's usage so the pick is legible — but only when the shown
     // set actually came from the ranking tier (guard against the deepest-tier
     // fallback and cross-family sourcing, where the number wouldn't match).

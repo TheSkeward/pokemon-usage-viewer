@@ -1,8 +1,8 @@
-// Canonical-set readiness (usage-convergence Phase 1, display only): how much
-// of a mon's competitive set — its top-4 usage moves plus canonical item —
-// is assemblable right now, and the cap at which it completes ("L*").
+// Canonical-set readiness (display only): how much of a mon's competitive
+// set — its top-4 usage moves plus canonical item — is assemblable right
+// now, and the cap at which it completes ("L*").
 //
-// Definitional rules (user-ratified):
+// Definitional rules:
 //   - A level-scaling move in the canonical set (Seismic Toss class: damage =
 //     user level) means the set is not fully online until cap 100, period.
 //   - L* is min(100, earliest cap at which every element is obtainable under
@@ -10,10 +10,9 @@
 //     at their unlock badge's cap, items at their timeline badge's cap.
 //   - Abilities are ALWAYS ready: Reborn distributes hidden abilities evenly
 //     at catch and Ability Capsules switch between all of a mon's abilities
-//     at will, from the start of the game (user-verified).
+//     at will, from the start of the game.
 //
-// NO scoring input changes here — this annotates the analysis display and is
-// the calibration gate for the Phase 2 sliding usage blend.
+// This annotates the analysis display; it feeds no scoring input.
 
 import {
   getRebornCheckpoint,
@@ -60,9 +59,7 @@ const MACHINE_BADGE_BY_MOVE = (() => {
   return map;
 })();
 
-// Badge 0 is the "start" checkpoint (cap 20) — user report: Black Sludge
-// (obtainable immediately, badge 0) fell through a `badge-0` lookup to the
-// cap-100 fallback and pinned Roserade's whole set to "full at cap 100".
+// Badge 0's checkpoint id is "start" (cap 20), not "badge-0".
 const capOfBadge = (badge) =>
   getRebornCheckpoint(badge === 0 ? "start" : `badge-${badge}`)?.levelCap ??
   null;
@@ -91,9 +88,8 @@ export function computeSetReadiness({
   const availableIds = new Set(availableMoves.map((move) => move.id));
   // Usage data collapses every Hidden Power variant to the single id
   // "hiddenpower", but the legal pool carries only expanded per-type ids
-  // (hiddenpowerice, ...) once the Type Changer unlocks — so the canonical
-  // id alone could NEVER read as ready (audit: readiness permanently
-  // undercounted r on any set running Hidden Power).
+  // (hiddenpowerice, ...) once the Type Changer unlocks — so any expanded
+  // variant must satisfy the canonical id.
   const isMoveAvailable = (id) =>
     availableIds.has(id) ||
     (id === "hiddenpower" &&
@@ -127,9 +123,7 @@ export function computeSetReadiness({
 
     // Earliest way to get it, as a cap-equivalent. Level-1 entries on an
     // evolved form are NOT a leveling route (they're relearner-gated — you
-    // never level up to 1), so they can't set the cap-equivalent: Slaking's
-    // Hammer Arm (levelUp [1, 61]) used to report "level-up @1" and claim
-    // the set completes now when the real gates are the relearner or cap 61.
+    // never level up to 1), so they can't set the cap-equivalent.
     const candidates = [];
     const levels = [
       ...(raw.sources?.levelUp || []),
@@ -205,10 +199,10 @@ export function computeSetReadiness({
   if (scaling) capNeeds.push(100);
   let fullAtCap = capNeeds.length ? Math.min(100, Math.max(...capNeeds)) : null;
 
-  // Everything missing is already reachable at the current gamestate — the
-  // gate is pickups (unchecked TMs, unclaimed items), not future progression.
-  // "Pending" requires something actually pending: the scaling sentinel alone
-  // (a fully-ready set at cap 100) used to claim pickups were outstanding.
+  // fullAtCap at or below the current cap means everything missing is already
+  // reachable — the gate is pickups (unchecked TMs, unclaimed items), not
+  // future progression. "Pending" requires something actually pending; the
+  // scaling sentinel alone (a fully-ready set at cap 100) is not a pickup.
   const currentCap = Number.parseInt(progression.levelCap, 10) || 0;
   const hasPending =
     moves.some((move) => move.status === "later") ||

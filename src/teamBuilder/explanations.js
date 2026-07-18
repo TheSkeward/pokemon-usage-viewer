@@ -1,4 +1,4 @@
-// Explanation layer (roadmap Phase 8): no recommendation is a naked scalar.
+// Explanation layer: no recommendation is a naked scalar.
 // Every seated pick explains its role, its assumptions (ability, evolution
 // path, delayed moves), the team holes it patches, and — once the confidence
 // sweep lands — how robust its seat is. Notable exclusions explain WHY they

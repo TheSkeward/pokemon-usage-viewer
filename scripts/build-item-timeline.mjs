@@ -21,9 +21,9 @@ import { readFileSync, writeFileSync } from "node:fs";
 const MINING_KIT_BADGE = 3;
 
 // item id -> { badge, holder } — the earliest confidently-known wild holder.
-// User-verified rule: "if they're not findable earlier, they're findable at
-// the point where you can catch those mon" (e.g. Grimer is catchable
-// immediately, so Black Sludge is available pre-Julia).
+// Rule: an item not findable earlier is findable at the point where its wild
+// holder is catchable (e.g. Grimer is catchable immediately, so Black Sludge
+// is available pre-Julia).
 const WILD_HELD = {
   blacksludge: { badge: 0, holder: "Grimer (Opal/Peridot, immediate)" },
   metronome: { badge: 0, holder: "Kricketot (Lower Peridot, immediate)" },
@@ -37,13 +37,11 @@ const WILD_HELD = {
   mentalherb: { badge: 2, holder: "Lotad (rainy Lapis)" },
 };
 
-// item id -> badge — user-verified SHOP stock kept as a belt-and-braces
-// overlay on the sheet's shopItems map (earliest badge wins). The extraction
-// now reads the Shops tab directly, so these should always agree with the
-// sheet; a disagreement below is a signal one of the two is wrong.
-// Badge 1: the Obsidia Department Store berry floor (user-verified in game:
-// screenshots of the full stock after Badge 1 — the six heal/status berries
-// below sit alongside Persim + the EV berries the sheet already credits).
+// item id -> badge — user-verified SHOP stock kept as a cross-check overlay
+// on the sheet's shopItems map (earliest badge wins). These should always
+// agree with the sheet; a disagreement (warned below) is a signal one of the
+// two is wrong. Badge 1: the Obsidia Department Store berry floor, verified
+// in game.
 const SHOP_STOCK = {
   oranberry: 1,
   cheriberry: 1,
@@ -98,12 +96,11 @@ const lines = sorted.map(
 
 // Shop-sourced held items (renewable: buy as many as needed once the shop is
 // reachable), from the extraction's shopItems map — built from the Shops tab
-// DIRECTLY, so an item with an earlier one-off pickup keeps its shop row
-// (the bug the SHOP_STOCK overlay was born to patch). An entry with `until`
-// would be a stock window that permanently closes; the current sheet has
-// none (every windowed mart row chains into a permanent seller), and the
-// simple id -> badge table below can't express one, so surface it loudly
-// rather than silently promise expired stock forever.
+// directly, so an item with an earlier one-off pickup keeps its shop row.
+// An entry with `until` would be a stock window that permanently closes; the
+// current sheet has none (every windowed mart row chains into a permanent
+// seller), and the simple id -> badge table below can't express one, so
+// surface it loudly rather than silently promise expired stock forever.
 const shopTable = new Map();
 for (const [name, entry] of Object.entries(extracted.shopItems)) {
   const id = toId(name);

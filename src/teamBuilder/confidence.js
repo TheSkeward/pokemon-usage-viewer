@@ -118,10 +118,10 @@ const SWEEP_SHORTLIST = 20;
 // Only the plausible seat contenders are RESCORED per setting: the baseline
 // top CONTENDER_LIMIT lines plus the current team. The grid's perturbations
 // are one-knob nudges — a line has to already be near the seats for one to
-// promote it — so rescoring a 160-line pool's bottom 120 forms×builds 21
-// times over was almost pure waste (the rescoring, not the search, dominated
-// the measured 140s sweep). Double the search's own shortlist keeps a wide
-// apron of near-misses competing for the alternatives list.
+// promote it — so rescoring the rest of the pool per setting is almost pure
+// waste (the rescoring, not the search, dominates sweep time). Double the
+// search's own shortlist keeps a wide apron of near-misses competing for the
+// alternatives list.
 const CONTENDER_LIMIT = 40;
 // Forms per line handed to the sweep's search — see rescoreLine for the
 // measured fidelity/speed trade behind the value.
@@ -200,9 +200,8 @@ export async function computeTeamConfidence({
     }
     // Yield a real macrotask between settings. Each setting's search resolves
     // synchronously (shortlist path, no worker round-trip), so without this
-    // the whole sweep runs inside ONE task — no paints, no fetch
-    // callbacks, and the async Team Analysis (movesets) panel starves behind
-    // it (measured: the panel landed ~40s late on a 65-mon pool).
+    // the whole sweep runs inside ONE task — no paints, no fetch callbacks,
+    // and async panels starve behind it.
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
 
@@ -285,8 +284,8 @@ function rescoreLine(line, context) {
         opponentTypeBias: context.opponentTypeBias,
         // Same line-anchored usage trust as the production run — without it
         // scoreCandidate falls back to a PER-FORM ramp, so every setting
-        // re-scored under a different w regime than the baseline it's
-        // compared against (the pre-evo-dodges-the-drag bug, resurrected).
+        // would re-score under a different w regime than the baseline it's
+        // compared against (a pre-evo could dodge the endgame drag).
         lineRamp: line.lineRamp ?? 0,
         linePriorPresent: line.linePriorPresent ?? null,
       }),
@@ -314,15 +313,13 @@ function rescoreLine(line, context) {
   // Rescore every form option, then hand the search the setting's best form
   // plus alternates ONLY where they differ in TYPING from it. The search's
   // per-team form assignment is its cartesian hot loop (bestAssignmentForLines
-  // × fastTeamFit, ~97% of sweep time when every line carries all its forms),
-  // and at low caps nearly every line legally fields 2–3 forms — but a form
-  // that shares the leader's typing is a pure score/friction variant, and the
-  // per-setting argmax already chose among those (measured: Gastly held its
-  // seats with Haunter/Gengar collapsed to one). Team-CONTEXT choice only
-  // matters when forms differ in shape — Eevee's branches, Magikarp/Gyarados,
-  // Cottonee/Whimsicott — and collapsing those was measured grossly unfaithful
-  // (Eevee 18/21 → 8/21 seats) while keeping them restores full-sweep seat
-  // counts. Deterministic: teamScore, then pokemonId.
+  // × fastTeamFit), and at low caps nearly every line legally fields 2–3
+  // forms — but a form that shares the leader's typing is a pure
+  // score/friction variant, and the per-setting argmax already chose among
+  // those. Team-CONTEXT choice only matters when forms differ in shape —
+  // Eevee's branches, Magikarp/Gyarados, Cottonee/Whimsicott — collapsing
+  // those measurably distorts seat counts; collapsing same-typing variants
+  // does not. Deterministic: teamScore, then pokemonId.
   const rescoredForms = new Map();
   for (const option of [line.best, line.bestNonMega, ...(line.choiceOptions || [])]) {
     if (option && !rescoredForms.has(option.pokemonId)) {

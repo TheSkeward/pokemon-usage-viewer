@@ -69,10 +69,8 @@ function getRepresentativeNote(row) {
 
 // The canonical tier is the row's headline verdict — the same sourcing the
 // team builder uses (first meaningful tier; best trace tier below the bar).
-// The shallowest tier of ANY appearance (typically AG @ 1760, where a fringe
-// mon's 0.005% is a handful of teams) is demoted to an explicit fallback
-// line: it used to BE the headline, which read as "this mon's set is its AG
-// set" — the exact confusion this layout exists to prevent.
+// The shallowest tier of ANY appearance must stay a demoted fallback line,
+// never the headline.
 function canonicalTierOf(bundle) {
   return bundle.ranking || bundle.trace || null;
 }

@@ -28,17 +28,11 @@ const rebornTmMoveIds = new Set(REBORN_TM_OPTIONS.map((o) => toId(o.move)));
 const rebornTmxMoveIds = new Set(REBORN_TMX_OPTIONS.map((o) => toId(o.move)));
 const rebornTutorMoveIds = new Set(REBORN_TUTOR_OPTIONS.map((o) => toId(o.move)));
 
-// Reborn grants these TMs to (nearly) every species by a code rule, so they
-// never appear in any per-species compatible-moves list (identified as the
-// Reborn TMs listed by 0 species; the next-rarest is in 8). Granted to every mon
-// with a real movepool — the famous TM-locked mons (Ditto/Unown/Smeargle, with
-// a one-move movepool) are excluded by the size check below.
-// Species that cannot learn the code-granted universal TMs (user-verified
-// against USUM / Reborn behavior: their machine list is empty or, like
-// Wobbuffet's Safeguard, entirely explicit in the per-species data). The old
-// movepool-size check (intrinsic.size > 2) was nearly a no-op — intrinsic
-// includes egg/compatible moves, so even Caterpie cleared it and every one of
-// these carried ~15 bogus TMs (Toxic Magikarp, Facade Caterpie).
+// Reborn code-grants the universal TMs (UNIVERSAL_TM_MOVES below) instead of
+// listing them per species: they are the Reborn TMs that appear in 0 species'
+// compatible-moves lists (the next-rarest TM appears in 8). These species are
+// the exceptions that must NOT receive them: their machine list is empty or,
+// like Wobbuffet's Safeguard, entirely explicit in the per-species data.
 const NO_UNIVERSAL_TM_SPECIES = new Set([
   "caterpie", "metapod", "weedle", "kakuna", "magikarp", "ditto", "unown",
   "wobbuffet", "wurmple", "silcoon", "cascoon", "wynaut", "smeargle",
@@ -113,14 +107,12 @@ for (const pokemon of pokemonIndex) {
     return sourcesByMove.get(moveId);
   };
 
-  // A level-1 block longer than four entries contains RELISTS: the game
-  // gives a level-1 mon only the LAST four moves of its ≤1 learnset
-  // (Essentials takes the tail), so head entries — conventionally the
-  // relearner catalog, e.g. Mawile's Play Rough / Iron Head — are never
-  // actually known at level 1 (user report: a level-1 Mawile always has
-  // Astonish, Fairy Wind, Growl, Taunt). Those entries become a
-  // levelOneRelist flag (move-relearner route) instead of a phantom
-  // "Level 1" source; a later natural level (Iron Head @45) is unaffected.
+  // A level-1 block longer than four entries contains relists: Essentials
+  // gives a level-1 mon only the LAST four moves of its ≤1 learnset, so head
+  // entries (conventionally the relearner catalog) are never actually known
+  // at level 1. Those entries become a levelOneRelist flag (move-relearner
+  // route) instead of a phantom "Level 1" source; a later natural level for
+  // the same move is unaffected.
   const ownRelists = levelOneRelistIds(learnset);
   for (const [level, moveId] of learnset.levelUp) {
     if (level === 1 && ownRelists.has(moveId)) {
@@ -188,13 +180,11 @@ for (const pokemon of pokemonIndex) {
       preEvoLevelUp.get(moveId).push({ level, from: preEvoId });
     }
   }
-  // A pre-evo-only level-up move (Zigzagoon's Pin Missile — dropped from
-  // Linoone's own learnset) still needs an entry on the evolved form: the
-  // output loop iterates sourcesByMove, and without this the move silently
-  // vanished instead of appearing as preEvolutionLevelUp.
+  // A move only a pre-evolution learns still needs a sourcesByMove entry:
+  // the output loop iterates sourcesByMove, so without this the move would
+  // be dropped instead of emitted as preEvolutionLevelUp.
   for (const moveId of preEvoLevelUp.keys()) get(moveId);
 
-  // Smeargle: Sketch makes the entire move universe legal at any level.
   if (pokemon.id === "smeargle") {
     for (const moveId of SKETCH_UNIVERSE) get(moveId).sketch = true;
   }

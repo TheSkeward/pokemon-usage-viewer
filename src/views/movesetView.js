@@ -48,8 +48,6 @@ export function renderMovesetPanel(container, options = {}) {
   const abilities = cleanEntries(movesetEntry?.abilities || []);
   const spreads = cleanEntries(movesetEntry?.spreads || []);
   const topSpreads = spreads.slice(0, 3);
-  // For spread stat tooltips: Smogon spreads are level-100 lines, so the
-  // display name is enough to key the base stats.
   const pokemonId = toId(selectedPokemonName);
 
   const notes = [];
@@ -223,8 +221,6 @@ function renderSection(title, entries = [], alreadyExpanded = false, pokemonId =
 }
 
 function renderMoveRow(entry, index, moveMeta, moveAttrs) {
-  // Hover a move for its facts (type · category · BP · accuracy · priority);
-  // moves missing from the meta table keep the plain name as overflow guard.
   const facts = describeMoveMeta(moveMeta);
   return `
     <li class="moveset-row move-row ${isTailEntry(entry) ? "tail-entry" : ""} ${moveMeta ? "move-entry" : ""}" ${moveAttrs}>

@@ -1,8 +1,8 @@
 // Extracts level-up (incl. level-0 evolution moves), egg, and TM/tutor-compatible
 // move lists from Reborn's compiled mons.dat, keyed by our pokemon-index ids.
 // Reborn is the authoritative learnset source for the game this tool targets;
-// mainline @pkmn/dex (which we used before) diverges (e.g. Bibarel's evolution
-// move is Water Gun in Reborn, Aqua Jet in USUM).
+// mainline @pkmn/dex diverges (e.g. Bibarel's evolution move is Water Gun in
+// Reborn, Aqua Jet in USUM).
 
 import { readFileSync } from "node:fs";
 import { Dex } from "@pkmn/dex";

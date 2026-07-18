@@ -172,7 +172,6 @@ function renderCheckpointControl(progression) {
       ? `Level cap ${progression.levelCap} (saved before the badge picker; pick your badges to keep it in sync)`
       : "Pick your badges to set the level cap.";
 
-  // Hover answers "what's next": the following checkpoint and its cap.
   const selectedIndex = selected
     ? REBORN_PROGRESSION_CHECKPOINTS.findIndex((c) => c.id === selected.id)
     : -1;
@@ -305,10 +304,9 @@ function renderItemInventory(ownedItems, badges) {
   `;
 }
 
-// One-click shop sync: the community guide already times every shop's stock
-// by badge, so discovering shops shouldn't mean transcribing them — this
-// lists what's purchasable at the current badge but untracked, with a single
-// "add all as 6+" (renewable stock: buy as many as you need).
+// One-click shop sync: lists what the badge-timed shop schedule says is
+// purchasable now but untracked, with a single "add all as 6+" (renewable
+// stock: buy as many as you need).
 function renderPurchasableShopItems(ownedItems, badges) {
   const purchasable = getPurchasableShopItems(badges, ownedItems);
   if (!purchasable.length) return "";
@@ -444,12 +442,11 @@ function renderOptionGroup({
   `;
 }
 
-// The "go pick these up" rail (user report: "I usually have to scroll past a
-// lot of already-checked boxes to get to the ones I want to add"): everything
-// the badge schedule says is obtainable but unchecked, pinned at the top of
-// the group. The canonical full list below keeps its stable order — this is a
-// second view of the same checkboxes, not a reordering, and the change
-// handler syncs twins so ticking a row in either place updates both.
+// The "go pick these up" rail: everything the badge schedule says is
+// obtainable but unchecked, pinned at the top of the group. The canonical
+// full list below keeps its stable order — this is a second view of the same
+// checkboxes, not a reordering, and the change handler syncs twins so
+// ticking a row in either place updates both.
 function renderObtainableRail({
   field,
   uniqueOptions,
@@ -537,12 +534,9 @@ function renderOptionCheckbox({
   const badge = parseAvailabilityBadge(option.available || fallbackAvailable);
   // "Reachable at the current badge" is stamped as data so the change handler
   // can retoggle the highlight (and recount the summary) IN PLACE — checkbox
-  // clicks deliberately don't re-render (the re-render reset the viewport:
-  // the "screen jumps" report).
+  // clicks deliberately don't re-render (a re-render resets the viewport).
   const badgeOk = badges != null && badge != null && badge <= badges;
   const obtainable = badgeOk && !selected.has(option.id);
-  // Hover a TM/tutor option for the move's facts — the availability text is
-  // already printed inline below the name.
   const facts = describeMoveMeta(getMoveMeta(option.move));
   return `
     <label class="progression-option${obtainable ? " option-obtainable" : ""}"${badgeOk ? ' data-option-badge-ok="1"' : ""}${facts ? ` title="${escapeAttr(facts)}"` : ""}>

@@ -64,9 +64,6 @@ function resolveHiddenPower(name) {
   };
 }
 
-// Looks up a move's intrinsic properties by id from the central table. This is
-// the single source of truth for name/type/category/basePower/priority, so a
-// change to a move propagates everywhere without per-file duplication.
 export function getMoveMetaById(id) {
   return MOVE_META[id] || null;
 }

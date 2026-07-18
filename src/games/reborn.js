@@ -1,5 +1,4 @@
-// The Pokémon Reborn game descriptor — the first entry in the game registry
-// (Rejuvenation support is the second). A descriptor names everything about a
+// The Pokémon Reborn game descriptor. A descriptor names everything about a
 // game the ENGINE must not hardcode: where its extracted data lives, which
 // localStorage keys hold its per-playthrough state, and which dex generation
 // its species/move data is built from.
@@ -12,10 +11,9 @@
 export const REBORN_GAME = Object.freeze({
   id: "reborn",
   label: "Pokémon Reborn",
-  // Dex generation the generated species/move modules are built from. Reborn
-  // is Gen 7-native; Rejuvenation will be Gen 9-native. (M1 note: the engine
-  // still imports gen7 generated modules directly — this field is the
-  // declaration; the dex-provider seam lands with the second game.)
+  // Dex generation the generated species/move modules are built from. The
+  // engine still imports gen7 generated modules directly; this field is only
+  // the declaration.
   dexGen: 7,
   data: Object.freeze({
     legalMovesDir: "reborn-legal-moves",

@@ -67,7 +67,7 @@ const ITEM_QUALITY_RANK = new Map(
 // Smogon itemizes the most-used items and folds the rest into "Other"; the set
 // index then stitches a tail from other elos/formats/pre-evolutions that has no
 // usage %. We still want those as candidates, just ranked below any real %, so
-// they get a small descending weight that stays under the meaningful floor.
+// they get a small descending weight.
 const TAIL_BASE_WEIGHT = 0.09;
 const TAIL_STEP = 0.0005;
 

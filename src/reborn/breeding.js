@@ -61,11 +61,10 @@ export async function buildRebornBreedingContext({
   );
 
   // Shortest-chain relaxation: among every legal donor, prefer the SHORTEST
-  // chain first (user rule: fewest breeding hops is primary), and only then
-  // the donor that gets the move earliest (lowest acquisition level) as the
-  // tiebreak — instead of the old "first in pool order" pick. Multi-hop
-  // chains inherit the upstream donor's level, root acquisition, and path.
-  // Costs only ever improve, so this terminates.
+  // chain first, and only then the donor that gets the move earliest (lowest
+  // acquisition level) as the tiebreak. Multi-hop chains inherit the upstream
+  // donor's level, root acquisition, and path. Costs only ever improve, so
+  // this terminates.
   let changed = true;
   while (changed) {
     changed = false;
@@ -114,10 +113,9 @@ export async function buildRebornBreedingContext({
 
   // Sources are built AFTER convergence, in one pass over the FINAL costs —
   // both so multi-hop chains display their settled upstream routes, and so
-  // the tooltip can rank every viable donor and show the runner-ups (user
-  // ask: "add other ways to get the move out of my available pool, so I can
-  // compare it with the second-best way"). Deterministic: donors sort under
-  // the same total order the winner was chosen by.
+  // the tooltip can rank every viable donor and show the runner-ups.
+  // Deterministic: donors sort under the same total order the winner was
+  // chosen by.
   for (const target of entries) {
     const targetBreeding = byPokemonId.get(target.species.id);
     const movesById = new Map(
@@ -157,8 +155,7 @@ export async function buildRebornBreedingContext({
       // Runner-ups must differ in root learner FAMILY from the winner and
       // from each other: a longer chain that still funnels through the same
       // root (Victreebel → Fomantis → …) is the same acquisition wearing a
-      // detour — and now that hatchable lines contribute every family form
-      // as donors, so is the same family's next form up (Grovyle@58 vs
+      // detour, and so is the same family's next form up (Grovyle@58 vs
       // Sceptile@63). Capped at two — enough to see whether the
       // recommendation beats the field or squeaked past one rival.
       const rootFamilyOf = (route) => familyRootOf(toId(route.path[0]));
@@ -220,14 +217,12 @@ export async function buildRebornBreedingContext({
 // labelled by its source ("TM42"). Delayed-evolution level-ups
 // ("Level 38 (Slakoth)") still parse to their level.
 //
-// Scarce-resource pricing (user ruling: "a Leaf Stone is basically worth
-// any levels of grinding. Stone routes lose ties with either grinding or
-// candy-downs"): when the form that learns the move can only be obtained by
-// consuming evolution items the player doesn't renewably own — a stone, a
-// Link Stone, a trade hold-item — the route is priced out of the normal
-// level range entirely (STONE_ROUTE_OFFSET added to its level), so ANY
-// plain level-up or candy-down beats it, at any level, and it still ranks
-// above nothing-at-all. Items tracked at 6+ ("I can buy as many as I
+// Scarce-resource pricing: when the form that learns the move can only be
+// obtained by consuming evolution items the player doesn't renewably own —
+// a stone, a Link Stone, a trade hold-item — the route is priced out of the
+// normal level range entirely (STONE_ROUTE_OFFSET added to its level), so
+// ANY plain level-up or candy-down beats it, at any level, and it still
+// ranks above nothing-at-all. Items tracked at 6+ ("I can buy as many as I
 // need") waive the penalty: renewable stock isn't scarce.
 export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
   let best = null;
@@ -236,8 +231,7 @@ export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
     let candidate;
     // "Level 9 (Vigoroth, candy down)" / "Level 38 (Slakoth)": the
     // parenthetical names the form that ACTUALLY learns the move — the chain
-    // must credit it, not the fielded species (user report: "Slaking
-    // breeding chain (@9)" for a move only Vigoroth learns).
+    // must credit it, not the fielded species.
     const levelMatch = /^Level (\d+)(?:\s*\(([^,)]+)[,)])?/.exec(label);
     if (levelMatch) {
       const level = Number.parseInt(levelMatch[1], 10);
@@ -249,18 +243,16 @@ export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
         // Candy-down and delayed-evolution routes cost real extra work over a
         // plain level-up at the SAME level (Drapion@9 means candying a
         // level-40 evo back down; Skorupi@9 is just leveling) — they lose
-        // equal-level ties, never a level advantage (Vigoroth@9 candy still
-        // beats Exploud@27, per the ratified hops→level order).
+        // equal-level ties, never a level advantage.
         hassle:
           source.candyDown || source.delayedEvolution || /candy down/i.test(label)
             ? 1
             : 0,
       };
     } else if (/relearner/i.test(label)) {
-      // Relearning costs a Heart Scale + a trip — a real hassle the user
-      // rates above ANY level-up (and it was masquerading as the cheapest
-      // donor at level 0: "Slaking breeding chain (@1)"). Sorted after every
-      // natural level so it's a last resort, never a tiebreak winner.
+      // Relearning costs a Heart Scale + a trip — a real hassle rated above
+      // ANY level-up. Sorted after every natural level so it's a last
+      // resort, never a tiebreak winner.
       candidate = {
         level: 200,
         how: "Relearner",
@@ -369,10 +361,7 @@ function formatBreedingSourceTitle({
     `Breeding route: ${detail}.`,
     rootSourceTitle ? `Root source: ${rootSourceTitle}` : null,
     // The pool's next-best routes, so "is this really the cheapest way?" is
-    // answerable from the tooltip instead of on faith — the ranking prices
-    // hops, levels, and candy/relearner hassle, but NOT evolution items a
-    // donor's form consumes (a Victreebel route never charges for its Leaf
-    // Stone), so the runner-ups are the user's cross-check.
+    // answerable from the tooltip instead of on faith.
     alternatives.length
       ? `Other pool routes: ${alternatives.join("; ")}.`
       : null,
@@ -381,23 +370,16 @@ function formatBreedingSourceTitle({
     .join("\n");
 }
 
-// User rule: the shortest possible chain wins; earliest acquisition is only
-// the tiebreak, then path names for determinism. The final tiebreaks on how/
-// sourceTitle never reorder anything the user-ratified keys distinguish —
-// they only make the order TOTAL: two donors can tie on (hops, level, path)
-// while differing in provenance text (a fielded Vigoroth's "Level 9" vs a
-// fielded Slaking's "Level 9 (Vigoroth, candy down)" both cost @9 via
-// Vigoroth), and with a partial order the winner was whichever came first in
-// pool TEXT order — which leaked input ordering into breedingContext, hence
-// into stableStringify'd cache signatures (a pool reorder recomputed
-// everything cold) and flipped the Egg tooltip between orderings.
+// The shortest possible chain wins; earliest acquisition is the tiebreak,
+// then hassle. The final tiebreaks on path/how/sourceTitle exist purely to
+// make the order TOTAL — the result must not depend on pool input order,
+// which would leak into cache signatures and tooltip text.
 export function compareBreedingCosts(a, b) {
   if (a.hops !== b.hops) return a.hops - b.hops;
   if (a.level !== b.level) return a.level - b.level;
   return (
     // Equal-level routes differ in real work: a candy-down/delayed @9 loses
-    // to a plain level-up @9 (user report: Drapion@9-candy beat Skorupi@9
-    // on the path tiebreak). Never overrides a level advantage.
+    // to a plain level-up @9. Never overrides a level advantage.
     (a.hassle || 0) - (b.hassle || 0) ||
     (a.path || []).join("→").localeCompare((b.path || []).join("→")) ||
     String(a.how || "").localeCompare(String(b.how || "")) ||
@@ -450,13 +432,13 @@ function getOwnedCurrentSpecies({ pokemonIndex, progression, query }) {
     }
 
     // Hatchable lines contribute EVERY family form as a potential donor —
-    // sibling branches included (user ruling: an input Mothim can hatch a
-    // Burmy and raise a Wormadam, so Wormadam-only moves are donatable).
-    // The daycare is already a precondition of this whole context; the line
-    // must additionally be able to produce its own hatchlings. inputId stays
-    // the listed form: unspentEvolutionItems walks learner → root without
-    // ever passing it, so a hatched branch correctly owes its whole path's
-    // items (a hatched Vaporeon still costs a Water Stone).
+    // sibling branches included (an input Mothim can hatch a Burmy and raise
+    // a Wormadam, so Wormadam-only moves are donatable). The daycare is
+    // already a precondition of this whole context; the line must
+    // additionally be able to produce its own hatchlings. inputId stays the
+    // listed form: unspentEvolutionItems walks learner → root without ever
+    // passing it, so a hatched branch correctly owes its whole path's items
+    // (a hatched Vaporeon still costs a Water Stone).
     if (canHatchLine(group.input.id)) {
       for (const record of familyForms(group.input.id)) {
         if (seen.has(record.id)) continue;
@@ -498,8 +480,7 @@ function canBreed(donorId, targetId) {
   // and Ditto knows only Transform, so it can carry a parent's own moves
   // down a generation but never inject another line's. Hence, Ditto or not:
   // a line that can never be male — female-only (NidoranF's whole line) or
-  // genderless (Magnemite) — can't donate across lines (user report:
-  // NidoranF recommended as Zebstrika's Double Kick donor), and a line that
+  // genderless (Magnemite) — can't donate across lines, and a line that
   // can never be female — male-only (Tauros) or genderless — has no
   // cross-line mother, so it can't receive (its Ditto eggs inherit only
   // what the parent itself already knew). Family granularity, like the egg
@@ -511,10 +492,9 @@ function canBreed(donorId, targetId) {
 // Whether the daycare can produce fresh members of this line at all: the
 // family must have a breedable egg group AND a possible mother (the hatched
 // species is the mother's). Consumed by line resolution — with the daycare
-// unlocked, a hatchable line's EVERY form is fieldable from any input
-// (user ruling: "if I put in Beedrill but Kakuna was better, field Kakuna —
-// I can hatch more Weedles"), while genderless/male-only/Undiscovered lines
-// (Magnezone, Tauros) still can't reach downward.
+// unlocked, a hatchable line's EVERY form is fieldable from any input, while
+// genderless/male-only/Undiscovered lines (Magnezone, Tauros) still can't
+// reach downward.
 export function canHatchLine(pokemonId) {
   return (
     getBreedableEggGroups(pokemonId).length > 0 &&
@@ -536,9 +516,8 @@ function familyHasGender(pokemonId, sex) {
 // fielded form: you daycare Mantine and hatch a Mantyke, so a fielded
 // Mantyke's egg moves come through Mantine's Water 1 — but Mantyke's OWN
 // groups are ["Undiscovered"], as are every baby form's and Nidorina/
-// Nidoqueen's (audit: no fielded baby or Nido could ever receive an egg
-// move). Union the breedable groups across the whole line, walking down to
-// the root and up through every branch.
+// Nidoqueen's. Union the breedable groups across the whole line, walking
+// down to the root and up through every branch.
 function getBreedableEggGroups(pokemonId) {
   const groups = new Set();
   for (const record of familyForms(pokemonId)) {

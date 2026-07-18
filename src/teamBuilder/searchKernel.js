@@ -113,8 +113,8 @@ function fastTeamFit(team) {
   // Phase 3 blend: pair trust t = min(trust_a, trust_b) where competitive
   // co-use data exists. Synergy (lift) fades IN per pair; the hand-built
   // coverage/defensive judgements fade OUT with the mean pair trust W̄ —
-  // EXCEPT the bias-boosted share of coverage, which never fades (user
-  // ruling: bias is the Reborn-specific insurance no ladder prior covers).
+  // EXCEPT the bias-boosted share of coverage, which never fades (bias is
+  // the Reborn-specific insurance no ladder prior covers).
   // All trusts 0 (V0 model, incomplete sets, no data) ⇒ exactly the
   // original formula.
   let synergy = 0;
@@ -194,10 +194,8 @@ export function getUsagePercent(choice) {
   return Math.max(0, choice.bundle?.usage?.value || 0);
 }
 
-// Team selection sums each member's bounded-tier `teamScore` (not the strict
-// per-mon `score`), so type coverage can pull a lower-tier mon onto the team
-// when it answers a real need. Falls back to `score` for any choice built
-// without a teamScore.
+// Sums each member's `teamScore`, falling back to `score` for any choice
+// built without one (scoreCandidate currently emits them equal).
 function sumTeamScore(team) {
   return team.reduce((sum, row) => sum + (row.teamScore ?? row.score ?? 0), 0);
 }
@@ -510,11 +508,9 @@ function unrankCombination(rank, n, k) {
 // its own fit state, so it can run in a worker or on the main thread as a fallback.
 // `lines` must carry a prepared `choiceOptions` array per line (the form options).
 // Progress reporting cadence: ~20 reports per range, clamped so tiny ranges
-// don't spam and huge ones still stride at most every 64k combos. A fixed
-// 64k stride proved WORSE than none for typical shortlist scans — a worker's
-// whole range was often under two strides, so the caption sat silent for
-// 10+ seconds and then jumped (user report: "the rightmost approximately 80%
-// just shows searching team combinations").
+// don't spam and huge ones still stride at most every 64k combos. The cadence
+// must stay range-relative: a fixed stride leaves a short worker range with
+// under two reports, so its progress sits silent and then jumps.
 export const SEARCH_PROGRESS_MAX_STRIDE = 65_536;
 const SEARCH_PROGRESS_MIN_STRIDE = 2_048;
 const SEARCH_PROGRESS_REPORTS_PER_RANGE = 20;

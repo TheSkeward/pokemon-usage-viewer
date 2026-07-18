@@ -213,9 +213,6 @@ function renderAnalysis(analysis) {
   `;
 }
 
-// Possible Fixes only. "Why This Team?" and "Team Holes" are gone: the first
-// re-derived facts the set cards already state (and could disagree with
-// them), the second restated the Defensive Profile / Team Coverage tables.
 function renderExplanation(explanation) {
   if (!explanation?.fixSuggestions?.length) return "";
 
@@ -261,8 +258,6 @@ function renderSetCard(profile) {
       : null,
     eventual ? `→ ${eventual} later` : null,
   ].filter(Boolean);
-  // Nature and EV chips carry the numbers behind them: hover the nature for
-  // its +/− stats, hover the EV line for the final stat spread it produces.
   const natureTip = set.nature ? describeNature(set.nature) : "";
   const metaParts = [
     escapeHtml(set.item || "No item recommended"),

@@ -1,15 +1,15 @@
-// Builds the teammate-synergy index (usage-convergence Phase 3): for each mon,
-// the co-use LIFT of its teammates in its FIRST-MEANINGFUL tier (same tier
-// law as set sourcing), from Smogon's text moveset stats ("Teammates" blocks
-// carry P(B|A) − P(B) precomputed). Downloads a few highest-volume months per
-// format, weight-averages, symmetrizes, and emits per-mon JSONs:
+// Builds the teammate-synergy index: for each mon, the co-use LIFT of its
+// teammates in its FIRST-MEANINGFUL tier (same tier law as set sourcing),
+// from Smogon's text moveset stats ("Teammates" blocks carry P(B|A) − P(B)
+// precomputed). Downloads a few highest-volume months per format,
+// weight-averages, symmetrizes, and emits per-mon JSONs:
 //   site-data/data/teammate-index/<family>/all/<monId>.json
 //     { pokemonId, tier: {formatId, cutoff}, teammates: { otherId: liftPct } }
 //
 // Runs in the data-refresh CI (network to smogon.com); rerun via
 //   npm run build:teammate-index
 // Missing index files at runtime mean "no opinion" — the synergy term stays
-// silent (trust 0), so this script landing later is always safe.
+// silent (trust 0).
 
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from "node:fs";
 import path from "node:path";
@@ -32,15 +32,14 @@ async function fetchText(url) {
 function parseTeammates(text) {
   const byMon = new Map();
   const blocks = text.split(/\n \+-+\+ \n(?= \| \S)/);
-  // Simpler robust scan: walk lines, track current mon + in-teammates state.
+  // Walk lines, tracking the current mon and whether we are in its Teammates
+  // section.
   let current = null;
   let inTeammates = false;
   let expectName = 0;
   for (const rawLine of text.split("\n")) {
     const line = rawLine.trim();
     if (line.startsWith("+--")) {
-      // Section separators: after a full block ends, the next name line comes
-      // two separators after "checks and counters"; track via expectName.
       if (expectName > 0) expectName -= 1;
       inTeammates = false;
       continue;

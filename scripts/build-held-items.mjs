@@ -49,7 +49,7 @@ function main() {
       const existing = byId.get(id);
       if (existing) {
         existing.appearances += 1;
-        // Prefer a spaced display name over a squished one (e.g. "Bright Power").
+        // Prefer a spaced display name over a squished one.
         if (name.includes(" ") && !existing.name.includes(" ")) {
           existing.name = name;
         }

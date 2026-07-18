@@ -135,9 +135,8 @@ test("the specialist route cannot exceed the common attacker ceiling", () => {
   );
 
   assert.equal(value.bestRole, "specialist_bulky_attacker");
-  // The unclamped route overshoots 1; the soft knee keeps it inside the
-  // common ceiling (strictly below 2000) without flattening it onto other
-  // overshooting roles the way the old hard clamp did.
+  // The unclamped route overshoots 1; the soft knee keeps it strictly
+  // below the common 2000 ceiling.
   assert.ok(value.value > 1800);
   assert.ok(value.value < 2000);
 });

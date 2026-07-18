@@ -12,9 +12,7 @@ test("soft ceiling is identity below the knee", () => {
 });
 
 test("soft ceiling keeps overshooting roles ordered and strictly below 1", () => {
-  // The hard clamp mapped every overshoot to exactly 1 — five calibration
-  // gods tied at C = 2000 and the sweep saw a flat gradient. The knee must
-  // preserve strict ordering with no ties anywhere above it.
+  // The knee must preserve strict ordering with no ties anywhere above it.
   const inputs = [0.91, 0.95, 1.0, 1.01, 1.05, 1.1, 1.5];
   const outputs = inputs.map(softCeiling);
   for (let i = 0; i < outputs.length; i++) {

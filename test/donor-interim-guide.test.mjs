@@ -104,8 +104,7 @@ test("analysis attaches donor guides with the donor's own interim moves", async 
 
   // A temporary donor never gets egg moves bred onto it (user ruling): no
   // interim move may be egg-sourced unless it's a move the donor is itself
-  // passing on (a chain link reaches it by hatching). With Beartic in the
-  // pool, the pre-fix guide recommended Icicle Crash [Egg] on Sneasel.
+  // passing on (a chain link reaches it by hatching).
   assert.ok(
     !sneasel.moves.some((move) => move.name === "Icicle Crash"),
     "no breeding projects onto a temporary donor",

@@ -9,8 +9,8 @@
 //     owned items) remain the ONLY source of truth for what is available NOW.
 //   - This timeline is the SCHEDULE: it derives the level cap from the badge
 //     picker, annotates controls with when their unlock is normally reached,
-//     and (in later phases) prices how far a mon's competitive set is from
-//     fully assembled.
+//     and prices how far a mon's competitive set is from fully assembled
+//     (setReadiness.js).
 //
 // `unlocks` on a checkpoint lists what FIRST becomes obtainable there:
 //   - access: evolution-access keys (EVOLUTION_ACCESS_FIELDS) — areas reached
@@ -38,7 +38,7 @@ export const REBORN_PROGRESSION_CHECKPOINTS = [
   },
   {
     id: "badge-2", badges: 2, label: "Canopy Badge (Florinia)", levelCap: 35,
-    // (Stone access is per-stone now, timed by the item timeline.)
+    // Stone access is per-stone, timed by the item timeline.
     unlocks: { items: ["focussash"] },
   },
   {

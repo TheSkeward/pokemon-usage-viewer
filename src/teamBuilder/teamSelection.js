@@ -198,32 +198,25 @@ function getDefensiveCoverTypes(profile, team) {
 // over all teams of the target size — which means it must NOT depend on what
 // else is sitting unused in the pool. Teams are enumerated exactly whenever
 // affordable; pools beyond the budget reduce to a coverage-preserving
-// shortlist that is itself enumerated exactly (see below — there is no lossy
-// beam anymore).
+// shortlist that is itself enumerated exactly (see buildShortlist).
 //
-// Budgets are in number of team combinations C(N, size). Big searches run
-// across Web Workers, so they're off the main thread and core-count faster;
-// most edits never hit them anyway — the incremental path is exact
-// regardless of budget; the budget only gates a from-scratch search.
-// Interactive latency rules the enumeration budgets, not search purity (user
-// report: a 36-mon pool is C(36,6) = 1.95M combinations, which sat just
-// UNDER the old 2M/3M caps — so every optimize, including every background
-// auto-reoptimize after a progression tick, fully enumerated ~2M teams:
-// 30–45s of "searching team combinations" per edit, "unacceptably long").
-// Above these caps the shortlist+polish path takes over — exact on the
-// shortlist, repaired by the full-pool 1-swap audit, and honest about
-// itself in the provenance footer. Background runs stay exact through
-// ~25 mons, explicit optimizes through ~32. Values live in scoringConstants
-// as tunables so the regret validation can raise the cap for a TRUE exact
-// baseline; countCombinations' overflow early-out keeps a fixed sibling cap.
+// Budgets are in number of team combinations C(N, size), and interactive
+// latency rules them, not search purity. Big searches run across Web Workers,
+// so they're off the main thread and core-count faster; most edits never hit
+// them anyway — the incremental path is exact regardless of budget; the
+// budget only gates a from-scratch search. Above these caps the
+// shortlist+polish path takes over — exact on the shortlist, repaired by the
+// full-pool 1-swap audit, and honest about itself in the provenance footer.
+// Background runs stay exact through ~25 mons, explicit optimizes through
+// ~32. Values live in scoringConstants as tunables so the regret validation
+// can raise the cap for a TRUE exact baseline; countCombinations' overflow
+// early-out keeps a fixed sibling cap.
 const COMBINATION_OVERFLOW_CAP = 3_000_000;
 
 // Cooperative main-thread yield, time-sliced (same rationale as the
 // optimizer's resolver yield): the polish/realization tail of the search
 // phase runs as long synchronous blocks; yielding ~20 times a second lets
-// the progress caption actually PAINT (user report: the caption never got
-// past "Searching team combinations" because the visible time was this
-// tail, not the worker scan).
+// the progress caption actually paint.
 let lastSelectionYieldAt = 0;
 function yieldForPaint() {
   const now = Date.now();
@@ -233,25 +226,10 @@ function yieldForPaint() {
 }
 // Hint-grade searches — the investment plan's future-cap "fast" runs. The
 // plan reads LINE scores (exact under any search path) plus a rough future
-// six for the "projected to SEAT" flag, so full enumeration was pure waste:
-// fast mode only dodged enumeration ABOVE the auto budget, which a 34-mon
-// pool (1.3M combos, well under 2M) never reached — measured as ~10 cold
-// minutes of every-core kernel work per investment plan (user ruling: "ten
-// minutes of blocking loading is totally untenable no matter where it is in
-// the user experience"). A 12-mon shortlist enumerates in 924 combinations.
+// six for the "projected to SEAT" flag, so full enumeration is pure waste;
+// a 12-mon shortlist enumerates in 924 combinations.
 const HINT_SEARCH_BUDGET = 20_000;
 const HINT_SHORTLIST_MAX = 12;
-// For pools too big to enumerate fully (C(N,6) over the cap — roughly N > 38), we
-// reduce to a shortlist and enumerate THAT exactly, instead of a lossy beam. The
-// shortlist keeps the top mons by individual score plus the best provider of
-// every coverage-relevant capability (attack types, resists, immunities, speed,
-// priority, utility, low-friction evolved forms — see buildShortlist), so no mon
-// that could earn a slot on quality OR coverage is pruned before the optimiser
-// sees it. C(28,6) ≈ 376k (above the parallel threshold, so it runs across the
-// Web Worker pool like any other big search). Sizes live in scoringConstants
-// (SHORTLIST_MAX / SHORTLIST_CORE) so the confidence sweep can perturb them;
-// FORCE_SHORTLIST is the regret-validation hook.
-
 // --- Full-enumeration team store -------------------------------------------
 // When a SEQUENTIAL exact search enumerates every C(N, size) team, we keep them
 // all — each team's line positions + score — keyed by the score context. The
@@ -456,8 +434,8 @@ async function selectTeamByFit(
       searchExact = true;
     } else {
       // Too big to enumerate fully: reduce to a coverage-preserving shortlist and
-      // enumerate THAT exactly (far better than the old lossy beam). Route through
-      // the Web Worker pool when it's worth it, so a big pool still uses all cores.
+      // enumerate THAT exactly. Route through the Web Worker pool when it's
+      // worth it, so a big pool still uses all cores.
       usedShortlist = true;
       const shortlist = buildShortlist(lines, hint ? HINT_SHORTLIST_MAX : null);
       const shortSize = Math.min(6, shortlist.length);
@@ -661,10 +639,10 @@ function scanTeamSwaps(lines, team, opponentTypeBias) {
   return { scores, best };
 }
 
-// Swap-polish (user design ask: "mons that get non-shortlisted SHOULD seat"):
-// repeatedly apply the best strictly-improving single swap from scanTeamSwaps
-// until none exists. The final team is a 1-swap local optimum over the ENTIRE
-// pool — any individually-better mon the shortlist missed gets seated — and
+// Swap-polish: repeatedly apply the best strictly-improving single swap from
+// scanTeamSwaps until none exists. The final team is a 1-swap local optimum
+// over the ENTIRE pool — any individually-better mon the shortlist missed
+// gets seated — and
 // each accepted swap is recorded with attribution (why the shortlist missed
 // the incomer) as the shortlist-quality diagnostic. Sound but one-sided:
 // repairs prove a shortlist miss; zero repairs certify local optimality, not
@@ -828,7 +806,7 @@ function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, 
     // onto the CURRENT prepared choices so it competes on the same scale —
     // offered as-is it entered the top-N tournament systematically deflated
     // and could be evicted by challengers that realize WORSE, ratcheting the
-    // optimum downward across pool edits (audit finding). The context
+    // optimum downward across pool edits. The context
     // signature is unchanged whenever incremental applies, so the mapping
     // only fails defensively; the realized seed is still offered then.
     const remapped = remapToPreparedChoices(
@@ -990,8 +968,3 @@ function buildShortlist(lines, maxSizeOverride = null) {
   }
   return [...picked.values()];
 }
-
-// (The old beam-search fallback lived here. It became unreachable when the
-// oversized-pool path moved to shortlist-then-exact enumeration — every
-// branch of selectTeamByFit ends in exhaustive, store, or shortlist. Removed
-// as dead code; git history has it if a lossy anytime search is ever wanted.)

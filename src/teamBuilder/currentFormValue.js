@@ -7,7 +7,7 @@
 // judgement:
 //
 //   damage_q   how hard it hits now, vs a stage-typical strong hit
-//   speed_q    base Speed percentile across the whole species dex
+//   speed_q    base Speed percentile (full dex blended with reachable-at-cap)
 //   physical_bulk_q / special_bulk_q  side-specific HP x defense percentiles
 //   bulk_q     geometric mean of the two bulk sides
 //   type_resilience_q  defensive type balance, with neutral centered at 0.5
@@ -32,9 +32,10 @@
 // C = max(role). A fast frail attacker, a bulky pivot, and a hard hitter each get
 // a legitimate route to a high C.
 //
-// Percentiles are taken against the FULL dex, never within the (possibly weak)
-// input pool — otherwise the best trash becomes king of the dump. damage_q is the
-// stage-relative axis: it scales with the level cap via the damage estimate.
+// Percentiles are taken against the dex (global blended with reachable-at-cap —
+// see capRefs), never within the (possibly weak) input pool — otherwise the best
+// trash becomes king of the dump. damage_q is the stage-relative axis: it scales
+// with the level cap via the damage estimate.
 
 import {
   GEN7_BASE_STATS,
@@ -109,9 +110,9 @@ const SPEC_BULK_REF = buildSorted(specBulkOf);
 // workhorse is ranked against what it actually competes with, not the full dex
 // of late-game evolutions and legendaries. A form is reachable if its whole
 // evolution chain is satisfiable — level steps at or below the cap; friendship/
-// item steps assumed grindable. Percentiles blend global and R_cap 50/50 so the
-// reference shifts with progression without lurching. Reference arrays cached
-// per cap (built at most once each).
+// item steps assumed grindable. Percentiles blend global and R_cap by
+// REACHABLE_BLEND so the reference shifts with progression without lurching.
+// Reference arrays cached per cap (built at most once each).
 function reachableByCap(id, cap) {
   const s = GEN7_PROGRESSION_SPECIES[id];
   if (!s || !s.prevoId) return true; // base form / unknown: always available
@@ -166,10 +167,10 @@ function percentile(value, sorted) {
   return lo / sorted.length;
 }
 
-// A stage-typical strong hit: what a neutral base-100 attacker does with a 90-BP
-// STAB move at this level cap, using the same core math as the damage estimator
-// (base-70 reference defender). damage_q divides the mon's best hit by this, so
-// "hits hard" is judged against the current stage rather than an absolute bar.
+// A stage-typical strong hit at this level cap, using the same core math as the
+// damage estimator (base-70 reference defender). damage_q divides the mon's best
+// hit by this, so "hits hard" is judged against the current stage rather than an
+// absolute bar.
 export function stageReferenceDamage(levelCap) {
   const lvl = Math.max(1, Math.min(100, levelCap || 50));
   const statAt = (base) => Math.floor((2 * base * lvl) / 100) + 5;
@@ -194,11 +195,10 @@ function geomean(values) {
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 
 // Saturating ceiling for the additive role routes: identity below the knee,
-// asymptotic to (never reaching) 1 above it. A hard clamp01 here erased real
-// differences exactly where the strongest roles live — overshoots of 1.01 and
-// 1.09 both read as a flat 1.0, tying the top mons and blinding the confidence
-// sweep (a clamped role is locally flat under every knob). Sub-knee values are
-// bit-identical to the old clamp, so only the elite band decompresses.
+// asymptotic to (never reaching) 1 above it. Sub-knee values are bit-identical
+// to a hard clamp01, so only the elite band decompresses — overshoots stay
+// ordered instead of tying at 1.0, which would flatten top-mon ordering and the
+// local gradient the confidence sweep needs.
 export function softCeiling(x) {
   if (x <= 0) return 0;
   const knee = tunable("ROLE_CEILING_KNEE");
@@ -430,12 +430,6 @@ export function priorityUtilityValue(recommendedMoves, assumedAbility = null) {
 export function currentFormFeatures(profile, levelCap) {
   const currentId = profile?.currentId;
 
-  // Offensive quality is mostly the PEAK hit (an attacker's one job) plus a small,
-  // capped portfolio term — its 2nd/3rd best attacks — so a one-strong-move mon
-  // that's hard-walled scores a touch below a mon with real secondary threats.
-  // This is a narrow anti-wall measure, NOT per-type breadth spam: it's the mon's
-  // actual recommended set, and it's where Protean earns individual credit (its
-  // coverage moves are STAB-boosted, so its portfolio rises).
   const ref = stageReferenceDamage(levelCap);
   // Soft saturation (never a hard 1.0): a hit at the reference reads ~0.7.
   const softRate = tunable("DAMAGE_SOFT_RATE");
@@ -450,18 +444,17 @@ export function currentFormFeatures(profile, levelCap) {
   );
   const peak_damage_q = soft(peakDamage);
 
-  // Attacker-role offense is PER-BUILD and ADDITIVE (user: a build with four
-  // good attacks beats a build with one). The build's OWN best attack is the
-  // ceiling; its SECONDARY attacks fill a bounded breadth factor via noisy-OR,
-  // so each extra attack adds less and breadth can never push past the peak
-  // threat. A thin build pays a penalty down to (1 − PORTFOLIO_WEIGHT) of its
-  // peak; a full coverage build sits at its peak. SCALE-PRESERVING: the top of
-  // the distribution is unchanged from the old peak-dominated form (a full set
-  // ≈ peak), so only thin builds move — which is exactly what differentiates a
-  // coverage build from a support build of the same mon (the support build's
-  // attacker role drops, letting its utility role win the role max). Was:
-  // (1−w)·globalPeak + w·(mean top-3 damage), which shared one global peak
-  // across every build and barely differentiated them.
+  // Attacker-role offense is PER-BUILD and ADDITIVE. The build's OWN best
+  // attack is the ceiling; its SECONDARY attacks fill a bounded breadth factor
+  // via noisy-OR, so each extra attack adds less and breadth can never push
+  // past the peak threat. A thin build pays a penalty down to
+  // (1 − PORTFOLIO_WEIGHT) of its peak; a full coverage build sits at its peak
+  // — so only thin builds move, which is what differentiates a coverage build
+  // from a support build of the same mon (the support build's attacker role
+  // drops, letting its utility role win the role max). A narrow anti-wall
+  // measure over the actual recommended set, not per-type breadth spam; it's
+  // also where Protean earns individual credit (its coverage moves are
+  // STAB-boosted, so its portfolio rises).
   const attackQ = (profile?.recommendedMoves || [])
     .filter((m) => m.category !== "Status" && (m.estimatedDamage || 0) > 0)
     .map((m) => soft(m.estimatedDamage))
@@ -481,8 +474,6 @@ export function currentFormFeatures(profile, levelCap) {
     ? stagePercentile(speedOf(currentId) * 1.5, SPEED_REF, cr.speed)
     : 0;
   const tempo_reliability_q = hasReliableTempoRamp(profile) ? 1 : 0;
-  // General bulk is the geometric mean of the two sides — a wall that's fake on
-  // one axis (Happiny: real SpD, paper Def) scores as the frail thing it is.
   const physical_bulk_q = stagePercentile(
     physBulkOf(currentId),
     PHYS_BULK_REF,

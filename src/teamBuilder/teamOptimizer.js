@@ -160,6 +160,9 @@ const MAX_RESULT_CACHE = 400;
 // deals zero into a non-sleeping target); mega readiness gate fixed
 // (fieldableRepresentativeId). Damage-coverage builds that leaned on a
 // phantom Dream Eater lose it, shifting sets and scores where it appeared.
+// v30: attacker offense became per-build and additive — damage_q =
+// buildPeak·(1 − w·(1 − breadth)) over the build's OWN recommended attacks,
+// replacing the profile-global peak shared across all builds.
 // v31: support moves that genuinely act at priority (intrinsic priority or
 // Prankster) gain a distinct priority-utility role, and build dominance sees
 // the same mechanical priority tag. Ability-sensitive support now affects the
@@ -229,9 +232,8 @@ export async function optimizeTeamFromPool({
   // is quarantined from the interactive search state: its cache keys carry a
   // "search:fast" tag so a fast verdict can never answer (or poison) a real
   // optimize, and it neither reads nor seeds the incremental search cache.
-  // Fast results DO memoize and persist (under their tagged keys) — losing
-  // cross-session warmth measured as investment 18.8s → 426s per warm run,
-  // the regression that white-screened the tab.
+  // Fast results DO memoize and persist (under their tagged keys): the
+  // investment plan depends on their cross-session warmth.
   searchMode = "full",
 }) {
   const fastMode = searchMode === "fast";
@@ -241,8 +243,6 @@ export async function optimizeTeamFromPool({
   let completed = 0;
   onProgress?.({ phase: "resolve", completed, total });
 
-  // Restore any persisted results before checking the memo, so a pool computed in
-  // a previous session (e.g. before a reload) is answered without recomputing.
   await ensureHydrated();
 
   const breedingContext = await buildRebornBreedingContext({
@@ -277,11 +277,9 @@ export async function optimizeTeamFromPool({
   const dataSignature = await getDataSignature();
   // The fast tag is appended (not a new fixed field) so every existing
   // full-mode key — including results persisted before fast mode existed —
-  // keeps hitting. "fast2": fast runs now resolve DEFAULT-ONLY builds (the
-  // hint-grade trim), so their output changed — bumping only the tag retires
-  // stale fast entries while every exact result stays warm (a full
-  // RESULT_CACHE_VERSION bump here would have forced yet another cold main
-  // search on every user for an investment-only change).
+  // keeps hitting. "fast2": fast runs resolve DEFAULT-ONLY builds, so a
+  // tag-only bump retires stale fast entries while every exact result stays
+  // warm.
   // The game id leads the signature: every cache layer keyed by contextSig
   // (line cache, result cache, persisted results) is per-game, so switching
   // games can never serve one game's verdicts to another.
@@ -368,16 +366,14 @@ export async function optimizeTeamFromPool({
       : null;
 
   const searchStart = Date.now();
-  // Phase 3: attach competitive teammate lift (first-meaningful-tier co-use)
-  // to every candidate before the search — the kernel blends the hand-built
-  // team fit toward it as pair trust (min of the two lines' w) grows.
-  // Missing index data degrades to trust 0 silently. It fetches per-line
-  // index files, so on a cold load it is a visible slice of the "search"
-  // phase — captioned as its own stage.
+  // Attach competitive teammate lift (first-meaningful-tier co-use) to every
+  // candidate before the search — the kernel blends the hand-built team fit
+  // toward it as pair trust (min of the two lines' w) grows. Missing index
+  // data degrades to trust 0 silently. It fetches per-line index files, so on
+  // a cold load it is a visible slice of the "search" phase — captioned as
+  // its own stage.
   onProgress?.({ phase: "search", stage: "synergy" });
   await attachTeammateLift(lines, family);
-  // Phase entry (scan) — combination counts stream from the search workers
-  // via onSearchProgress below.
   onProgress?.({ phase: "search" });
   const result = await choosePoolTeam(lines, progression.opponentTypeBias, {
     exhaustive: exhaustive && !fastMode,
@@ -391,27 +387,22 @@ export async function optimizeTeamFromPool({
     // Hint-grade search: tiny budget, capped shortlist, no polish. Line
     // scores — the part the investment plan actually consumes — stay exact.
     hint: fastMode,
-    // Live combination counts from the search workers, for the progress
-    // caption ("Searching team combinations — 43%").
     onSearchProgress: (scanned, totalCombos) =>
       onProgress?.({ phase: "search", completed: scanned, total: totalCombos }),
     // Post-scan tail stages (swap-polish audit rounds, build realization,
-    // bench ranking) — on a fast machine the worker scan is sub-second and
-    // the VISIBLE search time is this tail, so it gets its own captions
-    // (user report: the caption never left "Searching team combinations").
+    // bench ranking) get their own captions — on a fast machine the worker
+    // scan is sub-second and the VISIBLE search time is this tail.
     onSearchStage: (stage, detail) =>
       onProgress?.({ phase: "search", stage, detail }),
   });
-  // Wall-clock telemetry (roadmap: performance visibility): how long line
-  // resolution vs the search actually took, surfaced in the provenance footer.
   result.timings = {
     resolveMs: searchStart - resolveStart,
     searchMs: Date.now() - searchStart,
   };
-  // Telemetry facts for the caller (poolWidget records the full pipeline
-  // sample; the optimizer only describes its own slice). Warm = anything short
-  // of from-scratch: line-cache hits and/or an incremental (grown) search.
-  // Cold = every line resolved fresh AND a full search.
+  // Telemetry facts for the caller (poolWidget records the sample; this only
+  // describes the run). Warm = anything short of from-scratch: line-cache
+  // hits and/or an incremental (grown) search. Cold = every line resolved
+  // fresh AND a full search.
   result.telemetryMeta = {
     cache: hitLineKeys.size > 0 || incremental ? "warm" : "cold",
     poolSize: lines.length,
@@ -432,8 +423,7 @@ export async function optimizeTeamFromPool({
     // Fast runs never seed the incremental cache (their shortlist-grade
     // optimum would null the exact Layer-2 state the next pool edit needs);
     // everything else — memory memo AND persistence — they share, because a
-    // cold investment plan is two full future-cap runs and losing their
-    // cross-session warmth measured as 7 minutes per reload.
+    // cold investment plan is two full future-cap runs.
     if (!fastMode) seedSearchCache(result, lines, searchKey);
     // The key rides on the result so persistPostAnalysis can write the
     // analysis back through to the same record later.
@@ -449,10 +439,9 @@ export async function optimizeTeamFromPool({
 // Attaches the post-analysis (confidence sweep + investment plan) to its
 // result and writes the result back through to IndexedDB, so a later hit —
 // memo or reload — restores the analysis panels instead of re-paying the
-// sweep and two future-cap optimizes (measured: 26s of main-thread churn per
-// RESULT-CACHE-HIT run without this, ~6 minutes cold on a 160-mon pool).
-// Degraded results never persist (same rule as the result itself), and a
-// result that predates this build simply lacks the field and recomputes.
+// sweep and two future-cap optimizes. Degraded results never persist (same
+// rule as the result itself), and a result that predates this build simply
+// lacks the field and recomputes.
 export function persistPostAnalysis(result, postAnalysis) {
   if (!result || result.degraded || !postAnalysis) return;
   result.postAnalysis = postAnalysis;
@@ -494,10 +483,10 @@ function seedSearchCache(result, lines, searchKey) {
   };
 }
 
-// Total candidate builds that survived dominance pruning across the pool — the
-// realization pass's working-set size, and the telemetry axis the review asked
-// for alongside pool size. Line-level choices carry the kept builds as
-// `buildAlternatives` (makeChoice renames the scored row's `buildChoices`).
+// Total candidate builds that survived dominance pruning across the pool —
+// the realization pass's working-set size. Line-level choices carry the kept
+// builds as `buildAlternatives` (makeChoice renames the scored row's
+// `buildChoices`).
 function countKeptBuilds(lines) {
   let total = 0;
   for (const line of lines || []) {
@@ -595,15 +584,13 @@ async function resolvePoolLine({
   // Which family forms can this input actually BECOME? Descendants and their
   // megas always (evolving up is a real future). Everything else — strict
   // pre-evolutions AND sibling branches — needs the daycare on a hatchable
-  // line (user ruling: "if I put in Beedrill but Kakuna was better, field
-  // Kakuna — I can hatch more Weedles"; likewise Mothim reaches the
-  // Wormadams only by hatching a Burmy). Without the daycare, an owned
-  // Mantine can never be a Mantyke again, so Mantyke's LC usage must not
-  // name, set-source, or ceiling-boost the line — and an owned Mothim has
-  // no path to a female Burmy, so the Wormadams are off the table too (the
-  // old filter wrongly allowed those). Form-variant inputs fall back to
-  // their base species for the descendant walk (a Burmy-Sandy's cloak is
-  // mutable in-game, so every Burmy evolution is its descendant).
+  // line (hatching more of the base form is the only route back down or
+  // across). Without the daycare, an owned Mantine can never be a Mantyke
+  // again, so Mantyke's LC usage must not name, set-source, or ceiling-boost
+  // the line — and an owned Mothim has no path to a female Burmy, so the
+  // Wormadams are off the table. Form-variant inputs fall back to their base
+  // species for the descendant walk (a Burmy-Sandy's cloak is mutable
+  // in-game, so every Burmy evolution is its descendant).
   const inputBaseId =
     GEN7_PROGRESSION_SPECIES[input.id]?.baseSpeciesId || input.id;
   const daycareReach =
@@ -660,12 +647,12 @@ async function resolvePoolLine({
     }),
   );
 
-  // User law (Doduo/Dodrio report): usage trust (w) is a property
-  // of the LINE, anchored to its representative — the form with the best
-  // first-meaningful tier (higher usage % breaks ties; FEAR-class pre-evos
-  // win this legitimately). Every form then blends under that SAME w against
-  // its OWN prior, so a lesser line-mate can't dodge the endgame drag by
-  // having a trivially-complete set while the real form converges.
+  // Usage trust (w) is a property of the LINE, anchored to its
+  // representative — the form with the best first-meaningful tier (higher
+  // usage % breaks ties; FEAR-class pre-evos win this legitimately). Every
+  // form then blends under that SAME w against its OWN prior, so a lesser
+  // line-mate can't dodge the endgame drag by having a trivially-complete
+  // set while the real form converges.
   const familyConfig = availability?.familyConfigs?.[family] || {};
   const formatOrder = familyConfig.formatOrder || [];
   const cutoffPriority = familyConfig.cutoffPriority || [];
@@ -1046,10 +1033,9 @@ function makeChoice(input, result, note) {
 }
 
 // Warnings only. The pick's actual moves live on its set card — repeating a
-// separately-derived "best legal STAB" here let the two disagree on the same
-// page (user report: notes said Focus Punch while the set showed Close
-// Combat). What stays is what the set card CANNOT show: that no legal STAB
-// exists at all, and that the score leans on a damage-defining ability.
+// separately-derived "best legal STAB" here would let the two disagree on
+// the same page. What stays is what the set card CANNOT show: that no legal
+// STAB exists at all, and that the score leans on a damage-defining ability.
 function formatLegalityNote(profile) {
   if (!profile) return "";
 
@@ -1062,9 +1048,9 @@ function formatLegalityNote(profile) {
   return notes.join("; ");
 }
 
-// Generates the candidate's BUILD VARIANTS (roadmap Phase 3): a build is a
-// concrete (form, ability, move set, friction) with its own legality profile
-// and coverage vector. 2–4 plausible builds per viable form:
+// Generates the candidate's BUILD VARIANTS: a build is a concrete (form,
+// ability, move set, friction) with its own legality profile and coverage
+// vector. 2–4 plausible builds per viable form:
 //   default   — the usage-anchored competitive set (natural evolution path)
 //   coverage  — maximizes distinct real attacking coverage
 //   utility   — leads with role moves (recovery/hazards/speed control)
@@ -1074,13 +1060,12 @@ function formatLegalityNote(profile) {
 // used only to measure ability sensitivity (the optimizer must never "choose"
 // an ability the player doesn't control; a user annotation pins it instead).
 //
-// Score what you show (user report: "The sets it's recommending to me in the
-// display come apart from the sets that give it its score? that seems bad"):
-// the default/delayed builds (and the probe, which measures the default set)
-// anchor on the SAME inputs the analysis pane displays — canonical move
-// usage and the stitched competitive move rank. Coverage/utility variants
-// stay damage-/role-led by design: they exist as alternatives to the
-// canonical set. TWO deliberate differences remain: scoring stays item-blind
+// Score what you show: the default/delayed builds (and the probe, which
+// measures the default set) anchor on the SAME inputs the analysis pane
+// displays — canonical move usage and the stitched competitive move rank.
+// Coverage/utility variants stay damage-/role-led by design: they exist as
+// alternatives to the canonical set. TWO deliberate differences remain:
+// scoring stays item-blind
 // (items are inventory-dependent and priced by the owned-item system;
 // folding the top competitive item into scored damage would double-count),
 // and scoring uses ideal offensive investment rather than the displayed
@@ -1097,15 +1082,12 @@ async function resolveCandidateBuilds({
   // Fast (hint-grade) runs — the investment plan's future-cap projections —
   // resolve ONLY the default build: no coverage/utility alternatives, no
   // delayed variant, no ability probe. The plan reads line scores and the
-  // future team, and its stated bar is "shortlist-grade hint" — full variant
-  // resolution was most of the plan's multi-minute cold cost (user ruling:
-  // "ten minutes of blocking loading is totally untenable no matter where").
+  // future team; its stated bar is "shortlist-grade hint".
   fastMode = false,
 }) {
-  // Profile building is the optimizer's dominant synchronous CPU block; on
-  // the browser main thread a long resolve pass froze scrolling outright.
-  // Time-sliced yield: at most ~20 event-loop breaths per second, so the
-  // page stays interactive while costing the engine nothing measurable.
+  // Profile building is the optimizer's dominant synchronous CPU block; the
+  // time-sliced yield keeps the browser main thread interactive through a
+  // long resolve pass.
   await yieldToEventLoop();
   const choice = {
     inputPokemonId: input.id,
@@ -1212,15 +1194,12 @@ async function resolveCandidateBuilds({
 
   // NOTE — scoring deliberately does NOT use the top spread's real EVs/nature
   // (attackerStats stays the generic strongest-side investment computed
-  // inside buildCandidateLegalityProfile). It was tried as part of score-
-  // what-you-show and REVERTED: competitive singles spreads are often
-  // defensive (Arcanine's canonical spread is Impish 248 HP/252 Def —
-  // Growlithe's scored Atk fell 91→68), which collapsed PvE attacker offense
-  // pool-wide and let zero-offense walls displace real attackers. A
-  // playthrough mon's investment is the player's choice, so scoring prices
-  // the attacking potential —
-  // "best obtainable", the same philosophy as the assumed ability — while
-  // the pane displays the competitive spread it recommends.
+  // inside buildCandidateLegalityProfile): competitive singles spreads are
+  // often defensive, which collapses PvE attacker offense pool-wide and lets
+  // zero-offense walls displace real attackers. A playthrough mon's
+  // investment is the player's choice, so scoring prices the attacking
+  // potential — "best obtainable", the same philosophy as the assumed
+  // ability — while the pane displays the competitive spread it recommends.
   const makeProfile = ({
     movePreference,
     buildMoves,

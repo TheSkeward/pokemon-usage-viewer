@@ -1,7 +1,6 @@
-// Nature facts for display: which stat each nature raises and lowers, plus
-// the per-stat multiplier used by stat tooltips. Pure data — nothing in the
-// scoring pipeline reads this (the damage model bakes natures in via spread
-// strings; this module exists so hovering "Adamant" answers what it does).
+// Nature effects: which stat each nature raises and lowers, plus the
+// per-stat multiplier. Read by stat tooltips and the damage model's stat
+// computations.
 
 // plus/minus use the canonical stat keys; the five neutral natures omit both.
 export const NATURE_EFFECTS = {
@@ -50,7 +49,6 @@ export function describeNature(name) {
   return `${name}: +${STAT_LABELS[effect.plus]}, −${STAT_LABELS[effect.minus]}`;
 }
 
-// 1.1 / 0.9 / 1 for a stat key under a nature.
 export function natureStatMultiplier(name, statKey) {
   const effect = NATURE_EFFECTS[String(name || "").toLowerCase()];
   if (!effect) return 1;

@@ -1,5 +1,5 @@
-// Phase 3 (usage-convergence): competitive teammate co-use lift, extracted
-// from each mon's first-meaningful tier by scripts/build-teammate-index.mjs.
+// Competitive teammate co-use lift, extracted from each mon's
+// first-meaningful tier by scripts/build-teammate-index.mjs.
 // A missing file means "the prior has no opinion" — callers treat that as
 // trust 0 and the hand-built team-fit judgements stay fully in force.
 import { dataUrl } from "../utils/dataUrl.js";

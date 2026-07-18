@@ -1,4 +1,4 @@
-// Browser performance telemetry for the optimizer (external review ask):
+// Browser performance telemetry for the optimizer:
 // every interactive optimizer run records a sample — resolve/search wall-clock,
 // pool size, surviving candidate-build count, browser core count, and cache
 // temperature — into localStorage, and the provenance footer reports
@@ -33,9 +33,8 @@ const MAX_SAMPLES = 500;
 // optimizer core. `phases` breaks the wait down (setup / resolve / search /
 // items / render / confidence / investment), `totalMs` is click →
 // team-and-movesets rendered, `fullMs` is click → post-analysis (stability +
-// investment) done. Schema 2 measured only resolve+search and understated a
-// 44-second wait as 2.9s — the schema bump retires those samples via the env
-// signature.
+// investment) done. Schema 2 measured only resolve+search; the schema bump
+// retires those samples via the env signature.
 export const TELEMETRY_SCHEMA = 3;
 
 // Cache temperature of a run:
@@ -61,8 +60,8 @@ function envKey(env) {
   return `${env.schema}|${env.build}|${env.scoring}|${env.data}`;
 }
 
-// Workload buckets (external review: "a p95 over cold runs from pool 7 and
-// pool 45 is not one distribution").
+// Workload buckets: a p95 over cold runs from pool 7 and pool 45 is not one
+// distribution.
 export function poolBucket(poolSize) {
   if (poolSize <= 12) return "1–12";
   if (poolSize <= 24) return "13–24";

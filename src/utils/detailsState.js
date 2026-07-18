@@ -3,11 +3,10 @@ import {
   writeLocalStorage,
 } from "../storage/safeLocalStorage";
 
-// Persistent open/closed state for <details> groups. Every optimizer run (and
-// most progression edits) re-renders the whole page from HTML strings, which
-// used to reset every group to its hardcoded default — closing the panel the
-// user was working in. The user's last toggle now wins across re-renders and
-// reloads; a group's default only applies before they ever touch it.
+// Persistent open/closed state for <details> groups. Full-page re-renders
+// rebuild every group from HTML strings; the user's last toggle wins across
+// re-renders and reloads, and a group's default only applies before they
+// ever touch it.
 const DETAILS_STATE_KEY = "pokemon-usage-viewer:details-open:v1";
 
 function readMap() {

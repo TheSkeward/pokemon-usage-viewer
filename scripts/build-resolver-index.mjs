@@ -71,12 +71,9 @@ async function buildFamilyAllIndex(availability, family) {
 async function resolveAllPokemonUsage(availability, family) {
   const resolved = {}; // first tier the mon appears in at all (the headline)
   const ranking = {}; // first tier whose usage clears the meaningful bar
-  // TRACE: for mons that never clear the meaningful bar anywhere, the
-  // single best sub-bar row (highest average usage; earliest tier on ties) —
-  // the row that first qualifies as the bar relaxes ("50% chance of being
-  // seen within N games" for growing N). The bench tail labels no-usage-data
-  // mons with it. Scoring may consume only the bounded prior-presence
-  // predicate documented above; trace never becomes U_rank or orders scores.
+  // For mons that never clear the meaningful bar anywhere: the single best
+  // sub-bar row (highest average usage; earliest tier on ties). Consumed as
+  // documented at the emit site in buildFamilyAllIndex; it never ranks.
   const trace = {};
   let tierRank = -1;
 

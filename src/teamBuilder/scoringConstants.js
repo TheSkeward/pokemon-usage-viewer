@@ -12,23 +12,21 @@
 // Hot loops (searchKernel) snapshot values once per search in prepareFitScoring
 // rather than calling tunable() per team.
 
-// 2.0.0: scoring V0 retired — the usage-convergence blend is the sole model.
 export const SCORING_VERSION = "2.0.0";
 
 export const SCORING_DEFAULTS = Object.freeze({
-  // --- Individual value: V = C + α·O·[U−C]₊ + bias − K ----------------------
+  // --- Individual value (usage-convergence blend — see candidateScoring.js) --
   USAGE_INFLUENCE: 0.3, // α — usage informative, never sovereign
   USAGE_TIER_WEIGHT: 0.6, // ceiling U leans on tier prestige over raw usage %
   USAGE_REF_PERCENT: 20, // usage % where the usage component of U saturates
   // Usage below this is not "meaningful": the U-ceiling fallback treats it as
-  // floor-tier and row notes call it trace. User-derived cutoff (after 1 was
-  // "too tilted in favor of fringe AG mons" and 2 still not quite there):
-  // the p where 1−(1−p)^25 = 0.5 — the usage share at which a mon has even
-  // odds of appearing at least once across 25 games. ≈ 2.7345%. Baked into
-  // the resolver/set indexes at build time: regenerate both in the same
-  // commit as any change here. Safe as a non-gate ONLY because
-  // meaningfulUsage no longer outranks score in any comparator. Making this a
-  // gate again would violate SCORING.md's score-sovereignty invariant.
+  // floor-tier and row notes call it trace. The p where 1−(1−p)^25 = 0.5 —
+  // the usage share at which a mon has even odds of appearing at least once
+  // across 25 games. ≈ 2.7345%. Baked into the resolver/set indexes at build
+  // time: regenerate both in the same commit as any change here. Safe as a
+  // non-gate ONLY because meaningfulUsage no longer outranks score in any
+  // comparator. Making this a gate again would violate SCORING.md's
+  // score-sovereignty invariant.
   MIN_MEANINGFUL_USAGE_PERCENT: 100 * (1 - 0.5 ** (1 / 25)),
   // A sustained trace in one of the ladder's strongest formats is evidence
   // that a line is not competitively absent, even when it falls below the
@@ -46,12 +44,10 @@ export const SCORING_DEFAULTS = Object.freeze({
   UTILITY_ROLE_WEIGHT: 0.75, // utility roles score below attacker roles
   PRIORITY_UTILITY_ROLE_WEIGHT: 1, // complete first-action support shares C's role ceiling
   // Saturating role ceiling: role values are identity up to the knee, then
-  // approach (never reach) 1 asymptotically. Replaces the hard clamp01 on the
-  // additive role routes, which pinned five of the seven calibration gods at
-  // an identical C = 2000 — destroying ordering among them and flattening the
-  // local gradient the confidence sweep needs (a clamped role reads as
-  // "stable" under every knob). Everything below the knee is bit-identical to
-  // the old clamp; only the elite band decompresses.
+  // approach (never reach) 1 asymptotically. Below the knee this is identical
+  // to a hard clamp01; only the elite band decompresses — a hard clamp ties
+  // the top mons at identical C and flattens the local gradient the
+  // confidence sweep needs.
   ROLE_CEILING_KNEE: 0.9,
   // A protected Speed Boost turn makes the post-boost attacker route reliable.
   // The role itself still requires real damage and the observed +1 Speed
@@ -89,15 +85,12 @@ export const SCORING_DEFAULTS = Object.freeze({
   FUTURE_CAP: 300,
 
   // --- K: investment friction -------------------------------------------------
-  // Evolution K is INFORMATION, not a score term (user decision, completing
-  // the arc that began with the Kadabra/Alakazam tiebreaker demotion): "I
-  // would basically always rather know what the best team is, and then
-  // decide for myself if I don't want to spend the time grinding." The
-  // requirement machinery stays — receipts ("Link Stone + Deep Sea Tooth,
-  // 5% wild-held") still render, access gates still block, owned items
-  // still short-circuit gates — but acquisition grind no longer moves any
-  // score. The pricing code paths are kept alive (and pinned by tests under
-  // explicit overrides) so re-enabling is a constants change, not a rebuild.
+  // Acquisition friction is zeroed by design: evolution grind is INFORMATION,
+  // not a score term. The requirement machinery stays — receipts still
+  // render, access gates still block, owned items still short-circuit gates —
+  // but acquisition grind moves no score. The pricing code paths are kept
+  // alive (and pinned by tests under explicit overrides) so re-enabling is a
+  // constants change, not a rebuild.
   FRIENDSHIP_FRICTION: 0, // friendship grind per evolution step
   ITEM_FRICTION: 0, // held-item / use-item evolution (farmable item)
   TRADE_FRICTION: 0, // Reborn trades via Link Stone — item-like
@@ -125,35 +118,31 @@ export const SCORING_DEFAULTS = Object.freeze({
   // --- Ability assumption (when the caught mon's ability is unknown) ----------
   ABILITY_ASSUMPTION: "primary", // "secondary" flips unknown mons for the sweep
 
-  // --- Usage-convergence blend (formerly SCORING_V1, now the sole model;
-  // see SCORING.md — V0 retired as Rejuvenation prep) -------------------------
+  // --- Usage-convergence blend (see SCORING.md) -------------------------------
   USAGE_RAMP_EXPONENT: 2, // w ramps as (cap/L*)^k — back-loaded handoff
-  // Bounded-trust law (user-ratified): for a line with a real competitive
-  // prior ANYWHERE, downward convergence saturates here — the prior may
-  // claim at most this fraction of the mon's measured excess over it,
-  // however converged (the calibration corpus's Meowstic, C 1543 dragged to
-  // its 587 prior at w = 1, is the counterexample that killed unbounded
-  // drag). Dead lines (no meaningful usage in any tier) are exempt and
-  // converge fully — absence everywhere is domain-transferable evidence.
+  // Bounded-trust law: for a line with a real competitive prior ANYWHERE,
+  // downward convergence saturates here — the prior may claim at most this
+  // fraction of the mon's measured excess over it, however converged. Dead
+  // lines (no meaningful usage in any tier) are exempt and converge fully —
+  // absence everywhere is domain-transferable evidence.
   // Calibration bracket (offline sweep): the Meowstic-class assertions cap
   // it from above (fails materialize as it approaches ~0.3); the value sits
   // low in the band pending the full calibration pass.
   PRIOR_DRAG_CAP: 0.15,
   // Tier dominance: strictly greater than any possible usage % (100), so a
-  // shallower first-meaningful tier ALWAYS outranks any within-tier usage.
-  // (User proposed 50/100; 50 fails on >50%-usage mons, 100 ties at exactly
-  // 100% — 101 is airtight.)
+  // shallower first-meaningful tier ALWAYS outranks any within-tier usage
+  // (100 would tie against a mon at exactly 100% usage — 101 is airtight).
   TIER_STEP: 101,
   // Usage % is quantized to this step inside U_rank so the ε·C tiebreak has a
-  // provable gap to live in: EPSILON_C × CURRENT_VALUE_SCALE < USAGE_QUANTUM,
-  // asserted by a validate test — ε-C can NEVER override a real usage
-  // difference, it only breaks exact (quantized) ties.
+  // provable gap to live in. INVARIANT: keep EPSILON_C × CURRENT_VALUE_SCALE <
+  // USAGE_QUANTUM, so ε·C can NEVER override a real usage difference — it
+  // only breaks exact (quantized) ties.
   USAGE_QUANTUM: 0.001,
   EPSILON_C: 2.5e-7,
   // --- Phase 3: teammate synergy (team fit degrades into competitive teams) --
   // Pair trust t = min(w_a, w_b) × hasData: the hand-built pair judgements
   // (shared weakness etc.) fade out with the mean pair trust while co-use
-  // lift fades in per-pair; bias-driven coverage NEVER fades (user rulings).
+  // lift fades in per-pair; bias-driven coverage NEVER fades.
   // Points per percentage point of Smogon teammate lift, applied inside the
   // team fit (so COVERAGE_WEIGHT halves it in the total; 0 disables the term).
   // CALIBRATED against the extracted lift distributions (overall median 6.8pp,
@@ -170,11 +159,9 @@ export const SCORING_DEFAULTS = Object.freeze({
   SHORTLIST_CORE: 14,
   FORCE_SHORTLIST: false, // test hook: force shortlist path for regret validation
   // Search enumeration budgets in team combinations C(N,6). Interactive
-  // latency rules these, not search purity (a 36-mon pool is 1.95M combos —
-  // 30-45s of every-core search per optimize under the old 2M/3M caps, paid
-  // again on every background auto-reoptimize; user: "unacceptably long").
-  // Above them the shortlist+polish path takes over. Tunable so the regret
-  // validation can raise the cap to compute a TRUE exact baseline.
+  // latency rules these, not search purity; above them the shortlist+polish
+  // path takes over. Tunable so the regret validation can raise the cap to
+  // compute a TRUE exact baseline.
   AUTO_EXHAUSTIVE_BUDGET: 250_000, // background auto-reoptimize ceiling (~25 mons)
   EXHAUSTIVE_CAP: 1_000_000, // explicit-optimize ceiling (~32 mons)
   // Selection scores an optimistic (max-over-builds) coverage relaxation, so the

@@ -1,6 +1,6 @@
 // Damage / ability / coverage correctness tests — the cases most likely to hide a
 // "very cursed if missed" bug (double-counting type effectiveness, or an ability
-// that boosts the wrong moves). Run with: npm test  (node --test).
+// that boosts the wrong moves).
 import test from "node:test";
 import assert from "node:assert/strict";
 import { estimateMoveDamage } from "../src/reborn/damageModel.js";

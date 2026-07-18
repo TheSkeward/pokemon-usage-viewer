@@ -16,8 +16,7 @@ export async function resolveRepresentativeLightBundle({
     // The resolver index and its parallelized best-available scan already cover
     // every month/format/cutoff for "all", so they're authoritative: a null
     // usage here means the mon is genuinely absent everywhere. Returning that
-    // directly avoids a second, fully sequential full scan — which is what made
-    // obscure (usage-less) picks take ~20s each on the optimize progress tail.
+    // directly avoids a second, fully sequential full scan.
     const indexedBundle = await resolveIndexedBestAvailableLightBundle({
       availability,
       family,

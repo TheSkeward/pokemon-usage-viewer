@@ -5,8 +5,7 @@
 // scroll pinning, downloads, in-place DOM patching. Run: npm run e2e
 //
 // Not wired into CI on purpose: it needs the full site-data tree and a
-// browser. It exists so "does focus retention still work" is a command,
-// not archaeology.
+// browser.
 
 import { spawn, execSync } from "node:child_process";
 import { readdirSync, symlinkSync, rmSync, existsSync } from "node:fs";

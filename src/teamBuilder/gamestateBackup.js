@@ -1,6 +1,5 @@
-// Gamestate backup (user ask: "this should be a quick fix... I prefer the
-// version with a downloadable file"). Everything that defines a playthrough
-// lives in localStorage — the pool text and the full Reborn progression
+// Gamestate backup as a downloadable file. Everything that defines a
+// playthrough lives in localStorage — the pool text and the full Reborn progression
 // (badge/caps, TM/tutor checks, item inventory, evolution access, bias) —
 // and localStorage is one browser-data clear away from gone. This module is
 // the pure serialize/parse half; the widget wires it to a download link and

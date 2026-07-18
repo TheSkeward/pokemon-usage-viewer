@@ -65,12 +65,10 @@ export async function buildRebornTeamAnalysis(
       return entry;
     }),
   );
-  // Donor interim guides (user story: "I put a male Beedrill onto my team in
-  // the Forretress' slot, temporarily... I would really like to know how to
-  // use the Beedrill"). Any recommended move whose best acquisition is
-  // breeding already names its donor; attach the donor's own current-form
-  // recommended moves so the player fielding it in the interim knows what to
-  // run. Display-only — nothing here feeds scoring or selection.
+  // Any recommended move whose best acquisition is breeding already names its
+  // donor; attach the donor's own current-form recommended moves so a player
+  // fielding the donor in the interim knows what to run. Display-only —
+  // nothing here feeds scoring or selection.
   await attachDonorInterimGuides({
     legalMoveEntries,
     progression,
@@ -100,10 +98,9 @@ export async function buildRebornTeamAnalysis(
 }
 
 // Loads one team member's current species, its progression-legal moves, and the
-// derived legality profile (including the recommended set of moves). Shared by
-// the full analysis and the lighter move-type lookup below so both see exactly
-// the same recommended moves. Does NOT attach a recommendedSet — that needs the
-// assigned item, which is computed separately.
+// derived legality profile. Shared by the full analysis, the donor guides, and
+// getTeamItemContext so all see exactly the same recommended moves. Does NOT
+// attach a recommendedSet — the caller does.
 async function buildMemberLegalMoveEntry({
   row,
   progression,
@@ -145,12 +142,10 @@ async function buildMemberLegalMoveEntry({
   const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
 
   // Pull the most-used competitive set (top spread / ability / item / move
-  // usage) from the CHOSEN CANDIDATE (the line's usage representative, e.g.
-  // Lopunny-Mega at AG 1760) — the same source the optimizer scored with —
-  // NOT the fielded form. Sourcing by the fielded form showed a different
-  // tier's sets than the score was built on (a Lopunny-Mega pick displayed
-  // base Lopunny's ZU sets). Falls back to the fielded form for rows with no
-  // representative data.
+  // usage) from the line's usage REPRESENTATIVE — the same source the
+  // optimizer scored with — not the fielded form, so the displayed sets match
+  // the tier the score was built on. Falls back to the fielded form for rows
+  // with no representative data.
   let topSet = await loadTopSet({
     family,
     pokemonId: member.representativeId || member.id,
@@ -216,7 +211,7 @@ async function buildMemberLegalMoveEntry({
   }
 
   // Display-only: how much of the represented form's competitive set is
-  // assemblable now, and the cap where it completes (Phase 1 readiness).
+  // assemblable now, and the cap where it completes.
   profile.setReadiness = computeSetReadiness({
     legalMoveData,
     availableMoves: moves,
@@ -256,16 +251,11 @@ export function collectEggDonorRequests(profile) {
   return [...byDonor.values()];
 }
 
-// Builds each unique donor ONCE per analysis (a Smeargle-style donor can back
-// several members) through the same member pipeline the team itself uses, so
-// its interim moves respect the current cap, TM/tutor unlocks, and the
-// fielded-form mapping (a donor named as its evolved form still guides the
-// pre-evo the player can actually field at this cap).
 // A donor is temporary, so breeding moves ONTO it is never worth the
-// investment (user ruling) — its guide must not recommend pool egg moves.
-// The one exception is a chain link: a move the donor is itself passing on
-// may reach it by hatching, which is how the donor was obtained, not an
-// extra breeding project.
+// investment — its guide must not recommend pool egg moves. The one exception
+// is a chain link: a move the donor is itself passing on may reach it by
+// hatching, which is how the donor was obtained, not an extra breeding
+// project.
 function restrictBreedingContext(breedingContext, allowedMoveIds) {
   const byPokemonId = {};
   for (const [pokemonId, entry] of Object.entries(
@@ -305,10 +295,8 @@ async function attachDonorInterimGuides({
         row: { pokemonId: donorId, name: donorName, inputName: donorName },
         // The donor's guide is evaluated at ITS working cap, not the badge
         // cap: the donor retires the moment it levels into the last move
-        // it's donating, so its active life tops out one level below that
-        // (user: a Beedrill that learns Pin Missile at 32 is guided as a
-        // level-31 Beedrill — and Pin Missile itself never shows as one of
-        // its interim moves).
+        // it's donating, so its active life tops out one level below that —
+        // and the donated move itself never shows among its interim moves.
         progression: { ...progression, levelCap: String(interimLevelCap) },
         breedingContext: restrictBreedingContext(
           breedingContext,
@@ -436,7 +424,7 @@ export function buildCandidateLegalityProfile({
 }) {
   // Carry the recommended held item AND the mon's competitive ability on the
   // member, so every damage estimate (display, ranking, bias, team scoring)
-  // reflects them — Protean/Libero make every move STAB.
+  // reflects them — Protean makes every move STAB.
   const member =
     heldItem || ability
       ? { ...rawMember, ...(heldItem ? { heldItem } : {}), ...(ability ? { ability } : {}) }
@@ -508,8 +496,6 @@ export function buildCandidateLegalityProfile({
   const coverageVector = REBORN_ANALYSIS_TYPES.map((defenseType) => {
     let best = 0;
     for (const md of recommendedMoveDamage) {
-      // Fixed-damage moves land flat into everything their type can touch —
-      // never boosted, never resisted, zero only into immunities.
       const dealt = coverageDamageIntoType(md.id, md.type, md.damage, defenseType);
       if (dealt > best) best = dealt;
     }
@@ -751,10 +737,6 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
   };
 }
 
-// Only the fix suggestions survive here: "Why This Team?" recomputed a
-// second best-STAB that could disagree with the realized set on the same
-// page, and "Team Holes" restated the Defensive Profile / Team Coverage
-// tables (which show names AND answers). One fact, one source, one place.
 function buildTeamExplanation({ defensive, legalMoveEntries, lines, offensive }) {
   const selectedKeys = new Set(
     legalMoveEntries.map(
@@ -897,9 +879,7 @@ function isDamagingMove(move) {
 // being built):
 //   Snore       needs the USER asleep      → a self-sleep move (Rest).
 //   Dream Eater needs the TARGET asleep    → a sleep-inducing move in the set;
-//               otherwise it lands for zero and must not read as coverage
-//               (user report: Meowstic's damage-coverage build was winning
-//               build-selection on a Dream Eater it can never fire).
+//               otherwise it lands for zero and must not read as coverage.
 const SLEEP_GATED_DAMAGING_MOVE_IDS = new Set(["snore"]);
 const SELF_SLEEP_MOVE_IDS = new Set(["rest"]);
 const OPPONENT_SLEEP_GATED_DAMAGING_MOVE_IDS = new Set(["dreameater"]);
@@ -1055,29 +1035,20 @@ function getAdjustedPower(move, member) {
 }
 
 // Category/STAB-aware unresisted-damage estimate, used as the ranking key so a
-// physical attacker prefers its physical moves and vice versa. Fixed-damage
-// moves (handled inside estimateMoveDamage) keep their value on weak attackers.
-// Damage estimates are recomputed for every build variant of every candidate of
-// every line (the same move × member × stats many times over) — the hot spot of
-// multi-build line resolution. Memoized on everything the estimate depends on;
-// bounded so a long session can't leak.
-//
-// Key-completeness audit: `member.id` is the FORM-specific id (megas and
-// regional forms have distinct ids), ability and held item are explicit, and
-// attacker stats enter as atk/spa/level — level cap and stat spreads reach the
-// estimate only through those three numbers, so they're covered. The game data
-// itself (base stats, move meta) is immutable for a process lifetime — a data
-// update ships as a new deploy, and the manifest's data signature already
-// versions the optimizer's persisted result cache — so the in-process memo
-// needs no data signature. If damage ever becomes field-aware (boss fields,
-// weather, terrain), the active field MUST join this key; a field that scales
-// damage without entering the key would silently poison every estimate.
+// physical attacker prefers its physical moves and vice versa. Recomputed for
+// the same move × member × stats many times over during multi-build line
+// resolution, so it's memoized on everything the estimate depends on:
+// `member.id` is the FORM-specific id (megas and regional forms have distinct
+// ids), ability and held item are explicit, and level cap / stat spreads reach
+// the estimate only through atk/spa/spe/level. Game data is immutable for a
+// process lifetime, so no data signature is needed. If damage ever becomes
+// field-aware (boss fields, weather, terrain), the active field MUST join this
+// key; a field that scales damage without entering the key would silently
+// poison every estimate.
 const damageMemo = new Map();
 const DAMAGE_MEMO_LIMIT = 200_000;
 
 function getEstimatedDamage(move, member, attackerStats) {
-  // spe joined the key with speed-scaled variable power (Electro Ball / Gyro
-  // Ball read the attacker's exact speed).
   const key = `${move.id}|${member.id}|${member.ability || ""}|${member.heldItem || ""}|${attackerStats?.atk ?? ""}|${attackerStats?.spa ?? ""}|${attackerStats?.spe ?? ""}|${attackerStats?.level ?? ""}`;
   const cached = damageMemo.get(key);
   if (cached !== undefined) return cached;
@@ -1118,7 +1089,7 @@ function computeEstimatedDamage(move, member, attackerStats) {
     abilityMultiplier: getAbilityDamageMultiplier(member.ability, move),
     ability: member.ability,
     // For variable-power formulas that read the user's own speed/weight
-    // (Electro Ball, Gyro Ball, Heavy Slam...). Already part of the memo key.
+    // (Electro Ball, Gyro Ball, Heavy Slam...).
     attackerId: member.id,
   });
   // Expected damage weights a hit by how often it lands, so an inaccurate nuke
@@ -1152,7 +1123,7 @@ const ESCALATING_HIT_MULTIPLIER = {
   iceball: 2.58,
 };
 
-// Semi-invulnerable charge moves, split by punch-through (user ruling):
+// Semi-invulnerable charge moves, split by punch-through:
 //   - No punch-through → full power. Phantom Force / Shadow Force vanish
 //     completely (no move hits through), and Sky Drop carries the target
 //     along, stealing its turn — the charge turn is genuinely offset.
@@ -1165,17 +1136,14 @@ const ESCALATING_HIT_MULTIPLIER = {
 const UNTARGETABLE_CHARGE = new Set(["phantomforce", "shadowforce", "skydrop"]);
 const LEAKY_DODGE_CHARGE = new Set(["fly", "bounce", "dig", "dive"]);
 
-// Telegraph-then-fail-if-disrupted moves (user report: "double-check Focus
-// Punch — I think it's a two-stage move"). The dex encodes their mechanic as
-// a custom condition, NOT flags.charge, so the exposed-charge amortization
-// missed them and both were priced as clean 150 BP hits — the strongest
-// moves of their types. Focus Punch (priority -3) fails outright if the user
-// takes damage before it resolves; Shell Trap fails unless hit by a physical
-// move first. The payoff is exposed to disruption exactly like Solar Beam's
-// charge turn, so they take the same 1/3 rule. Beak Blast shares the dex
-// shape (condition, -3) but its attack NEVER fails — the condition is the
-// contact burn — so it keeps full power; Counter/Mirror Coat are BP 0 and
-// never enter this model.
+// Telegraph-then-fail-if-disrupted moves. The dex encodes their mechanic as a
+// custom condition, NOT flags.charge, so they must be listed here by hand.
+// Focus Punch (priority -3) fails outright if the user takes damage before it
+// resolves; Shell Trap fails unless hit by a physical move first. The payoff
+// is exposed to disruption exactly like Solar Beam's charge turn, so they take
+// the same 1/3 rule. Beak Blast shares the dex shape (condition, -3) but its
+// attack NEVER fails — the condition is the contact burn — so it keeps full
+// power; Counter/Mirror Coat are BP 0 and never enter this model.
 const FAILS_IF_DISRUPTED = new Set(["focuspunch", "shelltrap"]);
 
 // How many "hits' worth" of base power a move lands per commitment, used to scale
@@ -1201,12 +1169,10 @@ function getEffectiveHitMultiplier(move, ability = null) {
   const multihit = move.multihit;
   if (typeof multihit === "number") return multihit;
   if (Array.isArray(multihit) && multihit.length === 2) {
-    // Skill Link always lands the maximum count — Icicle Spear at a flat 5
-    // hits is Cloyster's entire identity.
+    // Skill Link always lands the maximum count.
     if (toId(ability) === "skilllink") return multihit[1];
-    // The standard 2–5 roll is 35/35/15/15 → E[hits] = 3.1; the midpoint 3.5
-    // overrated every Pin Missile-class move by ~13%. Other ranges (none in
-    // Gen 7 data today) fall back to the midpoint.
+    // The standard 2–5 roll is 35/35/15/15 → E[hits] = 3.1. Other ranges
+    // (none in Gen 7 data today) fall back to the midpoint.
     if (multihit[0] === 2 && multihit[1] === 5) return 3.1;
     return (multihit[0] + multihit[1]) / 2;
   }
@@ -1235,14 +1201,12 @@ function getEffectiveHitMultiplier(move, ability = null) {
 //   4. Fill the rest by damage, skipping attacking types already covered (a
 //      second same-type attack adds nothing); fall back to more utility, then to
 //      a duplicate-type attack only as a last resort.
-//   5. Slots STILL empty with legal moves remaining (user ruling, from a
-//      0-badge Liepard with a blank fourth slot): fill by the stitched
-//      competitive priority order — "descending usage within its canonical
-//      tier (fallback to all tiers in descending order, the usual way)".
-//      That order lives in moveRank (set-index array order), which also sees
-//      cross-tier entries whose usage % was nulled in the stitch — Liepard's
-//      AG Assist. Moves with no competitive appearance anywhere still never
-//      fill a slot; an empty slot stays honest.
+//   5. Slots STILL empty with legal moves remaining: fill by the stitched
+//      competitive priority order — descending usage within the canonical
+//      tier, then each fallback tier in order. That order lives in moveRank
+//      (set-index array order), which also sees cross-tier entries whose
+//      usage % was nulled in the stitch. Moves with no competitive appearance
+//      anywhere still never fill a slot; an empty slot stays honest.
 // With no usage data (obscure NFEs) step 1 is empty and the static utility-
 // quality table stands in for usage ranking, so the mon still gets a sensible
 // damage-led set. There is deliberately no "must have an attack" guarantee: a mon
@@ -1261,12 +1225,9 @@ function recommendCurrentMoves(
   );
   const byId = new Map(decorated.map((move) => [move.id, move]));
   const selected = [];
-  // Set-conditional usability: Snore only deals damage if THIS SET can put
-  // its user to sleep, so the sleep context is the set being built — not the
-  // legal pool (Dedenne has Rest in its pool, but a Sub/Nuzzle/Volt Switch
-  // set has no way to sleep, so recommending Snore beside them is a dead
-  // slot). Evaluated live as the set grows: once Rest is selected, Snore
-  // becomes a real attack.
+  // Set-conditional usability: the sleep context for Snore/Dream Eater is the
+  // set being built, not the legal pool. Evaluated live as the set grows:
+  // once Rest is selected, Snore becomes a real attack.
   const usableInSet = (move) => isUsableDamagingMove(move, selected);
   const usableDamaging = () =>
     decorated.filter((move) => usableInSet(move));

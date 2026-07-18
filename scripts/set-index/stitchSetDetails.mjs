@@ -67,16 +67,13 @@ export function stitchPokemonSetDetail({
 }
 
 // Which appearing tier supplies the primary (headline) set. Prefer the first
-// tier whose usage clears 0.1% (the resolver-index `ranking`): a sub-0.1% mon's
-// highest-tier appearance is a noisy handful of teams, so we drop down the
-// ladder to where it's genuinely played. For mons below the bar EVERYWHERE,
-// prefer the resolver-index `trace` tier — their best sub-bar signal, i.e. the
-// tier where they actually see competitive play (user ruling: "that *is* their
-// best usage tier... for the sake of determining their canonical set, you
-// should pick from that usage tier"; their sort stays tailed and the trace
-// value itself still never enters scoring). Only a mon with no usage signal
-// at all keeps the old fallback: the deepest appearing tier in the build's
-// own family.
+// tier whose usage clears the meaningful-usage bar (the resolver-index
+// `ranking`): a sub-bar mon's highest-tier appearance is a noisy handful of
+// teams, so drop down the ladder to where it's genuinely played. For mons
+// below the bar EVERYWHERE, prefer the resolver-index `trace` tier — their
+// best sub-bar signal (the trace value itself still never enters scoring).
+// Only a mon with no usage signal at all falls back to the deepest appearing
+// tier in the build's own family.
 function choosePrimaryIndex({ present, ranking, trace, family }) {
   // A ranking/trace tier may lack moveset data even when it has usage data;
   // fall through to the next rule in that case.

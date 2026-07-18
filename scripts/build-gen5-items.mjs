@@ -8,8 +8,7 @@
 // must not become "56% Ghost Gem"). Successful fetches are cached, since
 // old-gen monthly stats are immutable — so re-runs don't re-hammer Smogon.
 //
-// Network-bound: runs only where smogon.com is reachable (CI). Reuses the same
-// moveset-table parser as build-data.mjs, so parsing is the proven path.
+// Network-bound: runs only where smogon.com is reachable (CI).
 
 import fs from "node:fs/promises";
 import path from "node:path";

@@ -14,8 +14,8 @@ import { Dex } from "@pkmn/dex";
 
 const OUT_PATH = path.resolve("src", "generated", "gen7ItemDamage.generated.js");
 
-// Items whose damage effect isn't a simple type/Plate boost. Verified against
-// shortDesc at build time (see assertions below).
+// Items whose damage effect isn't a simple type/Plate boost. The non-signature
+// entries are verified against shortDesc at build time (assertions below).
 const CURATED = {
   lifeorb: { mult: 1.3 },
   choiceband: { mult: 1.5, category: "Physical" },

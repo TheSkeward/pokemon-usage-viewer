@@ -143,7 +143,7 @@ export function getAbilityDamageMultiplier(ability, move) {
 }
 
 // Nature -> attacking-stat multipliers (only Atk/SpA matter here). Natures that
-// touch neither Atk nor SpA (e.g. Jolly hits Spe/SpA, Sassy hits SpD/Spe) are
+// touch neither Atk nor SpA (e.g. Sassy hits SpD/Spe, Hasty hits Spe/Def) are
 // simply absent and treated as neutral (1.0 / 1.0).
 const NATURE_ATTACK_MULTIPLIERS = {
   // +Atk
@@ -181,11 +181,8 @@ export function isFixedDamageMove(moveId) {
 }
 
 // ————— Variable-power moves (stat-, weight-, and state-scaled) —————
-// The dex reports base power 0 for these, which priced them at ZERO damage —
-// Electro Ball contributed nothing to any set or coverage vector. They are
-// priced against the same REFERENCE DEFENDER convention as everything else
-// (user ask: "make sure that the reference defender has the median speed for
-// the level... for other moves that care about the target's stats"): median
+// The dex reports base power 0 for these; their effective power is priced
+// against the same REFERENCE DEFENDER convention as everything else: median
 // base stat across the dex, uninvested at the attacker's level — exactly the
 // base-70-defense / base-70-HP convention — plus the median dex weight for
 // the weight formulas. Medians are COMPUTED from the generated data so they
@@ -308,10 +305,9 @@ export function coverageDamageIntoType(moveId, moveType, damage, defenseType) {
 }
 
 // True damage of fixed/fractional moves at a level. These ignore the user's
-// stats, STAB, and items in-game, so faking them as base-power equivalents
-// (the old FIXED_DAMAGE_EFFECTIVE_POWER table) overrated them wildly at low
-// caps — a lvl-25 Seismic Toss deals exactly 25, not "60 BP with STAB" (=90).
-// Returns null when the move isn't one of these.
+// stats, STAB, and items in-game, so they're priced at their real damage — a
+// lvl-25 Seismic Toss deals exactly 25. Returns null when the move isn't one
+// of these.
 export function fixedMoveDamage(moveId, level) {
   const lvl = normalizeLevel(level);
   switch (moveId) {
@@ -319,9 +315,7 @@ export function fixedMoveDamage(moveId, level) {
     case "nightshade":
       return lvl;
     case "psywave":
-      // Uniform 0.5x–1.5x the user's level — expected value 1.0x. The model
-      // prices randomness at expected value everywhere (accuracy weighting,
-      // multi-hit counts); the old 0.75x haircut contradicted its own comment.
+      // Uniform 0.5x–1.5x the user's level — expected value 1.0x.
       return lvl;
     case "sonicboom":
       return 20;
@@ -390,8 +384,7 @@ export function getAttackingStats({ pokemonId, levelCap, spread }) {
       // The spread's REAL speed (EVs + nature) — the same figure the stat
       // tooltip shows. Speed-scaled move power (Electro Ball, Gyro Ball)
       // reads it: the user's exact speed vs the median-speed reference
-      // defender (user ruling: "We have the user's exact speed... We should
-      // be using that for the user, and the median value for the defender").
+      // defender.
       spe: statValue(
         baseSpe,
         parsed.evs[EV_INDEX.spe],
@@ -487,11 +480,8 @@ export function estimateMoveDamage({
     return Math.round(resolvedPower * stab * itemMultiplier * abilityMultiplier);
   }
 
-  // Foul Play deals damage with the TARGET's Attack stat — the reference
-  // defender's median-Atk, uninvested at level — not the user's (the user
-  // ask that surfaced this family: moves that care about the target's stats
-  // must be priced against the reference defender's stats, like Super Fang
-  // against its median HP).
+  // Foul Play deals damage with the TARGET's Attack stat, not the user's —
+  // priced as the reference defender's median Atk, uninvested at level.
   const attack =
     moveId === "foulplay"
       ? statValue(REFERENCE_ATTACK_BASE, 0, lvl, 1)

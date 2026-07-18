@@ -1,8 +1,7 @@
-// Rank calibration against community consensus (user plan, 2026-07): the
-// fixture corpus constrained the usage floor only from ABOVE — nothing
-// required a famous mon to score well. This suite is the missing lower
-// bound, and its pools are the real per-badge availability buckets
-// (test/calibration/badge-buckets.json) instead of hand-picked scenarios.
+// Rank calibration against community consensus (user plan, 2026-07): a
+// lower bound requiring famous mons to score well — and infamous ones to
+// score poorly — in the real per-badge availability buckets
+// (test/calibration/badge-buckets.json, user-supplied).
 //
 //   - AMAZING mons ("universally agreed to be utterly cracked") are injected
 //     into EVERY bucket as their evolved forms — inputting "Excadrill" means
@@ -19,8 +18,7 @@
 // Assertions are on SCORE RANK (score is sovereign), never on seating —
 // seating is coverage/team-context-dependent and three injected water types
 // can't all take chairs. This badge-bucket corpus is the scoring calibration
-// contract. Failures are findings to understand against the user's anchors,
-// not invitations to preserve an older scenario verdict.
+// contract; failures are findings to understand against the user's anchors.
 //
 // Run separately from the fast mechanical/correctness suite (19 optimizer runs):
 //   npm run validate:calibration

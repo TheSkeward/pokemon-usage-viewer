@@ -1,6 +1,6 @@
 // Node worker_threads twin of src/teamBuilder/searchWorker.js: receives a
 // combination range, runs the same searchCombinationRange, posts the result.
-// Spawned by the test harness so exact-search fixtures use every core, exactly
+// Spawned by the test harness so exact searches use every core, exactly
 // like the browser's Web Worker pool.
 import { parentPort } from "node:worker_threads";
 import "./harness.mjs";

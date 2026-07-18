@@ -12,14 +12,10 @@ export const REBORN_PROMOTED_TM_MOVES = [
   "Secret Power",
 ];
 
-// NOTE for future maintainers: this module once carried ~150 lines of
-// hand-encoded per-mon overrides (extra level-1/relearner moves, Silvally
-// pledge tutors, Pikachu's TMX quirks) transcribed from the Reborn wiki.
-// They became dead data when scripts/build-reborn-legal-moves.mjs started
-// generating legal moves from the game's own mons.dat, which already
-// contains all of it. If a legality bug points here, fix the generator or
-// its mons.dat source — do not resurrect hand-curated move lists (git
-// history has them if you need to compare).
+// Per-mon move legality is generated from the game's own mons.dat by
+// scripts/build-reborn-legal-moves.mjs. If a legality bug points here, fix
+// the generator or its mons.dat source — do not add hand-curated per-mon
+// move lists to this module.
 
 export const REBORN_PROGRESSION_NOTES = [
   "Move legality is based on USUM learnsets, with Reborn-specific exceptions.",

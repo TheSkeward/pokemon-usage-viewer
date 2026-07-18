@@ -8,17 +8,14 @@ import {
 } from "./currentFormValue.js";
 import { tunable } from "./scoringConstants.js";
 
-// Sourced from the constants module (single home for every judgement default;
-// this was previously duplicated here as a hardcoded 0.1 while the
-// scoringConstants entry was dead). Snapshotted at module load — it is not a
-// confidence-sweep axis, so late overrides don't need to reach it.
+// Snapshotted at module load — not a confidence-sweep axis, so late overrides
+// don't need to reach it.
 export const MIN_MEANINGFUL_USAGE_PERCENT = tunable(
   "MIN_MEANINGFUL_USAGE_PERCENT",
 );
 
 // ---------------------------------------------------------------------------
-// Individual value model (the usage-convergence blend, formerly SCORING_V1 —
-// the sole model since V0's retirement; see SCORING.md):
+// Individual value model (the usage-convergence blend; see SCORING.md):
 //
 //     V = C + w_up·[U_rank − C]₊ − w_down·[C − U_rank]₊ + bias
 //         − (1 − w_down)·(K + ability)          (F is computed but NOT spent)
@@ -30,9 +27,7 @@ export const MIN_MEANINGFUL_USAGE_PERCENT = tunable(
 //           usage transfers across the PvP→PvE domain gap (it proves the
 //           body performs somewhere), so a famous line converges all the
 //           way up to its prior.
-//   w_down  two-clause law (user-ratified; the calibration corpus's Meowstic
-//           trajectory 1543 → 587 is the measured counterexample that killed
-//           the old "at w = 1 the score IS the prior" law):
+//   w_down  two-clause law:
 //           - ABSENCE law (dead lines): a line with no meaningful usage in
 //             ANY tier converges fully — w_down = ramp. Absence everywhere
 //             is the one usage signal strong enough to override the
@@ -44,7 +39,7 @@ export const MIN_MEANINGFUL_USAGE_PERCENT = tunable(
 //             most that fraction of the mon's measured excess, no matter how
 //             converged. The MAGNITUDE of a deep prior is meta-confounded
 //             for PvE; set-completion cannot shrink that domain error.
-//           At ramp = 0 both clauses reduce to the historic V0 shape:
+//           At ramp = 0 both clauses reduce to:
 //           C + α·O·[U − C]₊ + bias − K.
 //   O       online/readiness gate in [0,1]: how much the fielded form
 //           resembles the final competitive form.
@@ -112,10 +107,8 @@ export function scoreCandidate({
   // representative, the form with the best first-meaningful tier) is the
   // authoritative source: every form in a line blends under the SAME w
   // against its OWN prior, so a lesser line-mate can't dodge the endgame
-  // drag the real form is subject to (user report: base Doduo outseated
-  // Dodrio by keeping its raw C while Dodrio converged to its NU prior).
-  // Callers without line context (display paths) fall back to this form's
-  // own ramp.
+  // drag the real form is subject to. Callers without line context (display
+  // paths) fall back to this form's own ramp.
   const ramp =
     lineRamp != null ? lineRamp : computeUsageRamp(legalityProfile, levelCap);
 
@@ -203,10 +196,9 @@ export function scoreCandidate({
     // need the usage-prior ordering itself (convergence tests, displays).
     tierRank: rank.tierRank,
     // The earned usage trust (the ramp): 0 = pure C shape, 1 = full instance
-    // evidence. NOTE: since the two-clause law, this is NOT the applied
-    // downward weight — present-prior lines cap that at PRIOR_DRAG_CAP.
-    // Exposed for the convergence/monotonicity tests, the usage-trust
-    // tooltip, and the explanation layer.
+    // evidence. NOT the applied downward weight — present-prior lines cap
+    // that at PRIOR_DRAG_CAP. Exposed for the convergence/monotonicity
+    // tests, the usage-trust tooltip, and the explanation layer.
     usageWeight,
   };
 }
@@ -252,13 +244,13 @@ export function computeUsageRamp(legalityProfile, levelCap) {
   return Math.min(schedule, rNow);
 }
 
-// U_rank: a tier-dominant rank scalar on C's scale (user design).
+// U_rank: a tier-dominant rank scalar on C's scale.
 //   U_rank = TIER_STEP·tierIndex + quantize(usage%) + ε·C
-// TIER_STEP (101) strictly exceeds any usage %, so a shallower
-// first-meaningful tier ALWAYS dominates within-tier usage; usage is
-// quantized so ε·C (bounded below the quantum by a tested invariant) can
-// only break exact ties. Monotonically rescaled onto CURRENT_VALUE_SCALE —
-// any monotone rescale preserves the ordering guarantees.
+// TIER_STEP strictly exceeds any usage %, so a shallower first-meaningful
+// tier ALWAYS dominates within-tier usage; usage is quantized so ε·C (kept
+// below the quantum — see USAGE_QUANTUM / EPSILON_C) can only break exact
+// ties. Monotonically rescaled onto CURRENT_VALUE_SCALE — any monotone
+// rescale preserves the ordering guarantees.
 export function usageRankScore(rank, currentValue = 0) {
   const totalTiers = Math.max(1, rank.totalTiers || 1);
   const tierIndex = Math.max(0, totalTiers - rank.tierRank);
@@ -290,8 +282,9 @@ function usageCeiling(rank) {
   return CURRENT_VALUE_SCALE * Math.max(0, Math.min(1, combined));
 }
 
-// The first tier whose usage clears the 0.1% bar, used to rank low-usage mons by
-// real signal rather than their noisy headline-tier raw count.
+// The first tier whose usage clears the meaningful-usage bar
+// (MIN_MEANINGFUL_USAGE_PERCENT), used to rank low-usage mons by real signal
+// rather than their noisy headline-tier raw count.
 export function getUsageRanking(bundle, formatOrder = [], cutoffPriority = []) {
   const totalTiers = Math.max(1, formatOrder.length * cutoffPriority.length);
   const ranking = bundle?.ranking;
@@ -416,13 +409,9 @@ function getReadinessGate(profile, features) {
   return ladder[step];
 }
 
-// Score-first, no boolean gates. `meaningfulUsage` used to be the primary key
-// and that made usage SOVEREIGN over the whole value model (invariant 1
-// violation) — measured: Kadabra outscored Alakazam 1681 vs 1398 (Link Stone
-// friction exceeding the stage-compressed C gap), and the boolean silently
-// seated Alakazam anyway because 0.13% usage cleared the old bar while
-// Kadabra's 0.002% didn't. Usage already speaks inside score (U, bias);
-// here it only breaks exact ties.
+// Score-first, no boolean gates: making `meaningfulUsage` a primary key would
+// put usage SOVEREIGN over the whole value model (invariant 1 violation).
+// Usage already speaks inside score (U, bias); here it only breaks exact ties.
 export function compareScoredCandidates(a, b) {
   return (
     b.score - a.score ||
