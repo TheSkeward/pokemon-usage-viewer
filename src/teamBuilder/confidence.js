@@ -71,6 +71,14 @@ export const CONFIDENCE_GRID = [
     overrides: { TEMPO_RELIABILITY_BONUS: 0.2 },
   },
   {
+    key: "extender-light",
+    overrides: { FIELD_EXTENDER_UTILITY_BONUS: 0.24 },
+  },
+  {
+    key: "extender-heavy",
+    overrides: { FIELD_EXTENDER_UTILITY_BONUS: 0.6 },
+  },
+  {
     key: "ceiling-knee-low",
     overrides: { ROLE_CEILING_KNEE: 0.85 },
   },

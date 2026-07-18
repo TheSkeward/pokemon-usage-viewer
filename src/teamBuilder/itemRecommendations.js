@@ -43,11 +43,41 @@ const GEM_TYPE_BY_ID = new Map(
 // item is eligible for a member if it isn't a gem, or it is a gem whose type is
 // among that member's recommended damaging-move types. Members with no known
 // move types (allowedTypes undefined) are not gated, preserving prior behavior.
-function itemEligibleForMember(itemId, allowedTypes) {
+// The field extender (Amplifield Rock) is likewise useless without a field-
+// setting move in the member's recommended set.
+function itemEligibleForMember(itemId, allowedTypes, fieldSetterShare = null) {
+  if (itemId === FIELD_EXTENDER_ITEM_ID) {
+    return fieldSetterShare == null || fieldSetterShare > 0;
+  }
   const gemType = GEM_TYPE_BY_ID.get(itemId);
   if (!gemType) return true;
   if (!allowedTypes) return true;
   return allowedTypes.has(gemType);
+}
+
+export const FIELD_EXTENDER_ITEM_ID = "amplifieldrock";
+// Measured conditional propensity of the nearest mainline analog (Light Clay
+// held given screens usage, rawCount-weighted across gen7) — the fraction of
+// setter sets that pay the item slot for the duration extender.
+const FIELD_EXTENDER_PROPENSITY = 0.8;
+
+// The Amplifield Rock never appears in Smogon item usage (fangame-original),
+// so a member whose recommended set carries a field-setting move gets it
+// injected as a candidate. Weight = propensity × the member's own setter-move
+// usage share — the same estimator the propensity was measured with — so it
+// competes honestly against observed items for the scarce owned copy.
+export function withFieldExtenderCandidate(items, fieldSetterShare) {
+  if (!fieldSetterShare || fieldSetterShare <= 0) return items;
+  return [
+    ...items,
+    {
+      id: FIELD_EXTENDER_ITEM_ID,
+      name: "Amplifield Rock",
+      usage: null,
+      weight: FIELD_EXTENDER_PROPENSITY * fieldSetterShare,
+      fieldExtender: true,
+    },
+  ];
 }
 
 // Unburden doubles Speed when a consumable item is used up. We only boost type
@@ -93,7 +123,13 @@ export async function loadTeamItemUsage({ team, family, selection, itemContext }
         selection,
         unburden: Boolean(itemContext?.get(key)?.unburden),
       });
-      usageByMember.set(key, items);
+      usageByMember.set(
+        key,
+        withFieldExtenderCandidate(
+          items,
+          itemContext?.get(key)?.fieldSetterShare || 0,
+        ),
+      );
     }),
   );
 
@@ -112,6 +148,7 @@ export function assignTeamItems({ team, usageByMember, ownedItems, itemContext }
   const assignments = {};
   const members = team || [];
   const allowedGemTypesFor = (key) => itemContext?.get(key)?.damageTypes;
+  const fieldSetterShareFor = (key) => itemContext?.get(key)?.fieldSetterShare ?? null;
 
   const pairs = [];
   for (const choice of members) {
@@ -119,7 +156,8 @@ export function assignTeamItems({ team, usageByMember, ownedItems, itemContext }
     const allowedGemTypes = allowedGemTypesFor(key);
     for (const item of usageByMember.get(key) || []) {
       if ((remaining[item.id] || 0) <= 0) continue;
-      if (!itemEligibleForMember(item.id, allowedGemTypes)) continue;
+      if (!itemEligibleForMember(item.id, allowedGemTypes, fieldSetterShareFor(key)))
+        continue;
       pairs.push({ key, item });
     }
   }
@@ -142,12 +180,15 @@ export function assignTeamItems({ team, usageByMember, ownedItems, itemContext }
     const itemId = bestRemainingItem(
       remaining,
       allowedGemTypesFor(teamMemberKey(choice)),
+      fieldSetterShareFor(teamMemberKey(choice)),
     );
     if (!itemId) break;
 
     assignments[teamMemberKey(choice)] = {
       id: itemId,
-      name: GEN7_HELD_ITEMS_BY_ID[itemId]?.name || itemId,
+      name:
+        GEN7_HELD_ITEMS_BY_ID[itemId]?.name ||
+        (itemId === FIELD_EXTENDER_ITEM_ID ? "Amplifield Rock" : itemId),
       usage: null,
       fallback: true,
     };
@@ -157,7 +198,7 @@ export function assignTeamItems({ team, usageByMember, ownedItems, itemContext }
   return assignments;
 }
 
-function bestRemainingItem(remaining, allowedGemTypes) {
+function bestRemainingItem(remaining, allowedGemTypes, fieldSetterShare = null) {
   let best = null;
   let bestRank = Infinity;
 
@@ -165,7 +206,7 @@ function bestRemainingItem(remaining, allowedGemTypes) {
     if (count <= 0) continue;
     // Don't dump a leftover type Gem on a member that can't use it — a gem with
     // no matching move never triggers, so it's no better than no item.
-    if (!itemEligibleForMember(itemId, allowedGemTypes)) continue;
+    if (!itemEligibleForMember(itemId, allowedGemTypes, fieldSetterShare)) continue;
     const rank = ITEM_QUALITY_RANK.get(itemId) ?? Number.MAX_SAFE_INTEGER;
     if (rank < bestRank) {
       bestRank = rank;

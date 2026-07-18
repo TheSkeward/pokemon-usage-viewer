@@ -396,14 +396,33 @@ export function utilityTagVector(recommendedMoves, assumedAbility = null) {
 // role's weight, scaled by hit rate. Saturated by the caller. (The weighted
 // scalar is a JUDGEMENT — used by utility_q scoring, never by dominance
 // pruning, which must stay weight-free.)
-export function utilityValue(recommendedMoves) {
+// The moves whose area-altering effect a duration-extender item prolongs.
+export const FIELD_SETTING_MOVE_IDS = new Set([
+  "electricterrain",
+  "grassyterrain",
+  "mistyterrain",
+  "psychicterrain",
+]);
+
+export function utilityValue(recommendedMoves, fieldExtenderOwned = false) {
   let total = 0;
   for (const move of recommendedMoves || []) {
     let best = 0;
     for (const role of move.roles || []) {
       best = Math.max(best, ROLE_WEIGHTS[role] || 0);
     }
-    if (best > 0) total += best * ((move.accuracy ?? 100) / 100);
+    if (best > 0) {
+      let value = best * ((move.accuracy ?? 100) / 100);
+      // Field-extender bonus (Amplifield Rock): the holder's field-setting
+      // move runs 8 turns instead of 5. Applies ONLY to items outside the
+      // usage prior's universe — mainline extenders (Light Clay, Terrain
+      // Extender) are already priced into their holders' usage ranks, and
+      // an explicit bonus there would double-count.
+      if (fieldExtenderOwned && FIELD_SETTING_MOVE_IDS.has(move.id)) {
+        value *= 1 + tunable("FIELD_EXTENDER_UTILITY_BONUS");
+      }
+      total += value;
+    }
   }
   return total;
 }
@@ -521,7 +540,10 @@ export function currentFormFeatures(profile, levelCap) {
   // status, so an annoying baby's Sweet Kiss / Charm doesn't read as support.
   // A 75%-accurate move is discounted vs reliable ones.
   const utility_q = clamp01(
-    utilityValue(profile?.recommendedMoves) / tunable("UTILITY_SATURATION"),
+    utilityValue(
+      profile?.recommendedMoves,
+      Boolean(profile?.fieldExtenderOwned),
+    ) / tunable("UTILITY_SATURATION"),
   );
   // Acting first is its own route to delivering support: it does not need the
   // user's base Speed or bulk to stand in as a proxy for whether the move gets

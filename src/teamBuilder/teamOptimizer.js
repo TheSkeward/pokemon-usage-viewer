@@ -187,7 +187,11 @@ const MAX_RESULT_CACHE = 400;
 // v37: the additive role routes (specialist bulk, tempo, priority utility)
 // saturate through a soft knee instead of a hard clamp at 1, so elite roles
 // stay ordered instead of tying at C = 2000. Sub-knee scores are unchanged.
-const RESULT_CACHE_VERSION = "37";
+// v38: field-extender bonus (Amplifield Rock): owning the Reborn-original
+// duration extender scales a build's field-setting move's utility
+// contribution by the measured borrowed-prior coefficient. Scores change
+// only for progressions that own the item.
+const RESULT_CACHE_VERSION = "38";
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
@@ -1209,6 +1213,8 @@ async function resolveCandidateBuilds({
       buildFriction,
       opponentTypeBias: progression.opponentTypeBias,
       movePreference,
+      fieldExtenderOwned:
+        ((progression.ownedItems || {}).amplifieldrock || 0) > 0,
       // Score what the player is shown: the default/delayed builds anchor on
       // canonical usage + the stitched move rank. Coverage/utility variants
       // stay damage-/role-led alternatives.

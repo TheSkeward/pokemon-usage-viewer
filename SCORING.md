@@ -214,6 +214,27 @@ evolution to learn a move remains an in-run strength cost.
 Usage and presentation metadata may break exact ties, but no boolean usage rule
 may override `V`.
 
+### Borrowed priors for fangame-original items
+
+A fangame-original item (Reborn's Amplifield Rock; Rejuvenation's crests
+later) can never appear in the competitive usage data, so its value must be
+measured by analogy: find the nearest mainline mechanic, measure how the
+scene prices it, and transfer the coefficient.
+
+The Amplifield Rock (holder's field-setting moves last 8 turns instead of 5)
+borrows from Light Clay — the same duration-extender mechanic for screens.
+Measured rawCount-weighted conditional propensity of Light Clay given screens
+usage: ≈ 0.77–0.8 across 17 gen 7 mons (dedicated setters 0.9+). Owning the
+rock scales a build's field-setting move's utility contribution by
+`1 + (8/5 − 1) × propensity` (`FIELD_EXTENDER_UTILITY_BONUS ≈ 0.48`), and the
+item recommender injects it as a candidate weighted by
+`propensity × setter-move share`.
+
+The doctrine, and its guard against double counting: **borrowed-prior bonuses
+apply only to items the usage prior cannot see.** Mainline extenders (Light
+Clay, Terrain Extender) get no explicit bonus — their value is already
+embodied in their holders' usage ranks.
+
 ## Team value
 
 Team selection starts with the sum of member values and adds team-fit terms:

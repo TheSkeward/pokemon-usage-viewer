@@ -67,6 +67,16 @@ export const SCORING_DEFAULTS = Object.freeze({
   // reliably first nor able to absorb the reply, apply a small bounded access
   // discount. A complete speed or effective-bulk axis removes the discount.
   FAST_ATTACKER_FRAILTY_WEIGHT: 0.03,
+  // Field-extender bonus for fangame-original duration extenders (Amplifield
+  // Rock): the holder's field-setting move's utility contribution scales by
+  // (1 + this). MEASURED, not invented: duration headroom (8/5 − 1 = 0.6) ×
+  // the rawCount-weighted conditional propensity of the nearest mainline
+  // analog — Light Clay held given screens usage ≈ 0.77–0.8 across 17 gen7
+  // mons (dedicated setters 0.9+); the direct Terrain Extender analog is
+  // data-starved because gen7 terrain comes from Surge abilities, not the
+  // move. Doctrine: applies ONLY to items the usage prior cannot see —
+  // mainline extenders are already priced into their holders' ranks.
+  FIELD_EXTENDER_UTILITY_BONUS: 0.48,
   REACHABLE_BLEND: 0.5, // speed/bulk percentiles: global vs reachable-at-cap
   DAMAGE_SOFT_RATE: 1.2, // soft saturation rate of damage_q
   NON_PASSIVE_FLOOR: 0.25, // peak damage_q that fully unlocks utility roles

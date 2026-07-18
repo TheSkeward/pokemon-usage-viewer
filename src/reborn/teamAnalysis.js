@@ -28,7 +28,10 @@ import { teamMemberKey } from "../teamBuilder/itemRecommendations.js";
 import { toId } from "../utils/ids.js";
 import { MAX_OPPONENT_TYPE_BIAS } from "./progression.js";
 import { getItemDamageMultiplier } from "./itemDamage.js";
-import { stageReferenceDamage } from "../teamBuilder/currentFormValue.js";
+import {
+  FIELD_SETTING_MOVE_IDS,
+  stageReferenceDamage,
+} from "../teamBuilder/currentFormValue.js";
 import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
 
 export { REBORN_ANALYSIS_TYPES };
@@ -198,6 +201,7 @@ async function buildMemberLegalMoveEntry({
     heldItem,
     ability: topSet.ability,
     opponentTypeBias: progression.opponentTypeBias,
+    fieldExtenderOwned: ((progression.ownedItems || {}).amplifieldrock || 0) > 0,
   });
   profile.fieldedId = currentSpecies?.id || member.id;
   profile.fieldedName = currentSpecies?.name || member.name;
@@ -397,9 +401,23 @@ export async function getTeamItemContext(
           .filter((move) => isDamagingMove(move) && !isFixedDamageMove(move.id))
           .map((move) => move.type),
       );
+      // Field-extender pairing: the best canonical usage share among the
+      // member's recommended field-setting moves (as a 0-1 fraction), floored
+      // at 0.15 when the build carries the move without canonical backing —
+      // the move is in the set either way, so the extender is never useless.
+      const fieldMoves = (entry.profile.recommendedMoves || []).filter((move) =>
+        FIELD_SETTING_MOVE_IDS.has(move.id),
+      );
+      const canonicalShare = Math.max(
+        0,
+        ...fieldMoves.map((move) => (entry.topSet?.moveUsage?.get(move.id) || 0) / 100),
+      );
       byMember.set(teamMemberKey(row), {
         damageTypes,
         unburden: toId(entry.topSet?.ability) === "unburden",
+        fieldSetterShare: fieldMoves.length
+          ? Math.max(canonicalShare, 0.15)
+          : 0,
       });
     }),
   );
@@ -421,6 +439,9 @@ export function buildCandidateLegalityProfile({
   evolution = null,
   buildFriction = 0,
   movePreference = "default",
+  // The player owns a field-extender item (Amplifield Rock) — scoring gives
+  // this build's field-setting move the borrowed-prior utility bonus.
+  fieldExtenderOwned = false,
 }) {
   // Carry the recommended held item AND the mon's competitive ability on the
   // member, so every damage estimate (display, ranking, bias, team scoring)
@@ -509,6 +530,7 @@ export function buildCandidateLegalityProfile({
     // actual caught mon's ability isn't known here, so this is "best obtainable,
     // noted", not a claim about legality.
     assumedAbility: ability || null,
+    fieldExtenderOwned: Boolean(fieldExtenderOwned),
     movePreference,
     // K for having reached this fielded form (evolution requirements) plus any
     // build friction (e.g. delayed-evolution moves), with the auditable proof.
