@@ -386,9 +386,11 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         label: eggSource.label || "Egg",
         detail: eggSource.detail || "Breeding chain",
         sourceTitle: eggSource.sourceTitle || eggSource.detail || "",
-        // The direct donor the chain fathers the move from — the analysis
-        // page's interim-donor guide keys on this.
+        // The direct donor the chain fathers the move from, and the level it
+        // must reach to learn the move itself (one-hop leveling routes only)
+        // — the analysis page's interim-donor guide keys on these.
         donorName: eggSource.donorName || null,
+        donorLevel: eggSource.donorLevel ?? null,
       });
     }
 

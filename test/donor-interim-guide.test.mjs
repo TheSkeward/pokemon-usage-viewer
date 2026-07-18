@@ -13,16 +13,17 @@ const { buildRebornTeamAnalysis, collectEggDonorRequests } = await import(
 const { progressionAt, loadShared } = await import("./helpers/harness.mjs");
 
 test("collectEggDonorRequests keys on egg-best moves and dedupes by donor", () => {
-  const eggSource = (donorName, detail) => ({
+  const eggSource = (donorName, detail, donorLevel = null) => ({
     kind: "egg",
     label: "Egg",
     detail,
     donorName,
+    donorLevel,
   });
   const profile = {
     recommendedMoves: [
       { name: "Spikes", availableSources: [eggSource("Sneasel", "@ 1")] },
-      { name: "Ice Shard", availableSources: [eggSource("Sneasel", "@ 8")] },
+      { name: "Ice Shard", availableSources: [eggSource("Sneasel", "@ 8", 8)] },
       // TM beats egg in source priority — must NOT request a donor.
       {
         name: "Protect",
@@ -36,8 +37,11 @@ test("collectEggDonorRequests keys on egg-best moves and dedupes by donor", () =
   assert.equal(requests.length, 1);
   assert.equal(requests[0].donorId, "sneasel");
   assert.deepEqual(
-    requests[0].moves.map((move) => move.name),
-    ["Spikes", "Ice Shard"],
+    requests[0].moves.map((move) => [move.name, move.donorLevel]),
+    [
+      ["Spikes", null],
+      ["Ice Shard", 8],
+    ],
   );
 });
 
@@ -80,6 +84,20 @@ test("analysis attaches donor guides with the donor's own interim moves", async 
       "guide carries the donor's own recommended interim moves",
     );
   }
+
+  // The donor's working life ends one level below the move it levels into
+  // (user: "if the interim donor is a Beedrill at level 32, the guide should
+  // assume that he's 31"). Sneasel learns Ice Shard at 47, so its guide is
+  // pinned at 46 — and the donated move itself never appears as an interim
+  // move, because the donor retires the moment it learns it.
+  const sneasel = guides.find((guide) => guide.donorId === "sneasel");
+  assert.ok(sneasel, "Sneasel donates Ice Shard in this pool");
+  assert.equal(sneasel.interimLevelCap, 46);
+  assert.equal(sneasel.interimCapped, true);
+  assert.ok(
+    !sneasel.moves.some((move) => move.name === "Ice Shard"),
+    "the donated move is above the donor's working cap",
+  );
   // The guides are display data only: they hang off the profile and never
   // touch the member objects that feed coverage/scoring.
   for (const member of analysis.members) {

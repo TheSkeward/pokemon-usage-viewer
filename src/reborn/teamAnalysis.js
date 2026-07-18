@@ -249,6 +249,7 @@ export function collectEggDonorRequests(profile) {
     byDonor.get(donorId).moves.push({
       name: move.name,
       detail: best.detail || "",
+      donorLevel: Number.isFinite(best.donorLevel) ? best.donorLevel : null,
     });
   }
   return [...byDonor.values()];
@@ -267,12 +268,19 @@ async function attachDonorInterimGuides({
   selection,
 }) {
   const guideCache = new Map();
+  const globalCap = Number.parseInt(progression.levelCap, 10) || 100;
 
-  const buildGuide = async ({ donorId, donorName }) => {
+  const buildGuide = async ({ donorId, donorName, interimLevelCap }) => {
     try {
       const entry = await buildMemberLegalMoveEntry({
         row: { pokemonId: donorId, name: donorName, inputName: donorName },
-        progression,
+        // The donor's guide is evaluated at ITS working cap, not the badge
+        // cap: the donor retires the moment it levels into the last move
+        // it's donating, so its active life tops out one level below that
+        // (user: a Beedrill that learns Pin Missile at 32 is guided as a
+        // level-31 Beedrill — and Pin Missile itself never shows as one of
+        // its interim moves).
+        progression: { ...progression, levelCap: String(interimLevelCap) },
         breedingContext,
         family,
         selection,
@@ -280,6 +288,8 @@ async function attachDonorInterimGuides({
       return {
         donorId,
         donorName,
+        interimLevelCap,
+        interimCapped: interimLevelCap < globalCap,
         fieldedId: entry.profile.fieldedId || entry.member.id,
         fieldedName: entry.profile.fieldedName || entry.member.name,
         moves: (entry.profile.recommendedMoves || []).map((move) => ({
@@ -305,10 +315,21 @@ async function attachDonorInterimGuides({
 
     const guides = [];
     for (const request of requests) {
-      if (!guideCache.has(request.donorId)) {
-        guideCache.set(request.donorId, buildGuide(request));
+      // The donor serves until it has learned EVERY move it's donating to
+      // this member, so its working cap is one below the highest of those
+      // acquisition levels (bounded by the badge cap; donors with no
+      // leveling window — multi-hop or TM routes — keep the badge cap).
+      const donorLevels = request.moves
+        .map((move) => move.donorLevel)
+        .filter((level) => Number.isFinite(level) && level > 1);
+      const interimLevelCap = donorLevels.length
+        ? Math.max(1, Math.min(globalCap, Math.max(...donorLevels) - 1))
+        : globalCap;
+      const cacheKey = `${request.donorId}@${interimLevelCap}`;
+      if (!guideCache.has(cacheKey)) {
+        guideCache.set(cacheKey, buildGuide({ ...request, interimLevelCap }));
       }
-      const guide = await guideCache.get(request.donorId);
+      const guide = await guideCache.get(cacheKey);
       if (guide) guides.push({ ...guide, forMoves: request.moves });
     }
     if (guides.length) entry.profile.donorInterimGuides = guides;

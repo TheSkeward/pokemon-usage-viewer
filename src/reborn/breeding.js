@@ -176,6 +176,18 @@ export async function buildRebornBreedingContext({
         label: "Egg",
         detail,
         donorName: best.path[best.path.length - 1],
+        // The level the DIRECT donor must reach before it can pass this move
+        // on — present only for one-hop chains where the fielded donor is the
+        // root learner via a leveling route. Multi-hop donors hatch already
+        // holding the move, and TM routes have no leveling window, so neither
+        // caps the donor's working life. Drives the interim-donor guide.
+        donorLevel:
+          best.hops === 1 &&
+          /^(evo)?@/.test(best.how || "") &&
+          Number.isFinite(best.level) &&
+          best.level > 1
+            ? best.level
+            : null,
         sourceTitle: formatBreedingSourceTitle({
           detail,
           moveName: move?.name || moveId,

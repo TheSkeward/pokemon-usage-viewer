@@ -370,12 +370,15 @@ function renderDonorInterimGuides(guides) {
         guide.fieldedName && guide.fieldedName !== guide.donorName
           ? ` (field ${guide.fieldedName} for now)`
           : "";
+      // The donor retires when it levels into its last donated move, so its
+      // guide is pinned one level below that — say so in the header.
+      const capNote = guide.interimCapped ? ` ≤ Lv ${guide.interimLevelCap}` : "";
 
       return `
         <details class="team-set-donor">
           <summary title="${escapeAttr(chainTip)}"><small>Interim donor: ${escapeHtml(
             guide.donorName,
-          )}${escapeHtml(fieldedNote)} — supplies ${escapeHtml(forText)}</small></summary>
+          )}${escapeHtml(capNote)}${escapeHtml(fieldedNote)} — supplies ${escapeHtml(forText)}</small></summary>
           <div class="team-set-moves">
             ${
               guide.moves.length
