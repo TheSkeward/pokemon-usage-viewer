@@ -178,11 +178,10 @@ async function buildMemberLegalMoveEntry({
   if (assumedAbility !== topSet.ability) {
     topSet = { ...topSet, ability: assumedAbility };
   }
-  // A fully progression-legal observed set (a whole set someone actually ran)
-  // lends its spread+item as a coherent unit — the marginal top-spread/top-
-  // item assembly can mix components that never ran together. Placed before
-  // attackerStats so the displayed spread IS the damage-active spread. Moves
-  // stay scoring-anchored and ability stays the battle-form assumption.
+  // Observed real sets are CONTEXT ONLY (user ruling): the usage-marginal
+  // assembly stays the recommendation — real sets assume an unrestricted
+  // movepool, and adopting their spread/item would pair components with
+  // recommended moves they never ran beside.
   const observed = itemAware
     ? await selectObservedSet({
         family,
@@ -190,13 +189,6 @@ async function buildMemberLegalMoveEntry({
         legalMoveIds: new Set(moves.map((move) => move.id)),
       })
     : { adopt: null, context: null };
-  if (observed.adopt) {
-    topSet = {
-      ...topSet,
-      spread: observed.adopt.spread ?? topSet.spread,
-      item: observed.adopt.item ?? topSet.item,
-    };
-  }
   const attackerStats = getAttackingStats({
     pokemonId: member.id,
     levelCap: progression.levelCap,
