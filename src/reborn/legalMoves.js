@@ -180,7 +180,12 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
           entry.level > departureOf(entry.from) &&
           entry.level <= levelCap,
       )
-      .sort((a, b) => a.level - b.level);
+      // Least evolutionary delay first (user ruling): leveling a Staravia to
+      // 43 beats carrying a Starly to 37 — the later-arriving form wins even
+      // at a higher learn level, and level breaks ties within a form.
+      .sort(
+        (a, b) => arrivalOf(b.from) - arrivalOf(a.from) || a.level - b.level,
+      );
     // Below-arrival entries at level 2+ are reachable by Common Candy:
     // candy the form back below the level, then level up through it
     // (requires the form itself to be reachable at the cap). Level-1

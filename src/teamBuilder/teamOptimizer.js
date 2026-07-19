@@ -194,7 +194,10 @@ const MAX_RESULT_CACHE = 400;
 // v39: Belch is berry-gated — it counts as a damaging move only when the
 // holder carries a berry, so recommended sets and coverage change for
 // Belch carriers.
-const RESULT_CACHE_VERSION = "39";
+// v40: delayed-evolution routes prefer the least evolutionary delay
+// (Staravia@43 over Starly@37 at cap 45) — route labels and legality
+// proofs in persisted results change.
+const RESULT_CACHE_VERSION = "40";
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
