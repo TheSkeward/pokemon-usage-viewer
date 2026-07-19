@@ -191,7 +191,10 @@ const MAX_RESULT_CACHE = 400;
 // duration extender scales a build's field-setting move's utility
 // contribution by the measured borrowed-prior coefficient. Scores change
 // only for progressions that own the item.
-const RESULT_CACHE_VERSION = "38";
+// v39: Belch is berry-gated — it counts as a damaging move only when the
+// holder carries a berry, so recommended sets and coverage change for
+// Belch carriers.
+const RESULT_CACHE_VERSION = "39";
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.

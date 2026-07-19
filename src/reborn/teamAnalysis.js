@@ -453,7 +453,9 @@ export function buildCandidateLegalityProfile({
   const stats =
     attackerStats ||
     getAttackingStats({ pokemonId: member.id, levelCap });
-  const damagingMoves = moves.filter((move) => isUsableDamagingMove(move, moves));
+  const damagingMoves = moves.filter((move) =>
+    isUsableDamagingMove(move, moves, member.heldItem),
+  );
   const recommendedMoves = recommendCurrentMoves(
     member,
     moves,
@@ -909,6 +911,13 @@ const OPPONENT_SLEEP_MOVE_IDS = new Set([
   "spore", "sleeppowder", "hypnosis", "sing", "grasswhistle", "lovelykiss",
   "darkvoid", "yawn",
 ]);
+// Belch cannot be used until the user has EATEN a berry — without a held
+// berry it is not an attack at all (user report: Skuntank recommended Belch
+// with no berry). Every gen 7 berry id ends in "berry"; nothing else does.
+const BERRY_GATED_DAMAGING_MOVE_IDS = new Set(["belch"]);
+function isBerryHeldItem(itemName) {
+  return /berry$/.test(toId(itemName || ""));
+}
 
 function hasSelfSleepMove(moves) {
   return moves.some((move) => SELF_SLEEP_MOVE_IDS.has(move.id));
@@ -917,9 +926,10 @@ function hasOpponentSleepMove(moves) {
   return moves.some((move) => OPPONENT_SLEEP_MOVE_IDS.has(move.id));
 }
 
-// Like isDamagingMove, but accounts for moveset-conditional attacks (Snore,
-// Dream Eater).
-function isUsableDamagingMove(move, moves) {
+// Like isDamagingMove, but accounts for conditional attacks (Snore, Dream
+// Eater, Belch). A null heldItem (the item-blind prepass) fails the berry
+// gate — no berry known means Belch cannot be counted on.
+export function isUsableDamagingMove(move, moves, heldItem = null) {
   if (!isDamagingMove(move)) return false;
   if (
     SLEEP_GATED_DAMAGING_MOVE_IDS.has(move.id) &&
@@ -930,6 +940,12 @@ function isUsableDamagingMove(move, moves) {
   if (
     OPPONENT_SLEEP_GATED_DAMAGING_MOVE_IDS.has(move.id) &&
     !hasOpponentSleepMove(moves)
+  ) {
+    return false;
+  }
+  if (
+    BERRY_GATED_DAMAGING_MOVE_IDS.has(move.id) &&
+    !isBerryHeldItem(heldItem)
   ) {
     return false;
   }
@@ -1246,11 +1262,12 @@ function recommendCurrentMoves(
   // Set-conditional usability: the sleep context for Snore/Dream Eater is the
   // set being built, not the legal pool. Evaluated live as the set grows:
   // once Rest is selected, Snore becomes a real attack.
-  const usableInSet = (move) => isUsableDamagingMove(move, selected);
+  const usableInSet = (move) =>
+    isUsableDamagingMove(move, selected, member.heldItem);
   const usableDamaging = () =>
     decorated.filter((move) => usableInSet(move));
   const usableUtility = decorated.filter(
-    (move) => move.utility && isSelectableMove(move, selected),
+    (move) => move.utility && isSelectableMove(move, selected, member.heldItem),
   );
 
   const coveredTypes = new Set();
@@ -1303,7 +1320,7 @@ function recommendCurrentMoves(
       .map(([id]) => id);
     for (const id of canonicalIds) {
       const move = byId.get(id);
-      if (move && isSelectableMove(move, selected)) add(move);
+      if (move && isSelectableMove(move, selected, member.heldItem)) add(move);
     }
   }
 
@@ -1347,7 +1364,7 @@ function recommendCurrentMoves(
         (move) =>
           moveRank.has(move.id) &&
           !isSelected(move, selected) &&
-          isSelectableMove(move, selected),
+          isSelectableMove(move, selected, member.heldItem),
       )
       .sort((a, b) => moveRank.get(a.id) - moveRank.get(b.id))[0];
     if (add(byCompetitiveRank)) continue;
@@ -1367,8 +1384,10 @@ function isSelected(move, selected) {
 // canonical top-4 is otherwise deliberately NOT second-guessed: if the
 // meaningful tier's real sets run a move, the recommendation may too (a
 // canonical Rest earlier in usage order re-enables a canonical Snore).
-function isSelectableMove(move, sleepContext) {
-  return isDamagingMove(move) ? isUsableDamagingMove(move, sleepContext) : true;
+function isSelectableMove(move, sleepContext, heldItem = null) {
+  return isDamagingMove(move)
+    ? isUsableDamagingMove(move, sleepContext, heldItem)
+    : true;
 }
 
 // Highest-usage utility move not already chosen. Falls back to the static
