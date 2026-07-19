@@ -84,6 +84,15 @@ jobs:
       # src/generated, leaving the repo internally inconsistent after every
       # scheduled run until someone reconciled it by hand (the deployed site
       # was unaffected — build:site regenerates the manifest fresh).
+      # Appends to the committed team archives (scripts/teamscrape/archive)
+      # before refresh:data so build:observed-sets / build:core-index see the
+      # new teams. Scrape failures must not block the data refresh or deploy —
+      # the ladders can be quiet and the hosts can be down.
+      - name: Harvest competitive teams
+        if: github.event_name == 'schedule' || github.event.inputs.refresh_data == 'true'
+        continue-on-error: true
+        run: npm run scrape:teams
+
       - name: Refresh data
         if: github.event_name == 'schedule' || github.event.inputs.refresh_data == 'true'
         run: npm run refresh:data && npm run build:manifest
@@ -93,7 +102,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site-data/data src/generated
+          git add site-data/data src/generated scripts/teamscrape/archive
           git diff --cached --quiet || git commit -m "Refresh generated Smogon data"
           git push || true
 

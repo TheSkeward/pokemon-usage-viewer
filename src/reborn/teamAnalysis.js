@@ -25,6 +25,7 @@ import {
 import { loadTopSet } from "./topSpread.js";
 import { computeSetReadiness } from "./setReadiness.js";
 import { teamMemberKey } from "../teamBuilder/itemRecommendations.js";
+import { selectObservedSet } from "../teamBuilder/observedSets.js";
 import { toId } from "../utils/ids.js";
 import { MAX_OPPONENT_TYPE_BIAS } from "./progression.js";
 import { getItemDamageMultiplier } from "./itemDamage.js";
@@ -177,6 +178,25 @@ async function buildMemberLegalMoveEntry({
   if (assumedAbility !== topSet.ability) {
     topSet = { ...topSet, ability: assumedAbility };
   }
+  // A fully progression-legal observed set (a whole set someone actually ran)
+  // lends its spread+item as a coherent unit — the marginal top-spread/top-
+  // item assembly can mix components that never ran together. Placed before
+  // attackerStats so the displayed spread IS the damage-active spread. Moves
+  // stay scoring-anchored and ability stays the battle-form assumption.
+  const observed = itemAware
+    ? await selectObservedSet({
+        family,
+        candidateIds: [member.representativeId, member.id, megaBaseId],
+        legalMoveIds: new Set(moves.map((move) => move.id)),
+      })
+    : { adopt: null, context: null };
+  if (observed.adopt) {
+    topSet = {
+      ...topSet,
+      spread: observed.adopt.spread ?? topSet.spread,
+      item: observed.adopt.item ?? topSet.item,
+    };
+  }
   const attackerStats = getAttackingStats({
     pokemonId: member.id,
     levelCap: progression.levelCap,
@@ -220,6 +240,9 @@ async function buildMemberLegalMoveEntry({
     topSet,
     progression: memberProgression,
   });
+  // Labeled context, not a recommendation: the most-run real set regardless
+  // of current legality, for the panel/export layers to surface.
+  profile.observedSet = observed.context;
 
   return { member, moves, profile, topSet, row };
 }
