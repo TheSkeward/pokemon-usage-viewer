@@ -45,6 +45,7 @@ export function normalizeSampleTeam({ pasteId, formatId, thread, sets }) {
     id: pasteId,
     format: formatId,
     thread,
+    source: "sample",
     sets: sets.map((set) => ({
       species: set.species,
       speciesId: toTeamSheetId(set.speciesId),

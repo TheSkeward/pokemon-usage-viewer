@@ -62,8 +62,16 @@ export function buildObservedSetIndex(teams) {
       const buckets = perMon.get(set.speciesId) || new Map();
       perMon.set(set.speciesId, buckets);
       const key = setKey(team.format, set);
-      const bucket = buckets.get(key) || { count: 0, formatId: team.format, set };
+      const bucket = buckets.get(key) || {
+        count: 0,
+        weight: 0,
+        formatId: team.format,
+        set,
+      };
       bucket.count += 1;
+      // Curated samples outrank RMT volume: same source-quality ladder as
+      // build-core-index (sample 3, rmt 1).
+      bucket.weight += team.source === "rmt" ? 1 : 3;
       buckets.set(key, bucket);
     }
   }
@@ -72,10 +80,11 @@ export function buildObservedSetIndex(teams) {
     const files = new Map();
     for (const [speciesId, buckets] of perMon) {
       const sets = [...buckets.values()]
-        .sort((a, b) => b.count - a.count)
+        .sort((a, b) => b.weight - a.weight)
         .slice(0, MAX_SETS_PER_MON)
-        .map(({ count, formatId, set }) => ({
+        .map(({ count, weight, formatId, set }) => ({
           count,
+          weight,
           formatId,
           species: set.species,
           item: set.item,
@@ -95,7 +104,10 @@ export function buildObservedSetIndex(teams) {
 }
 
 async function main() {
-  const teams = readArchive(ARCHIVE_DIR, "samples-");
+  const teams = [
+    ...readArchive(ARCHIVE_DIR, "samples-"),
+    ...readArchive(ARCHIVE_DIR, "rmt-"),
+  ];
   const byFamily = buildObservedSetIndex(teams);
   let written = 0;
   for (const [family, files] of byFamily) {

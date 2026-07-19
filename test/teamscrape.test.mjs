@@ -153,3 +153,45 @@ test("chooseObservedSet: adopts only fully-legal sets, always offers context", (
   assert.equal(context.count, 5); // context is the most-run set regardless
   assert.equal(chooseObservedSet(sets, new Set()).adopt, null);
 });
+
+const { htmlToText, extractThreadRows, extractFirstPostText } = await import(
+  "../scripts/scrape-rmt-teams.mjs"
+);
+
+test("rmt: listing rows carry prefixes, first post yields inline sets", () => {
+  const listing = `
+    <span class="label label--primary">SM OU</span>
+    <a href="/threads/my-cool-team.3651234/" data-preview-url="/threads/3651234/preview">My cool team</a>
+    <a href="/threads/unlabeled-thread.999/" data-preview-url="x">No prefix</a>`;
+  const rows = extractThreadRows(listing, "https://www.smogon.com/forums/");
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].prefix, "SM OU");
+  assert.equal(rows[0].threadId, "3651234");
+  assert.equal(rows[1].prefix, null);
+
+  const post = `<article class="message-body js-selectToQuote"><div class="bbWrapper">
+    Skuntank @ Black Sludge<br>Ability: Aftermath<br>Adamant Nature<br>- Crunch<br>- Poison Jab
+  </div></article>`;
+  const { sets } = parseShowdownTeam(extractFirstPostText(post));
+  assert.equal(sets.length, 1);
+  assert.equal(sets[0].speciesId, "skuntank");
+  assert.equal(htmlToText("a &amp; b<br>c"), "a & b\nc");
+});
+
+test("observed sets order by source weight: 1 sample outranks 2 rmt", () => {
+  const rmtSet = {
+    speciesId: "skuntank", species: "Skuntank", itemId: "choiceband",
+    item: "Choice Band", nature: "Adamant",
+    moves: ["Crunch"], moveIds: ["crunch"],
+  };
+  const byFamily = buildObservedSetIndex([
+    { format: "gen7ou", source: "rmt", sets: [rmtSet] },
+    { format: "gen7ou", source: "rmt", sets: [rmtSet] },
+    SAMPLE_TEAMS[0],
+  ]);
+  const sets = byFamily.get("singles").get("skuntank").sets;
+  assert.equal(sets[0].item, "Black Sludge"); // sample weight 3 > rmt 2×1
+  assert.equal(sets[0].weight, 3);
+  assert.equal(sets[1].weight, 2);
+  assert.equal(sets[1].count, 2);
+});

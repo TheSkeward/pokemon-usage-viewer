@@ -45,7 +45,7 @@ export function collectCompositions({ replays, samples }) {
     push(
       team.format,
       (team.sets || []).map((set) => set.speciesId).filter(Boolean),
-      SAMPLE_WEIGHT,
+      team.source === "rmt" ? 1 : SAMPLE_WEIGHT,
     );
   }
   return byFamily;
@@ -119,7 +119,10 @@ export function buildCoreIndex(compositions) {
 
 async function main() {
   const replays = readArchive(ARCHIVE_DIR, "replays-");
-  const samples = readArchive(ARCHIVE_DIR, "samples-");
+  const samples = [
+    ...readArchive(ARCHIVE_DIR, "samples-"),
+    ...readArchive(ARCHIVE_DIR, "rmt-"),
+  ];
   const byFamily = collectCompositions({ replays, samples });
   for (const [family, compositions] of byFamily) {
     const index = buildCoreIndex(compositions);
