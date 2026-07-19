@@ -71,7 +71,6 @@ function main() {
     // and utility items) is intentionally left out of the damage estimate.
   }
 
-  // Sanity-check the curated entries still describe what the dex says.
   const expect = (id, needle) => {
     const desc = dex.items.get(id).shortDesc || "";
     if (!desc.includes(needle)) {

@@ -393,7 +393,6 @@ export function getAttackingStats({ pokemonId, levelCap, spread }) {
     };
   }
 
-  // Without a known spread, additionally assume no speed investment.
   const physicalIsStronger = baseAtk >= baseSpa;
   return {
     level,

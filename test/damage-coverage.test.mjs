@@ -15,9 +15,8 @@ const waterPulse = {
 };
 
 test("estimateMoveDamage is NEUTRAL — it never applies target type effectiveness", () => {
-  // No defender/target is passed, so the returned number must be the same
-  // regardless of any target. The coverage vector multiplies effectiveness in
-  // separately; if estimateMoveDamage also did, matchups would double-count.
+  // The coverage vector multiplies effectiveness in separately; if
+  // estimateMoveDamage also did, matchups would double-count.
   const d = estimateMoveDamage({ ...waterPulse, attackerTypes: ["Water"] });
   const intoFire = d * getTypeMultiplier("Water", ["Fire"]);
   const intoWater = d * getTypeMultiplier("Water", ["Water"]);
@@ -130,7 +129,6 @@ test("Super Fang halves a typical body at the level; flat moves stay flat", asyn
   // Reference defender at 25: floor(171*25/100) + 25 + 10 = 77 HP → 39 (rounded).
   assert.equal(referenceHp(25), 77);
   assert.equal(fixedMoveDamage("superfang", 25), 39);
-  // Scales with level, unlike the old flat "90 BP" fiction.
   assert.ok(fixedMoveDamage("superfang", 75) > 2 * fixedMoveDamage("superfang", 25));
   assert.equal(fixedMoveDamage("dragonrage", 25), 40);
   assert.equal(fixedMoveDamage("sonicboom", 25), 20);

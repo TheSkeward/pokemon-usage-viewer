@@ -260,10 +260,9 @@ function normalizeSources(sources, preEvolutionLevels) {
     levelUp: [...new Set(sources.levelUp)].sort((a, b) => a - b),
   };
 
-  // Attributed entries { level, from }, deduped and sorted by level. The
-  // ancestor id lets legality judge each level against THAT form's own
-  // natural departure level, and lets the UI say which evolution a delayed
-  // move actually delays.
+  // Attributed entries { level, from }. The ancestor id lets legality judge
+  // each level against THAT form's own natural departure level, and lets the
+  // UI say which evolution a delayed move actually delays.
   const seen = new Set();
   const preEvolutionLevelUp = (preEvolutionLevels || [])
     .filter((entry) => {

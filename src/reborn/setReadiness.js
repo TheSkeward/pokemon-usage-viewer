@@ -174,7 +174,6 @@ export function computeSetReadiness({
     return { id, label, status: "later", detail: candidates[0].detail };
   });
 
-  // Item: owned now, scheduled at a timeline badge, or timing-unknown.
   const itemName = topSet?.item || null;
   const itemId = itemName ? toId(itemName) : "";
   let item = { name: itemName, status: "none", detail: "" };

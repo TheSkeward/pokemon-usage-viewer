@@ -140,7 +140,6 @@ async function buildFamily(family) {
     }
   }
 
-  // Weight-average, then symmetrize (mean of defined directions).
   const averaged = new Map();
   for (const [monId, record] of results) {
     const lifts = new Map();

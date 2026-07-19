@@ -32,8 +32,8 @@ export function writeStateToUrl(state) {
 
   // Only the pool view's own params belong in a pool URL. format/month drive
   // the usage browser and resolverMonth/... the resolver — writing them from
-  // the pool view (as this used to) just fossilized whatever the other views
-  // last showed into every shared link.
+  // the pool view would just fossilize whatever the other views last showed
+  // into every shared link.
   if (state.view !== 'pool') {
     params.set('format', state.format);
     params.set('month', state.month);

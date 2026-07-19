@@ -61,9 +61,6 @@ export function createPrecomputedSetDetailsLoader({
   async function loadPrecomputedSetDetail(pokemonId, requestGeneration) {
     try {
       const requestedSelection = getSelection();
-      // Smogon set details and the Reborn legal moveset are independent files;
-      // fetch both so the panel can list every legal move (with the unused ones
-      // appended to the tail) even when one source is missing.
       const [result, legalMoves] = await Promise.all([
         fetchSetDetailWithAllFallback({
           family: getFamily(),
@@ -148,9 +145,6 @@ export function describePrecomputedSetSource(source) {
         ? `${source.formatId} @ ${source.cutoff}`
         : "");
 
-  // The primary set is the CANONICAL set — sourced from the first tier the
-  // mon is meaningfully played in (its best trace tier below the bar), the
-  // same policy the team builder uses.
   const base = source?.primarySource ? `canonical tier ${tier}` : tier;
 
   if (fallback) {
@@ -200,10 +194,6 @@ async function fetchLegalMoves(pokemonId) {
   }
 }
 
-// Appends every Reborn-legal move that has no observed Smogon usage to the end
-// of the moves tail, so Set Lookup shows the full legal movepool. If there is no
-// Smogon detail at all, a minimal detail is synthesized so the legal list still
-// renders.
 function appendUnusedLegalMoves(detail, legalMoves, pokemonId) {
   const legal = legalMoves?.moves;
   if (!legal?.length) return detail;
@@ -226,8 +216,6 @@ function appendUnusedLegalMoves(detail, legalMoves, pokemonId) {
 
   const unusedMoves = legal
     .filter((move) => !usedMoveIds.has(move.id))
-    // Per-mon files carry only { id, sources }; rejoin each with its central
-    // metadata before reading name/type/category for display.
     .map(hydrateLegalMove)
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((move) => ({

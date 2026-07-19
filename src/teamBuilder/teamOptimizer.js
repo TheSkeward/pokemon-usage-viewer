@@ -605,7 +605,6 @@ async function resolvePoolLine({
   const abilityOverride =
     abilityAnnotations?.get(normalizeName(input.name)) || null;
 
-  // Pass 1: resolve every candidate form's usage bundle and builds.
   const prepared = await Promise.all(
     candidates.map(async (candidate) => {
       try {
@@ -679,7 +678,6 @@ async function resolvePoolLine({
       ),
   );
 
-  // Pass 2: score every build of every form under the line-anchored w.
   const scored = prepared.map(({ candidate, bundle, builds, error }) => {
     if (error || !builds) {
       return {
@@ -792,8 +790,6 @@ async function resolvePoolLine({
   const ranked = scored
     .filter((candidate) => Number.isFinite(candidate.score))
     .sort(compareScoredCandidates);
-  // True when any candidate died on an error (as opposed to being
-  // legitimately unscoreable).
   const degraded = scored.some((candidate) => candidate.error) || undefined;
 
   if (!ranked.length) {
@@ -902,8 +898,7 @@ function pruneDominatedBuilds(rows) {
     });
     if (!dominated || rows[b].buildKey === "default") kept.push(rows[b]);
   }
-  // Deterministic, value-free ordering: default first, then by mechanical
-  // richness (coverage mass), then friction.
+  // Deterministic, value-free ordering.
   const coverageMass = (row) =>
     (row.legalityProfile?.coverageVector || []).reduce((sum, v) => sum + v, 0);
   kept.sort(
@@ -1121,9 +1116,6 @@ async function resolveCandidateBuilds({
     types: legalMoveData?.types || [],
   };
   const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
-  // The DEFAULT build assumes the natural evolution path: moves that would
-  // require delaying an evolution are split into a friction-costed variant,
-  // never silently assumed.
   const naturalMoves = moves.filter((move) => !move.delayedEvolution);
   const delayedMoves = moves.filter((move) => move.delayedEvolution);
 
@@ -1210,9 +1202,6 @@ async function resolveCandidateBuilds({
       movePreference,
       fieldExtenderOwned:
         ((progression.ownedItems || {}).amplifieldrock || 0) > 0,
-      // Score what the player is shown: the default/delayed builds anchor on
-      // canonical usage + the stitched move rank. Coverage/utility variants
-      // stay damage-/role-led alternatives.
       ...(usageAnchored
         ? { moveUsage: topSet.moveUsage, moveRank: topSet.moveRank }
         : {}),
@@ -1281,8 +1270,6 @@ async function resolveCandidateBuilds({
       const usedDelayed = (delayedProfile.recommendedMoves || []).filter((move) =>
         delayedIds.has(move.id),
       );
-      // Only a distinct build if the set actually uses a delayed move; then it
-      // pays the delayed-evolution K and says which move required the delay.
       if (usedDelayed.length) {
         delayedProfile.frictionCost += tunable("DELAYED_EVO_FRICTION");
         delayedProfile.legalityProof.buildFriction = tunable("DELAYED_EVO_FRICTION");
@@ -1299,7 +1286,6 @@ async function resolveCandidateBuilds({
     }
   }
 
-  // Sensitivity probe: same default set, secondary ability.
   const sensitivityProbe =
     !fastMode && secondaryAbility
       ? makeProfile({

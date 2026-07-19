@@ -14,7 +14,7 @@ import { REBORN_SHOP_ITEM_BADGES } from "../src/generated/rebornItemTimeline.gen
 test("addRebornOwnedItems raises, clamps, and never lowers", () => {
   const base = { ownedItems: { leftovers: 2, choiceband: 6 } };
   const next = addRebornOwnedItems(base, {
-    leftovers: 6, // raise 2 -> 6
+    leftovers: 6,
     choiceband: 1, // must NOT lower an existing 6
     eviolite: 99, // clamps to the tracking cap
     "": 6, // ignored

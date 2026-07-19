@@ -214,8 +214,6 @@ async function buildMemberLegalMoveEntry({
     profile.legalityProof.battleForm = profile.currentId;
   }
 
-  // Display-only: how much of the represented form's competitive set is
-  // assemblable now, and the cap where it completes.
   profile.setReadiness = computeSetReadiness({
     legalMoveData,
     availableMoves: moves,
@@ -495,8 +493,6 @@ export function buildCandidateLegalityProfile({
   const superEffectiveTargetTypes = new Set();
 
   for (const move of recommendedDamagingMoves) {
-    // Fixed-damage moves are never super effective (they ignore effectiveness
-    // multipliers in-game), so they claim no super-effective targets.
     if (isFixedDamageMove(move.id)) continue;
     for (const defenseType of REBORN_ANALYSIS_TYPES) {
       if (getTypeMultiplier(move.type, [defenseType]) > 1) {
@@ -660,8 +656,6 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
     });
 
     for (const move of damagingMoves) {
-      // Fixed damage is typeless offense: it doesn't make the team "a Fighting
-      // attacker", and it can't be super effective.
       if (isFixedDamageMove(move.id)) continue;
       const estimatedDamage = move.estimatedDamage || 0;
 
@@ -912,8 +906,8 @@ const OPPONENT_SLEEP_MOVE_IDS = new Set([
   "darkvoid", "yawn",
 ]);
 // Belch cannot be used until the user has EATEN a berry — without a held
-// berry it is not an attack at all (user report: Skuntank recommended Belch
-// with no berry). Every gen 7 berry id ends in "berry"; nothing else does.
+// berry it is not an attack at all. Every gen 7 berry id ends in "berry";
+// nothing else does.
 const BERRY_GATED_DAMAGING_MOVE_IDS = new Set(["belch"]);
 function isBerryHeldItem(itemName) {
   return /berry$/.test(toId(itemName || ""));
@@ -1016,7 +1010,7 @@ function formatRecommendedMove(move, member, attackerStats) {
     sourceLabel: formatBestSource(move),
     sourceTitle: formatBestSourceTitle(move),
     superEffectiveTargetCount: isFixedDamageMove(move.id)
-      ? 0 // fixed damage is never super effective
+      ? 0
       : countSuperEffectiveTargets(move.type),
   };
 }
@@ -1093,13 +1087,9 @@ function getEstimatedDamage(move, member, attackerStats) {
 }
 
 function computeEstimatedDamage(move, member, attackerStats) {
-  // The type the move actually deals damage as under the set's ability
-  // (Pixilate Hyper Voice is Fairy). Feeds STAB, effectiveness, and the item
-  // layer — a type Gem boosts the CONVERTED move, matching the games.
+  // A type Gem boosts the CONVERTED move, matching the games.
   const effectiveType = getAbilityEffectiveMoveType(member.ability, move);
   const perHit = estimateMoveDamage({
-    // Fixed-damage moves (Seismic Toss, Super Fang, ...) are resolved by id
-    // inside the model at their REAL in-game damage for the attacker's level.
     moveId: move.id,
     // Scale base power by the move's effective-hit factor (multi-hit average,
     // recharge amortization, escalating-move weighting), so ranking and the
@@ -1117,13 +1107,8 @@ function computeEstimatedDamage(move, member, attackerStats) {
       category: move.category,
       pokemonId: member.id,
     }),
-    // Move-property-conditional ability boosts (Huge Power, Technician, Sheer
-    // Force, ...): computed from the RAW move so Technician's ≤60 BP gate sees
-    // per-hit power, not the effective-hit-scaled figure above.
     abilityMultiplier: getAbilityDamageMultiplier(member.ability, move),
     ability: member.ability,
-    // For variable-power formulas that read the user's own speed/weight
-    // (Electro Ball, Gyro Ball, Heavy Slam...).
     attackerId: member.id,
   });
   // Expected damage weights a hit by how often it lands, so an inaccurate nuke
@@ -1284,7 +1269,6 @@ function recommendCurrentMoves(
       return false;
     }
     selected.push(move);
-    // Fixed damage is typeless offense — it never claims a coverage type.
     if (usableInSet(move) && !isFixedDamageMove(move.id)) {
       coveredTypes.add(move.type);
     }
@@ -1345,7 +1329,7 @@ function recommendCurrentMoves(
       .filter(
         (move) =>
           !coveredTypes.has(move.type) &&
-          !isFixedDamageMove(move.id) && // typeless — can't add a fresh type
+          !isFixedDamageMove(move.id) &&
           !isSelected(move, selected),
       )
       .sort(compareByDamage)[0];
@@ -1439,7 +1423,7 @@ function decorateMove(
     ),
     sourcePriority: getBestSourcePriority(typed),
     superEffectiveTargetCount: isFixedDamageMove(typed.id)
-      ? 0 // fixed damage is never super effective
+      ? 0
       : countSuperEffectiveTargets(effectiveType),
     utilityWeight: UTILITY_MOVE_WEIGHTS[typed.id] || 0,
     usage: moveUsage.get(typed.id) || 0,

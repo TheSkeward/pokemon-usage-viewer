@@ -85,8 +85,6 @@ async function resolveAllPokemonUsage(availability, family) {
       if (!source?.pokemon) continue;
 
       for (const [pokemonId, entry] of Object.entries(source.pokemon)) {
-        // Keep descending until BOTH the headline tier and the first meaningful
-        // tier are known; only then can we stop tracking this mon.
         if (resolved[pokemonId] && ranking[pokemonId]) continue;
 
         const current = aggregate.get(pokemonId) || {
@@ -141,8 +139,8 @@ async function resolveAllPokemonUsage(availability, family) {
       }
 
       // Strict > keeps the earliest-traversal row on equal values, matching
-      // the first-meaningful convention. Tracked for every not-yet-ranked
-      // mon; rows for mons that later earn a ranking are dropped at emit.
+      // the first-meaningful convention. Rows for mons that later earn a
+      // ranking are dropped at emit.
       if (!ranking[pokemonId]) {
         const current = trace[pokemonId];
         if (!current || value > current.value) {

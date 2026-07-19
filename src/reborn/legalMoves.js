@@ -266,8 +266,6 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       // Legal, but flagged with the form being delayed: the default build
       // avoids it, and a build that uses it pays DELAYED_EVO_FRICTION.
       const best = delayedEntries[0];
-      // Terse by request: "Level 38 (Slakoth)" = requires keeping Slakoth
-      // unevolved to 38.
       const learner = best.from ? ancestorName(best.from) : "pre-evolution";
       sources.push({
         kind: "level-up",
@@ -286,7 +284,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
 
     // Relearner eligibility is judged INDEPENDENTLY of the branches above:
     // a candy-down or delayed pre-evo route must not swallow the zero-cost
-    // relearner option (as the last else-if it once did).
+    // relearner option.
     if (
       (hasRelearnerOnlyLevelOne || hasLevelOnePreEvoOnly || hasOwnBelowArrival) &&
       moveRelearnerUnlocked &&

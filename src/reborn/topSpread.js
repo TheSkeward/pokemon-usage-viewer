@@ -53,7 +53,6 @@ function moveUsageMap(entries) {
   for (const entry of entries) {
     if (typeof entry?.name !== "string" || typeof entry.usage !== "number") continue;
     const id = toMoveId(entry.name);
-    // Keep the highest usage if a name collapses to the same id (Hidden Power).
     if (!map.has(id) || entry.usage > map.get(id)) map.set(id, entry.usage);
   }
   return map;
@@ -66,7 +65,6 @@ function moveRankMap(entries) {
     const name = entries[index]?.name;
     if (typeof name !== "string") continue;
     const id = toMoveId(name);
-    // First occurrence wins — earlier in the stitch is higher priority.
     if (!map.has(id)) map.set(id, index);
   }
   return map;

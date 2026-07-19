@@ -275,22 +275,15 @@ export function mountPoolOptimizer(container, options = {}) {
 
       // First-class confidence + investment analysis, computed AFTER the team
       // renders so "click optimize" stays snappy; each re-renders when it lands
-      // (guarded against a newer optimize having replaced the result). The
-      // promise is retained so the NEXT optimize can request an abort and
-      // wait out the sweep's override window before it scores anything.
+      // (guarded against a newer optimize having replaced the result).
       activeAnalysis = runPostAnalysis(state.result, {
         pipelineStart,
         phases,
         totalMs,
-        // Background-triggered runs (page load, auto-reoptimize, import) must
-        // never PAY for post-analysis — see the deferral in runPostAnalysis.
         background,
-        // The Team Analysis (movesets) panel fills asynchronously — the sweep
-        // must not start until it's on screen (it starves the main thread).
         analysisPanelReady: handle?.analysisPanelReady || null,
       });
     } catch (error) {
-      // A superseded run's failure is the newer run's business, not the UI's.
       if (runToken !== optimizeRunToken) return;
       console.error("Team Builder optimization failed", error);
 
@@ -381,7 +374,6 @@ export function mountPoolOptimizer(container, options = {}) {
         }
       }
 
-      // From here on, the remaining work is optional and can be expensive.
       const confidenceStart = Date.now();
       const confidence = await computeTeamConfidence({
         result: forResult,
@@ -953,8 +945,6 @@ export function mountPoolOptimizer(container, options = {}) {
       .querySelector("#compute-post-analysis-button")
       ?.addEventListener("click", () => {
         if (!state.result || state.analysisPending) return;
-        // Tracked as activeAnalysis so the next optimize's abort handshake
-        // covers it like any other sweep.
         activeAnalysis = runPostAnalysis(state.result, null);
       });
 
@@ -1109,9 +1099,6 @@ export function mountPoolOptimizer(container, options = {}) {
       : "Held items could not be saved locally; browser storage is full.";
 
     recomputeItemRecommendations();
-    // Owned EVOLUTION items change optimizer output (they zero evolution
-    // friction), so inventory edits must also check staleness and schedule
-    // the re-optimize.
     const stale = markResultProgressionStale();
     render();
     if (message || stale) {

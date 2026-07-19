@@ -31,8 +31,7 @@ export function startUpdateNotifier() {
   // The data signature this page LOADED (whatever the CDN handed it at
   // startup). A deploy can refresh the bundle while the manifest lags in the
   // CDN cache — or ship new DATA under an unchanged bundle — so the bundle id
-  // alone misses data-only staleness (user report: no banner while the page
-  // ran a stale manifest and replayed a cache-era result).
+  // alone misses data-only staleness.
   const loadedSignature = getDataSignature();
 
   const check = async () => {

@@ -94,8 +94,7 @@ test("the rock is injected, weighted by setter share, and assigned to the setter
     ownedItems: { amplifieldrock: 1, leftovers: 1 },
     itemContext,
   });
-  // Setter's rock candidate weighs 0.8 × 0.5 = 0.4 > its Leftovers 0.3, so
-  // the rock goes to the setter and Leftovers to the other member.
+  // Setter's rock candidate weighs 0.8 × 0.5 = 0.4 > its Leftovers 0.3.
   assert.equal(assignments[setterKey]?.id, "amplifieldrock");
   assert.equal(assignments[teamMemberKey(other)]?.id, "leftovers");
   // A non-setter never gets the rock, even as a leftover fallback.

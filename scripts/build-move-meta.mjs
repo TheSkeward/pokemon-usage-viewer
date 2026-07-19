@@ -174,9 +174,6 @@ function main() {
       abilityFlags.secondary = 1;
     }
     if (Object.keys(abilityFlags).length) entry.flags = abilityFlags;
-    // Utility role kinds (recovery / setup / status / speed_control / hazards /
-    // screen / pivot / phazing / priority / disruption), so utility scoring can
-    // weight real team infrastructure above chip status.
     const roles = deriveRoles(move);
     if (roles.length) entry.roles = roles;
     const screen = screenFacts(move);

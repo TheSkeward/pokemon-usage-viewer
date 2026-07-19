@@ -259,9 +259,7 @@ function renderStandardRow(entry, index, sectionTitle, pokemonId = "") {
   `;
 }
 
-// Hover a spread for what it actually produces: the nature's +/− stats and
-// the final six-stat line at level 100 / 31 IVs (how Smogon spreads are
-// defined). Skipped when the species has no base-stat row.
+// Level 100 / 31 IVs is how Smogon spreads are defined.
 function spreadTooltip(spreadName, pokemonId) {
   const parsed = parseSpread(spreadName);
   if (!parsed || !pokemonId) return "";
@@ -317,14 +315,12 @@ function isLegalUnusedEntry(entry) {
   return entry.kind === "legal-unused";
 }
 
-// Entries shown below a divider (lower-confidence tail) get muted styling.
 function isTailEntry(entry) {
   return isAdditionalEntry(entry) || isLegalUnusedEntry(entry);
 }
 
-// Prefer the generated move table, but fall back to the type/category the entry
-// carries itself (legal-move entries always have them) so the badges still
-// render for moves missing from the table.
+// Legal-move entries always carry their own type/category, so the badges
+// still render for moves missing from the generated move table.
 function resolveMoveMeta(entry) {
   return (
     getMoveMeta(entry.name) ||

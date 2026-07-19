@@ -120,8 +120,6 @@ test("chain proof sums friction with per-step reasons", () => {
 
 test("chain proof stops at the input form: owned evolutions are already paid", () => {
   withPricedFriction(() => {
-    // An input Chansey owes only Chansey → Blissey; an input Blissey owes
-    // nothing at all. Only steps ABOVE the owned form are pending.
     const fromChansey = evolutionChainProof("blissey", null, "chansey");
     assert.equal(fromChansey.steps.length, 1);
     assert.equal(fromChansey.steps[0].method, "friendship");

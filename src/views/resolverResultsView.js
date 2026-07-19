@@ -67,8 +67,6 @@ function getRepresentativeNote(row) {
   return parts.join(" · ");
 }
 
-// The canonical tier is the row's headline verdict — the same sourcing the
-// team builder uses (first meaningful tier; best trace tier below the bar).
 // The shallowest tier of ANY appearance must stay a demoted fallback line,
 // never the headline.
 function canonicalTierOf(bundle) {
