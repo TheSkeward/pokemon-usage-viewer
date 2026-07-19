@@ -827,9 +827,6 @@ export function mountPoolOptimizer(container, options = {}) {
           app.querySelector("[data-item-add-count]")?.value,
           10,
         ) || MAX_TRACKED_ITEM_COUNT;
-      // Manual add INCREMENTS (adding 1x to an owned 1x makes 2x) — unlike
-      // the shop sync, whose raise-to-count semantics keep re-syncs from
-      // double-counting the same shop stock.
       const current = state.progression.ownedItems?.[itemId] || 0;
       applyOwnedItemChange(
         itemId,
