@@ -19,11 +19,20 @@ export default [
     },
     rules: {
       "@stylistic/indent": ["error", 2],
-      "@stylistic/quotes": ["error", "single", { avoidEscape: true, allowTemplateLiterals: true }],
+      "@stylistic/quotes": ["error", "single", { avoidEscape: true, allowTemplateLiterals: "always" }],
       "@stylistic/semi": ["error", "always"],
       "@stylistic/brace-style": ["error", "1tbs"],
       "@stylistic/comma-dangle": ["error", "always-multiline"],
-      "@stylistic/max-len": ["warn", { code: 80, ignoreUrls: true, ignoreTemplateLiterals: true, ignoreStrings: true }],
+      // 80 columns per jsguide 4.4, with its listed exceptions: module
+      // import/export statements, URLs, and string/template literals that
+      // cannot reasonably be split (the view HTML templates).
+      "@stylistic/max-len": ["error", {
+        code: 80,
+        ignoreUrls: true,
+        ignorePattern: "^\\s*(import[\\s\\{]|export\\s.*from|\\} from)",
+        ignoreTemplateLiterals: true,
+        ignoreStrings: true,
+      }],
       "no-var": "error",
       "prefer-const": "error",
       camelcase: ["error", { properties: "never" }],
