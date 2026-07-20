@@ -132,15 +132,15 @@ export function mountPoolOptimizer(container, options = {}) {
   });
 
   async function init() {
+    // Manifest FIRST: loading it sets the data-version tag, so every fetch
+    // below carries ?v=<dataSignature> and can't be served from a previous
+    // deploy's CDN cache. Also the debug footer's provenance.
+    state.manifest = await loadManifest();
     [formatsIndex, availability, pokemonIndex] = await Promise.all([
       loadFormatsIndex(),
       loadAvailability(),
       loadPokemonIndex(),
     ]);
-    // Provenance for the debug footer (which data produced these verdicts).
-    loadManifest().then((manifest) => {
-      state.manifest = manifest;
-    });
 
     if (initialQuery.trim()) {
       savePool(initialQuery);

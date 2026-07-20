@@ -3,12 +3,21 @@
 // which Reborn/data/scoring versions produced a recommendation.
 import { dataUrl } from "./utils/dataUrl.js";
 
+import { setDataVersionTag } from "./utils/dataUrl.js";
+
 let manifestPromise = null;
 
 export function loadManifest() {
   if (!manifestPromise) {
-    manifestPromise = fetch(dataUrl("manifest.json"))
+    // no-store: the manifest is the freshness root — reading a CDN-stale
+    // manifest would version every data fetch with the OLD signature and
+    // pin the whole session to stale data (the Mawile incident).
+    manifestPromise = fetch(dataUrl("manifest.json"), { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
+      .then((manifest) => {
+        if (manifest?.dataSignature) setDataVersionTag(manifest.dataSignature);
+        return manifest;
+      })
       .catch(() => null);
   }
   return manifestPromise;

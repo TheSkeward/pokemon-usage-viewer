@@ -1586,3 +1586,21 @@ input {
     grid-column: 1 / -1;
   }
 }
+
+/* Swap-audit callout: visible verdict above the team table when the audit
+   repaired the team or could not run. Deliberately a banner, not a popup. */
+.audit-callout {
+  margin: 0.6rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid;
+  border-radius: 4px;
+  font-size: 0.92em;
+}
+.audit-callout--info {
+  border-color: #4f8cc9;
+  background: color-mix(in srgb, #4f8cc9 12%, transparent);
+}
+.audit-callout--warn {
+  border-color: #c9974f;
+  background: color-mix(in srgb, #c9974f 14%, transparent);
+}

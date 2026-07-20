@@ -1,4 +1,8 @@
 import { escapeHtml, escapeAttr } from "../utils/html.js";
+
+// vite `define` stamps the deployed commit; the guard covers dev runs.
+const RUNNING_BUILD_ID =
+  typeof __BUILD_ID__ !== "undefined" ? String(__BUILD_ID__) : "dev";
 import { gamesToLikelySee } from "./traceUsage.js";
 import { renderMovesetPanel } from "../views/movesetView";
 import { renderRebornLegalMovesPanel } from "../reborn/legalMovesView";
@@ -314,6 +318,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
         </div>
         <button type="button" class="view-tab" data-copy-pokepaste title="Copies once the Team Analysis below has finished loading">Copy team as poképaste</button>
       </div>
+      ${renderSwapAuditCallout(result)}
 
       <div class="table-wrap">
         <table class="usage-table">
@@ -583,11 +588,41 @@ function renderProvenanceFooter(manifest, result) {
         Data: Reborn ${escapeHtml(manifest?.rebornVersion || "?")} ·
         scoring ${escapeHtml(manifest?.scoringVersion || "?")} ·
         signature ${escapeHtml(manifest?.dataSignature || "?")} ·
-        built ${escapeHtml((manifest?.generatedAt || "").slice(0, 10))}${timingText}${renderSwapAuditText(result?.searchPolish)}
+        built ${escapeHtml((manifest?.generatedAt || "").slice(0, 10))} ·
+        build ${escapeHtml(RUNNING_BUILD_ID.slice(0, 7))}${timingText}${renderSwapAuditText(result?.searchPolish)}
       </p>
       ${renderTelemetryDetails()}
     </section>
   `;
+}
+
+// The two UNHEALTHY swap-audit outcomes get a visible callout above the team
+// table (user ask: not a popup, not footer small-text). The healthy cases —
+// exact search, or audit ran and held — stay footer-only.
+function renderSwapAuditCallout(result) {
+  const swaps = result?.searchPolish?.swaps || [];
+  if (swaps.length) {
+    const detail = swaps
+      .map((swap) => `${swap.out?.name || swap.out} → ${swap.in?.name || swap.in}`)
+      .join(", ");
+    return `
+      <p class="audit-callout audit-callout--info">
+        The quick search seated ${swaps.length === 1 ? "a beatable pick" : `${swaps.length} beatable picks`};
+        the full-pool swap audit corrected this team before display
+        (${escapeHtml(detail)}). The table below is the corrected team.
+      </p>
+    `;
+  }
+  if (result && result.searchExact === false && !result.searchPolish) {
+    return `
+      <p class="audit-callout audit-callout--warn">
+        This team came from the approximate (shortlist) search and its
+        full-pool swap audit did not run — seats may be beatable. Click
+        Optimize to re-run with the audit.
+      </p>
+    `;
+  }
+  return "";
 }
 
 // The swap audit's verdict, including the healthy case: "shortlist held" is
