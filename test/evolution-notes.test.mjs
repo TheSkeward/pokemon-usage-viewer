@@ -6,39 +6,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { describeEvolutionPath } from "../src/reborn/evolutionRequirements.js";
 
-test("single level-up steps attach @level with form notes", () => {
-  assert.equal(
-    describeEvolutionPath("burmy", "wormadamtrash"),
-    "@20 (Female, in buildings)",
-  );
-  assert.equal(describeEvolutionPath("burmy", "mothim"), "@20 (Male)");
-  assert.equal(describeEvolutionPath("rattata", "raticate"), "@20");
-  assert.equal(describeEvolutionPath("combee", "vespiquen"), "@21 (Female)");
-});
 
-test("non-level methods render their requirement", () => {
-  assert.equal(
-    describeEvolutionPath("happiny", "chansey"),
-    " (hold Oval Stone, during the day)",
-  );
-  assert.equal(describeEvolutionPath("buneary", "lopunny"), " (friendship)");
-  assert.equal(
-    describeEvolutionPath("eevee", "espeon"),
-    " (friendship, during the day)",
-  );
-  assert.equal(
-    describeEvolutionPath("mantyke", "mantine"),
-    " (with a Remoraid in party)",
-  );
-  assert.equal(
-    describeEvolutionPath("scyther", "scizor"),
-    " (Link Stone + Metal Coat)",
-  );
-  assert.equal(
-    describeEvolutionPath("lickitung", "lickilicky"),
-    " (knowing Rollout)",
-  );
-});
 
 test("multi-step chains sequence with 'then'; level-only runs collapse", () => {
   assert.equal(

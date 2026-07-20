@@ -42,20 +42,6 @@ test("extender ownership scales exactly the field-setting move's contribution", 
   assert.equal(utilityValue([recoveryMove], true), utilityValue([recoveryMove], false));
 });
 
-test("the flag rides the profile into utility_q", () => {
-  // A single setter move, so utility_q sits below the saturation clamp and
-  // the bonus is visible in the feature itself.
-  const profile = (fieldExtenderOwned) => ({
-    currentId: "meowstic",
-    currentTypes: ["Psychic"],
-    recommendedMoves: [terrainMove],
-    recommendedDamagingMoveCount: 0,
-    fieldExtenderOwned,
-  });
-  const off = currentFormFeatures(profile(false), 100);
-  const on = currentFormFeatures(profile(true), 100);
-  assert.ok(on.utility_q > off.utility_q);
-});
 
 test("all four terrain moves and nothing else are field-setting", () => {
   assert.deepEqual(

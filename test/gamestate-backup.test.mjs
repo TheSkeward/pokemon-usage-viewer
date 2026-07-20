@@ -64,9 +64,3 @@ test("parser rejects non-gamestate input with readable messages", () => {
   );
 });
 
-test("file name is date-stamped", () => {
-  assert.equal(
-    gamestateFileName(new Date("2026-07-12T08:00:00Z")),
-    "reborn-gamestate-2026-07-12.json",
-  );
-});

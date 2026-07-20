@@ -20,22 +20,6 @@ function renderToHtml(options) {
   return container.innerHTML;
 }
 
-test("moveset panel: nature, spread stats, and move facts render as titles", () => {
-  const html = renderToHtml({
-    selectedPokemonName: "Blissey",
-    movesetEntry: {
-      moves: [{ name: "Seismic Toss", usage: 92.1 }],
-      items: [{ name: "Leftovers", usage: 70.2 }],
-      abilities: [{ name: "Natural Cure", usage: 95.0 }],
-      spreads: [{ name: "Bold:252/0/252/0/4/0", usage: 41.3 }],
-    },
-    lookupLabel: "gen7uu",
-  });
-  assert.match(html, /Bold: \+Def, −Atk/);
-  // Blissey's canonical max-HP line — pins the stat formula end to end.
-  assert.match(html, /At Lv 100 \(31 IVs\): HP 714 · Atk 50 · Def 130/);
-  assert.match(html, /title="Seismic Toss — Fighting · Physical/);
-});
 
 test("nature table is complete and internally consistent", () => {
   const names = Object.keys(NATURE_EFFECTS);

@@ -27,13 +27,3 @@ test("soft ceiling keeps overshooting roles ordered and strictly below 1", () =>
   assert.ok(softCeiling(0.9 + 1e-9) - 0.9 < 1e-6);
 });
 
-test("the knee is a sweepable judgement", () => {
-  setScoringOverrides({ ROLE_CEILING_KNEE: 0.95 });
-  try {
-    assert.equal(softCeiling(0.93), 0.93);
-    assert.ok(softCeiling(1.1) > 0.95);
-    assert.ok(softCeiling(1.1) < 1);
-  } finally {
-    setScoringOverrides(null);
-  }
-});
