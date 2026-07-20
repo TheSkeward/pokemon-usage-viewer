@@ -19,7 +19,11 @@ import {
   normalizeReplay,
   readArchiveIds,
 } from './scrape-replay-teams.mjs';
-import { extractThreadRows, htmlToText } from './scrape-rmt-teams.mjs';
+import {
+  extractThreadRows,
+  htmlToText,
+  listingDebugInfo,
+} from './scrape-rmt-teams.mjs';
 import { REAL_FORMATS } from './config.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -162,8 +166,17 @@ async function main() {
         page += 1
       ) {
         const url = page === 1 ? listing : `${listing}page-${page}`;
-        const rows = extractThreadRows(await fetchText(url), listing);
-        if (!rows.length) break;
+        const html = await fetchText(url);
+        const rows = extractThreadRows(html, listing);
+        if (!rows.length) {
+          if (page === 1) {
+            console.log(
+              `tournament listing ${listing}: 0 rows on page 1 ` +
+                `(${listingDebugInfo(html)})`,
+            );
+          }
+          break;
+        }
         for (const row of rows) {
           if (counters.pastes + counters.replays >= maxNew) break;
           if (visited.has(row.threadId)) continue;

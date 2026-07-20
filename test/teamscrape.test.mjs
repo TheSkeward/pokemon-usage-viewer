@@ -143,14 +143,22 @@ const { htmlToText, extractThreadRows, extractFirstPostText } = await import(
 );
 
 test('rmt: listing rows carry prefixes, first post yields inline sets', () => {
+  // Smogon's hrefs are site-rooted (/forums/threads/...): the first harvest
+  // matched zero rows because the row regex only knew the bare /threads/
+  // form other XenForo roots serve.
   const listing = `
     <span class="label label--primary">SM OU</span>
-    <a href="/threads/my-cool-team.3651234/" data-preview-url="/threads/3651234/preview">My cool team</a>
+    <a href="/forums/threads/my-cool-team.3651234/" data-preview-url="/forums/threads/3651234/preview">My cool team</a>
     <a href="/threads/unlabeled-thread.999/" data-preview-url="x">No prefix</a>`;
-  const rows = extractThreadRows(listing, 'https://www.smogon.com/forums/');
+  const rows = extractThreadRows(
+    listing, 'https://www.smogon.com/forums/forums/rmt-archive.469/');
   assert.equal(rows.length, 2);
   assert.equal(rows[0].prefix, 'SM OU');
   assert.equal(rows[0].threadId, '3651234');
+  assert.equal(
+    rows[0].url,
+    'https://www.smogon.com/forums/threads/my-cool-team.3651234/',
+  );
   assert.equal(rows[1].prefix, null);
 
   const post = `<article class="message-body js-selectToQuote"><div class="bbWrapper">

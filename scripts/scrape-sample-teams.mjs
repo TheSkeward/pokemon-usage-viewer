@@ -73,6 +73,8 @@ export function normalizeSampleTeam({ pasteId, formatId, thread, sets }) {
 
 async function harvestThread(formatId, thread, seen, file) {
   let appended = 0;
+  let title = null;
+  const linked = new Set();
   for (let page = 1; page <= MAX_THREAD_PAGES; page += 1) {
     const url = page === 1 ? thread : `${thread}page-${page}`;
     let html;
@@ -82,7 +84,11 @@ async function harvestThread(formatId, thread, seen, file) {
       if (page === 1) throw error; // page 1 failing = thread URL is wrong
       break; // past the last page
     }
+    if (page === 1) {
+      title = (/<title>([^<]*)<\/title>/.exec(html)?.[1] || '').trim() || null;
+    }
     for (const pasteId of extractPasteIds(html)) {
+      linked.add(pasteId);
       if (seen.has(pasteId)) continue;
       let pasteText;
       try {
@@ -92,7 +98,16 @@ async function harvestThread(formatId, thread, seen, file) {
         continue;
       }
       const { sets, dropped } = parseShowdownTeam(pasteText);
-      if (dropped) console.warn(`  paste ${pasteId}: ${dropped} unreadable block(s)`);
+      if (dropped) {
+        // A snippet of a fully unreadable paste shows WHAT it was (another
+        // game's export, prose, ...) — the difference between a parser gap
+        // and a paste that was never a team.
+        const head = pasteText.slice(0, 60).replace(/\s+/g, ' ').trim();
+        console.warn(
+          `  paste ${pasteId}: ${dropped} unreadable block(s)` +
+            (sets.length ? '' : ` — starts ${JSON.stringify(head)}`),
+        );
+      }
       if (!sets.length) continue;
       const record = normalizeSampleTeam({ pasteId, formatId, thread, sets });
       fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
@@ -100,7 +115,7 @@ async function harvestThread(formatId, thread, seen, file) {
       appended += 1;
     }
   }
-  return appended;
+  return { appended, linked: linked.size, title };
 }
 
 async function main() {
@@ -114,8 +129,12 @@ async function main() {
     for (const thread of urls) {
       attempts += 1;
       try {
-        const appended = await harvestThread(formatId, thread, seen, file);
-        console.log(`${formatId} ${thread}: +${appended} (archive ${seen.size})`);
+        const { appended, linked, title } = await harvestThread(
+          formatId, thread, seen, file);
+        console.log(
+          `${formatId} ${thread}: +${appended} of ${linked} paste link(s) — ` +
+            `"${title ?? 'no <title>'}" (archive ${seen.size})`,
+        );
       } catch (error) {
         failures += 1;
         console.warn(`${formatId} ${thread}: FAILED — ${error.message}`);

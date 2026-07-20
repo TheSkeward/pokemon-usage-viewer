@@ -62,8 +62,10 @@ export function htmlToText(html) {
 export function extractThreadRows(html, baseUrl) {
   const rows = [];
   const seen = new Set();
+  // Smogon serves site-rooted hrefs (/forums/threads/...); the bare
+  // /threads/... form appears in other XenForo installs' roots.
   const rowRegex =
-    /(?:<span[^>]*class="label[^"]*"[^>]*>([^<]+)<\/span>[\s\S]{0,400}?)?<a[^>]+href="(\/threads\/[^"]*?\.(\d+)\/)"[^>]*(?:data-preview-url|class="")/g;
+    /(?:<span[^>]*class="label[^"]*"[^>]*>([^<]+)<\/span>[\s\S]{0,400}?)?<a[^>]+href="((?:\/forums)?\/threads\/[^"]*?\.(\d+)\/)"[^>]*(?:data-preview-url|class="")/g;
   for (const match of html.matchAll(rowRegex)) {
     const [, prefix, href, threadId] = match;
     if (seen.has(threadId)) continue;
@@ -75,6 +77,22 @@ export function extractThreadRows(html, baseUrl) {
     });
   }
   return rows;
+}
+
+/**
+ * One-line structural fingerprint of a listing page, logged when row
+ * extraction comes up empty: enough to tell "markup shifted under the row
+ * regex" from "genuinely empty page" without shipping the HTML.
+ * @return {string}
+ */
+export function listingDebugInfo(html) {
+  const text = String(html);
+  const count = (regex) => (text.match(regex) || []).length;
+  return (
+    `len ${text.length}, thread hrefs ${count(/href="[^"]*\/threads\//g)}, ` +
+    `preview attrs ${count(/data-preview-url/g)}, ` +
+    `labels ${count(/class="label/g)}`
+  );
 }
 
 /** The opening post is the first message body on page 1. */
@@ -152,11 +170,24 @@ async function main() {
   const unmappedPrefixes = new Map();
   for (const listing of rmt.listings) {
     try {
+      let rowsSeen = 0;
+      let pagesWalked = 0;
       for (
         let page = 1; page <= MAX_LISTING_PAGES && fresh < maxNew; page += 1) {
         const url = page === 1 ? listing : `${listing}page-${page}`;
-        const rows = extractThreadRows(await fetchText(url), listing);
-        if (!rows.length) break;
+        const html = await fetchText(url);
+        const rows = extractThreadRows(html, listing);
+        if (!rows.length) {
+          if (page === 1) {
+            console.log(
+              `rmt listing ${listing}: 0 rows on page 1 ` +
+                `(${listingDebugInfo(html)})`,
+            );
+          }
+          break;
+        }
+        pagesWalked += 1;
+        rowsSeen += rows.length;
         for (const row of rows) {
           if (fresh >= maxNew) break;
           const formatId = row.prefix ? rmt.prefixMap?.[row.prefix] : null;
@@ -185,6 +216,12 @@ async function main() {
             console.warn(`  thread ${row.threadId}: ${error.message}`);
           }
         }
+      }
+      if (rowsSeen) {
+        console.log(
+          `rmt listing ${listing}: ${rowsSeen} row(s) across ` +
+            `${pagesWalked} page(s)`,
+        );
       }
     } catch (error) {
       console.warn(`rmt listing ${listing}: FAILED — ${error.message}`);
