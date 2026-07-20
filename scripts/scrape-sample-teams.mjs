@@ -189,10 +189,16 @@ async function harvestThread(formatId, thread, seen, file) {
   // longest scanned post's head answers it: readable set lines mean a
   // parser gap, prose or emptiness means the teams live elsewhere.
   if (!inlineSets && scannedChars) {
-    const head = longest.text.slice(0, 120).replace(/\s+/g, ' ').trim();
+    // A set header is "Species @ Item" — the exact characters around the
+    // first " @ " (entities, invisibles, line breaks) name whatever still
+    // defeats the parser.
+    const at = longest.text.indexOf(' @ ');
+    const probe =
+      at === -1
+        ? `no " @ " anywhere; starts ${JSON.stringify(longest.text.slice(0, 120))}`
+        : `around first " @ ": ${JSON.stringify(longest.text.slice(Math.max(0, at - 60), at + 140))}`;
     console.log(
-      `  scanned ${authorPosts} post(s), ${scannedChars} chars, 0 sets — ` +
-        `longest starts ${JSON.stringify(head)}`,
+      `  scanned ${authorPosts} post(s), ${scannedChars} chars, 0 sets — ${probe}`,
     );
   }
   return {

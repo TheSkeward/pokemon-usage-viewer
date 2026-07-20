@@ -5,18 +5,23 @@
  * labels, and text runs, and a parser dependency would outweigh them.
  */
 
-/** @return {string} Plain text: tags stripped, common entities decoded. */
+/** @return {string} Plain text: tags stripped, entities decoded. */
 export function htmlToText(html) {
   return String(html)
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/(p|div|li|blockquote)>/gi, '\n')
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<[^>]+>/g, '')
+    // Numeric entities before named ones: Smogon posts are full of &#8203;
+    // (zero-width space) as a formatting hack, and any invisible character
+    // left inside a line breaks the set parser's line shapes.
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) =>
+      String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(Number(dec)))
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
-    .replace(/&#0?39;/g, "'")
     .replace(/&nbsp;/g, ' ');
 }
 

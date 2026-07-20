@@ -72,6 +72,9 @@ function parseHeaderLine(line) {
 export function parseShowdownSet(block) {
   const lines = block
     .replace(/ /g, ' ')
+    // Zero-width characters (forum formatting hacks) are invisible but
+    // break every line-shape match below.
+    .replace(/[\u200b-\u200d\ufeff]/g, '')
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
