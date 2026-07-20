@@ -110,11 +110,17 @@ function badgeNumber(text) {
 // Progression state for "badge N, level cap L": TMs/TMXs whose availability
 // badge is unlocked, tutor moves via the tutor GROUPS (options carry no
 // availability of their own).
-export function progressionAt({ badge = 1, levelCap = 25, opponentTypeBias = {} } = {}) {
-  const { REBORN_TM_OPTIONS, REBORN_TMX_OPTIONS, REBORN_TUTOR_OPTIONS, REBORN_TUTOR_GROUPS } =
-    progressionOptions;
+export function progressionAt(
+  { badge = 1, levelCap = 25, opponentTypeBias = {} } = {}) {
+  const {
+    REBORN_TM_OPTIONS,
+    REBORN_TMX_OPTIONS,
+    REBORN_TUTOR_OPTIONS,
+    REBORN_TUTOR_GROUPS,
+  } = progressionOptions;
   const atBadge = (options) =>
-    options.filter((option) => badgeNumber(option.available) <= badge).map((o) => o.id);
+    options.filter((option) => badgeNumber(option.available) <= badge).map(
+      (o) => o.id);
   const tutorMoves = new Set(
     (REBORN_TUTOR_GROUPS || [])
       .filter((group) => badgeNumber(group.available) <= badge)

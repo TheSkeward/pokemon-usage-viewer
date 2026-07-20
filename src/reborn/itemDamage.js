@@ -10,7 +10,8 @@ import { toId } from '../utils/ids.js';
  * @param {{type: string, category: string, pokemonId: string}=} move
  * @return {number}
  */
-export function getItemDamageMultiplier(itemId, { type, category, pokemonId } = {}) {
+export function getItemDamageMultiplier(
+  itemId, { type, category, pokemonId } = {}) {
   if (!itemId) return 1;
   const rule = GEN7_ITEM_DAMAGE[toId(itemId)];
   if (!rule) return 1;

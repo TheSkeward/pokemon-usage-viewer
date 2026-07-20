@@ -14,7 +14,7 @@ import { hydrateLegalMove } from '../moveMeta.js';
  * @param {{getFamily: function(): string, getSelection: function(): string,
  *     onUpdate: function(): void}} deps
  * @return {{cancel: function(): void, getDetail: function(): ?Object,
- *     getMessage: function(): string, getSelectedPokemonId: function(): ?string,
+ * getMessage: function(): string, getSelectedPokemonId: function(): ?string,
  *     getStatus: function(): ?Object, isSelected: function(string): boolean,
  *     select: function(string): void}}
  */

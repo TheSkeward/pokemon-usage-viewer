@@ -429,7 +429,11 @@ export function estimateRunBudget(poolSize) {
     };
   }
   const fallback = FALLBACK_BUDGETS[bucket];
-  return { resolveMs: fallback.resolveMs, searchMs: fallback.searchMs, tailMs: 300 };
+  return {
+    resolveMs: fallback.resolveMs,
+    searchMs: fallback.searchMs,
+    tailMs: 300,
+  };
 }
 
 /** Removes the sample store from localStorage; failures are ignored. */

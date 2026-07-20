@@ -30,7 +30,8 @@ const toId = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
 
 const rebornTmMoveIds = new Set(REBORN_TM_OPTIONS.map((o) => toId(o.move)));
 const rebornTmxMoveIds = new Set(REBORN_TMX_OPTIONS.map((o) => toId(o.move)));
-const rebornTutorMoveIds = new Set(REBORN_TUTOR_OPTIONS.map((o) => toId(o.move)));
+const rebornTutorMoveIds =
+  new Set(REBORN_TUTOR_OPTIONS.map((o) => toId(o.move)));
 
 // Reborn code-grants the universal TMs (UNIVERSAL_TM_MOVES below) instead of
 // listing them per species: they are the Reborn TMs that appear in 0 species'
@@ -125,9 +126,11 @@ for (const pokemon of pokemonIndex) {
     }
     get(moveId).levelUp.push(level);
   }
-  for (const moveId of learnset.evolutionMoves) get(moveId).evolutionMove = true;
+  for (const moveId of learnset.evolutionMoves) get(moveId).evolutionMove =
+    true;
   for (const moveId of learnset.eggMoves) get(moveId).egg = true;
-  for (const moveId of learnset.relearnerMoves) get(moveId).rebornRelearner = true;
+  for (const moveId of learnset.relearnerMoves) get(moveId).rebornRelearner =
+    true;
 
   // TM/TMX/tutor legality. A move qualifies when Reborn distributes it as that
   // kind of teacher AND the mon can learn it: either it's on the mon's own
@@ -236,8 +239,9 @@ function levelOneRelistIds(learnset) {
   );
 }
 
-// Pre-evolution ids (closest first) via @pkmn/dex relationships, walked from the
-// base species so alternate forms (Megas, etc.) inherit the base line's chain.
+// Pre-evolution ids (closest first) via @pkmn/dex relationships, walked from
+// the base species so alternate forms (Megas, etc.) inherit the base line's
+// chain.
 function getPreEvolutionIds(pokemonId) {
   const species = dex.species.get(pokemonId);
   if (!species?.exists) return [];
@@ -276,7 +280,8 @@ function normalizeSources(sources, preEvolutionLevels) {
       return true;
     })
     .sort((a, b) => a.level - b.level || a.from.localeCompare(b.from));
-  if (preEvolutionLevelUp.length) normalized.preEvolutionLevelUp = preEvolutionLevelUp;
+  if (preEvolutionLevelUp.length) normalized.preEvolutionLevelUp =
+    preEvolutionLevelUp;
   if (evolutionMove) normalized.evolutionMove = true;
   if (rebornRelearner) normalized.rebornRelearner = true;
   if (sketch) normalized.sketch = true;

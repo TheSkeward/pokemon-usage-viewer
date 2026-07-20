@@ -22,14 +22,17 @@ const cacheRootDir = path.join(projectRoot, 'cache', 'stats');
 
 const CURRENT_MONTH_TTL_MS = 6 * 60 * 60 * 1000;
 
-const REAL_FORMATS_BY_ID = new Map(REAL_FORMATS.map((format) => [format.id, format]));
-const SYNTHETIC_FORMATS_BY_ID = new Map(SYNTHETIC_FORMATS.map((format) => [format.id, format]));
+const REAL_FORMATS_BY_ID =
+  new Map(REAL_FORMATS.map((format) => [format.id, format]));
+const SYNTHETIC_FORMATS_BY_ID =
+  new Map(SYNTHETIC_FORMATS.map((format) => [format.id, format]));
 const ALL_FORMAT_IDS = new Set([
   ...REAL_FORMATS.map((format) => format.id),
   ...SYNTHETIC_FORMATS.map((format) => format.id),
 ]);
 const REAL_FORMAT_ORDER = REAL_FORMATS.map((format) => format.id);
-const REAL_FORMAT_ORDER_INDEX = new Map(REAL_FORMAT_ORDER.map((id, index) => [id, index]));
+const REAL_FORMAT_ORDER_INDEX =
+  new Map(REAL_FORMAT_ORDER.map((id, index) => [id, index]));
 
 const counters = {
   cacheHits: 0,
@@ -63,8 +66,10 @@ async function main() {
   console.log(`Latest mutable month: ${latestAvailableMonth}`);
 
   const explicitRealIds = getExplicitRealIds(cli.requestedFormatIds);
-  const syntheticIdsToBuild = getSyntheticIdsToBuild(cli.requestedFormatIds, explicitRealIds);
-  const implicitDependencyIds = getImplicitDependencyIds(syntheticIdsToBuild, explicitRealIds);
+  const syntheticIdsToBuild =
+    getSyntheticIdsToBuild(cli.requestedFormatIds, explicitRealIds);
+  const implicitDependencyIds =
+    getImplicitDependencyIds(syntheticIdsToBuild, explicitRealIds);
 
   const realDatasets = {};
 
@@ -74,7 +79,8 @@ async function main() {
     const hadGeneratedDataset = Boolean(await readJsonIfExists(generatedPath));
 
     const before = snapshotCounters();
-    realDatasets[format.id] = await buildRealFormatBrowserDataset(format, months, latestAvailableMonth, cli);
+    realDatasets[format.id] = await buildRealFormatBrowserDataset(
+      format, months, latestAvailableMonth, cli);
     await writeJson(generatedPath, realDatasets[format.id]);
     counters.browserBuilt += 1;
 
@@ -104,7 +110,8 @@ async function main() {
 
     const hadGeneratedDataset = Boolean(await readJsonIfExists(generatedPath));
     const before = snapshotCounters();
-    realDatasets[format.id] = await buildRealFormatBrowserDataset(format, months, latestAvailableMonth, cli);
+    realDatasets[format.id] = await buildRealFormatBrowserDataset(
+      format, months, latestAvailableMonth, cli);
     await writeJson(generatedPath, realDatasets[format.id]);
     counters.browserBuilt += 1;
 
@@ -121,24 +128,29 @@ async function main() {
   for (const syntheticId of syntheticIdsToBuild) {
     const format = SYNTHETIC_FORMATS_BY_ID.get(syntheticId);
     console.log(`[browser] building synthetic ${format.id}...`);
-    const dataset = await buildSyntheticBrowserDataset(format, realDatasets, months, latestAvailableMonth, cli);
+    const dataset = await buildSyntheticBrowserDataset(
+      format, realDatasets, months, latestAvailableMonth, cli);
     await writeJson(path.join(byFormatDir, `${format.id}.json`), dataset);
   }
 
-  const resolverTargetIds = await getResolverTargetIds({ cli, explicitRealIds, implicitDependencyIds });
+  const resolverTargetIds =
+    await getResolverTargetIds({ cli, explicitRealIds, implicitDependencyIds });
 
   if (resolverTargetIds.length > 0) {
     console.log(`[resolver] updating availability + sidecars for: ${resolverTargetIds.join(', ')}`);
     const before = snapshotCounters();
-    await buildAvailabilityAndResolverSources(resolverTargetIds, months, latestAvailableMonth, cli);
+    await buildAvailabilityAndResolverSources(
+      resolverTargetIds, months, latestAvailableMonth, cli);
     printPhaseDelta('[resolver] sidecars', before);
   } else {
     console.log('[resolver] no sidecar update needed; reusing existing availability + sidecars');
   }
 
   const formatsIndex = [
-    ...REAL_FORMATS.map(({ id, label, family }) => ({ id, label, family, synthetic: false })),
-    ...SYNTHETIC_FORMATS.map(({ id, label, family }) => ({ id, label, family, synthetic: true })),
+    ...REAL_FORMATS.map(
+      ({ id, label, family }) => ({ id, label, family, synthetic: false })),
+    ...SYNTHETIC_FORMATS.map(
+      ({ id, label, family }) => ({ id, label, family, synthetic: true })),
   ];
   await writeJson(path.join(publicDataDir, 'formats.json'), formatsIndex);
 
@@ -211,10 +223,12 @@ function getSyntheticIdsToBuild(requestedFormatIds, explicitRealIds) {
     return SYNTHETIC_FORMATS.map((format) => format.id);
   }
 
-  const ids = new Set(requestedFormatIds.filter((id) => SYNTHETIC_FORMATS_BY_ID.has(id)));
+  const ids =
+    new Set(requestedFormatIds.filter((id) => SYNTHETIC_FORMATS_BY_ID.has(id)));
 
   for (const syntheticFormat of SYNTHETIC_FORMATS) {
-    if (syntheticFormat.fallbackOrder.some((realId) => explicitRealIds.includes(realId))) {
+    if (syntheticFormat.fallbackOrder.some(
+      (realId) => explicitRealIds.includes(realId))) {
       ids.add(syntheticFormat.id);
     }
   }
@@ -238,7 +252,8 @@ function getImplicitDependencyIds(syntheticIdsToBuild, explicitRealIds) {
   return sortRealIds([...ids]);
 }
 
-async function getResolverTargetIds({ cli, explicitRealIds, implicitDependencyIds }) {
+async function getResolverTargetIds(
+  { cli, explicitRealIds, implicitDependencyIds }) {
   if (cli.requestedFormatIds.length === 0) {
     return [...REAL_FORMAT_ORDER];
   }
@@ -247,7 +262,8 @@ async function getResolverTargetIds({ cli, explicitRealIds, implicitDependencyId
     return explicitRealIds;
   }
 
-  const existingAvailability = (await readJsonIfExists(availabilityPath)) || { months: {} };
+  const existingAvailability =
+    (await readJsonIfExists(availabilityPath)) || { months: {} };
   const missingImplicitDeps = implicitDependencyIds.filter((formatId) =>
     !formatAppearsAnywhereInAvailability(existingAvailability, formatId),
   );
@@ -264,7 +280,8 @@ function formatAppearsAnywhereInAvailability(availability, formatId) {
 
 function sortRealIds(ids) {
   return [...new Set(ids)].sort(
-    (a, b) => (REAL_FORMAT_ORDER_INDEX.get(a) ?? Infinity) - (REAL_FORMAT_ORDER_INDEX.get(b) ?? Infinity),
+    (a, b) => (REAL_FORMAT_ORDER_INDEX.get(a) ?? Infinity) - (
+      REAL_FORMAT_ORDER_INDEX.get(b) ?? Infinity),
   );
 }
 
@@ -280,7 +297,8 @@ async function fetchAvailableMonths() {
   }
 
   const html = await response.text();
-  const months = [...html.matchAll(/href="(\d{4}-\d{2})\/?"/g)].map((match) => match[1]);
+  const months = [...html.matchAll(/href="(\d{4}-\d{2})\/?"/g)]
+    .map((match) => match[1]);
   const deduped = [...new Set(months)].sort();
 
   if (deduped.length === 0) {
@@ -290,7 +308,8 @@ async function fetchAvailableMonths() {
   return deduped;
 }
 
-async function buildRealFormatBrowserDataset(format, months, latestAvailableMonth, cli) {
+async function buildRealFormatBrowserDataset(
+  format, months, latestAvailableMonth, cli) {
   const monthly = {};
   const history = {};
   const pokemonNames = new Map();
@@ -344,7 +363,8 @@ async function buildRealFormatBrowserDataset(format, months, latestAvailableMont
 
     const browserMovesetPath = path.join(browserMovesetsDir, format.id, `${month}.json`);
     if (movesetText) {
-      const movesetData = parseMovesetFile(movesetText, month, format.id, DEFAULT_RATING);
+      const movesetData =
+        parseMovesetFile(movesetText, month, format.id, DEFAULT_RATING);
       if (Object.keys(movesetData.pokemon).length > 0) {
         await writeJson(browserMovesetPath, movesetData);
       } else {
@@ -370,9 +390,11 @@ async function buildRealFormatBrowserDataset(format, months, latestAvailableMont
   };
 }
 
-async function buildSyntheticBrowserDataset(format, realDatasets, months, latestAvailableMonth, cli) {
+async function buildSyntheticBrowserDataset(
+  format, realDatasets, months, latestAvailableMonth, cli) {
   for (const realFormatId of format.fallbackOrder) {
-    await ensureBrowserRealDatasetLoaded(realFormatId, realDatasets, months, latestAvailableMonth, cli);
+    await ensureBrowserRealDatasetLoaded(
+      realFormatId, realDatasets, months, latestAvailableMonth, cli);
   }
 
   const monthSet = new Set();
@@ -436,7 +458,8 @@ async function buildSyntheticBrowserDataset(format, realDatasets, months, latest
   };
 }
 
-async function ensureBrowserRealDatasetLoaded(formatId, realDatasets, months, latestAvailableMonth, cli) {
+async function ensureBrowserRealDatasetLoaded(
+  formatId, realDatasets, months, latestAvailableMonth, cli) {
   if (realDatasets[formatId]) {
     return realDatasets[formatId];
   }
@@ -454,7 +477,8 @@ async function ensureBrowserRealDatasetLoaded(formatId, realDatasets, months, la
   }
 
   const before = snapshotCounters();
-  const dataset = await buildRealFormatBrowserDataset(format, months, latestAvailableMonth, cli);
+  const dataset = await buildRealFormatBrowserDataset(
+    format, months, latestAvailableMonth, cli);
   realDatasets[formatId] = dataset;
   await writeJson(generatedPath, dataset);
   counters.browserBuilt += 1;
@@ -469,7 +493,8 @@ async function ensureBrowserRealDatasetLoaded(formatId, realDatasets, months, la
   return dataset;
 }
 
-async function buildAvailabilityAndResolverSources(targetRealIds, months, latestAvailableMonth, cli) {
+async function buildAvailabilityAndResolverSources(
+  targetRealIds, months, latestAvailableMonth, cli) {
   const fullBuild = cli.requestedFormatIds.length === 0 || cli.refreshAll;
   const availability = fullBuild
     ? createEmptyAvailability()
@@ -484,7 +509,8 @@ async function buildAvailabilityAndResolverSources(targetRealIds, months, latest
   const existingPokemonIndex = fullBuild
     ? []
     : (await readJsonIfExists(pokemonIndexPath)) || [];
-  const pokemonNameMap = new Map(existingPokemonIndex.map((entry) => [entry.id, entry.name]));
+  const pokemonNameMap =
+    new Map(existingPokemonIndex.map((entry) => [entry.id, entry.name]));
 
   for (const formatId of targetRealIds) {
     const cutoffPriority = getCutoffPriorityForFormat(formatId);
@@ -540,9 +566,12 @@ async function buildAvailabilityAndResolverSources(targetRealIds, months, latest
           (await fetchStatsTable(month, formatId, cutoff, 'leads', latestAvailableMonth, cli)) || [];
 
         if (usageRows && usageRows.length > 0 && leadRows.length > 0) {
-          const leadsById = new Map(leadRows.map((row) => [row.pokemonId, row]));
-          const totalUsageRaw = usageRows.reduce((sum, row) => sum + row.rawCount, 0);
-          const totalLeadRaw = leadRows.reduce((sum, row) => sum + row.rawCount, 0);
+          const leadsById =
+            new Map(leadRows.map((row) => [row.pokemonId, row]));
+          const totalUsageRaw =
+            usageRows.reduce((sum, row) => sum + row.rawCount, 0);
+          const totalLeadRaw =
+            leadRows.reduce((sum, row) => sum + row.rawCount, 0);
 
           const leadsSidecar = {
             source: { month, formatId, cutoff, dataKind: 'leads' },
@@ -591,7 +620,8 @@ async function buildAvailabilityAndResolverSources(targetRealIds, months, latest
         );
 
         if (movesetText) {
-          const movesetSidecar = parseMovesetFile(movesetText, month, formatId, cutoff);
+          const movesetSidecar =
+            parseMovesetFile(movesetText, month, formatId, cutoff);
 
           for (const entry of Object.values(movesetSidecar.pokemon)) {
             pokemonNameMap.set(entry.pokemonId, entry.name);
@@ -645,15 +675,18 @@ async function buildAvailabilityAndResolverSources(targetRealIds, months, latest
   await writeJson(pokemonIndexPath, pokemonIndex);
 }
 
-async function fetchStatsTable(month, formatId, cutoff, subdir, latestAvailableMonth, cli) {
-  const text = await fetchRawText(month, formatId, cutoff, subdir, latestAvailableMonth, cli);
+async function fetchStatsTable(
+  month, formatId, cutoff, subdir, latestAvailableMonth, cli) {
+  const text = await fetchRawText(
+    month, formatId, cutoff, subdir, latestAvailableMonth, cli);
   if (text == null) {
     return null;
   }
   return parseUsageStats(text);
 }
 
-async function fetchRawText(month, formatId, cutoff, subdir, latestAvailableMonth, cli) {
+async function fetchRawText(
+  month, formatId, cutoff, subdir, latestAvailableMonth, cli) {
   const prefix = subdir ? `${subdir}/` : '';
   const relativePath = subdir
     ? path.join(month, subdir, `${formatId}-${cutoff}.txt`)
@@ -689,16 +722,23 @@ async function getCachedRemoteText({
 
   if (!forceRefresh) {
     if (textExists) {
-      const fetchedAt = meta?.fetchedAt || new Date(fileStat.mtimeMs).toISOString();
+      const fetchedAt =
+        meta?.fetchedAt || new Date(fileStat.mtimeMs).toISOString();
 
-      if (!isLatestMutableMonth || isFreshEnough(fetchedAt, CURRENT_MONTH_TTL_MS)) {
+      if (
+        !isLatestMutableMonth ||
+        isFreshEnough(fetchedAt, CURRENT_MONTH_TTL_MS)
+      ) {
         counters.cacheHits += 1;
         return fs.readFile(cachePath, 'utf8');
       }
     }
 
     if (!textExists && meta?.status === 404) {
-      if (!isLatestMutableMonth || isFreshEnough(meta.fetchedAt, CURRENT_MONTH_TTL_MS)) {
+      if (
+        !isLatestMutableMonth ||
+        isFreshEnough(meta.fetchedAt, CURRENT_MONTH_TTL_MS)
+      ) {
         counters.cache404Hits += 1;
         return null;
       }
@@ -750,7 +790,11 @@ function parseUsageStats(text) {
     const usage = Number.parseFloat(cells[2].replace('%', ''));
     const rawCount = Number.parseInt(cells[3].replaceAll(',', ''), 10);
 
-    if (!Number.isFinite(rank) || !Number.isFinite(usage) || !Number.isFinite(rawCount)) {
+    if (
+      !Number.isFinite(rank) ||
+      !Number.isFinite(usage) ||
+      !Number.isFinite(rawCount)
+    ) {
       continue;
     }
 
@@ -898,7 +942,8 @@ function diffCounters(before, after) {
   };
 }
 
-function describeBrowserBuild(formatId, { hadGeneratedDataset, refreshAll, refreshCurrent, delta }) {
+function describeBrowserBuild(
+  formatId, { hadGeneratedDataset, refreshAll, refreshCurrent, delta }) {
   const downloadedAnything = (delta.downloads + delta.downloaded404s) > 0;
   const usedCache = (delta.cacheHits + delta.cache404Hits) > 0;
 

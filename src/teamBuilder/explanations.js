@@ -245,7 +245,8 @@ export function explainExcludedChoice(choice, result, confidenceAlternative) {
   if ((choice.friction || 0) > 0) {
     lines.push(`Carries friction K ${Math.round(choice.friction)} (evolution requirements).`);
   }
-  const blocked = choice.legalityProfile?.legalityProof?.blockedEvolutions || [];
+  const blocked =
+    choice.legalityProfile?.legalityProof?.blockedEvolutions || [];
   if (blocked.length) {
     lines.push(
       `Better forms unavailable: ${blocked

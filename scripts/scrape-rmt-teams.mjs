@@ -152,7 +152,8 @@ async function main() {
   const unmappedPrefixes = new Map();
   for (const listing of rmt.listings) {
     try {
-      for (let page = 1; page <= MAX_LISTING_PAGES && fresh < maxNew; page += 1) {
+      for (
+        let page = 1; page <= MAX_LISTING_PAGES && fresh < maxNew; page += 1) {
         const url = page === 1 ? listing : `${listing}page-${page}`;
         const rows = extractThreadRows(await fetchText(url), listing);
         if (!rows.length) break;
@@ -161,7 +162,8 @@ async function main() {
           const formatId = row.prefix ? rmt.prefixMap?.[row.prefix] : null;
           if (!formatId) {
             if (row.prefix)
-              unmappedPrefixes.set(row.prefix, (unmappedPrefixes.get(row.prefix) || 0) + 1);
+              unmappedPrefixes.set(
+                row.prefix, (unmappedPrefixes.get(row.prefix) || 0) + 1);
             continue;
           }
           const { file, seen } = forFormat(formatId);

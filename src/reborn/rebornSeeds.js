@@ -66,9 +66,9 @@ export const HIDDEN_INVENTORY_ITEM_IDS = new Set(
 
 // Each seed's stat-boost profile, summed over every field it activates on (from
 // the wiki Seed Interaction table) as [Atk, Def, SpA, SpD, Spe]. The stat-fit
-// model weights these against a Pokémon's above-average base stats, so each seed
-// gravitates to the archetype it amplifies: Elemental→fast, Telluric→physical
-// bulk, Synthetic→special wall, Magical→special attacker.
+// model weights these against a Pokémon's above-average base stats, so each
+// seed gravitates to the archetype it amplifies: Elemental→fast,
+// Telluric→physical bulk, Synthetic→special wall, Magical→special attacker.
 const RAW_SEED_STAT_VECTORS = {
   'Elemental Seed': [2, 1, 3, 2, 6],
   'Telluric Seed': [3, 6, 3, 2, 1],

@@ -15,12 +15,12 @@ import { tunable } from './scoringConstants.js';
 export { REBORN_ANALYSIS_TYPES, getTypeMultiplier };
 
 // --- Team-fit scoring ------------------------------------------------------
-// Exhaustive search evaluates hundreds of thousands of teams, so before a search
-// we precompute per choice what the hot loop needs: its damage-aware coverage
-// vector (best real hit into each defense type, 0..1 — from the legality profile)
-// and its defensive weak/resist bitmasks. All judgement constants come from
-// scoringConstants.js, snapshotted once per search so overrides don't cost the
-// hot loop.
+// Exhaustive search evaluates hundreds of thousands of teams, so before a
+// search we precompute per choice what the hot loop needs: its damage-aware
+// coverage vector (best real hit into each defense type, 0..1 — from the
+// legality profile) and its defensive weak/resist bitmasks. All judgement
+// constants come from scoringConstants.js, snapshotted once per search so
+// overrides don't cost the hot loop.
 const TYPE_COUNT = REBORN_ANALYSIS_TYPES.length;
 const ZERO_COVERAGE = new Float64Array(TYPE_COUNT);
 
@@ -59,7 +59,8 @@ function precomputeFit(choice, opponentTypeBias) {
   let resistMask = 0;
   const currentTypes = profile.currentTypes || [];
   for (let j = 0; j < TYPE_COUNT; j++) {
-    const multiplier = getTypeMultiplier(REBORN_ANALYSIS_TYPES[j], currentTypes);
+    const multiplier =
+      getTypeMultiplier(REBORN_ANALYSIS_TYPES[j], currentTypes);
     if (multiplier > 1) weakMask |= 1 << j;
     else if (multiplier < 1) resistMask |= 1 << j;
   }
@@ -108,10 +109,10 @@ export function resetFitScoring(lines) {
 }
 
 // Damage-aware team coverage: for each defense type, the chance SOMEONE lands a
-// real hit into it — a noisy-OR over the members' per-type A values — weighted by
-// how much that type matters (opponent bias). Saturating by construction (the
-// first real answer is worth a lot, the fourth almost nothing), and a 30-BP chip
-// move contributes ~0. Plus the defensive shared-weakness term.
+// real hit into it — a noisy-OR over the members' per-type A values — weighted
+// by how much that type matters (opponent bias). Saturating by construction
+// (the first real answer is worth a lot, the fourth almost nothing), and a
+// 30-BP chip move contributes ~0. Plus the defensive shared-weakness term.
 const MISS_SCRATCH = new Float64Array(TYPE_COUNT);
 
 function fastTeamFit(team) {
@@ -150,8 +151,9 @@ function fastTeamFit(team) {
   const meanTrust = pairCount ? pairTrustSum / pairCount : 0;
   const handBuilt = 1 - meanTrust;
 
-  // Noisy-OR miss probability per type, accumulated members-outer (each member's
-  // vector read sequentially) for cache locality on the hot search path.
+  // Noisy-OR miss probability per type, accumulated members-outer (each
+  // member's vector read sequentially) for cache locality on the hot search
+  // path.
   MISS_SCRATCH.fill(1);
   for (const choice of team) {
     const cv = choice._fit.coverageVector;
@@ -268,7 +270,8 @@ function scoreTeamFit(team, opponentTypeBias = {}) {
     let weakWeight = 0;
     let coverCount = 0;
     profiles.forEach((profile, index) => {
-      const multiplier = getTypeMultiplier(attackType, profile.currentTypes || []);
+      const multiplier =
+        getTypeMultiplier(attackType, profile.currentTypes || []);
       if (multiplier > 1) weakWeight += fitWeights[index];
       else if (multiplier < 1) coverCount += 1;
     });
@@ -286,7 +289,8 @@ function scoreTeamFit(team, opponentTypeBias = {}) {
 // How strongly a pick counters any biased opponent type, as a 0..1 fraction:
 // the highest bias level (over types it resists/is immune to, or hits super-
 // effectively) divided by the max bias. Used to cap that pick's shared-weakness
-// fit penalties — it's a dedicated counter, so its own typing holes are accepted.
+// fit penalties — it's a dedicated counter, so its own typing holes are
+// accepted.
 function biasCounterExemption(profile, opponentTypeBias = {}) {
   let exemption = 0;
 
@@ -330,8 +334,9 @@ export function compareChoices(a, b) {
  * re-sorted and re-deduped on every combination that touched the line (millions
  * of times for ~N distinct answers). Cache the result on the line; the cache is
  * populated by prepareFitScoring and cleared by resetFitScoring, so it never
- * outlives a single search (no cross-edit staleness). When a line already carries
- * a prepared `_choiceOptions` (compact lines shipped to a worker), it's used as-is.
+ * outlives a single search (no cross-edit staleness). When a line already
+ * carries a prepared `_choiceOptions` (compact lines shipped to a worker), it's
+ * used as-is.
  * @return {!Array<!Object>}
  */
 export function getLineChoiceOptions(line) {
@@ -376,18 +381,20 @@ export function getLineChoiceOptions(line) {
 }
 
 /**
- * The best legal form/mega assignment for a fixed set of lines: each line offers
- * a few form options, with at most one mega across the whole team.
+ * The best legal form/mega assignment for a fixed set of lines: each line
+ * offers a few form options, with at most one mega across the whole team.
  * @return {?Object} The best evaluateTeam record.
  */
-export function bestAssignmentForLines(comboLines, targetSize, opponentTypeBias) {
+export function bestAssignmentForLines(
+  comboLines, targetSize, opponentTypeBias) {
   const optionsPerLine = comboLines.map(getLineChoiceOptions);
   const team = [];
   let best = null;
 
   const assign = (index, megaUsed) => {
     if (index === comboLines.length) {
-      const evaluated = evaluateTeam([...team], megaUsed, targetSize, opponentTypeBias);
+      const evaluated =
+        evaluateTeam([...team], megaUsed, targetSize, opponentTypeBias);
       if (!best || betterEvaluated(evaluated, best)) best = evaluated;
       return;
     }
@@ -428,10 +435,10 @@ export function identityOf(evaluated) {
 }
 
 /**
- * Strictly-better test with a deterministic identity tie-break, so equal-scoring
- * teams resolve the same way no matter what order they were enumerated in. Score
- * is the sole quality key (usage tier is already folded into score, so we do NOT
- * gate on meaningful-pick count).
+ * Strictly-better test with a deterministic identity tie-break, so
+ * equal-scoring teams resolve the same way no matter what order they were
+ * enumerated in. Score is the sole quality key (usage tier is already folded
+ * into score, so we do NOT gate on meaningful-pick count).
  * @return {boolean}
  */
 export function betterEvaluated(a, b) {
@@ -456,10 +463,11 @@ export function teamIdentityKey(team) {
  * Team SELECTION scores a relaxation (optimistic max-over-builds coverage), so
  * the single best relaxed team is not guaranteed to be the best team after
  * concrete builds are realized — a line can look like it patches two holes that
- * no single build patches together. The search therefore keeps the TOP N relaxed
- * teams; the realization pass (teamSelection) assigns concrete builds to each
- * and re-ranks by the exact realized score. Bounded, deterministic (insertion
- * uses the same betterEvaluated comparator incl. the identity tie-break).
+ * no single build patches together. The search therefore keeps the TOP N
+ * relaxed teams; the realization pass (teamSelection) assigns concrete builds
+ * to each and re-ranks by the exact realized score. Bounded, deterministic
+ * (insertion uses the same betterEvaluated comparator incl. the identity
+ * tie-break).
  * @return {{capacity: number, items: !Array<!Object>}}
  */
 export function createTopTeams(capacity) {
@@ -517,8 +525,8 @@ export function comb(n, k) {
 }
 
 /**
- * Yields each size-k index combination of [0..n) in lexicographic order, reusing
- * one array.
+ * Yields each size-k index combination of [0..n) in lexicographic order,
+ * reusing one array.
  * @param {number} n
  * @param {number} k
  * @param {function(!Array<number>)} callback
@@ -537,8 +545,8 @@ export function forEachCombination(n, k, callback) {
   }
 }
 
-// Advances `idx` to the next lexicographic combination in place; false if it was
-// the last one.
+// Advances `idx` to the next lexicographic combination in place; false if it
+// was the last one.
 function nextCombination(idx, n, k) {
   let i = k - 1;
   while (i >= 0 && idx[i] === n - k + i) i -= 1;
@@ -548,9 +556,9 @@ function nextCombination(idx, n, k) {
   return true;
 }
 
-// The combination at lexicographic rank `rank` of choosing k from [0, n), or null
-// if the rank is out of range. Lets a worker start enumerating partway through the
-// space without walking from the beginning.
+// The combination at lexicographic rank `rank` of choosing k from [0, n), or
+// null if the rank is out of range. Lets a worker start enumerating partway
+// through the space without walking from the beginning.
 function unrankCombination(rank, n, k) {
   if (k === 0) return rank === 0 ? [] : null;
   const result = new Array(k);
@@ -581,13 +589,22 @@ const SEARCH_PROGRESS_MIN_STRIDE = 2_048;
 const SEARCH_PROGRESS_REPORTS_PER_RANGE = 20;
 
 /**
- * Enumerates lexicographic combinations [start, end) of choosing targetSize lines
- * from `lines`, scores each, and returns the single best as compact id refs (so it
- * survives a worker postMessage). Pure and self-contained: it prepares and resets
- * its own fit state, so it can run in a worker or on the main thread as a fallback.
- * `lines` must carry a prepared `choiceOptions` array per line (the form options).
+ * Enumerates lexicographic combinations [start, end) of choosing targetSize
+ * lines from `lines`, scores each, and returns the single best as compact id
+ * refs (so it survives a worker postMessage). Pure and self-contained: it
+ * prepares and resets its own fit state, so it can run in a worker or on the
+ * main thread as a fallback. `lines` must carry a prepared `choiceOptions`
+ * array per line (the form options).
  */
-export function searchCombinationRange(lines, targetSize, opponentTypeBias, start, end, topCount = 1, onProgress = null) {
+export function searchCombinationRange(
+  lines,
+  targetSize,
+  opponentTypeBias,
+  start,
+  end,
+  topCount = 1,
+  onProgress = null,
+) {
   for (const line of lines) line._choiceOptions = line.choiceOptions;
   prepareFitScoring(lines, opponentTypeBias);
 
@@ -607,7 +624,8 @@ export function searchCombinationRange(lines, targetSize, opponentTypeBias, star
   if (idx) {
     for (let pos = start; pos < end; pos++) {
       const comboLines = idx.map((i) => lines[i]);
-      const candidate = bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
+      const candidate =
+        bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
       if (candidate) offerTopTeam(top, candidate);
       if (onProgress && (pos - start + 1) % stride === 0) {
         onProgress(pos - start + 1);

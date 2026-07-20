@@ -44,9 +44,9 @@ export function loadRebornLegalMoveData(pokemonId) {
     }
 
     const data = await response.json();
-    // Per-mon files store moves as { id, sources }; rejoin each with its intrinsic
-    // metadata from the central table so downstream consumers get the full move
-    // object (name/type/category/basePower/priority) they expect.
+    // Per-mon files store moves as { id, sources }; rejoin each with its
+    // intrinsic metadata from the central table so downstream consumers get the
+    // full move object (name/type/category/basePower/priority) they expect.
     return {
       ...data,
       moves: (data.moves || []).map(hydrateLegalMove),
@@ -172,7 +172,9 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
   }
   const directDeparture = evolutionDepartureLevel(speciesRecord);
   const departureOf = (fromId) =>
-    fromId ? (departureByAncestor.get(fromId) ?? directDeparture) : directDeparture;
+    fromId
+      ? (departureByAncestor.get(fromId) ?? directDeparture)
+      : directDeparture;
   // An entry below a form's arrival can't be leveled through on the default
   // path — it's a candy-down route at level 2+, relearner-only at level 1.
   const ancestorName = (fromId) =>
@@ -265,9 +267,9 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
           String(a.learnerName || '').localeCompare(String(b.learnerName || '')),
       );
     // A genuine evolution move (flagged by the generator: level-1 on this form,
-    // and no pre-evolution learns it by level-up) is gained on evolving into this
-    // form — e.g. Combusken's Double Kick — so it's directly available whenever
-    // you're fielding that form, not gated behind the move relearner.
+    // and no pre-evolution learns it by level-up) is gained on evolving into
+    // this form — e.g. Combusken's Double Kick — so it's directly available
+    // whenever you're fielding that form, not gated behind the move relearner.
     const isEvolutionMove = Boolean(move.sources?.evolutionMove);
     // A non-evolution level-1 entry — an evolved form's relist (Blaziken's
     // Flare Blitz) or a build-time-flagged head-of-block relist (Mawile's
@@ -347,7 +349,8 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     // a candy-down or delayed pre-evo route must not swallow the zero-cost
     // relearner option.
     if (
-      (hasRelearnerOnlyLevelOne || hasLevelOnePreEvoOnly || hasOwnBelowArrival) &&
+      (hasRelearnerOnlyLevelOne || hasLevelOnePreEvoOnly ||
+        hasOwnBelowArrival) &&
       moveRelearnerUnlocked &&
       !sources.some((source) => source.kind === 'relearner')
     ) {

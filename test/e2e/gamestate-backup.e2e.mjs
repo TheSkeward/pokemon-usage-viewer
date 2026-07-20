@@ -30,7 +30,8 @@ try {
   check('pool captured', exported.pool.includes('Froakie'), exported.pool);
   check(
     'file name is date-stamped',
-    /^reborn-gamestate-\d{4}-\d{2}-\d{2}\.json$/.test(download.suggestedFilename()),
+    /^reborn-gamestate-\d{4}-\d{2}-\d{2}\.json$/.test(
+      download.suggestedFilename()),
     download.suggestedFilename(),
   );
 

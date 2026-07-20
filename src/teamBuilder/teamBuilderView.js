@@ -447,7 +447,7 @@ function renderConfidenceSection(state) {
   `;
 }
 
-// --- Explanations -------------------------------------------------------------
+// --- Explanations ------------------------------------------------------------
 function renderExplanationsSection(state) {
   const result = state.result;
   if (!result?.team?.length) return '';
@@ -528,9 +528,10 @@ function renderExplanationsSection(state) {
   `;
 }
 
-// --- Investment ----------------------------------------------------------------
-// "Best six right now" vs "worth training soon" are different products; future
-// value lives HERE, never in selection.
+// --- Investment
+// ---------------------------------------------------------------- "Best six
+// right now" vs "worth training soon" are different products; future value
+// lives HERE, never in selection.
 function renderInvestmentSection(state) {
   if (state.analysisPending && !state.investment) {
     return state.confidence
@@ -581,7 +582,7 @@ function renderInvestmentSection(state) {
   `;
 }
 
-// --- Provenance ----------------------------------------------------------------
+// --- Provenance --------------------------------------------------------------
 function renderProvenanceFooter(manifest, result) {
   const timings = result?.timings;
   if (!manifest && !timings) return '';
@@ -967,7 +968,8 @@ function lineTraceTier(line) {
 
 // The line's best form by ranking: the shallowest meaningful tier, then highest
 // usage there — ignoring the level-cap form-readiness discount, so a stuck pre-
-// evolution is judged by what it becomes. null if no form is meaningful anywhere.
+// evolution is judged by what it becomes. null if no form is meaningful
+// anywhere.
 function lineCeilingRanking(line) {
   let best = null;
   for (const candidate of line.candidates || []) {
@@ -1213,9 +1215,10 @@ function renderSelectedSetDetails({ app, pokemonIndex, setDetails, state }) {
     lookupLabel: detail ? setDetails.describeSource(detail) : '',
     // The set is sourced from the mon's first meaningful usage tier, which is
     // why this evolution stage was chosen over (or instead of) another.
-    // Surface that tier's usage so the pick is legible — but only when the shown
-    // set actually came from the ranking tier (guard against the deepest-tier
-    // fallback and cross-family sourcing, where the number wouldn't match).
+    // Surface that tier's usage so the pick is legible — but only when the
+    // shown set actually came from the ranking tier (guard against the
+    // deepest-tier fallback and cross-family sourcing, where the number
+    // wouldn't match).
     sourceUsageLabel: describeSourceUsage(selected.bundle?.ranking, detail),
     aggregate: state.selection === 'all',
     stitched: Boolean(detail?.stitched),
@@ -1373,7 +1376,10 @@ function formatPercent(value) {
 // genuinely describes the "Movesets from …" source shown beside it).
 function describeSourceUsage(ranking, detail) {
   if (!ranking || !detail || typeof ranking.value !== 'number') return '';
-  if (ranking.formatId !== detail.formatId || ranking.cutoff !== detail.cutoff) {
+  if (
+    ranking.formatId !== detail.formatId ||
+    ranking.cutoff !== detail.cutoff
+  ) {
     return '';
   }
   return `${formatPercent(ranking.value)}% usage at this tier`;

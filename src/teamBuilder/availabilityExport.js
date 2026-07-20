@@ -35,7 +35,8 @@ export async function buildPoolAvailabilityText({ lines, progression }) {
 
   // Sort by the Pokémon's current display name so the printed list reads
   // alphabetically — input order follows the pool/line order otherwise, which
-  // looks scrambled once evolutions rename a line (e.g. Steenee under "Bounsweet").
+  // looks scrambled once evolutions rename a line (e.g. Steenee under
+  // "Bounsweet").
   dedupedEntries.sort((a, b) => a.name.localeCompare(b.name));
 
   const monLines = dedupedEntries.map((entry) => {

@@ -68,7 +68,10 @@ export function getCandidateMonths(
     : [];
 }
 
-/** @return {string} Human-readable source label, e.g. "Gen 7 OU @ 1500 (3/4 mo)". */
+/**
+ * @return {string} Human-readable source label, e.g. "Gen 7 OU @ 1500 (3/4
+ *     mo)".
+ */
 export function formatSource(source, formatsIndex) {
   const label =
     formatsIndex.find((format) => format.id === source.formatId)?.label ||

@@ -38,7 +38,8 @@ import {
  * save-file settings here); classic keeps it in this panel.
  * @return {string} Panel HTML.
  */
-export function renderRebornProgressionPanel(progression, { includeBias = true } = {}) {
+export function renderRebornProgressionPanel(
+  progression, { includeBias = true } = {}) {
   return `
     <section class="panel progression-panel">
       <div class="panel-header">
@@ -178,8 +179,9 @@ function renderCheckpointControl(progression) {
   const selectedIndex = selected
     ? REBORN_PROGRESSION_CHECKPOINTS.findIndex((c) => c.id === selected.id)
     : -1;
-  const next =
-    selectedIndex >= 0 ? REBORN_PROGRESSION_CHECKPOINTS[selectedIndex + 1] : null;
+  const next = selectedIndex >= 0
+    ? REBORN_PROGRESSION_CHECKPOINTS[selectedIndex + 1]
+    : null;
   const nextTip = selected
     ? next
       ? `Next: ${next.label} — cap ${next.levelCap}`
@@ -403,7 +405,8 @@ function renderOptionGroup({
       }
     }
   } else {
-    for (const option of options) availabilityById.set(option.id, option.available);
+    for (const option of options) availabilityById.set(
+      option.id, option.available);
   }
   const missableCount =
     badges == null
@@ -412,7 +415,9 @@ function renderOptionGroup({
         const badge = parseAvailabilityBadge(availabilityById.get(option.id));
         return (
           count +
-            (badge != null && badge <= badges && !selected.has(option.id) ? 1 : 0)
+            (badge != null && badge <= badges && !selected.has(option.id)
+              ? 1
+              : 0)
         );
       }, 0);
 

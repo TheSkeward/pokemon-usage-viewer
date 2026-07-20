@@ -10,7 +10,8 @@
  */
 
 // vite `define` replaces __BUILD_ID__ with a string literal at build time; the
-// typeof guard keeps this safe if it's ever left undefined (e.g. an odd dev run).
+// typeof guard keeps this safe if it's ever left undefined (e.g. an odd dev
+// run).
 const CURRENT_BUILD_ID =
   typeof __BUILD_ID__ !== 'undefined' ? __BUILD_ID__ : null;
 
@@ -76,8 +77,8 @@ export function startUpdateNotifier() {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') check();
   });
-  // A first check shortly after load, so a tab opened just before a deploy still
-  // learns about it without a full interval's wait.
+  // A first check shortly after load, so a tab opened just before a deploy
+  // still learns about it without a full interval's wait.
   setTimeout(check, 15 * 1000);
 }
 

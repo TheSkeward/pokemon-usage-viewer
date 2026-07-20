@@ -67,13 +67,15 @@ export function parseTeammates(text) {
     if (/^(Abilities|Items|Spreads|Moves|Checks and Counters|Raw count|Avg\. weight|Viability Ceiling)/i.test(cell)) {
       inTeammates = false;
       if (/^Raw count: (\d+)/i.test(cell) && current) {
-        current.rawCount = Number.parseInt(cell.match(/^Raw count: (\d+)/i)[1], 10);
+        current.rawCount =
+          Number.parseInt(cell.match(/^Raw count: (\d+)/i)[1], 10);
       }
       continue;
     }
     if (inTeammates && current) {
       const match = /^(.+?)\s+([+-]?\d+(?:\.\d+)?)%$/.exec(cell);
-      if (match) current.teammates.set(toId(match[1]), Number.parseFloat(match[2]));
+      if (match) current.teammates.set(
+        toId(match[1]), Number.parseFloat(match[2]));
       continue;
     }
     if (startsBlock && !cell.includes(':') && !cell.includes('%') && /^[A-Z]/.test(cell)) {
@@ -94,12 +96,14 @@ async function buildFamily(family) {
     if (!ranking?.formatId) continue;
     const key = `${ranking.formatId}-${ranking.cutoff}`;
     if (!byTier.has(key)) {
-      byTier.set(key, { formatId: ranking.formatId, cutoff: ranking.cutoff, mons: [] });
+      byTier.set(
+        key, { formatId: ranking.formatId, cutoff: ranking.cutoff, mons: [] });
     }
     byTier.get(key).mons.push(monId);
   }
 
-  const results = new Map(); // monId -> { tier, teammates: Map(other -> {sum, weight}) }
+  // monId -> { tier, teammates: Map(other -> {sum, weight}) }
+  const results = new Map();
 
   for (const tier of byTier.values()) {
     const dir = `site-data/data/movesets/${tier.formatId}`;
@@ -135,7 +139,10 @@ async function buildFamily(family) {
         if (!block) continue;
         let record = results.get(monId);
         if (!record) {
-          record = { tier: { formatId: tier.formatId, cutoff: tier.cutoff }, teammates: new Map() };
+          record = {
+            tier: { formatId: tier.formatId, cutoff: tier.cutoff },
+            teammates: new Map(),
+          };
           results.set(monId, record);
         }
         for (const [other, lift] of block.teammates) {

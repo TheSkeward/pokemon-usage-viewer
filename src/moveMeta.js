@@ -101,7 +101,8 @@ export function hydrateLegalMove(rawMove) {
     requiresWeather: meta?.requiresWeather,
     // Hit rate (0–100) so the damage estimate can weight by expected accuracy.
     accuracy: meta?.accuracy ?? 100,
-    // Multi-hit / recharge / charge flags feed the effective-power damage model.
+    // Multi-hit / recharge / charge flags feed the effective-power damage
+    // model.
     multihit: meta?.multihit,
     recharge: meta?.recharge ?? false,
     charge: meta?.charge ?? false,

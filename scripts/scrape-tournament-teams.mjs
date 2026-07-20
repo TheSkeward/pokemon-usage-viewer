@@ -91,7 +91,8 @@ async function harvestThreadPage(html, { fallbackFormat, thread, counters }) {
     if (!formatId || parsed.sets.length < MIN_SETS_PER_TEAM) continue;
     const { file, seen } = forFormat(formatId);
     if (seen.has(pasteId)) continue;
-    const record = normalizeSampleTeam({ pasteId, formatId, thread, sets: parsed.sets });
+    const record =
+      normalizeSampleTeam({ pasteId, formatId, thread, sets: parsed.sets });
     record.source = 'tournament';
     fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
     seen.add(pasteId);
@@ -127,7 +128,8 @@ async function harvestThreadPage(html, { fallbackFormat, thread, counters }) {
 async function main() {
   const config = JSON.parse(fs.readFileSync(SOURCES_PATH, 'utf8'));
   const tournament = config.tournament || {};
-  const prefixMap = { ...(config.rmt?.prefixMap || {}), ...(tournament.prefixMap || {}) };
+  const prefixMap =
+    { ...(config.rmt?.prefixMap || {}), ...(tournament.prefixMap || {}) };
   const maxNew =
     Number(process.argv.find((a) => a.startsWith('--max-new='))?.split('=')[1]) ||
     DEFAULT_MAX_NEW;
@@ -142,7 +144,8 @@ async function main() {
     const { url, format = null } = typeof entry === 'string' ? { url: entry } : entry;
     try {
       const html = await fetchText(url);
-      await harvestThreadPage(html, { fallbackFormat: format, thread: url, counters });
+      await harvestThreadPage(
+        html, { fallbackFormat: format, thread: url, counters });
     } catch (error) {
       console.warn(`tournament dump ${url}: FAILED — ${error.message}`);
     }
@@ -154,7 +157,8 @@ async function main() {
     try {
       for (
         let page = 1;
-        page <= MAX_LISTING_PAGES && counters.pastes + counters.replays < maxNew;
+        page <= MAX_LISTING_PAGES &&
+          counters.pastes + counters.replays < maxNew;
         page += 1
       ) {
         const url = page === 1 ? listing : `${listing}page-${page}`;
@@ -163,7 +167,8 @@ async function main() {
         for (const row of rows) {
           if (counters.pastes + counters.replays >= maxNew) break;
           if (visited.has(row.threadId)) continue;
-          const fallbackFormat = row.prefix ? prefixMap[row.prefix] || null : null;
+          const fallbackFormat =
+            row.prefix ? prefixMap[row.prefix] || null : null;
           try {
             const html = await fetchText(row.url);
             await harvestThreadPage(html, {

@@ -46,8 +46,8 @@ import { getDataSignature } from '../manifest.js';
 // In a playthrough you mostly grow the pool one mon at a time at a fixed game
 // state, so we cache work keyed on everything that affects a line's score.
 //   Layer 1: resolved lines, so adding a mon re-resolves only that mon.
-//   Layer 2: the exact optimum + its pool, so a pure addition only has to search
-//            teams that include the new mon (seeded from the cached best), and a
+// Layer 2: the exact optimum + its pool, so a pure addition only has to search
+// teams that include the new mon (seeded from the cached best), and a
 //            non-team deletion reuses the optimum outright.
 //   Layer 3: full results memoized by (score context + mon set). The optimum is
 //            a pure function of those, so revisiting any pool state seen this
@@ -57,41 +57,39 @@ import { getDataSignature } from '../manifest.js';
 // a line's reachable egg moves) changes — it's folded into every key.
 const lineCache = new Map();
 const MAX_LINE_CACHE = 4000;
-let searchCache = null; // { searchKey, team, megaUsed, baseLineKeys, teamLineKeys }
+// { searchKey, team, megaUsed, baseLineKeys, teamLineKeys }
+let searchCache = null;
 const resultCache = new Map();
 const MAX_RESULT_CACHE = 400;
 
 // Layer 3 is also persisted to IndexedDB (resultCacheStore) so it survives page
 // reloads. Bump this whenever a change alters optimizer output (scoring, the
-// search, or the legality/damage model): a mismatched version retires the stored
-// results so a reload after such a deploy recomputes rather than showing stale
-// teams. UI-only deploys keep the version, so results survive them.
-// v10: fixed-damage honesty, tiebreaker K, pre-evo representative exclusion —
-// three output-changing fixes shipped without a data-signature change, so
-// persisted results from older builds must retire.
-// v11: do-nothing status moves lost their utility flag (Splash-class) and
-// fixed-damage moves count as attacks with live flat coverage — output
-// changes again with no data-signature change. (Hidden Power gating needed
-// no bump: its new progression field changes the progression key itself.)
-// v12: the v11 utility-flag demotion is reverted (usage-backed status moves
-// like Z-Splash are legitimate; the zero-usage filter is the real guard), so
-// utility builds change back.
-// v13: Snore's sleep gate became set-conditional (Rest in the legal pool no
-// longer makes Snore a usable attack in a Rest-less set), changing
-// recommended sets and their coverage.
-// v14: results carry teamScore (the chosen team's realized score — the
-// close-bench reference) and note text was rebuilt; persisted v13 results
-// would render without both.
-// v15: low-usage rows no longer get a noisy "trace usage" note; the Source
-// column already says what tier/usage row the prior came from.
-// v16: level-1 relearner relists survive alongside delayed/candy pre-evo
-// routes (Honchkrow Sucker Punch was delayed-only at cap 55+), changing
-// builds/friction for affected mons; breeding donor ties are now total-
-// ordered so provenance no longer varies with pool text order.
-// v17: a fielded evolution's OWN below-arrival level-up entries obey the
-// arrival window (candy-down/relearner, not phantom natural), and equal-
-// level donor ties prefer less hassle — chain details/labels change
-// (Pineco's Pin Missile: Skorupi@9, not Drapion@9).
+// search, or the legality/damage model): a mismatched version retires the
+// stored results so a reload after such a deploy recomputes rather than showing
+// stale teams. UI-only deploys keep the version, so results survive them. v10:
+// fixed-damage honesty, tiebreaker K, pre-evo representative exclusion — three
+// output-changing fixes shipped without a data-signature change, so persisted
+// results from older builds must retire. v11: do-nothing status moves lost
+// their utility flag (Splash-class) and fixed-damage moves count as attacks
+// with live flat coverage — output changes again with no data-signature change.
+// (Hidden Power gating needed no bump: its new progression field changes the
+// progression key itself.) v12: the v11 utility-flag demotion is reverted
+// (usage-backed status moves like Z-Splash are legitimate; the zero-usage
+// filter is the real guard), so utility builds change back. v13: Snore's sleep
+// gate became set-conditional (Rest in the legal pool no longer makes Snore a
+// usable attack in a Rest-less set), changing recommended sets and their
+// coverage. v14: results carry teamScore (the chosen team's realized score —
+// the close-bench reference) and note text was rebuilt; persisted v13 results
+// would render without both. v15: low-usage rows no longer get a noisy "trace
+// usage" note; the Source column already says what tier/usage row the prior
+// came from. v16: level-1 relearner relists survive alongside delayed/candy
+// pre-evo routes (Honchkrow Sucker Punch was delayed-only at cap 55+), changing
+// builds/friction for affected mons; breeding donor ties are now total- ordered
+// so provenance no longer varies with pool text order. v17: a fielded
+// evolution's OWN below-arrival level-up entries obey the arrival window
+// (candy-down/relearner, not phantom natural), and equal- level donor ties
+// prefer less hassle — chain details/labels change (Pineco's Pin Missile:
+// Skorupi@9, not Drapion@9).
 //
 // v18: shortlist-path teams are polished to a 1-swap local optimum over the
 // FULL pool (swap-polish audit repairs shortlist misses), results carry the
@@ -124,32 +122,29 @@ const MAX_RESULT_CACHE = 400;
 // floor hardened alongside it (currentFormValue). Every line's default
 // build can change, so every score can.
 // v24: variable-power moves priced against a reference defender with the
-// median stats for the level (Super Fang against median HP). Electro Ball / Gyro Ball / Grass Knot /
-// Low Kick / Heavy Slam / Heat Crash / Punishment / Crush Grip / Wring Out /
-// Flail / Reversal / Magnitude were priced at ZERO (dex base power 0) and
-// not even counted as attacks; Foul Play used the user's Attack instead of
-// the target's. Sets, coverage vectors, and scores change wherever these
-// moves are legal.
-// v25: the speed formulas read the attacker's EXACT speed (the stat line's
-// spread-derived spe — the tooltip figure) instead of per-move investment
-// assumptions: the attacker's exact speed is known, so use it, with the
-// median value standing in for the defender.
-// v26: acquisition friction defaults zeroed — knowing the best team comes
-// first; whether the grind is worth it is the player's call, made with the
-// receipts in view. Evolution requirements still
-// render as receipts and access gates still block, but friendship/item/
-// trade/time K no longer moves scores. DELAYED_EVO_FRICTION kept (an in-run
-// strength cost, not out-of-game grind).
+// median stats for the level (Super Fang against median HP). Electro Ball /
+// Gyro Ball / Grass Knot / Low Kick / Heavy Slam / Heat Crash / Punishment /
+// Crush Grip / Wring Out / Flail / Reversal / Magnitude were priced at ZERO
+// (dex base power 0) and not even counted as attacks; Foul Play used the user's
+// Attack instead of the target's. Sets, coverage vectors, and scores change
+// wherever these moves are legal. v25: the speed formulas read the attacker's
+// EXACT speed (the stat line's spread-derived spe — the tooltip figure) instead
+// of per-move investment assumptions: the attacker's exact speed is known, so
+// use it, with the median value standing in for the defender. v26: acquisition
+// friction defaults zeroed — knowing the best team comes first; whether the
+// grind is worth it is the player's call, made with the receipts in view.
+// Evolution requirements still render as receipts and access gates still block,
+// but friendship/item/ trade/time K no longer moves scores.
+// DELAYED_EVO_FRICTION kept (an in-run strength cost, not out-of-game grind).
 // v27: scoring V0 retired (Rejuvenation prep; V1 was by then the thoroughly
-// exercised model) — the usage-convergence blend is
-// the only model; the UI toggle, the scoringModel option, and the per-model
-// cache signature suffix are gone, so every pre-v27 entry (v0- or v1-scored)
-// must retire rather than answer a run that can no longer say which it was.
-// v28: the two-clause convergence law replaces "at w = 1 the
-// score IS the prior": dead lines (no meaningful usage in any tier) still
-// converge fully, but present-prior lines cap downward trust at
-// PRIOR_DRAG_CAP — every converged over-performer's score rises, and lines
-// carry linePriorPresent for the sweep's re-scoring.
+// exercised model) — the usage-convergence blend is the only model; the UI
+// toggle, the scoringModel option, and the per-model cache signature suffix are
+// gone, so every pre-v27 entry (v0- or v1-scored) must retire rather than
+// answer a run that can no longer say which it was. v28: the two-clause
+// convergence law replaces "at w = 1 the score IS the prior": dead lines (no
+// meaningful usage in any tier) still converge fully, but present-prior lines
+// cap downward trust at PRIOR_DRAG_CAP — every converged over-performer's score
+// rises, and lines carry linePriorPresent for the sweep's re-scoring.
 //
 // NOTE: results now persist their post-analysis (confidence sweep +
 // investment plan) alongside the team — a change to the sweep grid, its
@@ -272,9 +267,9 @@ export async function optimizeTeamFromPool({
   });
 
   const progressionSig = stableStringify(progression);
-  // A line's egg moves can come from any current owned species via breeding, and
-  // the current species can be a pre-evolution of the line's representative — so
-  // rather than risk under-keying per line, all lines share one breeding
+  // A line's egg moves can come from any current owned species via breeding,
+  // and the current species can be a pre-evolution of the line's representative
+  // — so rather than risk under-keying per line, all lines share one breeding
   // signature. It's trivial when the daycare is locked (full caching) and only
   // changes the whole pool's cache when reachable egg moves actually change.
   const breedingSig =
@@ -291,9 +286,10 @@ export async function optimizeTeamFromPool({
       .map(([name, ability]) => `${name}=${ability}`)
       .join(',')
     : 'none';
-  // Scoring overrides (confidence sweep / tests) and the DATA signature are part
-  // of the score context: a sweep run must never hit — or seed — the production
-  // ("base") caches, and a data refresh must retire every cached verdict.
+  // Scoring overrides (confidence sweep / tests) and the DATA signature are
+  // part of the score context: a sweep run must never hit — or seed — the
+  // production ("base") caches, and a data refresh must retire every cached
+  // verdict.
   const dataSignature = await getDataSignature();
   // The fast tag is appended (not a new fixed field) so every existing
   // full-mode key — including results persisted before fast mode existed —
@@ -308,9 +304,9 @@ export async function optimizeTeamFromPool({
   }`;
 
   // Layer 3: the result is a pure function of the score context and the set of
-  // input mons, so memoize by both. A hit short-circuits line resolution and the
-  // search entirely; re-seed the incremental search from it so a later addition
-  // still grows rather than re-enumerates.
+  // input mons, so memoize by both. A hit short-circuits line resolution and
+  // the search entirely; re-seed the incremental search from it so a later
+  // addition still grows rather than re-enumerates.
   const poolKey = `${contextSig}|${groups
     .map((group) => group.input?.id ?? group.token)
     .sort()
@@ -379,7 +375,10 @@ export async function optimizeTeamFromPool({
     searchCache.searchKey === searchKey &&
     [...searchCache.teamLineKeys].every((key) => hitLineKeys.has(key))
       ? {
-        previousBest: { team: searchCache.team, megaUsed: searchCache.megaUsed },
+        previousBest: {
+          team: searchCache.team,
+          megaUsed: searchCache.megaUsed,
+        },
         baseLineKeys: searchCache.baseLineKeys,
         teamLineKeys: searchCache.teamLineKeys,
       }
@@ -394,8 +393,8 @@ export async function optimizeTeamFromPool({
   const result = await choosePoolTeam(lines, progression.opponentTypeBias, {
     exhaustive: exhaustive && !fastMode,
     incremental,
-    // The team store is keyed on the same context as the incremental cache, so a
-    // deletion to an unvisited subset is answered from the last full search.
+    // The team store is keyed on the same context as the incremental cache, so
+    // a deletion to an unvisited subset is answered from the last full search.
     searchKey,
     // Bench-swap ranking is hundreds of full team evaluations and only feeds
     // extra bench annotation, so keep it for explicit full optimizes only.
@@ -465,8 +464,9 @@ export function persistPostAnalysis(result, postAnalysis) {
   }
 }
 
-// Seed the Layer-2 incremental cache from an exact result, so the next pool edit
-// can grow/reuse it instead of re-searching. Only exact optima are safe to seed.
+// Seed the Layer-2 incremental cache from an exact result, so the next pool
+// edit can grow/reuse it instead of re-searching. Only exact optima are safe to
+// seed.
 function seedSearchCache(result, lines, searchKey) {
   if (!(result.searchExact && result.bestEvaluated)) {
     searchCache = null;
@@ -488,8 +488,8 @@ function seedSearchCache(result, lines, searchKey) {
         .filter((line) => line.best || line.bestNonMega)
         .map((line) => line.lineKey),
     ),
-    // The cached team's own line keys — incremental stays valid as long as these
-    // survive, regardless of which other (unused) mons come and go.
+    // The cached team's own line keys — incremental stays valid as long as
+    // these survive, regardless of which other (unused) mons come and go.
     teamLineKeys: new Set(
       result.bestEvaluated.team
         .map((choice) => lineKeyByInput.get(choice.inputPokemonId))
@@ -558,8 +558,8 @@ function lineIsDegraded(line) {
   return Boolean(line?.degraded);
 }
 
-// Stable, order-independent stringify for cache keys: object keys are sorted and
-// array elements (which here are set-like — owned items, TM ids, bias) too.
+// Stable, order-independent stringify for cache keys: object keys are sorted
+// and array elements (which here are set-like — owned items, TM ids, bias) too.
 function stableStringify(value) {
   if (Array.isArray(value)) {
     return `[${value.map(stableStringify).sort().join(',')}]`;
@@ -686,7 +686,8 @@ async function resolvePoolLine({
     }
   }
   const lineRamp = repEntry
-    ? computeUsageRamp(repEntry.builds?.variants?.[0]?.profile || null, levelCap)
+    ? computeUsageRamp(
+      repEntry.builds?.variants?.[0]?.profile || null, levelCap)
     : 0;
   // Absence vs bounded-trust law selector: a meaningful rank OR sustained
   // shallow-format trace on any form proves the line is not absent. Trace
@@ -943,7 +944,8 @@ function optimisticCoverageVector(rows) {
     const cv = row.legalityProfile?.coverageVector;
     if (!cv) continue;
     if (!vector) vector = [...cv];
-    else for (let i = 0; i < vector.length; i++) vector[i] = Math.max(vector[i], cv[i] || 0);
+    else for (let i = 0; i < vector.length; i++) vector[i] =
+      Math.max(vector[i], cv[i] || 0);
   }
   return vector;
 }
@@ -1291,8 +1293,8 @@ async function resolveCandidateBuilds({
         usageAnchored: true,
       });
       const delayedIds = new Set(delayedMoves.map((move) => move.id));
-      const usedDelayed = (delayedProfile.recommendedMoves || []).filter((move) =>
-        delayedIds.has(move.id),
+      const usedDelayed = (delayedProfile.recommendedMoves || []).filter(
+        (move) => delayedIds.has(move.id),
       );
       if (usedDelayed.length) {
         delayedProfile.frictionCost += tunable('DELAYED_EVO_FRICTION');
@@ -1321,7 +1323,13 @@ async function resolveCandidateBuilds({
       })
       : null;
 
-  return { variants, sensitivityProbe, assumedAbility, abilityKnown, secondaryAbility };
+  return {
+    variants,
+    sensitivityProbe,
+    assumedAbility,
+    abilityKnown,
+    secondaryAbility,
+  };
 }
 
 function getLineKey(candidates, fallbackId) {

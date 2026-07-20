@@ -165,7 +165,8 @@ export function getEvolutionRequirement(species, access = null) {
         // item gate whose per-item key hasn't been set explicitly.
         const blocked =
           access[key] === false ||
-          (itemGate && access[key] === undefined && access.evoAccessStones === false);
+          (itemGate && access[key] === undefined &&
+            access.evoAccessStones === false);
         if (!blocked) return false;
         if (itemGate && ownedItemCount(access, species.evoItem)) {
           return false;
@@ -195,7 +196,8 @@ export function getEvolutionRequirement(species, access = null) {
     // friction but doesn't gate legality.
     return {
       status: 'legal',
-      levelRequired: Number.isFinite(species.evoLevel) ? species.evoLevel : null,
+      levelRequired:
+        Number.isFinite(species.evoLevel) ? species.evoLevel : null,
       friction: condition ? tunable('TIME_FRICTION') : 0,
       method: 'level',
       reason: condition
@@ -244,7 +246,8 @@ export function getEvolutionRequirement(species, access = null) {
       parts.push({ item: 'Link Stone', ...link });
     }
     if (species.evoItem) {
-      parts.push({ item: species.evoItem, ...getItemAvailability(species.evoItem) });
+      parts.push(
+        { item: species.evoItem, ...getItemAvailability(species.evoItem) });
     }
     if (evoType === 'useItem' && !species.evoItem) {
       return {

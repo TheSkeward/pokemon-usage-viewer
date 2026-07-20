@@ -69,7 +69,8 @@ function main() {
 
   // Reborn-holdable items that don't appear in USUM Smogon data.
   // Appended so they're always selectable.
-  for (const name of [...TYPE_GEMS.map((gem) => gem.gemName), ...REBORN_SEEDS]) {
+  for (
+    const name of [...TYPE_GEMS.map((gem) => gem.gemName), ...REBORN_SEEDS]) {
     const id = toId(name);
     if (!byId.has(id)) items.push({ id, name });
   }

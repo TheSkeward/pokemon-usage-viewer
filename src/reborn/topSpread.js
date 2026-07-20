@@ -4,11 +4,11 @@ import { moveId as toMoveId } from '../utils/ids.js';
 
 /**
  * Loads a team member's most-used competitive set details from its stitched set
- * index — top EV spread + nature ("Nature:HP/Atk/Def/SpA/SpD/Spe"), ability, and
- * item — so the damage model can use the real investment and the analysis can
- * show a complete Showdown set. Shares the URL-keyed fetch cache with the item
- * recommender. Falls back to the "all" selection when the requested selection
- * has no set index.
+ * index — top EV spread + nature ("Nature:HP/Atk/Def/SpA/SpD/Spe"), ability,
+ * and item — so the damage model can use the real investment and the analysis
+ * can show a complete Showdown set. Shares the URL-keyed fetch cache with the
+ * item recommender. Falls back to the "all" selection when the requested
+ * selection has no set index.
  * @param {{family: string, pokemonId: string, selection: string}} target
  * @return {Promise<{spread: ?string, ability: ?string,
  *     abilities: Array<{name: string, usage: number}>, item: ?string,
@@ -29,9 +29,9 @@ export async function loadTopSet({ family, pokemonId, selection }) {
     // Protean?") can be computed instead of assumed away.
     abilities: abilityList(data?.abilities),
     item: topUsageName(data?.items),
-    // Per-move Smogon usage (id -> usage%), so the recommender can anchor on the
-    // mon's canonical moves and rank utility moves by how much they're actually
-    // run. Entries with no real usage (the stitched tail) are dropped.
+    // Per-move Smogon usage (id -> usage%), so the recommender can anchor on
+    // the mon's canonical moves and rank utility moves by how much they're
+    // actually run. Entries with no real usage (the stitched tail) are dropped.
     moveUsage: moveUsageMap(data?.moves),
     // The FULL stitched priority order (id -> rank), including cross-tier
     // entries whose usage % was nulled when appended (percentages aren't

@@ -163,12 +163,14 @@ export function getResolvedFormatLabel(dataset, formatsIndex, selection) {
   if (selection === 'all') return null;
   const resolvedFormatId = dataset.resolvedMonths?.[selection];
   if (!resolvedFormatId) return null;
-  return formatsIndex.find((format) => format.id === resolvedFormatId)?.label || resolvedFormatId;
+  return formatsIndex.find((format) => format.id === resolvedFormatId)
+    ?.label || resolvedFormatId;
 }
 
 /** @return {boolean} */
 export function isSyntheticFormat(formatId, formatsIndex) {
-  return Boolean(formatsIndex.find((format) => format.id === formatId)?.synthetic);
+  return Boolean(
+    formatsIndex.find((format) => format.id === formatId)?.synthetic);
 }
 
 /** @return {string} Latest month in the dataset, or '' when it has none. */
@@ -196,11 +198,18 @@ export function getMovesetLookupContext(dataset, formatsIndex, state) {
   }
   if (isSyntheticFormat(state.format, formatsIndex)) {
     const resolvedFormatId = dataset.resolvedMonths?.[state.month];
-    const resolvedFormatLabel = formatsIndex.find((format) => format.id === resolvedFormatId)?.label || resolvedFormatId;
+    const resolvedFormatLabel =
+      formatsIndex.find((format) => format.id === resolvedFormatId)?.label ||
+      resolvedFormatId;
     if (!resolvedFormatId) return null;
     return { formatId: resolvedFormatId, month: state.month, label: `${state.month} — ${resolvedFormatLabel}`, aggregate: false };
   }
-  return { formatId: state.format, month: state.month, label: state.month, aggregate: false };
+  return {
+    formatId: state.format,
+    month: state.month,
+    label: state.month,
+    aggregate: false,
+  };
 }
 
 /** @return {?Object} */
@@ -231,7 +240,11 @@ export function getAvailabilitySelectionLabel(availability, selection) {
 export function getLineRepresentativeCandidates(pokemonId, pokemonIndex) {
   const nameById = new Map(pokemonIndex.map((entry) => [entry.id, entry.name]));
   const rawCandidates = LINE_REPRESENTATIVE_CANDIDATES[pokemonId] || [
-    { id: pokemonId, name: nameById.get(pokemonId) || pokemonId, isMega: false },
+    {
+      id: pokemonId,
+      name: nameById.get(pokemonId) || pokemonId,
+      isMega: false,
+    },
   ];
 
   const seen = new Set();
@@ -277,9 +290,12 @@ export function resolveQueryEntries(query, pokemonIndex) {
     const normalizedToken = normalizeSearch(token);
     if (!normalizedToken) continue;
 
-    const exactMatches = indexed.filter((entry) => entry.normalizedName === normalizedToken);
-    const prefixMatches = indexed.filter((entry) => entry.normalizedName.startsWith(normalizedToken));
-    const substringMatches = indexed.filter((entry) => entry.normalizedName.includes(normalizedToken));
+    const exactMatches =
+      indexed.filter((entry) => entry.normalizedName === normalizedToken);
+    const prefixMatches = indexed.filter(
+      (entry) => entry.normalizedName.startsWith(normalizedToken));
+    const substringMatches =
+      indexed.filter((entry) => entry.normalizedName.includes(normalizedToken));
 
     let matches = [];
     let matchMode = 'substring';
@@ -349,9 +365,11 @@ async function loadResolverIndex(family, selection) {
  * @return {!Promise<!Object>} One Pokémon's usage/leads summaries (each null
  *     when absent everywhere) plus canonical ranking/trace facts.
  */
-export async function resolveBestAvailableLightBundle({ availability, family, selection, pokemonId }) {
+export async function resolveBestAvailableLightBundle(
+  { availability, family, selection, pokemonId }) {
   const cacheKey = `${family}:${selection}:${pokemonId}`;
-  if (resolverSummaryCache.has(cacheKey)) return resolverSummaryCache.get(cacheKey);
+  if (resolverSummaryCache.has(cacheKey)) return resolverSummaryCache.get(
+    cacheKey);
 
   const resolverIndex = await loadResolverIndex(family, selection);
 
@@ -370,8 +388,10 @@ export async function resolveBestAvailableLightBundle({ availability, family, se
     return bundle;
   }
 
-  const usage = await resolveBestAvailableUsage({ availability, family, selection, pokemonId });
-  const leads = await resolveBestAvailableLeads({ availability, family, selection, pokemonId });
+  const usage = await resolveBestAvailableUsage(
+    { availability, family, selection, pokemonId });
+  const leads = await resolveBestAvailableLeads(
+    { availability, family, selection, pokemonId });
 
   // Canonical-tier facts (first meaningful tier, best trace tier) are
   // long-run properties of the mon, so they come from the all-period index
@@ -408,23 +428,30 @@ export function getMovesetResolverCandidates(availability, family, selection) {
  */
 export async function loadAggregatedMovesetCandidate(candidate, pokemonId) {
   const cacheKey = `${candidate.family}:${candidate.selection}:${candidate.formatId}:${candidate.cutoff}:${pokemonId}`;
-  if (aggregatedMovesetCandidateCache.has(cacheKey)) return aggregatedMovesetCandidateCache.get(cacheKey);
+  if (aggregatedMovesetCandidateCache.has(cacheKey)) {
+    return aggregatedMovesetCandidateCache.get(cacheKey);
+  }
   const aggregated = await aggregateMovesetCandidate(candidate, pokemonId);
   aggregatedMovesetCandidateCache.set(cacheKey, aggregated);
   return aggregated;
 }
 
-async function resolveBestAvailableUsage({ availability, family, selection, pokemonId }) {
+async function resolveBestAvailableUsage(
+  { availability, family, selection, pokemonId }) {
   for (const candidate of iterateCandidateSources(availability, family, selection, 'usage')) {
     let totalUsage = 0;
     let totalRawCount = 0;
     let monthsPresent = 0;
     let name = null;
 
-    const monthEntries = await mapLimit(candidate.months, SOURCE_FETCH_CONCURRENCY, async (month) => {
-      const source = await loadSourceData(month, candidate.formatId, candidate.cutoff, 'usage');
-      return source?.pokemon?.[pokemonId] || null;
-    });
+    const monthEntries = await mapLimit(
+      candidate.months,
+      SOURCE_FETCH_CONCURRENCY,
+      async (month) => {
+        const source = await loadSourceData(month, candidate.formatId, candidate.cutoff, 'usage');
+        return source?.pokemon?.[pokemonId] || null;
+      },
+    );
 
     for (const entry of monthEntries) {
       if (!entry) continue;
@@ -457,7 +484,8 @@ async function resolveBestAvailableUsage({ availability, family, selection, poke
   return null;
 }
 
-async function resolveBestAvailableLeads({ availability, family, selection, pokemonId }) {
+async function resolveBestAvailableLeads(
+  { availability, family, selection, pokemonId }) {
   for (const candidate of iterateCandidateSources(availability, family, selection, 'leads')) {
     let totalUsageRawForPrior = 0;
     let totalLeadRawForPrior = 0;
@@ -466,21 +494,25 @@ async function resolveBestAvailableLeads({ availability, family, selection, poke
     let monthsPresent = 0;
     let name = null;
 
-    const monthEntries = await mapLimit(candidate.months, SOURCE_FETCH_CONCURRENCY, async (month) => {
-      const [usageSource, leadsSource] = await Promise.all([
-        loadSourceData(month, candidate.formatId, candidate.cutoff, 'usage'),
-        loadSourceData(month, candidate.formatId, candidate.cutoff, 'leads'),
-      ]);
+    const monthEntries = await mapLimit(
+      candidate.months,
+      SOURCE_FETCH_CONCURRENCY,
+      async (month) => {
+        const [usageSource, leadsSource] = await Promise.all([
+          loadSourceData(month, candidate.formatId, candidate.cutoff, 'usage'),
+          loadSourceData(month, candidate.formatId, candidate.cutoff, 'leads'),
+        ]);
 
-      if (!usageSource || !leadsSource) return null;
+        if (!usageSource || !leadsSource) return null;
 
-      return {
-        usageEntry: usageSource.pokemon?.[pokemonId] || null,
-        leadEntry: leadsSource.pokemon?.[pokemonId] || null,
-        totalUsageRaw: leadsSource.summary?.totalUsageRaw || 0,
-        totalLeadRaw: leadsSource.summary?.totalLeadRaw || 0,
-      };
-    });
+        return {
+          usageEntry: usageSource.pokemon?.[pokemonId] || null,
+          leadEntry: leadsSource.pokemon?.[pokemonId] || null,
+          totalUsageRaw: leadsSource.summary?.totalUsageRaw || 0,
+          totalLeadRaw: leadsSource.summary?.totalLeadRaw || 0,
+        };
+      },
+    );
 
     for (const monthEntry of monthEntries) {
       if (!monthEntry) continue;
@@ -501,8 +533,12 @@ async function resolveBestAvailableLeads({ availability, family, selection, poke
 
     if (usageRawCount === 0 || monthsPresent === 0) continue;
 
-    const prior = totalUsageRawForPrior > 0 ? totalLeadRawForPrior / totalUsageRawForPrior : 0;
-    const value = ((leadRawCount + LEAD_SMOOTHING_K * prior) / (usageRawCount + LEAD_SMOOTHING_K)) * 100;
+    const prior = totalUsageRawForPrior > 0
+      ? totalLeadRawForPrior / totalUsageRawForPrior
+      : 0;
+    const value =
+      ((leadRawCount + LEAD_SMOOTHING_K * prior) /
+        (usageRawCount + LEAD_SMOOTHING_K)) * 100;
 
     return {
       selection,
@@ -532,10 +568,14 @@ async function aggregateMovesetCandidate(candidate, pokemonId) {
   let monthsPresent = 0;
   let name = null;
 
-  const monthEntries = await mapLimit(candidate.months, SOURCE_FETCH_CONCURRENCY, async (month) => {
-    const source = await loadSourceData(month, candidate.formatId, candidate.cutoff, 'moveset');
-    return source?.pokemon?.[pokemonId] || null;
-  });
+  const monthEntries = await mapLimit(
+    candidate.months,
+    SOURCE_FETCH_CONCURRENCY,
+    async (month) => {
+      const source = await loadSourceData(month, candidate.formatId, candidate.cutoff, 'moveset');
+      return source?.pokemon?.[pokemonId] || null;
+    },
+  );
 
   for (const entry of monthEntries) {
     if (!entry) continue;
@@ -544,10 +584,26 @@ async function aggregateMovesetCandidate(candidate, pokemonId) {
     totalRawCount += entry.rawCount || 0;
     monthsPresent += 1;
 
-    accumulateSection(aggregate.moves, filterVisibleMovesetEntries(entry.moves), entry.rawCount);
-    accumulateSection(aggregate.items, filterVisibleMovesetEntries(entry.items), entry.rawCount);
-    accumulateSection(aggregate.abilities, filterVisibleMovesetEntries(entry.abilities), entry.rawCount);
-    accumulateSection(aggregate.spreads, filterVisibleMovesetEntries(entry.spreads), entry.rawCount);
+    accumulateSection(
+      aggregate.moves,
+      filterVisibleMovesetEntries(entry.moves),
+      entry.rawCount,
+    );
+    accumulateSection(
+      aggregate.items,
+      filterVisibleMovesetEntries(entry.items),
+      entry.rawCount,
+    );
+    accumulateSection(
+      aggregate.abilities,
+      filterVisibleMovesetEntries(entry.abilities),
+      entry.rawCount,
+    );
+    accumulateSection(
+      aggregate.spreads,
+      filterVisibleMovesetEntries(entry.spreads),
+      entry.rawCount,
+    );
   }
 
   if (totalRawCount === 0 || monthsPresent === 0) return null;
@@ -591,34 +647,48 @@ async function mapLimit(items, limit, mapper) {
 }
 
 function* iterateCandidateSources(availability, family, selection, dataKind) {
-  const familyConfig = availability?.familyConfigs?.[family] || getFamilyConfig(family);
+  const familyConfig =
+    availability?.familyConfigs?.[family] || getFamilyConfig(family);
   const formatOrder = familyConfig.formatOrder || [];
   const cutoffPriority = familyConfig.cutoffPriority || [];
   for (const formatId of formatOrder) {
     for (const cutoff of cutoffPriority) {
-      const months = getCandidateMonths(availability, selection, formatId, dataKind, cutoff);
+      const months =
+        getCandidateMonths(availability, selection, formatId, dataKind, cutoff);
       if (months.length === 0) continue;
       yield { formatId, cutoff, months, selection, family };
     }
   }
 }
 
-function getCandidateMonths(availability, selection, formatId, dataKind, cutoff) {
+function getCandidateMonths(
+  availability, selection, formatId, dataKind, cutoff) {
   if (selection === 'all') {
-    return getAvailabilityMonths(availability).filter((month) => availability?.months?.[month]?.[formatId]?.[dataKind]?.includes(cutoff));
+    return getAvailabilityMonths(availability).filter((month) =>
+      availability?.months?.[month]?.[formatId]?.[dataKind]?.includes(cutoff));
   }
-  return availability?.months?.[selection]?.[formatId]?.[dataKind]?.includes(cutoff) ? [selection] : [];
+  return availability?.months?.[selection]?.[formatId]?.[dataKind]
+    ?.includes(cutoff)
+    ? [selection]
+    : [];
 }
 function filterVisibleMovesetEntries(entries = []) {
-  return entries.filter((entry) => !HIDDEN_MOVESET_ENTRY_KEYS.has(normalizeSearch(entry.name))); 
+  return entries.filter(
+    (entry) => !HIDDEN_MOVESET_ENTRY_KEYS.has(normalizeSearch(entry.name))); 
 }
 function accumulateSection(targetMap, entries = [], rawCount = 0) {
   for (const entry of entries) {
-    const weight = (entry.usage / 100) * rawCount; targetMap.set(entry.name, (targetMap.get(entry.name) || 0) + weight); 
+    const weight = (entry.usage / 100) * rawCount; targetMap.set(
+      entry.name, (targetMap.get(entry.name) || 0) + weight); 
   } 
 }
 function finalizeSection(sourceMap, totalRawCount) {
-  return [...sourceMap.entries()].map(([name, weight]) => ({ name, usage: totalRawCount > 0 ? (weight / totalRawCount) * 100 : 0 })).sort((a, b) => b.usage - a.usage || a.name.localeCompare(b.name)); 
+  return [...sourceMap.entries()]
+    .map(([name, weight]) => ({
+      name,
+      usage: totalRawCount > 0 ? (weight / totalRawCount) * 100 : 0,
+    }))
+    .sort((a, b) => b.usage - a.usage || a.name.localeCompare(b.name));
 }
 
 function buildAggregateRows(dataset) {
@@ -632,20 +702,36 @@ function buildAggregateRows(dataset) {
     for (const month of months) {
       const monthData = entry.months[month];
       if (!monthData) continue;
-      usageSum += monthData.usage; rawCountSum += monthData.rawCount; leadRawCountSum += monthData.leadRawCount || 0;
+      usageSum += monthData.usage;
+      rawCountSum += monthData.rawCount;
+      leadRawCountSum += monthData.leadRawCount || 0;
     }
-    return { pokemonId, name: entry.name, usage: usageSum / monthCount, rawCount: rawCountSum, leadRawCount: leadRawCountSum };
-  }).filter((row) => row.rawCount > 0).sort((a, b) => b.usage - a.usage || b.rawCount - a.rawCount || a.name.localeCompare(b.name)).map((row, index) => ({ ...row, rank: index + 1 }));
+    return {
+      pokemonId,
+      name: entry.name,
+      usage: usageSum / monthCount,
+      rawCount: rawCountSum,
+      leadRawCount: leadRawCountSum,
+    };
+  }).filter((row) => row.rawCount > 0)
+    .sort((a, b) =>
+      b.usage - a.usage || b.rawCount - a.rawCount ||
+      a.name.localeCompare(b.name))
+    .map((row, index) => ({ ...row, rank: index + 1 }));
 }
 
 function addLeadMetrics(rows) {
   const totalUsageRaw = rows.reduce((sum, row) => sum + (row.rawCount || 0), 0);
-  const totalLeadRaw = rows.reduce((sum, row) => sum + (row.leadRawCount || 0), 0);
+  const totalLeadRaw =
+    rows.reduce((sum, row) => sum + (row.leadRawCount || 0), 0);
   const prior = totalUsageRaw > 0 ? totalLeadRaw / totalUsageRaw : 0;
   return rows.map((row) => {
     const rawCount = row.rawCount || 0;
     const leadRawCount = row.leadRawCount || 0;
-    const leadTendency = rawCount > 0 ? ((leadRawCount + LEAD_SMOOTHING_K * prior) / (rawCount + LEAD_SMOOTHING_K)) * 100 : prior * 100;
+    const leadTendency = rawCount > 0
+      ? ((leadRawCount + LEAD_SMOOTHING_K * prior) /
+        (rawCount + LEAD_SMOOTHING_K)) * 100
+      : prior * 100;
     return { ...row, leadRawCount, leadTendency };
   });
 }

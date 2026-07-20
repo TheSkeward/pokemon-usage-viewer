@@ -25,7 +25,8 @@ const EV_INDEX = { hp: 0, atk: 1, def: 2, spa: 3, spd: 4, spe: 5 };
 
 const DEFAULT_LEVEL = 100;
 // The median base Def and SpD across the dex are both 70, so a base-70 neutral
-// wall makes the figures read close to real damage dealt against an average mon.
+// wall makes the figures read close to real damage dealt against an average
+// mon.
 const REFERENCE_DEFENSE_BASE = 70;
 const STAB_MULTIPLIER = 1.5;
 
@@ -35,10 +36,11 @@ function abilityId(ability) {
     .replace(/[^a-z]/g, '');
 }
 
-// Same-type-attack bonus, ability-aware. Protean/Libero change the user's type to
-// the move's before it hits, so EVERY attack gets STAB — the whole point of the
-// ability and the reason a Protean Greninja's coverage is undervalued if ignored.
-// Adaptability turns STAB into 2x. Everything else is the ordinary 1.5-if-matching.
+// Same-type-attack bonus, ability-aware. Protean/Libero change the user's type
+// to the move's before it hits, so EVERY attack gets STAB — the whole point of
+// the ability and the reason a Protean Greninja's coverage is undervalued if
+// ignored. Adaptability turns STAB into 2x. Everything else is the ordinary
+// 1.5-if-matching.
 function abilityStab(ability, attackerTypes, moveType) {
   const id = abilityId(ability);
   // Protean only — Libero is a Gen 8 ability and vanilla Reborn is Gen 7, so it
@@ -274,7 +276,8 @@ function weightBucketPower(kg) {
  * @param {?number} attackerSpe
  * @return {?number}
  */
-export function variableMovePower(moveId, level, attackerId = null, attackerSpe = null) {
+export function variableMovePower(
+  moveId, level, attackerId = null, attackerSpe = null) {
   if (!VARIABLE_POWER_MOVE_IDS.has(moveId)) return null;
   const lvl = normalizeLevel(level);
   const id = attackerId ? toId(attackerId) : null;
@@ -394,7 +397,9 @@ export function parseSpread(spreadName) {
   if (!naturePart || !evPart) return null;
 
   const evs = evPart.split('/').map((value) => Number.parseInt(value, 10));
-  if (evs.length < 6 || evs.some((value) => !Number.isFinite(value))) return null;
+  if (evs.length < 6 || evs.some((value) => !Number.isFinite(value))) {
+    return null;
+  }
 
   // natureLabel is the spread's verbatim nature text ("Adamant"), for
   // display; nature is its id, for the multiplier tables.
@@ -402,7 +407,8 @@ export function parseSpread(spreadName) {
 }
 
 function statValue(base, ev, level, natureMultiplier) {
-  const inner = Math.floor(((2 * base + 31 + Math.floor(ev / 4)) * level) / 100);
+  const inner =
+    Math.floor(((2 * base + 31 + Math.floor(ev / 4)) * level) / 100);
   return Math.floor((inner + 5) * natureMultiplier);
 }
 
@@ -448,8 +454,18 @@ export function getAttackingStats({ pokemonId, levelCap, spread }) {
   const physicalIsStronger = baseAtk >= baseSpa;
   return {
     level,
-    atk: statValue(baseAtk, physicalIsStronger ? 252 : 0, level, physicalIsStronger ? 1.1 : 1),
-    spa: statValue(baseSpa, physicalIsStronger ? 0 : 252, level, physicalIsStronger ? 1 : 1.1),
+    atk: statValue(
+      baseAtk,
+      physicalIsStronger ? 252 : 0,
+      level,
+      physicalIsStronger ? 1.1 : 1,
+    ),
+    spa: statValue(
+      baseSpa,
+      physicalIsStronger ? 0 : 252,
+      level,
+      physicalIsStronger ? 1 : 1.1,
+    ),
     spe: statValue(baseSpe, 0, level, 1),
   };
 }
@@ -475,7 +491,8 @@ export function computeFinalStats({ pokemonId, level, nature, evs }) {
   const hp =
     baseHp === 1 // Shedinja
       ? 1
-      : Math.floor(((2 * baseHp + 31 + Math.floor(evOf(EV_INDEX.hp) / 4)) * at) / 100) +
+      : Math.floor(
+        ((2 * baseHp + 31 + Math.floor(evOf(EV_INDEX.hp) / 4)) * at) / 100) +
         at +
         10;
   const result = { level: at, hp };
@@ -531,7 +548,8 @@ export function estimateMoveDamage({
   if (!resolvedPower) return 0;
 
   if (!attackerStats) {
-    return Math.round(resolvedPower * stab * itemMultiplier * abilityMultiplier);
+    return Math.round(
+      resolvedPower * stab * itemMultiplier * abilityMultiplier);
   }
 
   // Foul Play deals damage with the TARGET's Attack stat, not the user's —

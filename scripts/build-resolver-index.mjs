@@ -8,7 +8,8 @@ const LEAD_SMOOTHING_K = 200;
 
 async function main() {
   const availability = await readJson(path.join(dataRoot, 'availability.json'));
-  const families = Object.keys(availability.familyConfigs || { singles: {}, doubles: {} });
+  const families =
+    Object.keys(availability.familyConfigs || { singles: {}, doubles: {} });
 
   await fs.rm(outputRoot, { recursive: true, force: true });
 
@@ -42,7 +43,8 @@ async function buildFamilyAllIndex(availability, family) {
   const leadsByPokemon = await resolveAllPokemonLeads(availability, family);
 
   const pokemon = {};
-  const ids = new Set([...Object.keys(usageByPokemon), ...Object.keys(leadsByPokemon)]);
+  const ids =
+    new Set([...Object.keys(usageByPokemon), ...Object.keys(leadsByPokemon)]);
 
   for (const pokemonId of [...ids].sort()) {
     pokemon[pokemonId] = {
@@ -182,7 +184,8 @@ async function resolveAllPokemonLeads(availability, family) {
       totalUsageRawForPrior += leadsSource.summary?.totalUsageRaw || 0;
       totalLeadRawForPrior += leadsSource.summary?.totalLeadRaw || 0;
 
-      for (const [pokemonId, usageEntry] of Object.entries(usageSource.pokemon)) {
+      for (
+        const [pokemonId, usageEntry] of Object.entries(usageSource.pokemon)) {
         if (resolved[pokemonId]) continue;
 
         const current = aggregate.get(pokemonId) || {
@@ -204,8 +207,9 @@ async function resolveAllPokemonLeads(availability, family) {
       }
     }
 
-    const prior =
-      totalUsageRawForPrior > 0 ? totalLeadRawForPrior / totalUsageRawForPrior : 0;
+    const prior = totalUsageRawForPrior > 0
+      ? totalLeadRawForPrior / totalUsageRawForPrior
+      : 0;
 
     for (const [pokemonId, entry] of aggregate.entries()) {
       if (resolved[pokemonId]) continue;

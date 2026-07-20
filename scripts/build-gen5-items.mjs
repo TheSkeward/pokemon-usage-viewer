@@ -98,7 +98,8 @@ async function main() {
 
     await fs.writeFile(
       path.join(OUT_DIR, `${id}.json`),
-      JSON.stringify({ pokemonId: id, name: agg.name, rawCount: agg.rawCount, items }),
+      JSON.stringify(
+        { pokemonId: id, name: agg.name, rawCount: agg.rawCount, items }),
     );
     written += 1;
   }
@@ -165,7 +166,8 @@ async function fetchAvailableMonths() {
   }
 
   const html = await response.text();
-  const months = [...html.matchAll(/href="(\d{4}-\d{2})\/?"/g)].map((m) => m[1]);
+  const months = [...html.matchAll(/href="(\d{4}-\d{2})\/?"/g)]
+    .map((m) => m[1]);
   const deduped = [...new Set(months)].sort();
 
   if (deduped.length === 0) {

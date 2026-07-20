@@ -1,6 +1,6 @@
-// Damage / ability / coverage correctness tests — the cases most likely to hide a
-// "very cursed if missed" bug (double-counting type effectiveness, or an ability
-// that boosts the wrong moves).
+// Damage / ability / coverage correctness tests — the cases most likely to hide
+// a "very cursed if missed" bug (double-counting type effectiveness, or an
+// ability that boosts the wrong moves).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { estimateMoveDamage } from '../src/reborn/damageModel.js';
@@ -79,8 +79,9 @@ test('Adaptability turns STAB into ×2', () => {
 });
 
 test('Weak chip coverage stays low even when super-effective', () => {
-  // Lick: 30 BP physical. Even into a Ghost-weak target, its coverage value must
-  // stay well below a real STAB nuke — the noisy-OR must not read it as an answer.
+  // Lick: 30 BP physical. Even into a Ghost-weak target, its coverage value
+  // must stay well below a real STAB nuke — the noisy-OR must not read it as an
+  // answer.
   const lick = { basePower: 30, category: 'Physical', type: 'Ghost', attackerStats: attacker };
   const lickNeutral = estimateMoveDamage({ ...lick, attackerTypes: ['Normal'] });
   const hydroPump = estimateMoveDamage({
@@ -126,7 +127,8 @@ test('Super Fang halves a typical body at the level; flat moves stay flat', asyn
   const { fixedMoveDamage, referenceHp } = await import(
     '../src/reborn/damageModel.js',
   );
-  // Reference defender at 25: floor(171*25/100) + 25 + 10 = 77 HP → 39 (rounded).
+  // Reference defender at 25: floor(171*25/100) + 25 + 10 = 77 HP → 39
+  // (rounded).
   assert.equal(referenceHp(25), 77);
   assert.equal(fixedMoveDamage('superfang', 25), 39);
   assert.ok(fixedMoveDamage('superfang', 75) > 2 * fixedMoveDamage('superfang', 25));

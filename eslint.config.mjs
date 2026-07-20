@@ -32,6 +32,7 @@ export default [
         ignorePattern: "^\\s*(import[\\s\\{]|export\\s.*from|\\} from)",
         ignoreTemplateLiterals: true,
         ignoreStrings: true,
+        ignoreRegExpLiterals: true,
       }],
       "no-var": "error",
       "prefer-const": "error",

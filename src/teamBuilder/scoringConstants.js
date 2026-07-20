@@ -40,14 +40,15 @@ export const SCORING_DEFAULTS = Object.freeze({
   SHALLOW_TRACE_PRIOR_MIN_PERCENT: 1,
   SHALLOW_TRACE_PRIOR_FORMAT_DEPTH: 3,
 
-  // --- C: current-form value --------------------------------------------------
+  // --- C: current-form value -------------------------------------------------
   CURRENT_VALUE_SCALE: 2000, // points scale shared by C and U
   // Attacker offense is per-build & additive: damageQ = buildPeak·(1 − w·(1 −
   // breadth)). w is the THINNESS PENALTY DEPTH — a one-attack build scores
   // (1−w)·peak, a full coverage build sits at peak (see currentFormValue).
   PORTFOLIO_WEIGHT: 0.3,
   UTILITY_ROLE_WEIGHT: 0.75, // utility roles score below attacker roles
-  PRIORITY_UTILITY_ROLE_WEIGHT: 1, // complete first-action support shares C's role ceiling
+  // complete first-action support shares C's role ceiling
+  PRIORITY_UTILITY_ROLE_WEIGHT: 1,
   // Knee of the saturating role ceiling — see softCeiling (currentFormValue).
   ROLE_CEILING_KNEE: 0.9,
   // A protected Speed Boost turn makes the post-boost attacker route reliable;
@@ -81,7 +82,7 @@ export const SCORING_DEFAULTS = Object.freeze({
   NON_PASSIVE_FLOOR: 0.25, // peak damageQ that fully unlocks utility roles
   UTILITY_SATURATION: 1.5, // summed utility value that reads as utilityQ = 1
 
-  // --- O: readiness gate ------------------------------------------------------
+  // --- O: readiness gate -----------------------------------------------------
   ONLINE_NEAR: 0.65,
   ONLINE_MIDEVO: 0.35,
   ONLINE_BABY: 0.1,
@@ -93,13 +94,13 @@ export const SCORING_DEFAULTS = Object.freeze({
   FUTURE_WEIGHT: 0.35,
   FUTURE_CAP: 300,
 
-  // --- K: investment friction -------------------------------------------------
-  // Acquisition friction is zeroed by design: evolution grind is INFORMATION,
-  // not a score term. The requirement machinery stays — receipts still
-  // render, access gates still block, owned items still short-circuit gates —
-  // but acquisition grind moves no score. The pricing code paths are kept
-  // alive (and pinned by tests under explicit overrides) so re-enabling is a
-  // constants change, not a rebuild.
+  // --- K: investment friction
+  // ------------------------------------------------- Acquisition friction is
+  // zeroed by design: evolution grind is INFORMATION, not a score term. The
+  // requirement machinery stays — receipts still render, access gates still
+  // block, owned items still short-circuit gates — but acquisition grind moves
+  // no score. The pricing code paths are kept alive (and pinned by tests under
+  // explicit overrides) so re-enabling is a constants change, not a rebuild.
   FRIENDSHIP_FRICTION: 0, // friendship grind per evolution step
   ITEM_FRICTION: 0, // held-item / use-item evolution (farmable item)
   TRADE_FRICTION: 0, // Reborn trades via Link Stone — item-like
@@ -109,14 +110,14 @@ export const SCORING_DEFAULTS = Object.freeze({
   DELAYED_EVO_FRICTION: 200,
   FRICTION_SCALE: 1, // sweep multiplier over all K components
 
-  // --- Opponent-type bias ------------------------------------------------------
+  // --- Opponent-type bias ----------------------------------------------------
   BIAS_RESIST_PER_LEVEL: 90,
   BIAS_IMMUNE_PER_LEVEL: 130,
   BIAS_WEAK_PENALTY_PER_LEVEL: 70,
   BIAS_OFFENSE_PER_LEVEL: 90,
   BIAS_MEANINGFUL_THRESHOLD: 270,
 
-  // --- Team score: Σ member V + COVERAGE_WEIGHT × fit -------------------------
+  // --- Team score: Σ member V + COVERAGE_WEIGHT × fit ------------------------
   COVERAGE_WEIGHT: 0.5, // team fit vs summed individual values
   COVERAGE_SCALE: 110, // value of fully answering one defense type
   BIAS_COVERAGE_BOOST: 2, // max extra weight on a maxed opponent-bias type
@@ -124,10 +125,10 @@ export const SCORING_DEFAULTS = Object.freeze({
   UNCOVERED_WEAK_PENALTY: 260, // shared weakness with no resist behind it
   RESIST_STACK_BONUS: 45, // per stacked resist (capped)
 
-  // --- Ability assumption (when the caught mon's ability is unknown) ----------
+  // --- Ability assumption (when the caught mon's ability is unknown) ---------
   ABILITY_ASSUMPTION: 'primary', // "secondary" flips unknown mons for the sweep
 
-  // --- Usage-convergence blend (see SCORING.md) -------------------------------
+  // --- Usage-convergence blend (see SCORING.md) ------------------------------
   USAGE_RAMP_EXPONENT: 2, // w ramps as (cap/L*)^k — back-loaded handoff
   // Bounded-trust law saturation (see candidateScoring's model header): the
   // prior may claim at most this fraction of the mon's measured excess over
@@ -161,20 +162,23 @@ export const SCORING_DEFAULTS = Object.freeze({
   // endgame A/B (12-mon UU pool, badge 18): the core seats at 4, not at ≤3.5.
   SYNERGY_SCALE: 4,
 
-  // --- Search ------------------------------------------------------------------
+  // --- Search ----------------------------------------------------------------
   SHORTLIST_MAX: 28,
   SHORTLIST_CORE: 14,
-  FORCE_SHORTLIST: false, // test hook: force shortlist path for regret validation
+  // test hook: force shortlist path for regret validation
+  FORCE_SHORTLIST: false,
   // Search enumeration budgets in team combinations C(N,6). Interactive
   // latency rules these, not search purity; above them the shortlist+polish
   // path takes over. Tunable so the regret validation can raise the cap to
   // compute a TRUE exact baseline.
-  AUTO_EXHAUSTIVE_BUDGET: 250_000, // background auto-reoptimize ceiling (~25 mons)
+  // background auto-reoptimize ceiling (~25 mons)
+  AUTO_EXHAUSTIVE_BUDGET: 250_000,
   EXHAUSTIVE_CAP: 1_000_000, // explicit-optimize ceiling (~32 mons)
-  // Selection scores an optimistic (max-over-builds) coverage relaxation, so the
-  // best relaxed team need not be best after concrete builds are assigned. The
-  // search keeps this many top relaxed teams; realization re-ranks them by exact
-  // realized score. Sized by regret validation (regret 0 well below this).
+  // Selection scores an optimistic (max-over-builds) coverage relaxation, so
+  // the best relaxed team need not be best after concrete builds are assigned.
+  // The search keeps this many top relaxed teams; realization re-ranks them by
+  // exact realized score. Sized by regret validation (regret 0 well below
+  // this).
   REALIZATION_POOL: 64,
 });
 

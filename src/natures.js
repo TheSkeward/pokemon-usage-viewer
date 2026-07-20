@@ -4,7 +4,9 @@
  * stat computations.
  */
 
-/** plus/minus use the canonical stat keys; the five neutral natures omit both. */
+/**
+ * plus/minus use the canonical stat keys; the five neutral natures omit both.
+ */
 export const NATURE_EFFECTS = {
   hardy: {},
   lonely: { plus: 'atk', minus: 'def' },

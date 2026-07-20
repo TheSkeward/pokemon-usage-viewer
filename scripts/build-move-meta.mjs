@@ -14,8 +14,9 @@ import { Dex } from '@pkmn/dex';
 const OUT_PATH = path.resolve('src', 'generated', 'gen7MoveMeta.generated.js');
 
 // Happiness-scaled moves report base power 0 in the dex, which would drop them
-// from the damage model entirely. Assume max happiness (the sensible playthrough
-// default): Return is then 102 BP, and Frustration is 0 (so it stays out).
+// from the damage model entirely. Assume max happiness (the sensible
+// playthrough default): Return is then 102 BP, and Frustration is 0 (so it
+// stays out).
 const ASSUMED_BASE_POWER = { return: 102 };
 
 // Coded-effect moves whose utility value isn't expressed by any dex field (a
@@ -49,12 +50,15 @@ function isUtilityMove(move) {
   if (CODED_UTILITY_MOVES.has(move.id)) return true;
   if (move.drain || move.heal) return true;
   if (move.forceSwitch || move.selfSwitch) return true;
-  if (move.volatileStatus) return true; // bind / trap / grounds / confuse on target
+  // bind / trap / grounds / confuse on target
+  if (move.volatileStatus) return true;
   if (move.status) return true; // guaranteed status on a damaging move
-  const secondaries = move.secondaries || (move.secondary ? [move.secondary] : []);
+  const secondaries =
+    move.secondaries || (move.secondary ? [move.secondary] : []);
   for (const s of secondaries) {
     if (!s) continue;
-    if (s.status || s.volatileStatus || s.boosts) return true; // foe status/debuff
+    // foe status/debuff
+    if (s.status || s.volatileStatus || s.boosts) return true;
     if (s.self?.boosts) return true; // user setup
   }
   if (move.self?.boosts) {
@@ -86,9 +90,10 @@ function screenFacts(move) {
   return null;
 }
 
-// A move's utility "kinds", so utility scoring can tell real team infrastructure
-// (recovery, hazards, speed control, setup) from mere chip status. Mostly read
-// from @pkmn/dex effect fields; the rest comes from the hand-coded sets above.
+// A move's utility "kinds", so utility scoring can tell real team
+// infrastructure (recovery, hazards, speed control, setup) from mere chip
+// status. Mostly read from @pkmn/dex effect fields; the rest comes from the
+// hand-coded sets above.
 function deriveRoles(move) {
   const roles = new Set();
   const secondaries =
@@ -147,13 +152,14 @@ function main() {
       utility: isUtilityMove(move),
       // Accuracy as a 0–100 percentage so the damage estimate can weight a move
       // by its expected hit rate. The dex marks never-miss moves (Swift, Aura
-      // Sphere, ...) as `true`; normalize those to 100. Status/odd entries with no
-      // numeric accuracy also default to 100 (no penalty).
+      // Sphere, ...) as `true`; normalize those to 100. Status/odd entries with
+      // no numeric accuracy also default to 100 (no penalty).
       accuracy: move.accuracy === true ? 100 : move.accuracy || 100,
     };
-    // Multi-hit (a number like Double Kick's 2, or a [min,max] like Fury Swipes'
-    // [2,5]) and recharge (Hyper Beam) feed the effective-power model in the
-    // damage estimate, so a move's per-commitment output is ranked, not one hit.
+    // Multi-hit (a number like Double Kick's 2, or a [min,max] like Fury
+    // Swipes' [2,5]) and recharge (Hyper Beam) feed the effective-power model
+    // in the damage estimate, so a move's per-commitment output is ranked, not
+    // one hit.
     if (move.multihit !== undefined && move.multihit !== null) {
       entry.multihit = move.multihit;
     }

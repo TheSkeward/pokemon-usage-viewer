@@ -19,10 +19,14 @@ import { toId as normalizeSearch } from '../utils/ids.js';
 // descriptor pins Reborn's pre-registry literal so existing saves survive).
 const progressionStorageKey = () => getActiveGame().storage.progression;
 
-/** Highest tracked held-item quantity; the picker treats this as "6 or more". */
+/**
+ * Highest tracked held-item quantity; the picker treats this as "6 or more".
+ */
 export const MAX_TRACKED_ITEM_COUNT = 6;
 
-/** Strongest opponent-type bias the team builder will weight toward (0 = off). */
+/**
+ * Strongest opponent-type bias the team builder will weight toward (0 = off).
+ */
 export const MAX_OPPONENT_TYPE_BIAS = 6;
 
 /** A fresh playthrough: nothing unlocked, no cap set, empty inventory. */
@@ -357,8 +361,8 @@ function normalizeOwnedItems(value) {
     const count = Number.parseInt(rawCount, 10);
     if (!Number.isFinite(count) || count <= 0) continue;
 
-    // Replaced terrain seeds migrate to their Reborn equivalent (summing counts,
-    // since several terrains map to the same field seed).
+    // Replaced terrain seeds migrate to their Reborn equivalent (summing
+    // counts, since several terrains map to the same field seed).
     const id = TERRAIN_SEED_MIGRATION[trimmed] || trimmed;
     owned[id] = Math.min(MAX_TRACKED_ITEM_COUNT, (owned[id] || 0) + count);
   }

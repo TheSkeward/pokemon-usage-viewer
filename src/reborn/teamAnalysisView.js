@@ -391,7 +391,8 @@ function renderSetCard(profile) {
   const statsTip = finalStats
     ? `At Lv ${finalStats.level} (31 IVs): HP ${finalStats.hp} · Atk ${finalStats.atk} · Def ${finalStats.def} · SpA ${finalStats.spa} · SpD ${finalStats.spd} · Spe ${finalStats.spe}`
     : '';
-  const moves = profile.recommendedMoves?.length ? profile.recommendedMoves : [];
+  const moves =
+    profile.recommendedMoves?.length ? profile.recommendedMoves : [];
 
   return `
     <div class="team-set-card ${profile.bestStabMove ? '' : 'warning'}" data-set-card="${escapeHtml(profile.currentId || '')}">
@@ -649,7 +650,8 @@ function formatCategory(category) {
 
 function formatDefenseNames(entry) {
   const weak = entry.weak.map(({ member }) => member.name);
-  const cover = [...entry.resist, ...entry.immune].map(({ member }) => member.name);
+  const cover =
+    [...entry.resist, ...entry.immune].map(({ member }) => member.name);
 
   if (weak.length && cover.length) {
     return `${weak.join(', ')} covered by ${cover.join(', ')}`;

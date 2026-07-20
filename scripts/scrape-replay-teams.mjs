@@ -25,7 +25,8 @@ const REPLAY_ROOT = 'https://replay.pokemonshowdown.com';
 const USER_AGENT =
   'pokemon-usage-viewer team harvester (github.com/TheSkeward/pokemon-usage-viewer)';
 const REQUEST_GAP_MS = 600;
-const SEARCH_PAGE_SIZE = 51; // search.json returns up to 51; fewer means the end
+// search.json returns up to 51; fewer means the end
+const SEARCH_PAGE_SIZE = 51;
 const DEFAULT_MAX_NEW_PER_FORMAT = 300;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -42,7 +43,9 @@ export function archivePath(formatId) {
   return path.join(ARCHIVE_DIR, `replays-${formatId}.jsonl`);
 }
 
-/** @return {!Set<string>} Record ids already present in a JSONL archive file. */
+/**
+ * @return {!Set<string>} Record ids already present in a JSONL archive file.
+ */
 export function readArchiveIds(file) {
   if (!fs.existsSync(file)) return new Set();
   const ids = new Set();

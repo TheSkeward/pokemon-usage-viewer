@@ -172,16 +172,16 @@ function percentile(value, sorted) {
 /**
  * A stage-typical strong hit at this level cap, using the same core math as the
  * damage estimator (base-70 reference defender). damageQ divides the mon's best
- * hit by this, so "hits hard" is judged against the current stage rather than an
- * absolute bar.
+ * hit by this, so "hits hard" is judged against the current stage rather than
+ * an absolute bar.
  * @param {number} levelCap
  * @return {number}
  */
 export function stageReferenceDamage(levelCap) {
   const lvl = Math.max(1, Math.min(100, levelCap || 50));
   const statAt = (base) => Math.floor((2 * base * lvl) / 100) + 5;
-  // A genuinely strong attacker (base-115 offense, 100-BP STAB) as the "1.0" bar,
-  // so damageQ spreads instead of clumping high — a mediocre hit reads as
+  // A genuinely strong attacker (base-115 offense, 100-BP STAB) as the "1.0"
+  // bar, so damageQ spreads instead of clumping high — a mediocre hit reads as
   // mediocre, not near-max.
   const atk = statAt(115);
   const def = statAt(70);
@@ -234,8 +234,9 @@ export function defensiveTypeBalance(defenseTypes = []) {
   );
 }
 
-// How much each utility role is worth as team infrastructure. Recovery / hazards /
-// speed control / setup are real jobs; a lone status or priority tag is minor.
+// How much each utility role is worth as team infrastructure. Recovery /
+// hazards / speed control / setup are real jobs; a lone status or priority tag
+// is minor.
 const ROLE_WEIGHTS = {
   recovery: 1.0,
   hazard_set: 0.9,
@@ -610,8 +611,8 @@ export function currentFormFeatures(profile, levelCap) {
 }
 
 /**
- * C = max over a few mechanically-derived roles. Returns the score in points plus
- * the breakdown, for instrumentation.
+ * C = max over a few mechanically-derived roles. Returns the score in points
+ * plus the breakdown, for instrumentation.
  * @return {{value: number, bestRole: string, features: !Object,
  *     roles: !Object}}
  */
@@ -628,11 +629,11 @@ export function currentFormValue(profile, levelCap) {
     (f.peakDamageQ ?? f.damageQ) / tunable('NON_PASSIVE_FLOOR'),
   );
 
-  // reliabilityQ is deliberately NOT a role axis: with the available move data it
-  // saturates to ~1 for almost everyone (every mon has a few damaging moves), so
-  // it only inflates every score, and accuracy — the part that would discriminate
-  // — is already folded into damageQ by the damage estimate. Kept in features for
-  // display, unused here.
+  // reliabilityQ is deliberately NOT a role axis: with the available move data
+  // it saturates to ~1 for almost everyone (every mon has a few damaging
+  // moves), so it only inflates every score, and accuracy — the part that would
+  // discriminate — is already folded into damageQ by the damage estimate. Kept
+  // in features for display, unused here.
   const utilityWeight = tunable('UTILITY_ROLE_WEIGHT');
   const priorityUtilityWeight = tunable('PRIORITY_UTILITY_ROLE_WEIGHT');
   const specialistBulk = Math.max(
@@ -698,8 +699,9 @@ export function currentFormValue(profile, levelCap) {
 /**
  * Fraction of the represented final form's key attributes the fielded form
  * already has — the best of its offense / bulk / speed ratios. Used only to
- * bucket the readiness gate (near-final vs mid-evo), so an OFFENSIVE line that's
- * nearly ready on offense counts as near-final even if it never gets bulky.
+ * bucket the readiness gate (near-final vs mid-evo), so an OFFENSIVE line
+ * that's nearly ready on offense counts as near-final even if it never gets
+ * bulky.
  * @return {number}
  */
 export function formReadinessRatio(currentId, representativeId) {

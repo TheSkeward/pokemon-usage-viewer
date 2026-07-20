@@ -149,8 +149,8 @@ class MarshalReader {
         return obj;
       }
       case 'C': {
-        // User subclass of a builtin (e.g. MonDataHash < Hash): class name, then
-        // the wrapped builtin object.
+        // User subclass of a builtin (e.g. MonDataHash < Hash): class name,
+        // then the wrapped builtin object.
         this.readValue(); // class-name symbol
         return this.readValue();
       }

@@ -119,7 +119,8 @@ function finalizeAggregates(byPokemon) {
           aggregate.sections.abilities,
           aggregate.rawCount,
         ),
-        spreads: finalizeSection(aggregate.sections.spreads, aggregate.rawCount),
+        spreads: finalizeSection(
+          aggregate.sections.spreads, aggregate.rawCount),
       },
     });
   }

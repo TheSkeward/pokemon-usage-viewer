@@ -180,7 +180,8 @@ export async function computeTeamConfidence({
   const context = { availability, family, levelCap, opponentTypeBias };
 
   const seatCounts = new Map(); // inputPokemonId -> settings seated
-  const dropConditions = new Map(); // inputPokemonId -> [setting keys where absent]
+  // inputPokemonId -> [setting keys where absent]
+  const dropConditions = new Map();
   const baseTeamIds = new Set(result.team.map((c) => c.inputPokemonId));
   const record = (teamIds, settingKey) => {
     for (const id of teamIds) {
@@ -344,7 +345,11 @@ function rescoreLine(line, context) {
   // those measurably distorts seat counts; collapsing same-typing variants
   // does not. Deterministic: teamScore, then pokemonId.
   const rescoredForms = new Map();
-  for (const option of [line.best, line.bestNonMega, ...(line.choiceOptions || [])]) {
+  for (const option of [
+    line.best,
+    line.bestNonMega,
+    ...(line.choiceOptions || []),
+  ]) {
     if (option && !rescoredForms.has(option.pokemonId)) {
       rescoredForms.set(option.pokemonId, rescoreChoice(option));
     }
@@ -352,7 +357,8 @@ function rescoreLine(line, context) {
   const ranked = [...rescoredForms.values()].sort((a, b) => {
     const aScore = a.teamScore ?? a.score ?? -Infinity;
     const bScore = b.teamScore ?? b.score ?? -Infinity;
-    return bScore - aScore || String(a.pokemonId).localeCompare(String(b.pokemonId));
+    return bScore - aScore || String(a.pokemonId).localeCompare(
+      String(b.pokemonId));
   });
   const typingOf = (option) =>
     (option.legalityProfile?.currentTypes || []).join('/');

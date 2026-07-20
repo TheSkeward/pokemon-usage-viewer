@@ -23,9 +23,10 @@ export function parseAbilityAnnotations(query, pokemonIndex) {
   const annotations = new Map();
   for (const rawLine of String(query || '').split(/\n+/)) {
     for (const part of rawLine.split(',')) {
-      const match = /^(.*?)\s*[([]\s*([A-Za-z][A-Za-z' -]{1,28})\s*[)\]]\s*$/.exec(
-        part.trim(),
-      );
+      const match =
+        /^(.*?)\s*[([]\s*([A-Za-z][A-Za-z' -]{1,28})\s*[)\]]\s*$/.exec(
+          part.trim(),
+        );
       if (!match) continue;
       const name = findPokemonNameInText(match[1], pokemonIndex);
       if (!name) continue;

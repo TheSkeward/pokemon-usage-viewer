@@ -70,7 +70,8 @@ test('badge-1 shop stock includes the user-verified Obsidia berry floor', () => 
       `${id} must be shop-purchasable at badge 1`,
     );
   }
-  const offered = new Set(getPurchasableShopItems(1, {}).map((item) => item.id));
+  const offered =
+    new Set(getPurchasableShopItems(1, {}).map((item) => item.id));
   for (const id of VERIFIED_BADGE_1_BERRIES) {
     assert.ok(offered.has(id), `${id} must appear in the badge-1 shop sync`);
   }

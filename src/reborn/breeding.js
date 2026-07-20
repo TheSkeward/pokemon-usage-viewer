@@ -23,7 +23,8 @@ export async function buildRebornBreedingContext({
 } = {}) {
   if (!progression.daycareUnlocked) return emptyContext();
 
-  const ownedSpecies = getOwnedCurrentSpecies({ pokemonIndex, progression, query });
+  const ownedSpecies =
+    getOwnedCurrentSpecies({ pokemonIndex, progression, query });
   if (!ownedSpecies.length) return emptyContext();
 
   const entries = (

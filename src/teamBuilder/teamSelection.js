@@ -28,7 +28,15 @@ import { tunable } from './scoringConstants.js';
 export async function choosePoolTeam(
   lines,
   opponentTypeBias = {},
-  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true, hint = false, onSearchProgress = null, onSearchStage = null } = {},
+  {
+    exhaustive = true,
+    incremental = null,
+    searchKey = null,
+    benchSwaps = true,
+    hint = false,
+    onSearchProgress = null,
+    onSearchStage = null,
+  } = {},
 ) {
   const resolvedLines = lines.filter((line) => line.best || line.bestNonMega);
   const unresolved = lines.filter((line) => line.unresolved);
@@ -189,7 +197,8 @@ function getTeamFitReasons(choice, team, attackTypeCounts) {
 
 function getDefensiveCoverTypes(profile, team) {
   return REBORN_ANALYSIS_TYPES.filter((attackType) => {
-    const multiplier = getTypeMultiplier(attackType, profile.currentTypes || []);
+    const multiplier =
+      getTypeMultiplier(attackType, profile.currentTypes || []);
     if (!(multiplier === 0 || (multiplier > 0 && multiplier < 1))) {
       return false;
     }
@@ -239,10 +248,10 @@ const HINT_SHORTLIST_MAX = 12;
 // When a SEQUENTIAL exact search enumerates every C(N, size) team, we keep them
 // all — each team's line positions + score — keyed by the score context. The
 // optimum of ANY sub-pool is then just the best stored team that uses only
-// surviving lines, so a deletion to a never-visited subset is answered by a fast
-// scan instead of a re-search. Big pools take the parallel path, which does NOT
-// build a store (so it's invalidated there) — a subset-delete of a big pool just
-// re-searches in parallel; small pools keep the instant scan.
+// surviving lines, so a deletion to a never-visited subset is answered by a
+// fast scan instead of a re-search. Big pools take the parallel path, which
+// does NOT build a store (so it's invalidated there) — a subset-delete of a big
+// pool just re-searches in parallel; small pools keep the instant scan.
 let teamStore = null;
 
 function createTeamStore(searchKey, lines, targetSize, capacity) {
@@ -268,8 +277,8 @@ function recordStoreTeam(store, comboPositions, evaluated) {
 }
 
 // The current pool is a subset of the stored full search — same context, same
-// target size, every current line present — so the store holds every team it can
-// form and a scan yields the exact optimum.
+// target size, every current line present — so the store holds every team it
+// can form and a scan yields the exact optimum.
 function teamStoreCovers(searchKey, lines, targetSize) {
   if (!teamStore || teamStore.searchKey !== searchKey) return false;
   if (teamStore.targetSize !== targetSize) return false;
@@ -302,7 +311,9 @@ function queryTeamStoreTop(lines, targetSize, opponentTypeBias, topCount) {
     }
     if (!ok) continue;
     const score = store.scores[i];
-    if (keep.length >= topCount && score <= keep[keep.length - 1].score) continue;
+    if (keep.length >= topCount && score <= keep[keep.length - 1].score) {
+      continue;
+    }
     let index = keep.length;
     while (index > 0 && score > keep[index - 1].score) index -= 1;
     keep.splice(index, 0, { score, base });
@@ -314,9 +325,11 @@ function queryTeamStoreTop(lines, targetSize, opponentTypeBias, topCount) {
   for (const { base } of keep) {
     const comboLines = [];
     for (let j = 0; j < size; j++) {
-      comboLines.push(lineByKey.get(store.posToLineKey[store.positions[base + j]]));
+      comboLines.push(
+        lineByKey.get(store.posToLineKey[store.positions[base + j]]));
     }
-    const candidate = bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
+    const candidate =
+      bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
     if (candidate) offerTopTeam(top, candidate);
   }
   return top.items;
@@ -325,11 +338,23 @@ function queryTeamStoreTop(lines, targetSize, opponentTypeBias, topCount) {
 async function selectTeamByFit(
   lines,
   opponentTypeBias = {},
-  { exhaustive = true, incremental = null, searchKey = null, benchSwaps = true, hint = false, onSearchProgress = null, onSearchStage = null } = {},
+  {
+    exhaustive = true,
+    incremental = null,
+    searchKey = null,
+    benchSwaps = true,
+    hint = false,
+    onSearchProgress = null,
+    onSearchStage = null,
+  } = {},
 ) {
   const targetSize = Math.min(6, lines.length);
   if (targetSize === 0) {
-    return { evaluated: { team: [], megaUsed: null }, searchExact: true, benchSwapScores: new Map() };
+    return {
+      evaluated: { team: [], megaUsed: null },
+      searchExact: true,
+      benchSwapScores: new Map(),
+    };
   }
 
   const incApplies = incrementalApplicable(incremental, lines, targetSize);
@@ -343,12 +368,13 @@ async function selectTeamByFit(
       ? tunable('EXHAUSTIVE_CAP')
       : tunable('AUTO_EXHAUSTIVE_BUDGET');
 
-  // A from-scratch / grown search big enough to be worth it runs in parallel off
-  // the main thread. A pure deletion (incremental, no added lines) and a
+  // A from-scratch / grown search big enough to be worth it runs in parallel
+  // off the main thread. A pure deletion (incremental, no added lines) and a
   // store-covered subset stay on their instant sequential paths; an addition
   // takes the parallel full enumeration (exact, and core-count fast).
   const isPureDeletion = incApplies && addedCount === 0;
-  const isStoreCovered = !!searchKey && teamStoreCovers(searchKey, lines, targetSize);
+  const isStoreCovered =
+    !!searchKey && teamStoreCovers(searchKey, lines, targetSize);
   // Test hook (regret validation only): force the shortlist path even on a pool
   // small enough to enumerate fully, so its optimum can be compared to the true
   // exact optimum. No effect in production (the global is never set).
@@ -379,7 +405,8 @@ async function selectTeamByFit(
       onSearchStage?.('realize');
       await yieldForPaint();
       const candidates = (refs?.top || [])
-        .map((entry) => evaluatedFromRefs(entry, lines, targetSize, opponentTypeBias))
+        .map((entry) =>
+          evaluatedFromRefs(entry, lines, targetSize, opponentTypeBias))
         .filter(Boolean);
       const evaluated = realizeBestTeam(candidates, opponentTypeBias);
       if (evaluated) {
@@ -390,12 +417,18 @@ async function selectTeamByFit(
         const benchSwapScores = benchSwaps
           ? scanTeamSwaps(lines, evaluated.team, opponentTypeBias).scores
           : null;
-        return { evaluated, searchExact: true, benchSwapScores, searchPolish: null };
+        return {
+          evaluated,
+          searchExact: true,
+          benchSwapScores,
+          searchPolish: null,
+        };
       }
     } finally {
       resetFitScoring(lines);
     }
-    // Unmappable result (shouldn't happen) — fall through to a sequential search.
+    // Unmappable result (shouldn't happen) — fall through to a sequential
+    // search.
   }
 
   prepareFitScoring(lines, opponentTypeBias);
@@ -419,9 +452,11 @@ async function selectTeamByFit(
       searchExact = true;
     } else if (incApplies) {
       // Reuse the cached optimum: instant for a pure deletion, or enumerate the
-      // teams that include a newly-added line (small pools; big adds went parallel).
+      // teams that include a newly-added line (small pools; big adds went
+      // parallel).
       const top = createTopTeams(realizationPool);
-      selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, null, top);
+      selectTeamExhaustive(
+        lines, targetSize, opponentTypeBias, incremental, null, top);
       candidates = top.items;
       searchExact = true;
     } else if (combinations <= budget && !forceShortlist) {
@@ -431,13 +466,14 @@ async function selectTeamByFit(
         ? createTeamStore(searchKey, lines, targetSize, combinations)
         : null;
       const top = createTopTeams(realizationPool);
-      selectTeamExhaustive(lines, targetSize, opponentTypeBias, null, store, top);
+      selectTeamExhaustive(
+        lines, targetSize, opponentTypeBias, null, store, top);
       if (store) teamStore = store;
       candidates = top.items;
       searchExact = true;
     } else {
-      // Too big to enumerate fully: reduce to a coverage-preserving shortlist and
-      // enumerate THAT exactly. Route through the Web Worker pool when it's
+      // Too big to enumerate fully: reduce to a coverage-preserving shortlist
+      // and enumerate THAT exactly. Route through the Web Worker pool when it's
       // worth it, so a big pool still uses all cores.
       usedShortlist = true;
       const shortlist = buildShortlist(lines, hint ? HINT_SHORTLIST_MAX : null);
@@ -469,7 +505,8 @@ async function selectTeamByFit(
       }
       if (!candidates?.length) {
         const top = createTopTeams(realizationPool);
-        selectTeamExhaustive(shortlist, shortSize, opponentTypeBias, null, null, top);
+        selectTeamExhaustive(
+          shortlist, shortSize, opponentTypeBias, null, null, top);
         candidates = top.items;
       }
       searchExact = false; // exact on the shortlist, not the whole pool
@@ -550,9 +587,9 @@ function buildCompactLines(lines) {
   }));
 }
 
-// Maps the parallel search's compact id refs back to the real choice objects and
-// re-evaluates the team on the main thread (so it carries full legality profiles
-// for display and seeding). Returns null if any ref can't be mapped.
+// Maps the parallel search's compact id refs back to the real choice objects
+// and re-evaluates the team on the main thread (so it carries full legality
+// profiles for display and seeding). Returns null if any ref can't be mapped.
 function evaluatedFromRefs(bestRefs, lines, targetSize, opponentTypeBias) {
   const byKey = new Map();
   for (const line of lines) {
@@ -650,7 +687,8 @@ function scanTeamSwaps(lines, team, opponentTypeBias) {
 // repair count.
 const POLISH_MAX_SWAPS = 8;
 
-async function polishTeamBySwaps(lines, evaluated, opponentTypeBias, onSearchStage = null) {
+async function polishTeamBySwaps(
+  lines, evaluated, opponentTypeBias, onSearchStage = null) {
   let current = evaluated;
   const swaps = [];
   onSearchStage?.('polish', { round: 1 });
@@ -773,10 +811,11 @@ function remapToPreparedChoices(team, lines) {
   };
 }
 
-// Incremental is valid when the cached optimum is a full team of the same target
-// size and all of the cached TEAM's lines are still present. Non-team lines may
-// have been removed — the optimum is invariant to unused mons, so a deletion
-// that doesn't touch the team is reused as-is, and an addition grows the search.
+// Incremental is valid when the cached optimum is a full team of the same
+// target size and all of the cached TEAM's lines are still present. Non-team
+// lines may have been removed — the optimum is invariant to unused mons, so a
+// deletion that doesn't touch the team is reused as-is, and an addition grows
+// the search.
 function incrementalApplicable(incremental, lines, targetSize) {
   if (!incremental?.previousBest?.team?.length) return false;
   if (incremental.previousBest.team.length !== targetSize) return false;
@@ -790,7 +829,14 @@ function incrementalApplicable(incremental, lines, targetSize) {
 // Streams every team of the target size, keeping the single best. With
 // `incremental`, it seeds the best from the cached optimum and only enumerates
 // teams containing at least one newly-added line.
-function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, recordStore, topCollector = null) {
+function selectTeamExhaustive(
+  lines,
+  targetSize,
+  opponentTypeBias,
+  incremental,
+  recordStore,
+  topCollector = null,
+) {
   let best = null;
   const offer = (candidate) => {
     if (topCollector) offerTopTeam(topCollector, candidate);
@@ -833,7 +879,8 @@ function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, 
         const addedLines = addedIdx.map((i) => added[i]);
         forEachCombination(old.length, fromOld, (oldIdx) => {
           const comboLines = addedLines.concat(oldIdx.map((i) => old[i]));
-          const candidate = bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
+          const candidate =
+            bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
           if (candidate) offer(candidate);
         });
       });
@@ -843,7 +890,8 @@ function selectTeamExhaustive(lines, targetSize, opponentTypeBias, incremental, 
 
   forEachCombination(lines.length, targetSize, (comboIndices) => {
     const comboLines = comboIndices.map((index) => lines[index]);
-    const candidate = bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
+    const candidate =
+      bestAssignmentForLines(comboLines, targetSize, opponentTypeBias);
     if (!candidate) return;
     if (recordStore) recordStoreTeam(recordStore, comboIndices, candidate);
     offer(candidate);
@@ -863,17 +911,17 @@ function countCombinations(n, k) {
   return Math.round(result);
 }
 
-// Reduces a too-big pool to a shortlist that the optimiser can enumerate exactly.
-// Keeps the top mons by individual score (SHORTLIST_CORE) plus the best-scoring
-// provider of every capability a team could need a specialist for: real damage
-// into each defense type (optimistic across builds), each defensive resist and
-// IMMUNITY, speed, priority, utility infrastructure, and low-friction evolved
-// forms — so no mon that could earn a slot on quality OR any coverage axis is
-// pruned before the optimiser sees it. Deterministic (scored order + fixed type
-// order), so the shortlist — and thus the result — is stable.
-// The individual-score ordering the shortlist cuts on — shared with
-// explainShortlistMiss so repair attribution ranks by EXACTLY the ordering
-// that excluded the mon.
+// Reduces a too-big pool to a shortlist that the optimiser can enumerate
+// exactly. Keeps the top mons by individual score (SHORTLIST_CORE) plus the
+// best-scoring provider of every capability a team could need a specialist for:
+// real damage into each defense type (optimistic across builds), each defensive
+// resist and IMMUNITY, speed, priority, utility infrastructure, and
+// low-friction evolved forms — so no mon that could earn a slot on quality OR
+// any coverage axis is pruned before the optimiser sees it. Deterministic
+// (scored order + fixed type order), so the shortlist — and thus the result —
+// is stable. The individual-score ordering the shortlist cuts on — shared with
+// explainShortlistMiss so repair attribution ranks by EXACTLY the ordering that
+// excluded the mon.
 function rankShortlistEntries(lines) {
   return lines
     .map((line) => {

@@ -35,7 +35,8 @@ const RATING_BANDS = [
  *     totals.
  */
 export function summarizeCorpus({ replays, teams }) {
-  const formats = new Map(); // formatId → per-source {records, weight} + rating bands
+  // formatId → per-source {records, weight} + rating bands
+  const formats = new Map();
   const forFormat = (id) => {
     if (!formats.has(id)) {
       formats.set(id, {

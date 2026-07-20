@@ -101,11 +101,13 @@ export function getCurrentRebornSpecies(pokemonId, progression = {}) {
   };
 }
 
-function getBestLevelReachableSpecies({ inputId, levelCap, representativeId, access = null }) {
+function getBestLevelReachableSpecies(
+  { inputId, levelCap, representativeId, access = null }) {
   const input = GEN7_PROGRESSION_SPECIES[inputId];
   if (!input) return null;
 
-  const { reachable, blocked } = collectReachableSpecies(input.id, levelCap, access);
+  const { reachable, blocked } =
+    collectReachableSpecies(input.id, levelCap, access);
   if (!reachable.length) return { ...input, blockedEvolutions: blocked };
 
   const representativeLine = representativeId
@@ -145,7 +147,8 @@ function collectReachableSpecies(inputId, levelCap, access = null) {
       if (!evo || evo.isMega) continue;
       const requirement = getEvolutionRequirement(evo, access);
       if (requirement.status !== 'legal') {
-        blocked.push({ from: current.id, to: evo.id, reason: requirement.reason });
+        blocked.push(
+          { from: current.id, to: evo.id, reason: requirement.reason });
         continue;
       }
       if (

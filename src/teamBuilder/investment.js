@@ -16,8 +16,10 @@
 import { optimizeTeamFromPool } from './teamOptimizer.js';
 import { REBORN_PROGRESSION_CHECKPOINTS } from '../reborn/badgeTimeline.js';
 
-const TRAIN_SOON_GAIN = 250; // score points at the next cap that make a mon worth tracking
-const CLOSE_BENCH_MARGIN = 0.985; // swap score within 1.5% of the team's own score
+// score points at the next cap that make a mon worth tracking
+const TRAIN_SOON_GAIN = 250;
+// swap score within 1.5% of the team's own score
+const CLOSE_BENCH_MARGIN = 0.985;
 
 /**
  * The distinct upcoming caps, straight from the badge timeline — the single
@@ -92,7 +94,8 @@ export async function computeInvestmentPlan({
       }),
     });
     if (futureResults.length < caps.length && onPartial) {
-      const partial = buildInvestmentPlan({ nowByInput, teamIds, result, futureResults });
+      const partial =
+        buildInvestmentPlan({ nowByInput, teamIds, result, futureResults });
       partial.partial = true;
       partial.pendingCaps = caps.slice(futureResults.length);
       onPartial(partial);
@@ -126,7 +129,8 @@ function buildInvestmentPlan({ nowByInput, teamIds, result, futureResults }) {
         (choice) => choice.inputPokemonId === inputId,
       );
       if (!best || gain > best.gain) {
-        best = { cap, gain: Math.round(gain), evolves, seatsLater, futureChoice };
+        best =
+          { cap, gain: Math.round(gain), evolves, seatsLater, futureChoice };
       }
     }
     if (!best) continue;
@@ -158,7 +162,8 @@ function buildInvestmentPlan({ nowByInput, teamIds, result, futureResults }) {
   const closeBench = [];
   const teamReference = result.teamScore ?? result.bestEvaluated?.score;
   if (result.benchSwapScores && teamReference > 0) {
-    const trainSoonIds = new Set(trainSoon.map((entry) => entry.inputPokemonId));
+    const trainSoonIds =
+      new Set(trainSoon.map((entry) => entry.inputPokemonId));
     for (const [inputId, swapScore] of result.benchSwapScores) {
       if (teamIds.has(inputId)) continue;
       // Already called out with a concrete cap gain above — one list per mon.

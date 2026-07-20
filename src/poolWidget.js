@@ -156,7 +156,8 @@ export function mountPoolOptimizer(container, options = {}) {
     }
   }
 
-  async function computeAndRender({ exhaustive = true, background = false } = {}) {
+  async function computeAndRender(
+    { exhaustive = true, background = false } = {}) {
     setDetails.cancel();
 
     // Newest-run-wins token: any older in-flight run becomes a no-op the
@@ -208,8 +209,8 @@ export function mountPoolOptimizer(container, options = {}) {
         selection: state.selection,
         onProgress: updateOptimizeProgress,
         // The explicit Optimize button (and other direct triggers) run an exact
-        // search; only background auto-reoptimize accepts the fast approximation
-        // when the pool is too large to enumerate exactly.
+        // search; only background auto-reoptimize accepts the fast
+        // approximation when the pool is too large to enumerate exactly.
         exhaustive,
       });
       if (runToken !== optimizeRunToken) return;
@@ -222,9 +223,10 @@ export function mountPoolOptimizer(container, options = {}) {
         phases.search = meta.searchMs;
       }
 
-      // Resolve each member's recommended-move types + real top-set ability once,
-      // so gem item recommendations can be gated (type must match a recommended
-      // move; Unburden boost only when Unburden is actually the set's ability).
+      // Resolve each member's recommended-move types + real top-set ability
+      // once, so gem item recommendations can be gated (type must match a
+      // recommended move; Unburden boost only when Unburden is actually the
+      // set's ability).
       updateOptimizeProgress({ phase: 'items' });
       const itemsStart = Date.now();
       const teamItemContext = await getTeamItemContext(
@@ -747,9 +749,10 @@ export function mountPoolOptimizer(container, options = {}) {
         // UNION with the existing selection (unlike the group-level "Select
         // all", which replaces it): "I found this tutor" must not unteach
         // every other location.
-        state.progression = setRebornProgressionOptions(state.progression, field, [
-          ...new Set([...(state.progression[field] || []), ...ids]),
-        ]);
+        state.progression =
+          setRebornProgressionOptions(state.progression, field, [
+            ...new Set([...(state.progression[field] || []), ...ids]),
+          ]);
 
         const saved = saveRebornProgression(state.progression);
         const stale = markResultProgressionStale();
@@ -874,8 +877,8 @@ export function mountPoolOptimizer(container, options = {}) {
     });
 
     app.querySelectorAll('[data-bias-type]').forEach((control) => {
-      // Update the value readout live while dragging without re-rendering (which
-      // would drop slider focus), then commit on release.
+      // Update the value readout live while dragging without re-rendering
+      // (which would drop slider focus), then commit on release.
       control.addEventListener('input', () => {
         const valueEl = app.querySelector(
           `[data-bias-value="${control.dataset.biasType}"]`,
@@ -1084,7 +1087,8 @@ export function mountPoolOptimizer(container, options = {}) {
     render();
   }
 
-  function applyOwnedItemChange(itemId, count, { refocusAdd, flashItemId } = {}) {
+  function applyOwnedItemChange(
+    itemId, count, { refocusAdd, flashItemId } = {}) {
     state.progression = setRebornOwnedItemCount(
       state.progression,
       itemId,
@@ -1403,7 +1407,8 @@ export function mountPoolOptimizer(container, options = {}) {
       const noteNode = rowNode.querySelector('[data-current-species-note]');
       if (!row || !noteNode) return;
 
-      const currentSpecies = getCurrentRebornSpeciesForChoice(row, state.progression);
+      const currentSpecies =
+        getCurrentRebornSpeciesForChoice(row, state.progression);
       const showCurrent = Boolean(currentSpecies?.differsFromRepresentative);
 
       noteNode.hidden = !showCurrent;

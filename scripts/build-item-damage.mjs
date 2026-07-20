@@ -39,7 +39,8 @@ function main() {
   for (const item of dex.items.all()) {
     if (!item.exists) continue;
     // Z-crystals expose onPlate (their Z-move type) but give no passive damage
-    // boost — they enable a one-time Z-move. Skip them, and any future-gen item.
+    // boost — they enable a one-time Z-move. Skip them, and any future-gen
+    // item.
     if (item.zMove || item.isZ || item.gen > 7) continue;
     const id = item.id;
     const desc = item.shortDesc || '';
@@ -64,7 +65,8 @@ function main() {
     // Type Gems: a single-use 1.3x boost to one type. Modeled as a persistent
     // type boost — it overstates sustained damage but reflects the opening hit
     // the item is bought for (and how heavily this app leans on Reborn's Gems).
-    match = desc.match(/^Holder's first successful (\w+)-type attack will have 1\.3x/);
+    match = desc.match(
+      /^Holder's first successful (\w+)-type attack will have 1\.3x/);
     if (match) {
       table[id] = { mult: 1.3, type: match[1] };
       derived += 1;

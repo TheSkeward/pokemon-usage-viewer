@@ -43,7 +43,8 @@ function hashFile(file) {
 }
 
 const sources = {};
-for (const entry of fs.readdirSync(dataRoot, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+for (const entry of fs.readdirSync(dataRoot, { withFileTypes: true })
+  .sort((a, b) => a.name.localeCompare(b.name))) {
   if (entry.name === 'manifest.json') continue;
   const full = path.join(dataRoot, entry.name);
   sources[entry.name] = entry.isDirectory() ? hashTree(full) : hashFile(full);

@@ -130,7 +130,8 @@ export function scoreCandidate({
       )
       : 0;
 
-  // Bias reflects the form you actually field, so it's added to the honest value.
+  // Bias reflects the form you actually field, so it's added to the honest
+  // value.
   const biasScore = scoreOpponentTypeBias(opponentTypeBias, legalityProfile);
 
   // K — friction to have reached this fielded form AND to run this build
@@ -144,10 +145,10 @@ export function scoreCandidate({
       ).friction) *
     tunable('FRICTION_SCALE');
 
-  // If the caught mon's ability is unknown and the sweep asks "what if it has the
-  // secondary ability?", subtract the build's measured sensitivity (V under
-  // primary minus V under secondary, including damage and priority utility;
-  // 0 when ability is known or the build is ability-insensitive).
+  // If the caught mon's ability is unknown and the sweep asks "what if it has
+  // the secondary ability?", subtract the build's measured sensitivity (V under
+  // primary minus V under secondary, including damage and priority utility; 0
+  // when ability is known or the build is ability-insensitive).
   const abilityPenalty =
     tunable('ABILITY_ASSUMPTION') === 'secondary'
       ? Math.max(0, legalityProfile?.abilitySensitivity || 0)
@@ -217,7 +218,9 @@ export function scoreCandidate({
 export function fieldableRepresentativeId(representativeId) {
   if (!representativeId) return representativeId;
   const record = GEN7_PROGRESSION_SPECIES[representativeId];
-  return record?.isMega ? record.baseSpeciesId || representativeId : representativeId;
+  return record?.isMega
+    ? record.baseSpeciesId || representativeId
+    : representativeId;
 }
 
 /**
@@ -368,9 +371,10 @@ export function hasCompetitivePriorEvidence(
   );
 }
 
-// Rewards a pick for being prepared against the biased opponent types: resisting
-// or being immune to them, and being able to hit them super-effectively, scaled
-// by each type's bias level. Being weak to a biased type is penalised.
+// Rewards a pick for being prepared against the biased opponent types:
+// resisting or being immune to them, and being able to hit them
+// super-effectively, scaled by each type's bias level. Being weak to a biased
+// type is penalised.
 function scoreOpponentTypeBias(opponentTypeBias, profile) {
   if (!opponentTypeBias || !profile) return 0;
 

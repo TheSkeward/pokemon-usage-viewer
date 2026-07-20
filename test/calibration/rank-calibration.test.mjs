@@ -20,7 +20,8 @@
 // can't all take chairs. This badge-bucket corpus is the scoring calibration
 // contract; failures are findings to understand against the user's anchors.
 //
-// Run separately from the fast mechanical/correctness suite (19 optimizer runs):
+// Run separately from the fast mechanical/correctness suite (19 optimizer
+// runs):
 //   npm run validate:calibration
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -62,7 +63,8 @@ const CAP = {
 
 // Value at the q-th fraction of the ascending-sorted scores (nearest rank).
 function quantile(sorted, q) {
-  return sorted[Math.max(0, Math.min(sorted.length - 1, Math.round(q * (sorted.length - 1))))];
+  return sorted[Math.max(
+    0, Math.min(sorted.length - 1, Math.round(q * (sorted.length - 1))))];
 }
 
 for (const badgeKey of Object.keys(buckets)) {

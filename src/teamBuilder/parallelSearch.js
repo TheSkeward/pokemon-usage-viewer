@@ -39,8 +39,8 @@ export function setSearchWorkerPoolFactory(factory, { timeoutMs } = {}) {
   workerPool = null;
   if (timeoutMs) workerTimeoutMs = timeoutMs;
 }
-// Serialize parallel searches so they never contend for the same workers; optimize
-// calls are normally serial anyway, this just makes overlap safe.
+// Serialize parallel searches so they never contend for the same workers;
+// optimize calls are normally serial anyway, this just makes overlap safe.
 let chain = Promise.resolve();
 
 function getWorkerPool() {
@@ -88,8 +88,10 @@ function getWorkerPool() {
  * @param {?function(number, number)} onProgress
  * @return {Promise<?{top: Array<Object>}>}
  */
-export function parallelFullSearch(compactLines, targetSize, bias, total, topCount = 1, onProgress = null) {
-  const run = () => dispatch(compactLines, targetSize, bias, total, topCount, onProgress);
+export function parallelFullSearch(
+  compactLines, targetSize, bias, total, topCount = 1, onProgress = null) {
+  const run = () => dispatch(
+    compactLines, targetSize, bias, total, topCount, onProgress);
   const result = chain.then(run, run);
   // Keep the chain alive regardless of this job's outcome.
   chain = result.then(
@@ -126,7 +128,8 @@ function scheduleIdleRelease() {
   }, WORKER_IDLE_MS);
 }
 
-async function dispatch(compactLines, targetSize, bias, total, topCount, onProgress = null) {
+async function dispatch(
+  compactLines, targetSize, bias, total, topCount, onProgress = null) {
   // A job is starting: don't reap workers out from under it. Dispatches are
   // serialized on `chain`, so clearing here covers the whole job.
   if (idleTimer) {
@@ -136,7 +139,8 @@ async function dispatch(compactLines, targetSize, bias, total, topCount, onProgr
   const pool = total >= PARALLEL_THRESHOLD ? getWorkerPool() : null;
 
   if (!pool || pool.length < 2) {
-    return searchCombinationRange(compactLines, targetSize, bias, 0, total, topCount, onProgress);
+    return searchCombinationRange(
+      compactLines, targetSize, bias, 0, total, topCount, onProgress);
   }
 
   try {
@@ -164,10 +168,12 @@ async function dispatch(compactLines, targetSize, bias, total, topCount, onProgr
       const slot = scannedByWorker.length;
       scannedByWorker.push(0);
       jobs.push(
-        runOnWorker(pool[w], compactLines, targetSize, bias, start, end, topCount, (scanned) => {
-          scannedByWorker[slot] = scanned;
-          reportProgress();
-        }),
+        runOnWorker(
+          pool[w], compactLines, targetSize, bias, start, end, topCount,
+          (scanned) => {
+            scannedByWorker[slot] = scanned;
+            reportProgress();
+          }),
       );
     }
     const results = await Promise.all(jobs);
@@ -175,22 +181,32 @@ async function dispatch(compactLines, targetSize, bias, total, topCount, onProgr
   } catch {
     // Any worker failure (load error, crash, or hang) → retire the pool so we
     // don't pay the failure again, and recompute synchronously so a correct
-    // result is always returned. A broken worker degrades to "no speedup", never
-    // to a wrong answer or a frozen UI.
+    // result is always returned. A broken worker degrades to "no speedup",
+    // never to a wrong answer or a frozen UI.
     retireWorkerPool();
-    return searchCombinationRange(compactLines, targetSize, bias, 0, total, topCount);
+    return searchCombinationRange(
+      compactLines, targetSize, bias, 0, total, topCount);
   } finally {
     scheduleIdleRelease();
   }
 }
 
 // Backstop for a worker that loads but never answers (e.g. a bad production URL
-// that silently fails): bounded well above any real search (3M-combo cap / cores
-// is a few seconds) so it only ever fires on a genuine hang. Injected hosts may
-// raise it to match slower hardware.
+// that silently fails): bounded well above any real search (3M-combo cap /
+// cores is a few seconds) so it only ever fires on a genuine hang. Injected
+// hosts may raise it to match slower hardware.
 let workerTimeoutMs = 30_000;
 
-function runOnWorker(worker, compactLines, targetSize, bias, start, end, topCount, onProgress = null) {
+function runOnWorker(
+  worker,
+  compactLines,
+  targetSize,
+  bias,
+  start,
+  end,
+  topCount,
+  onProgress = null,
+) {
   const id = ++messageSeq;
   return new Promise((resolve, reject) => {
     let timer = setTimeout(() => {
@@ -226,7 +242,8 @@ function runOnWorker(worker, compactLines, targetSize, bias, start, end, topCoun
     };
     worker.addEventListener('message', onMessage);
     worker.addEventListener('error', onError);
-    worker.postMessage({ id, compactLines, targetSize, bias, start, end, topCount });
+    worker.postMessage(
+      { id, compactLines, targetSize, bias, start, end, topCount });
   });
 }
 
@@ -257,7 +274,9 @@ function mergeResults(results, topCount) {
   merged.sort(
     (a, b) =>
       b.score - a.score ||
-      (a.identityKey < b.identityKey ? -1 : a.identityKey > b.identityKey ? 1 : 0),
+      (a.identityKey < b.identityKey
+        ? -1
+        : a.identityKey > b.identityKey ? 1 : 0),
   );
   return { top: merged.slice(0, Math.max(1, topCount)) };
 }

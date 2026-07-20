@@ -33,7 +33,8 @@ const SOURCE_TONE = {
  *     poolQuery: ?string}} options
  */
 export function renderRebornLegalMovesPanel(container, options) {
-  const { currentSpecies, movesetEntry, pokemonId, pokemonName, progression } = options;
+  const { currentSpecies, movesetEntry, pokemonId, pokemonName, progression } =
+    options;
   const legalityPokemonId = currentSpecies?.id || pokemonId;
   const legalityPokemonName = currentSpecies?.name || pokemonName;
   const renderKey = JSON.stringify({ pokemonId, progression });
@@ -160,7 +161,8 @@ function renderObservedMoves(observedMoves, availableMoveMap) {
       <div class="legal-observed-grid">
         ${observedMoves
           .map((entry) => {
-            const availableMove = availableMoveMap.get(getRebornMoveId(entry.name));
+            const availableMove =
+              availableMoveMap.get(getRebornMoveId(entry.name));
             return `
               <div class="legal-observed-row ${availableMove ? 'available' : 'unavailable'}">
                 <strong>${escapeHtml(entry.name)}</strong>

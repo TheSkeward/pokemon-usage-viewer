@@ -72,7 +72,10 @@ export const CUTOFF_PRIORITY = [
   ]),
 ];
 
-/** Cutoff used for browser datasets: 0 is the unfiltered baseline. @type {number} */
+/**
+ * Cutoff used for browser datasets: 0 is the unfiltered baseline. @type
+ * {number}
+ */
 export const DEFAULT_RATING = 0;
 /** @type {string} */
 export const STATS_ROOT = 'https://www.smogon.com/stats';

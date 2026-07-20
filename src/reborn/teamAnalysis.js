@@ -243,9 +243,9 @@ async function buildMemberLegalMoveEntry({
     spread: topSet.spread,
   });
 
-  // The item the mon is recommended to hold (owned-item assignment, else its top
-  // competitive item) factors into its damage. Only when this entry feeds the
-  // displayed analysis — the gem-gating prepass stays item-blind.
+  // The item the mon is recommended to hold (owned-item assignment, else its
+  // top competitive item) factors into its damage. Only when this entry feeds
+  // the displayed analysis — the gem-gating prepass stays item-blind.
   const heldItem = itemAware
     ? (assignedItem?.name ?? topSet.item)
     : null;
@@ -261,7 +261,8 @@ async function buildMemberLegalMoveEntry({
     heldItem,
     ability: topSet.ability,
     opponentTypeBias: progression.opponentTypeBias,
-    fieldExtenderOwned: ((progression.ownedItems || {}).amplifieldrock || 0) > 0,
+    fieldExtenderOwned:
+      ((progression.ownedItems || {}).amplifieldrock || 0) > 0,
   });
   profile.fieldedId = currentSpecies?.id || member.id;
   profile.fieldedName = currentSpecies?.name || member.name;
@@ -437,8 +438,8 @@ async function attachDonorInterimGuides({
  * top competitive set actually runs Unburden. Both gate gem recommendations —
  * a type Gem is useless without a move of its type, and the Unburden speed
  * payoff only applies if Unburden is the set's ability (not merely a legal one,
- * e.g. Liepard's top sets run Prankster). Uses the same pipeline as the analysis
- * panel so the gates match what the player sees.
+ * e.g. Liepard's top sets run Prankster). Uses the same pipeline as the
+ * analysis panel so the gates match what the player sees.
  * @return {!Promise<!Map<string, {damageTypes: !Set<string>,
  *     unburden: boolean, fieldSetterShare: number}>>} Keyed by teamMemberKey.
  */
@@ -479,7 +480,8 @@ export async function getTeamItemContext(
       );
       const canonicalShare = Math.max(
         0,
-        ...fieldMoves.map((move) => (entry.topSet?.moveUsage?.get(move.id) || 0) / 100),
+        ...fieldMoves.map(
+          (move) => (entry.topSet?.moveUsage?.get(move.id) || 0) / 100),
       );
       byMember.set(teamMemberKey(row), {
         damageTypes,
@@ -523,7 +525,11 @@ export function buildCandidateLegalityProfile({
   // reflects them — Protean makes every move STAB.
   const member =
     heldItem || ability
-      ? { ...rawMember, ...(heldItem ? { heldItem } : {}), ...(ability ? { ability } : {}) }
+      ? {
+        ...rawMember,
+        ...(heldItem ? { heldItem } : {}),
+        ...(ability ? { ability } : {}),
+      }
       : rawMember;
   const stats =
     attackerStats ||
@@ -578,11 +584,12 @@ export function buildCandidateLegalityProfile({
     }
   }
 
-  // Damage-aware coverage vector: A(this build, e) for each defense type e — the
-  // build's best real hit into e (its recommended damaging moves' estimated damage,
-  // ability/STAB/effectiveness-aware) as a fraction of a stage-typical strong hit.
-  // So a 30-BP Lick contributes ~nothing to Ghost coverage while a Protean Ice
-  // Beam into Ground/Dragon contributes a lot. Consumed by the team coverage term.
+  // Damage-aware coverage vector: A(this build, e) for each defense type e —
+  // the build's best real hit into e (its recommended damaging moves' estimated
+  // damage, ability/STAB/effectiveness-aware) as a fraction of a stage-typical
+  // strong hit. So a 30-BP Lick contributes ~nothing to Ghost coverage while a
+  // Protean Ice Beam into Ground/Dragon contributes a lot. Consumed by the team
+  // coverage term.
   const coverageRef = stageReferenceDamage(levelCap) || 1;
   const recommendedMoveDamage = recommendedDamagingMoves.map((move) => ({
     id: move.id,
@@ -592,7 +599,8 @@ export function buildCandidateLegalityProfile({
   const coverageVector = REBORN_ANALYSIS_TYPES.map((defenseType) => {
     let best = 0;
     for (const md of recommendedMoveDamage) {
-      const dealt = coverageDamageIntoType(md.id, md.type, md.damage, defenseType);
+      const dealt =
+        coverageDamageIntoType(md.id, md.type, md.damage, defenseType);
       if (dealt > best) best = dealt;
     }
     return Math.min(1, best / coverageRef);
@@ -600,10 +608,10 @@ export function buildCandidateLegalityProfile({
 
   return {
     coverageVector,
-    // The ability the score ASSUMES (the form's primary competitive ability, e.g.
-    // Protean for the Greninja line). Surfaced so the assumption is visible — the
-    // actual caught mon's ability isn't known here, so this is "best obtainable,
-    // noted", not a claim about legality.
+    // The ability the score ASSUMES (the form's primary competitive ability,
+    // e.g. Protean for the Greninja line). Surfaced so the assumption is
+    // visible — the actual caught mon's ability isn't known here, so this is
+    // "best obtainable, noted", not a claim about legality.
     assumedAbility: ability || null,
     fieldExtenderOwned: Boolean(fieldExtenderOwned),
     movePreference,
@@ -638,7 +646,8 @@ export function buildCandidateLegalityProfile({
   };
 }
 
-function buildRecommendedSet({ member, profile, topSet, assignedItem, levelCap }) {
+function buildRecommendedSet(
+  { member, profile, topSet, assignedItem, levelCap }) {
   const parsed = topSet.spread ? parseSpread(topSet.spread) : null;
 
   return {
@@ -727,8 +736,10 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
 
   for (const { member, profile } of legalMoveEntries) {
     // Recommended moves already carry estimatedDamage (category/STAB-aware) and
-    // basePower from formatRecommendedMove, so reuse them rather than recompute.
-    const damagingMoves = (profile?.recommendedMoves || []).filter(isDamagingMove);
+    // basePower from formatRecommendedMove, so reuse them rather than
+    // recompute.
+    const damagingMoves = (profile?.recommendedMoves || []).filter(
+      isDamagingMove);
     const stabMoves = damagingMoves
       // Typeless fixed damage is neither STAB nor an attack-type entry below.
       .filter(
@@ -839,7 +850,8 @@ function analyzeOffensiveCoverage(legalMoveEntries) {
   };
 }
 
-function buildTeamExplanation({ defensive, legalMoveEntries, lines, offensive }) {
+function buildTeamExplanation(
+  { defensive, legalMoveEntries, lines, offensive }) {
   const selectedKeys = new Set(
     legalMoveEntries.map(
       ({ row }) => `${row.inputPokemonId || row.inputName}:${row.pokemonId}`,
@@ -875,9 +887,11 @@ function getDefensiveHoles(defensive) {
 
 // Suggests bench (unselected pool) Pokémon that patch a named team hole — a
 // shared weakness with no switch-in, or a type nothing hits super-effectively.
-// Only ever references picks NOT on the team, spoken as the form you'd field, so
-// it can't degenerate into "swap a pick for itself" or another of its evolutions.
-function buildFixSuggestions({ defensiveHoles, lines, offensive, selectedKeys }) {
+// Only ever references picks NOT on the team, spoken as the form you'd field,
+// so it can't degenerate into "swap a pick for itself" or another of its
+// evolutions.
+function buildFixSuggestions(
+  { defensiveHoles, lines, offensive, selectedKeys }) {
   const bench = collectBenchOptions(lines, selectedKeys);
   if (!bench.length) return [];
 
@@ -889,7 +903,8 @@ function buildFixSuggestions({ defensiveHoles, lines, offensive, selectedKeys })
   );
   for (const hole of holes) {
     const pick = bench
-      .filter((option) => resistsOrImmune(option.profile.currentTypes, hole.type))
+      .filter(
+        (option) => resistsOrImmune(option.profile.currentTypes, hole.type))
       .sort((a, b) => b.score - a.score)[0];
     if (!pick) continue;
 
@@ -1204,13 +1219,14 @@ function computeEstimatedDamage(move, member, attackerStats) {
   });
   // Expected damage weights a hit by how often it lands, so an inaccurate nuke
   // (Focus Blast: 120 BP @ 70%) ranks below a reliable lower-power move (e.g. a
-  // 90 BP @ 100% move: 84 vs 90 expected). Applied after the per-hit estimate so
-  // it also scales fixed-damage/OHKO moves (Fissure @ 30%).
+  // 90 BP @ 100% move: 84 vs 90 expected). Applied after the per-hit estimate
+  // so it also scales fixed-damage/OHKO moves (Fissure @ 30%).
   return Math.round(perHit * getAccuracyFactor(move));
 }
 
 // A move's hit rate as a 0–1 factor. Never-miss and perfect-accuracy moves
-// (normalized to 100 in the meta) and any move without numeric accuracy return 1.
+// (normalized to 100 in the meta) and any move without numeric accuracy return
+// 1.
 function getAccuracyFactor(move) {
   const accuracy = move.accuracy;
   if (!accuracy || accuracy >= 100) return 1;
@@ -1225,9 +1241,10 @@ function getMovePower(move) {
 
 // Escalating multi-turn moves whose effective power isn't a simple multi-hit or
 // recharge. Rollout/Ice Ball double their power each consecutive turn (up to 5)
-// but rarely complete the sequence, so we weight each turn at half the previous:
-// with power doubling and weight halving, every turn contributes its base power,
-// so the weighted-average power is 5·BP / (1 + 1/2 + 1/4 + 1/8 + 1/16) ≈ 2.58·BP.
+// but rarely complete the sequence, so we weight each turn at half the
+// previous: with power doubling and weight halving, every turn contributes its
+// base power, so the weighted-average power is 5·BP / (1 + 1/2 + 1/4 + 1/8 +
+// 1/16) ≈ 2.58·BP.
 const ESCALATING_HIT_MULTIPLIER = {
   rollout: 2.58,
   iceball: 2.58,
@@ -1256,14 +1273,15 @@ const LEAKY_DODGE_CHARGE = new Set(['fly', 'bounce', 'dig', 'dive']);
 // power; Counter/Mirror Coat are BP 0 and never enter this model.
 const FAILS_IF_DISRUPTED = new Set(['focuspunch', 'shelltrap']);
 
-// How many "hits' worth" of base power a move lands per commitment, used to scale
-// the damage estimate so multi-hit and multi-turn moves are ranked by real output:
+// How many "hits' worth" of base power a move lands per commitment, used to
+// scale the damage estimate so multi-hit and multi-turn moves are ranked by
+// real output:
 //   - multi-hit: a fixed count (Double Kick → 2) or the EXPECTED count of its
 //     [min,max] range — 2–5-hit moves roll 35%/35%/15%/15% for 2/3/4/5 hits
 //     (Gen 5+), so Fury Swipes [2,5] → 3.1, not the naive midpoint 3.5;
 //   - recharge: hit, then a lost turn. Double-weighting the earlier (hit) turn
 //     gives (2·1 + 1·0)/3 = 2/3 of a single hit (Hyper Beam);
-//   - exposed charge: a lost turn, then hit. Same double-weight-the-earlier-turn
+// - exposed charge: a lost turn, then hit. Same double-weight-the-earlier-turn
 //     rule, but now the dead turn is first: (2·0 + 1·1)/3 = 1/3 (Solar Beam);
 //   - leaky-dodge charge: the dodge turn is worth HALF a turn (punch-through
 //     at 2x, telegraphed lock-in): (2·½ + 1·1)/3 = 2/3 (Fly/Bounce/Dig/Dive);
@@ -1301,15 +1319,15 @@ function getEffectiveHitMultiplier(move, ability = null) {
 // Builds the recommended 4-move set for the mon as currently fielded. The order
 // of operations encodes the agreed heuristic:
 //   1. Canonical moves — the mon's top-4 by raw Smogon usage, ignoring
-//      progression — are locked in absolutely whenever they're legally available
+// progression — are locked in absolutely whenever they're legally available
 //      right now. A locked canonical move is skipped, not substituted; a weaker
 //      same-type stand-in only enters later, on damage.
 //   2. Guarantee the single hardest-hitting available attack.
-//   3. Guarantee one utility move — but a damaging move that ALSO has utility (a
+// 3. Guarantee one utility move — but a damaging move that ALSO has utility (a
 //      burn/flinch attack) satisfies this, so a pure attacker isn't handed a
 //      junk status move; utility is ranked by usage.
 //   4. Fill the rest by damage, skipping attacking types already covered (a
-//      second same-type attack adds nothing); fall back to more utility, then to
+// second same-type attack adds nothing); fall back to more utility, then to
 //      a duplicate-type attack only as a last resort.
 //   5. Slots STILL empty with legal moves remaining: fill by the stitched
 //      competitive priority order — descending usage within the canonical
@@ -1319,8 +1337,8 @@ function getEffectiveHitMultiplier(move, ability = null) {
 //      anywhere still never fill a slot; an empty slot stays honest.
 // With no usage data (obscure NFEs) step 1 is empty and the static utility-
 // quality table stands in for usage ranking, so the mon still gets a sensible
-// damage-led set. There is deliberately no "must have an attack" guarantee: a mon
-// whose pros run four status moves keeps four status moves.
+// damage-led set. There is deliberately no "must have an attack" guarantee: a
+// mon whose pros run four status moves keeps four status moves.
 function recommendCurrentMoves(
   member,
   moves,
@@ -1388,7 +1406,8 @@ function recommendCurrentMoves(
       .sort(compareUtilityByUsage);
     for (const move of rankedUtility.slice(0, 3)) add(move);
   } else {
-    // 1. Canonical (top-4 by usage), in usage order, each kept if available now.
+    // 1. Canonical (top-4 by usage), in usage order, each kept if available
+    // now.
     const canonicalIds = [...moveUsage.entries()]
       .sort((a, b) => b[1] - a[1])
       .slice(0, 4)
@@ -1501,10 +1520,11 @@ function decorateMove(
     adjustedPower: getAdjustedPower(typed, member),
     estimatedDamage,
     // The damage used purely to *rank* attacks while filling slots. When the
-    // opponent type-bias is set, a move that hits a biased type super-effectively
-    // is scored with a gentle boost (the accuracy-stage curve: bias 1 = 1.33×,
-    // 3 = 2×, 6 = 3×), so anti-bias coverage is preferred. This never leaves the
-    // ranker — the displayed "X dmg" stays the unboosted estimatedDamage.
+    // opponent type-bias is set, a move that hits a biased type
+    // super-effectively is scored with a gentle boost (the accuracy-stage
+    // curve: bias 1 = 1.33×, 3 = 2×, 6 = 3×), so anti-bias coverage is
+    // preferred. This never leaves the ranker — the displayed "X dmg" stays the
+    // unboosted estimatedDamage.
     rankingDamage: biasAdjustedDamage(
       typed,
       member,
@@ -1525,11 +1545,13 @@ function decorateMove(
 // effectively; 1 otherwise. Uses Pokémon's accuracy/evasion stage curve
 // ((3 + level) / 3) rather than the steeper Atk/SpA one, so the nudge stays
 // gentle: bias 1 = 1.33×, 3 = 2×, 6 = 3×. The strongest applicable bias wins —
-// a move answering a level-6 threat isn't diluted by also chipping a level-1 one.
+// a move answering a level-6 threat isn't diluted by also chipping a level-1
+// one.
 function biasMoveMultiplier(move, opponentTypeBias = {}) {
   let level = 0;
   for (const [type, rawLevel] of Object.entries(opponentTypeBias || {})) {
-    const clamped = Math.max(0, Math.min(MAX_OPPONENT_TYPE_BIAS, rawLevel || 0));
+    const clamped =
+      Math.max(0, Math.min(MAX_OPPONENT_TYPE_BIAS, rawLevel || 0));
     if (clamped <= level) continue;
     if (getTypeMultiplier(move.type, [type]) > 1) level = clamped;
   }
@@ -1538,7 +1560,8 @@ function biasMoveMultiplier(move, opponentTypeBias = {}) {
 
 // Re-scores a move as though the attacker's offensive stat were boosted by the
 // bias level's worth of stages, by recomputing damage with the scaled stat.
-function biasAdjustedDamage(move, member, attackerStats, estimatedDamage, opponentTypeBias) {
+function biasAdjustedDamage(
+  move, member, attackerStats, estimatedDamage, opponentTypeBias) {
   const multiplier = biasMoveMultiplier(move, opponentTypeBias);
   if (multiplier === 1 || !attackerStats) return estimatedDamage;
   return getEstimatedDamage(move, member, {
@@ -1549,10 +1572,11 @@ function biasAdjustedDamage(move, member, attackerStats, estimatedDamage, oppone
 }
 
 // Attack ranking used while filling damaging slots. Ranks by rankingDamage —
-// estimated damage, already folding in STAB and the attacker's level/nature/EVs,
-// plus any opponent-bias boost. It deliberately does NOT consider raw type-
-// effectiveness against a hypothetical neutral target; the bias is the only way
-// matchup enters the ranking, and only for types you've explicitly biased.
+// estimated damage, already folding in STAB and the attacker's
+// level/nature/EVs, plus any opponent-bias boost. It deliberately does NOT
+// consider raw type- effectiveness against a hypothetical neutral target; the
+// bias is the only way matchup enters the ranking, and only for types you've
+// explicitly biased.
 function compareByDamage(a, b) {
   return (
     b.rankingDamage - a.rankingDamage ||
@@ -1574,10 +1598,13 @@ function compareUtilityByUsage(a, b) {
 // Card/export ordering: canonical moves (in the mon's top-4 usage) first, in
 // descending-usage order (their rank), then every other move by damage.
 function compareDisplayOrder(a, b, canonicalRankById) {
-  const rankA = canonicalRankById.has(a.id) ? canonicalRankById.get(a.id) : Infinity;
-  const rankB = canonicalRankById.has(b.id) ? canonicalRankById.get(b.id) : Infinity;
+  const rankA =
+    canonicalRankById.has(a.id) ? canonicalRankById.get(a.id) : Infinity;
+  const rankB =
+    canonicalRankById.has(b.id) ? canonicalRankById.get(b.id) : Infinity;
   if (rankA !== rankB) return rankA - rankB;
-  if (rankA !== Infinity) return 0; // both canonical: already in usage-rank order
+  // both canonical: already in usage-rank order
+  if (rankA !== Infinity) return 0;
   return compareProfileMove(a, b); // both non-canonical: by damage
 }
 
@@ -1598,7 +1625,8 @@ function getBestSourcePriority(move) {
   };
 
   return Math.min(
-    ...(move.availableSources || []).map((source) => priorities[source.kind] ?? 9),
+    ...(move.availableSources || []).map(
+      (source) => priorities[source.kind] ?? 9),
     9,
   );
 }

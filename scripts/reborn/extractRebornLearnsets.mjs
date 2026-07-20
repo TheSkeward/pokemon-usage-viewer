@@ -45,7 +45,8 @@ export function loadRebornMons(monsDatPath) {
   return bySpecies;
 }
 
-// Normalised form token for matching Reborn form names against @pkmn/dex formes.
+// Normalised form token for matching Reborn form names against @pkmn/dex
+// formes.
 const normForm = (name) =>
   toId(String(name).replace(/\b(form|forme)\b/gi, ''));
 
@@ -64,11 +65,11 @@ function pickMonData(forms, preferred) {
   return preferred || normal || [...forms.values()][0];
 }
 
-// Resolves the form to read for this id, plus the canonical (base-learnset) form
-// to back-fill from. Alolan Raichu et al. carry their own learnset; Mega/Primal/
-// Arceus-plate forms share the base's, and Kyurem's fusion forms carry their own
-// moveset but an empty compatible-moves list — so each field falls back to the
-// base form independently.
+// Resolves the form to read for this id, plus the canonical (base-learnset)
+// form to back-fill from. Alolan Raichu et al. carry their own learnset;
+// Mega/Primal/ Arceus-plate forms share the base's, and Kyurem's fusion forms
+// carry their own moveset but an empty compatible-moves list — so each field
+// falls back to the base form independently.
 function resolveMonData(ourId, bySpecies) {
   const species = dex.species.get(ourId);
   const baseId = species?.exists
@@ -100,7 +101,8 @@ const moveList = (monData, field) =>
   (monData.ivars.get(field) || []).map(moveId);
 
 // Reads a list field from the form, falling back to the base form when the form
-// leaves it empty (fusion forms carry their own moveset but no compatible list).
+// leaves it empty (fusion forms carry their own moveset but no compatible
+// list).
 const listWithBase = (primary, base, field) => {
   const own = moveList(primary, field);
   return own.length || primary === base ? own : moveList(base, field);

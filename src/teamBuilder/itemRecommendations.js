@@ -86,8 +86,8 @@ export function withFieldExtenderCandidate(items, fieldSetterShare) {
 // Gems for Unburden species: gems are absent from the Gen 7 data (proxied from
 // non-triggering Z-Crystals), so their Unburden synergy isn't captured anywhere
 // else. Berries and field seeds are NOT boosted — if Unburden + berry/seed is a
-// good strat it already shows up in the Gen 7 usage we blend in, and boosting it
-// again would double-count.
+// good strat it already shows up in the Gen 7 usage we blend in, and boosting
+// it again would double-count.
 const UNBURDEN_GEM_MULTIPLIER = 1.75;
 
 // Generically-good-item ordering for the ultimate fallback: GEN7_HELD_ITEMS is
@@ -120,7 +120,8 @@ export function teamMemberKey(choice) {
  * the species can have Unburden.
  * @return {Promise<Map<string, Array<Object>>>} memberKey -> item candidates.
  */
-export async function loadTeamItemUsage({ team, family, selection, itemContext }) {
+export async function loadTeamItemUsage(
+  { team, family, selection, itemContext }) {
   const usageByMember = new Map();
 
   await Promise.all(
@@ -155,12 +156,14 @@ export async function loadTeamItemUsage({ team, family, selection, itemContext }
  *      item to the highest-scoring member first.
  * @return {Object<string, Object>} memberKey -> assigned item.
  */
-export function assignTeamItems({ team, usageByMember, ownedItems, itemContext }) {
+export function assignTeamItems(
+  { team, usageByMember, ownedItems, itemContext }) {
   const remaining = { ...(ownedItems || {}) };
   const assignments = {};
   const members = team || [];
   const allowedGemTypesFor = (key) => itemContext?.get(key)?.damageTypes;
-  const fieldSetterShareFor = (key) => itemContext?.get(key)?.fieldSetterShare ?? null;
+  const fieldSetterShareFor = (key) =>
+    itemContext?.get(key)?.fieldSetterShare ?? null;
 
   const pairs = [];
   for (const choice of members) {
@@ -168,8 +171,10 @@ export function assignTeamItems({ team, usageByMember, ownedItems, itemContext }
     const allowedGemTypes = allowedGemTypesFor(key);
     for (const item of usageByMember.get(key) || []) {
       if ((remaining[item.id] || 0) <= 0) continue;
-      if (!itemEligibleForMember(item.id, allowedGemTypes, fieldSetterShareFor(key)))
+      if (!itemEligibleForMember(
+        item.id, allowedGemTypes, fieldSetterShareFor(key))) {
         continue;
+      }
       pairs.push({ key, item });
     }
   }
@@ -210,7 +215,8 @@ export function assignTeamItems({ team, usageByMember, ownedItems, itemContext }
   return assignments;
 }
 
-function bestRemainingItem(remaining, allowedGemTypes, fieldSetterShare = null) {
+function bestRemainingItem(
+  remaining, allowedGemTypes, fieldSetterShare = null) {
   let best = null;
   let bestRank = Infinity;
 
@@ -218,7 +224,9 @@ function bestRemainingItem(remaining, allowedGemTypes, fieldSetterShare = null) 
     if (count <= 0) continue;
     // Don't dump a leftover type Gem on a member that can't use it — a gem with
     // no matching move never triggers, so it's no better than no item.
-    if (!itemEligibleForMember(itemId, allowedGemTypes, fieldSetterShare)) continue;
+    if (!itemEligibleForMember(itemId, allowedGemTypes, fieldSetterShare)) {
+      continue;
+    }
     const rank = ITEM_QUALITY_RANK.get(itemId) ?? Number.MAX_SAFE_INTEGER;
     if (rank < bestRank) {
       bestRank = rank;
@@ -276,7 +284,13 @@ async function fetchMemberItems({ family, pokemonId, selection, unburden }) {
     const id = toId(item.name);
     if (!id || typeof item.usage !== 'number') continue;
 
-    const entry = { id, name: item.name, usage: item.usage, weight: item.usage, gen5: true };
+    const entry = {
+      id,
+      name: item.name,
+      usage: item.usage,
+      weight: item.usage,
+      gen5: true,
+    };
     applyUnburden(entry, unburden);
 
     const existing = byId.get(id);

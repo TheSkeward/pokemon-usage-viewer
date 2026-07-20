@@ -29,7 +29,9 @@
 
 import { REBORN_ITEM_UNLOCK_BADGES } from '../generated/rebornItemTimeline.generated.js';
 
-/** The timeline, in play order: 19 badge checkpoints then 10 post-game tiers. */
+/**
+ * The timeline, in play order: 19 badge checkpoints then 10 post-game tiers.
+ */
 export const REBORN_PROGRESSION_CHECKPOINTS = [
   { id: 'start', badges: 0, label: 'No badges', detail: 'Game start', levelCap: 20, unlocks: {} },
   {
@@ -157,13 +159,17 @@ export function getRebornCheckpointOrdinal(id) {
  */
 export function getExpectedUnlocks(id) {
   const ordinal = getRebornCheckpointOrdinal(id);
-  const expected = { accessKeys: new Set(), flags: new Set(), itemIds: new Set() };
+  const expected =
+    { accessKeys: new Set(), flags: new Set(), itemIds: new Set() };
   if (ordinal < 0) return expected;
 
-  for (const checkpoint of REBORN_PROGRESSION_CHECKPOINTS.slice(0, ordinal + 1)) {
-    for (const key of checkpoint.unlocks.access || []) expected.accessKeys.add(key);
+  for (
+    const checkpoint of REBORN_PROGRESSION_CHECKPOINTS.slice(0, ordinal + 1)) {
+    for (const key of checkpoint.unlocks.access || []) expected.accessKeys.add(
+      key);
     for (const key of checkpoint.unlocks.flags || []) expected.flags.add(key);
-    for (const item of checkpoint.unlocks.items || []) expected.itemIds.add(item);
+    for (const item of checkpoint.unlocks.items || []) expected.itemIds.add(
+      item);
   }
   return expected;
 }
@@ -206,7 +212,8 @@ export function getItemUnlockBadge(itemId) {
 
 /**
  * @param {?Object} checkpoint
- * @return {string} "Post N" for post-game tiers, "N badges" otherwise; "" for null.
+ * @return {string} "Post N" for post-game tiers, "N badges" otherwise; "" for
+ *     null.
  */
 export function getRebornCheckpointShortLabel(checkpoint) {
   if (!checkpoint) return '';
