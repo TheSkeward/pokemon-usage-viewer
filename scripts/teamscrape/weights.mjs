@@ -30,13 +30,31 @@ export const RATING_FLOORS = {
 };
 
 /**
- * Replay archive records: rating bands, except tournament-thread replays,
- * which are elite prepared play regardless of their (absent) ladder rating.
- * @param {{source: string, rating: ?number}} record
+ * Whether a replay record is organized-tournament play rather than ladder.
+ * Beyond the tournament-thread scraper's explicit tag, the replay id's server
+ * prefix identifies games played on smogtours — the server Smogon's
+ * tournaments run on. Smogtours games never carry a ladder rating, so rating
+ * bands would misfile them as unrated mixture. Other side-server prefixes
+ * (rom, sports, ...) really are mixture and stay in the rating bands.
+ * @param {{source: (string|undefined), id: (string|undefined)}} record
+ * @return {boolean}
+ */
+export function isTournamentReplay(record) {
+  return (
+    record.source === 'tournament' ||
+    String(record.id ?? '').startsWith('smogtours-')
+  );
+}
+
+/**
+ * Replay archive records: rating bands, except tournament replays, which are
+ * elite prepared play regardless of their (absent) ladder rating.
+ * @param {{source: (string|undefined), id: (string|undefined),
+ *     rating: ?number}} record
  * @return {number}
  */
 export function replayWeight(record) {
-  if (record.source === 'tournament') return WEIGHTS.tournament_team;
+  if (isTournamentReplay(record)) return WEIGHTS.tournament_team;
   const rating = record.rating;
   if (rating == null) return WEIGHTS.unrated_replay;
   if (rating >= RATING_FLOORS.elite) return WEIGHTS.rated_1760_plus;

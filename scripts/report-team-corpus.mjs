@@ -12,7 +12,12 @@ import { REAL_FORMATS } from './config.mjs';
 import { readArchive } from './build-observed-sets.mjs';
 import { collectCompositions, buildCoreIndex } from './build-core-index.mjs';
 import { buildTeamIndex } from './build-team-index.mjs';
-import { RATING_FLOORS, replayWeight, teamWeight } from './teamscrape/weights.mjs';
+import {
+  RATING_FLOORS,
+  isTournamentReplay,
+  replayWeight,
+  teamWeight,
+} from './teamscrape/weights.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
@@ -55,7 +60,7 @@ export function summarizeCorpus({ replays, teams }) {
 
   for (const replay of replays) {
     const entry = forFormat(replay.format);
-    const source = replay.source === 'tournament' ? 'tournament-replay' : 'ladder';
+    const source = isTournamentReplay(replay) ? 'tournament-replay' : 'ladder';
     bump(entry, source, replayWeight(replay));
     if (source === 'ladder') {
       const band = RATING_BANDS.find(([, test]) => test(replay.rating));

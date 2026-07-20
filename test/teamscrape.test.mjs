@@ -177,6 +177,8 @@ test('weight ladder: bands, tournament override, unrated-mixture inversion', () 
   assert.equal(replayWeight({ rating: 1630 }), 0.2);
   assert.equal(replayWeight({ rating: 1900 }), 1.0);
   assert.equal(replayWeight({ rating: null, source: 'tournament' }), 60);
+  assert.equal(replayWeight({ rating: null, id: 'smogtours-gen7lc-957737' }), 60);
+  assert.equal(replayWeight({ rating: null, id: 'rom-gen7nfe-852496' }), WEIGHTS.unrated_replay);
   assert.equal(teamWeight({ source: 'rmt' }), 5);
   assert.equal(teamWeight({ source: 'tournament' }), 60);
   assert.equal(teamWeight({}), 1000);
