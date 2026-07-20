@@ -1,4 +1,4 @@
-// Level-1 relists (user report): a level-1 Mawile always has Astonish, Fairy
+// Level-1 relists: a level-1 Mawile always has Astonish, Fairy
 // Wind, Growl, and Taunt — the LAST four entries of its ≤1 learnset block.
 // Play Rough and Iron Head sit at the head of that block as move-relearner
 // catalog entries, never actual level-1 moves, so they must not appear as

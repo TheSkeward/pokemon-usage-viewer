@@ -1,5 +1,5 @@
-// Source-quality ladder for every team-scrape consumer (user-ratified, with
-// dataset scale priced in: some of these streams are millions of games, so
+// Source-quality ladder for every team-scrape consumer, with dataset scale
+// priced in: some of these streams are millions of games, so
 // the ratios are steep enough that mass alone can never outvote curation).
 // Note the deliberate inversion: an unrated replay is a MIXTURE over all
 // skill levels (tournament games and high-level friendlies never ladder), so

@@ -1,4 +1,4 @@
-// Belch berry gate (user report): Skuntank was recommended Belch while
+// Belch berry gate regression: Skuntank was recommended Belch while
 // holding no berry. Belch only works after the holder has eaten a berry, so
 // without a held berry it must not count as a damaging move.
 import test from "node:test";

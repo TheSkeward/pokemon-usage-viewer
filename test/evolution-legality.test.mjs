@@ -2,7 +2,7 @@
 // legal-with-K where requirements are satisfiable, UNKNOWN surfaced — never
 // silently blocked, never verdict-fitted.
 //
-// Friction DEFAULTS are 0 (user ruling: requirements are information, the
+// Friction DEFAULTS are 0 (requirements are information, the
 // player prices their own grind), so the K-pricing assertions here run under
 // explicit overrides — they pin the machinery (tedious multiplier, trade+item
 // stacking, chain summing) that a future re-enable would turn back on.

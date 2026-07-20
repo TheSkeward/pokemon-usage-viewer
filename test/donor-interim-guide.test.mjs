@@ -101,7 +101,7 @@ test("analysis attaches donor guides with the donor's own interim moves", async 
     "the donated move is above the donor's working cap",
   );
 
-  // A temporary donor never gets egg moves bred onto it (user ruling): no
+  // A temporary donor never gets egg moves bred onto it: no
   // interim move may be egg-sourced unless it's a move the donor is itself
   // passing on (a chain link reaches it by hatching).
   assert.ok(

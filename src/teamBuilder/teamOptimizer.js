@@ -104,28 +104,27 @@ const MAX_RESULT_CACHE = 400;
 // and coverage change wherever they were priced as clean 150 BP hits.
 // v20: leaky-dodge charge moves (Fly/Bounce/Dig/Dive) amortize to 2/3 —
 // their dodge is punched through at 2x and the lock-in gifts a free turn
-// (user ruling: full power stays only where there's NO punch-through:
-// Phantom Force/Shadow Force vanish, Sky Drop steals the target's turn).
-// v21: daycare reachability (user ruling): with the daycare unlocked, a
+// (full power stays only where there's NO punch-through: Phantom Force/
+// Shadow Force vanish, Sky Drop steals the target's turn).
+// v21: daycare reachability: with the daycare unlocked, a
 // hatchable line fields ANY family form from any input (Beedrill can field
 // Kakuna; Mothim reaches the Wormadams) — and without it, sibling branches
 // are now correctly OFF the table (Mothim could wrongly field Wormadam
 // before). Same progression can produce different candidates than v20.
-// v22: ability damage layer (user report: "abilities aren't really factoring
-// into the damage calculations"). The set's assumed ability now scales every
+// v22: ability damage layer — abilities previously never factored into the
+// damage estimates. The set's assumed ability now scales every
 // damage estimate — Huge Power, Technician, Skill Link, Tough Claws, Sheer
 // Force, the -ate type converters, and the rest of the move-property-
 // conditional family — so damage-derived scores shift without any data
 // signature change.
-// v23: score-what-you-show (user report: displayed sets came apart from the
-// sets that produced the score). Default/delayed builds (and the ability
+// v23: score-what-you-show — displayed sets had come apart from the sets
+// that produced the score. Default/delayed builds (and the ability
 // probe) now anchor on canonical move usage + the stitched competitive move
 // rank — the same inputs the analysis pane displays — and the non-passive
 // floor hardened alongside it (currentFormValue). Every line's default
 // build can change, so every score can.
-// v24: variable-power moves priced (user ask: Electro Ball-class moves must
-// score against a reference defender with the median stats for the level,
-// like Super Fang against median HP). Electro Ball / Gyro Ball / Grass Knot /
+// v24: variable-power moves priced against a reference defender with the
+// median stats for the level (Super Fang against median HP). Electro Ball / Gyro Ball / Grass Knot /
 // Low Kick / Heavy Slam / Heat Crash / Punishment / Crush Grip / Wring Out /
 // Flail / Reversal / Magnitude were priced at ZERO (dex base power 0) and
 // not even counted as attacks; Foul Play used the user's Attack instead of
@@ -133,20 +132,20 @@ const MAX_RESULT_CACHE = 400;
 // moves are legal.
 // v25: the speed formulas read the attacker's EXACT speed (the stat line's
 // spread-derived spe — the tooltip figure) instead of per-move investment
-// assumptions (user ruling: "We have the user's exact speed... We should be
-// using that for the user, and the median value for the defender").
-// v26: acquisition friction defaults zeroed (user ruling: "I would basically
-// always rather know what the best team is, and then decide for myself if I
-// don't want to spend the time grinding") — evolution requirements still
+// assumptions: the attacker's exact speed is known, so use it, with the
+// median value standing in for the defender.
+// v26: acquisition friction defaults zeroed — knowing the best team comes
+// first; whether the grind is worth it is the player's call, made with the
+// receipts in view. Evolution requirements still
 // render as receipts and access gates still block, but friendship/item/
 // trade/time K no longer moves scores. DELAYED_EVO_FRICTION kept (an in-run
 // strength cost, not out-of-game grind).
-// v27: scoring V0 retired (user ruling, Rejuvenation prep: "v1 has been
-// thoroughly tested and seems pretty sane") — the usage-convergence blend is
+// v27: scoring V0 retired (Rejuvenation prep; V1 was by then the thoroughly
+// exercised model) — the usage-convergence blend is
 // the only model; the UI toggle, the scoringModel option, and the per-model
 // cache signature suffix are gone, so every pre-v27 entry (v0- or v1-scored)
 // must retire rather than answer a run that can no longer say which it was.
-// v28: the two-clause convergence law (user-ratified) replaces "at w = 1 the
+// v28: the two-clause convergence law replaces "at w = 1 the
 // score IS the prior": dead lines (no meaningful usage in any tier) still
 // converge fully, but present-prior lines cap downward trust at
 // PRIOR_DRAG_CAP — every converged over-performer's score rises, and lines

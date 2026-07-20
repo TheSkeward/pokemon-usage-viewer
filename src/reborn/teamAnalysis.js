@@ -217,7 +217,7 @@ async function buildMemberLegalMoveEntry({
   if (assumedAbility !== topSet.ability) {
     topSet = { ...topSet, ability: assumedAbility };
   }
-  // Observed real sets are CONTEXT ONLY (user ruling): the usage-marginal
+  // Observed real sets are CONTEXT ONLY: the usage-marginal
   // assembly stays the recommendation — real sets assume an unrestricted
   // movepool, and adopting their spread/item would pair components with
   // recommended moves they never ran beside.

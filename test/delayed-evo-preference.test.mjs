@@ -1,4 +1,4 @@
-// Delayed-evolution route preference (user ruling): among delayed routes,
+// Delayed-evolution route preference: among delayed routes,
 // the LEAST evolutionary delay wins — leveling a Staravia to 43 beats
 // carrying a Starly to 37 when the cap allows it; the deeper delay is only
 // taken when the cap forces it, and the fielded form's own level-up beats

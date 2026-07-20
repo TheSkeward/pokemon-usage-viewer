@@ -2,8 +2,8 @@
 // teams from the paste-sourced archives (samples, tournament dumps, RMT),
 // deduped by composition+sets with summed source weight. The runtime's
 // "fieldable real team" panel filters these against the player's pool,
-// progression, and tracked inventory. No cap (user ruling: see real volume
-// before capping anything).
+// progression, and tracked inventory. Uncapped: see real harvest volume
+// before deciding any cap is needed.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";

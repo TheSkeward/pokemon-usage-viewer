@@ -597,7 +597,7 @@ function renderProvenanceFooter(manifest, result) {
 }
 
 // The two UNHEALTHY swap-audit outcomes get a visible callout above the team
-// table (user ask: not a popup, not footer small-text). The healthy cases —
+// table — prominent enough to notice, not a popup. The healthy cases —
 // exact search, or audit ran and held — stay footer-only.
 function renderSwapAuditCallout(result) {
   const swaps = result?.searchPolish?.swaps || [];

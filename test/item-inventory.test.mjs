@@ -54,7 +54,7 @@ test("getPurchasableShopItems: badge-gated, owned-filtered, stable order", () =>
 });
 
 test("badge-1 shop stock includes the user-verified Obsidia berry floor", () => {
-  // User report with in-game screenshots: after Badge 1 the Department
+  // Verified against in-game screenshots: after Badge 1 the Department
   // Store berry shop sells the six heal/status berries alongside Persim +
   // the EV berries. The SHOP_STOCK overlay in build-item-timeline.mjs is
   // an agreement check on these user-verified rows.

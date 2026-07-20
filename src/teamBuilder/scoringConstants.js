@@ -4,7 +4,8 @@
 // judgement is sweepable by the confidence layer.
 //
 // Change policy: a default here moves only when the badge-anchor corpus, a
-// concrete mechanical correction, or an explicit user decision justifies it.
+// concrete mechanical correction, or an explicitly recorded decision
+// justifies it.
 // SCORING.md records the current contract and measured calibration effect.
 //
 // Override API: reads go through tunable(key). The confidence sweep (and tests)

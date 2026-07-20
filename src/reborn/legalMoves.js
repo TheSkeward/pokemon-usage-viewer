@@ -180,7 +180,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
           entry.level > departureOf(entry.from) &&
           entry.level <= levelCap,
       )
-      // Least evolutionary delay first (user ruling): leveling a Staravia to
+      // Least evolutionary delay first: leveling a Staravia to
       // 43 beats carrying a Starly to 37 — the later-arriving form wins even
       // at a higher learn level, and level breaks ties within a form.
       .sort(
