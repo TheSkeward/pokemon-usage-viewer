@@ -1,39 +1,55 @@
 {
-  "comment": "Smogon sample-team thread URLs per format id. Add or correct URLs freely — the scraper visits every listed thread, follows pokepast.es links, and reports per-thread counts. UNVERIFIED seed list: this environment cannot reach smogon.com, so these URLs are best-effort and the first networked run's log is the verification.",
+  "comment": "Smogon sample-team thread URLs per format id. Add or correct URLs freely — the scraper visits every listed thread, follows pokepast.es links, reads inline importables in the opening post, and reports per-thread counts and page titles (verify a corrected id against the title in the next last-harvest.json).",
   "tournament": {
-    "comment": "Team-dump threads ({url, format} pins a format for pastes without === headers) and tournament forum listings to walk (UNVERIFIED seed URLs). Paste === headers and replay-link ids attribute formats directly; thread prefixes fall back through the rmt prefixMap.",
-    "dumpThreads": [],
+    "comment": "Team-dump threads ({url, format} pins a format for pastes without === headers) and tournament forum listings to walk. Paste === headers and replay-link ids attribute formats directly; thread prefixes fall back through the rmt prefix maps.",
+    "dumpThreads": [
+      "https://www.smogon.com/forums/threads/smbs-spl-x-team-dump.3650390/",
+      "https://www.smogon.com/forums/threads/upl-vii-dump.3650684/"
+    ],
     "listings": [
       "https://www.smogon.com/forums/forums/ruins-of-alph.281/",
       "https://www.smogon.com/forums/forums/smogon-classic.334/"
     ]
   },
   "rmt": {
-    "comment": "RMT forum listings to walk (UNVERIFIED seed URLs, same caveat as above). Threads are attributed to formats via their prefix label; unmapped prefixes are reported by the scraper log so the map can grow.",
+    "comment": "RMT forum listings to walk. Threads are attributed via their prefix label: prefixMap maps tier prefixes directly, genPrefixMap maps generation-only labels (the RMT Archive labels threads \"Gen 7\") and the tier is read from the thread title. Unmapped prefixes are reported by the scraper log so the maps can grow.",
     "listings": [
-      "https://www.smogon.com/forums/forums/rmt-archive.469/",
-      "https://www.smogon.com/forums/forums/rate-my-team.148/"
+      "https://www.smogon.com/forums/forums/rmt-archive.469/"
     ],
     "prefixMap": {
-      "SM OU": "gen7ou", "USM OU": "gen7ou", "USUM OU": "gen7ou",
-      "SM UU": "gen7uu", "USM UU": "gen7uu",
-      "SM RU": "gen7ru", "USM RU": "gen7ru",
-      "SM NU": "gen7nu", "USM NU": "gen7nu",
-      "SM PU": "gen7pu", "USM PU": "gen7pu",
-      "SM LC": "gen7lc", "USM LC": "gen7lc",
-      "SM Ubers": "gen7ubers", "USM Ubers": "gen7ubers",
-      "SM Doubles": "gen7doublesou", "USM Doubles": "gen7doublesou"
+      "SM OU": "gen7ou",
+      "USM OU": "gen7ou",
+      "USUM OU": "gen7ou",
+      "SM UU": "gen7uu",
+      "USM UU": "gen7uu",
+      "SM RU": "gen7ru",
+      "USM RU": "gen7ru",
+      "SM NU": "gen7nu",
+      "USM NU": "gen7nu",
+      "SM PU": "gen7pu",
+      "USM PU": "gen7pu",
+      "SM LC": "gen7lc",
+      "USM LC": "gen7lc",
+      "SM Ubers": "gen7ubers",
+      "USM Ubers": "gen7ubers",
+      "SM Doubles": "gen7doublesou",
+      "USM Doubles": "gen7doublesou"
+    },
+    "genPrefixMap": {
+      "Gen 7": "gen7"
     }
   },
   "threads": {
     "gen7ou": [
-      "https://www.smogon.com/forums/threads/usum-ou-sample-teams.3667587/"
+      "https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
+      "https://www.smogon.com/forums/threads/usm-ou-sample-teams-v2-up.3638845/",
+      "https://www.smogon.com/forums/threads/sm-ou-sample-teams.3695427/"
     ],
     "gen7uu": [
       "https://www.smogon.com/forums/threads/usum-uu-sample-teams.3621217/"
     ],
     "gen7ru": [
-      "https://www.smogon.com/forums/threads/usum-ru-sample-teams.3645873/"
+      "https://www.smogon.com/forums/threads/usm-ru-sample-teams-thread.3622057/"
     ],
     "gen7nu": [
       "https://www.smogon.com/forums/threads/usum-nu-sample-teams.3641525/"

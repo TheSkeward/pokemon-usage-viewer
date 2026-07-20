@@ -13,6 +13,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseShowdownTeam } from './teamscrape/parse-showdown-team.mjs';
 import { toTeamSheetId } from './teamscrape/replay-log.mjs';
 import { readArchiveIds } from './scrape-replay-teams.mjs';
+import { extractFirstPostText } from './teamscrape/forum-html.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
@@ -71,8 +72,46 @@ export function normalizeSampleTeam({ pasteId, formatId, thread, sets }) {
   };
 }
 
+const TEAM_SIZE = 6;
+const MIN_TEAM_SETS = 4;
+
+/**
+ * Splits one post's flat run of parsed sets into whole teams. Sample-thread
+ * opening posts paste several importables back to back with nothing
+ * machine-readable between them, and official importables are six mons, so
+ * consecutive six-set groups ARE the team boundaries; a short final group is
+ * kept only when it still looks like a team rather than stray example sets.
+ * @param {!Array<!Object>} sets
+ * @return {!Array<!Array<!Object>>}
+ */
+export function groupInlineTeams(sets) {
+  const teams = [];
+  for (let i = 0; i < sets.length; i += TEAM_SIZE) {
+    const group = sets.slice(i, i + TEAM_SIZE);
+    if (group.length >= MIN_TEAM_SETS) teams.push(group);
+  }
+  return teams;
+}
+
+function harvestInlineTeams({ html, formatId, thread, seen, file }) {
+  const threadId = /\.(\d+)\/?$/.exec(thread)?.[1] || 'unknown';
+  const { sets } = parseShowdownTeam(extractFirstPostText(html));
+  let appended = 0;
+  groupInlineTeams(sets).forEach((teamSets, index) => {
+    const pasteId = `thread-${threadId}-op-${index}`;
+    if (seen.has(pasteId)) return;
+    const record =
+      normalizeSampleTeam({ pasteId, formatId, thread, sets: teamSets });
+    fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
+    seen.add(pasteId);
+    appended += 1;
+  });
+  return appended;
+}
+
 async function harvestThread(formatId, thread, seen, file) {
   let appended = 0;
+  let inline = 0;
   let title = null;
   const linked = new Set();
   for (let page = 1; page <= MAX_THREAD_PAGES; page += 1) {
@@ -86,6 +125,7 @@ async function harvestThread(formatId, thread, seen, file) {
     }
     if (page === 1) {
       title = (/<title>([^<]*)<\/title>/.exec(html)?.[1] || '').trim() || null;
+      inline = harvestInlineTeams({ html, formatId, thread, seen, file });
     }
     for (const pasteId of extractPasteIds(html)) {
       linked.add(pasteId);
@@ -115,7 +155,7 @@ async function harvestThread(formatId, thread, seen, file) {
       appended += 1;
     }
   }
-  return { appended, linked: linked.size, title };
+  return { appended, inline, linked: linked.size, title };
 }
 
 async function main() {
@@ -129,11 +169,12 @@ async function main() {
     for (const thread of urls) {
       attempts += 1;
       try {
-        const { appended, linked, title } = await harvestThread(
+        const { appended, inline, linked, title } = await harvestThread(
           formatId, thread, seen, file);
         console.log(
-          `${formatId} ${thread}: +${appended} of ${linked} paste link(s) — ` +
-            `"${title ?? 'no <title>'}" (archive ${seen.size})`,
+          `${formatId} ${thread}: +${appended} of ${linked} paste link(s), ` +
+            `+${inline} inline — "${title ?? 'no <title>'}" ` +
+            `(archive ${seen.size})`,
         );
       } catch (error) {
         failures += 1;

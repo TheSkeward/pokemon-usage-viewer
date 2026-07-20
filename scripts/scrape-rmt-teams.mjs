@@ -1,8 +1,10 @@
 /**
  * @fileoverview RMT-forum harvester: walks the Smogon RMT forum listings in
  * teamscrape/sources.json (rmt.listings), maps each thread's prefix label
- * ("SM OU") to a format id via rmt.prefixMap, and harvests the OPENING POST
- * only — the team being rated. Replies are suggested edits, not teams.
+ * to a format id — directly via rmt.prefixMap ("SM OU"), or a
+ * generation-only label ("Gen 7", rmt.genPrefixMap) refined by the tier in
+ * the thread title — and harvests the OPENING POST only — the team being
+ * rated. Replies are suggested edits, not teams.
  * RMT teams are usually pasted inline rather than pokepaste-linked, so both
  * are extracted. Lowest-trust source: the index builders weight rmt below
  * curated samples and rated replays.
@@ -17,6 +19,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseShowdownTeam } from './teamscrape/parse-showdown-team.mjs';
 import { normalizeSampleTeam } from './scrape-sample-teams.mjs';
 import { readArchiveIds } from './scrape-replay-teams.mjs';
+import {
+  extractFirstPostText,
+  extractThreadRows,
+  listingDebugInfo,
+} from './teamscrape/forum-html.mjs';
+import { REAL_FORMATS } from './config.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
@@ -31,76 +39,52 @@ const MIN_SETS_PER_TEAM = 4; // an RMT below this is a fragment, not a team
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const knownFormats = new Set(REAL_FORMATS.map((format) => format.id));
+
+// Tier named in a thread title, most-specific first ("Doubles UU" must not
+// read as UU; "OU" appears inside almost every compound tier name).
+const TIER_PATTERNS = [
+  ['doublesubers', /\bdoubles?\s*ubers\b/i],
+  ['doublesuu', /\bdoubles?\s*uu\b/i],
+  ['doublesou', /\bdoubles\b/i],
+  ['anythinggoes', /\banything\s*goes\b|\bAG\b/],
+  ['ubers', /\bubers?\b/i],
+  ['nfe', /\bNFE\b/i],
+  ['zu', /\bZU\b/i],
+  ['lc', /\bLC\b|\blittle\s*cup\b/i],
+  ['pu', /\bPU\b/i],
+  ['nu', /\bNU\b/i],
+  ['ru', /\bRU\b/i],
+  ['uu', /\bUU\b/i],
+  ['ou', /\bOU\b/i],
+];
+
+/**
+ * Thread → format id: the explicit prefix map first ("SM OU"), else a
+ * generation-only prefix ("Gen 7", the RMT Archive's labeling) refined by
+ * the tier named in the thread title.
+ * @return {?string}
+ */
+function resolveFormat(row, rmt) {
+  if (!row.prefix) return null;
+  const direct = rmt.prefixMap?.[row.prefix];
+  if (direct) return direct;
+  const gen = rmt.genPrefixMap?.[row.prefix];
+  if (gen) {
+    for (const [tier, pattern] of TIER_PATTERNS) {
+      if (pattern.test(row.title || '')) {
+        return knownFormats.has(gen + tier) ? gen + tier : null;
+      }
+    }
+  }
+  return null;
+}
+
 async function fetchText(url) {
   await sleep(REQUEST_GAP_MS);
   const response = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
   if (!response.ok) throw new Error(`${response.status} ${url}`);
   return response.text();
-}
-
-/** @return {string} Plain text: tags stripped, common entities decoded. */
-export function htmlToText(html) {
-  return String(html)
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/(p|div|li|blockquote)>/gi, '\n')
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#0?39;/g, "'")
-    .replace(/&nbsp;/g, ' ');
-}
-
-/**
- * Listing rows: prefix label span(s) followed by the thread link. Returns
- * [{threadId, url, prefix}] in listing order; prefix null when unlabeled.
- *
- * @return {!Array<{threadId: string, url: string, prefix: ?string}>}
- */
-export function extractThreadRows(html, baseUrl) {
-  const rows = [];
-  const seen = new Set();
-  // Smogon serves site-rooted hrefs (/forums/threads/...); the bare
-  // /threads/... form appears in other XenForo installs' roots.
-  const rowRegex =
-    /(?:<span[^>]*class="label[^"]*"[^>]*>([^<]+)<\/span>[\s\S]{0,400}?)?<a[^>]+href="((?:\/forums)?\/threads\/[^"]*?\.(\d+)\/)"[^>]*(?:data-preview-url|class="")/g;
-  for (const match of html.matchAll(rowRegex)) {
-    const [, prefix, href, threadId] = match;
-    if (seen.has(threadId)) continue;
-    seen.add(threadId);
-    rows.push({
-      threadId,
-      url: new URL(href, baseUrl).href,
-      prefix: prefix ? htmlToText(prefix).trim() : null,
-    });
-  }
-  return rows;
-}
-
-/**
- * One-line structural fingerprint of a listing page, logged when row
- * extraction comes up empty: enough to tell "markup shifted under the row
- * regex" from "genuinely empty page" without shipping the HTML.
- * @return {string}
- */
-export function listingDebugInfo(html) {
-  const text = String(html);
-  const count = (regex) => (text.match(regex) || []).length;
-  return (
-    `len ${text.length}, thread hrefs ${count(/href="[^"]*\/threads\//g)}, ` +
-    `preview attrs ${count(/data-preview-url/g)}, ` +
-    `labels ${count(/class="label/g)}`
-  );
-}
-
-/** The opening post is the first message body on page 1. */
-export function extractFirstPostText(html) {
-  const match = String(html).match(
-    /<article[^>]*class="[^"]*message-body[^"]*"[^>]*>([\s\S]*?)<\/article>|<div[^>]*class="[^"]*bbWrapper[^"]*"[^>]*>([\s\S]*?)<\/div>/,
-  );
-  return match ? htmlToText(match[1] || match[2] || '') : '';
 }
 
 async function harvestThread({ row, formatId, seen, file }) {
@@ -190,9 +174,11 @@ async function main() {
         rowsSeen += rows.length;
         for (const row of rows) {
           if (fresh >= maxNew) break;
-          const formatId = row.prefix ? rmt.prefixMap?.[row.prefix] : null;
+          const formatId = resolveFormat(row, rmt);
           if (!formatId) {
-            if (row.prefix)
+            const known =
+              rmt.prefixMap?.[row.prefix] || rmt.genPrefixMap?.[row.prefix];
+            if (row.prefix && !known)
               unmappedPrefixes.set(
                 row.prefix, (unmappedPrefixes.get(row.prefix) || 0) + 1);
             continue;

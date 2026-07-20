@@ -139,7 +139,7 @@ test('core index: symmetric lift, min pair support, quality weighting', () => {
 
 
 const { htmlToText, extractThreadRows, extractFirstPostText } = await import(
-  '../scripts/scrape-rmt-teams.mjs',
+  '../scripts/teamscrape/forum-html.mjs',
 );
 
 test('rmt: listing rows carry prefixes, first post yields inline sets', () => {
@@ -155,6 +155,7 @@ test('rmt: listing rows carry prefixes, first post yields inline sets', () => {
   assert.equal(rows.length, 2);
   assert.equal(rows[0].prefix, 'SM OU');
   assert.equal(rows[0].threadId, '3651234');
+  assert.equal(rows[0].title, 'My cool team');
   assert.equal(
     rows[0].url,
     'https://www.smogon.com/forums/threads/my-cool-team.3651234/',

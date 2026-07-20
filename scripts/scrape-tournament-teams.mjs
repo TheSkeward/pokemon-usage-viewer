@@ -23,7 +23,7 @@ import {
   extractThreadRows,
   htmlToText,
   listingDebugInfo,
-} from './scrape-rmt-teams.mjs';
+} from './teamscrape/forum-html.mjs';
 import { REAL_FORMATS } from './config.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
