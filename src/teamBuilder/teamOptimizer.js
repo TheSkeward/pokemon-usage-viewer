@@ -204,7 +204,9 @@ const MAX_RESULT_CACHE = 400;
 // progressions with caps in the 101-150 range.
 // v43: equal-hop breeding routes minimize forced NFE donor levels before
 // raw learn level, changing egg-source instructions and interim guides.
-const RESULT_CACHE_VERSION = "43";
+// v44: equal-hop breeding routes return to preferring the lowest acquisition
+// level, even when the learner remains unevolved longer.
+const RESULT_CACHE_VERSION = "44";
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.

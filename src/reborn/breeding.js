@@ -2,12 +2,9 @@ import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.ge
 import { buildInputGroups } from "../teamBuilder/inputGroups";
 import { getCurrentRebornSpecies } from "./currentSpecies.js";
 import {
-  arrivalLevelOf,
-  evolutionDepartureLevel,
   getAvailableRebornMoves,
   loadRebornLegalMoveData,
 } from "./legalMoves";
-import { normalizeLevelCap } from "./progression.js";
 import { toId } from "../utils/ids.js";
 
 const BLOCKED_EGG_GROUPS = new Set(["Undiscovered", "Ditto"]);
@@ -21,8 +18,6 @@ export async function buildRebornBreedingContext({
 
   const ownedSpecies = getOwnedCurrentSpecies({ pokemonIndex, progression, query });
   if (!ownedSpecies.length) return emptyContext();
-
-  const levelCap = normalizeLevelCap(progression.levelCap);
 
   const entries = (
     await Promise.all(
@@ -67,8 +62,8 @@ export async function buildRebornBreedingContext({
   );
 
   // Shortest-chain relaxation: the best donor route per move is re-picked
-  // each pass under sortDonorRoutes' order (shortest chain, then least
-  // forced-NFE burden, then acquisition level). Multi-hop
+  // each pass under sortDonorRoutes' order (shortest chain, then earliest
+  // acquisition). Multi-hop
   // chains inherit the upstream donor's level, root acquisition, and path.
   // The pick never regresses under the cost order — every leveling route is
   // present from the hops-0 seed and later passes only add or shorten
@@ -85,7 +80,6 @@ export async function buildRebornBreedingContext({
 
         const best = sortDonorRoutes(
           collectDonorRoutes(target, entries, move.id),
-          levelCap,
         )[0];
         if (!best) continue;
 
@@ -113,7 +107,6 @@ export async function buildRebornBreedingContext({
       const move = movesById.get(moveId);
       const routes = sortDonorRoutes(
         collectDonorRoutes(target, entries, moveId),
-        levelCap,
       );
       if (!routes.length) continue;
 
@@ -219,12 +212,6 @@ export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
         // level-40 evo back down; Skorupi@9 is just leveling) — they lose
         // equal-level ties, never a level advantage.
         hassle: source.candyDown || source.delayedEvolution ? 1 : 0,
-        forcedNfeLevels: source.candyDown
-          ? 0
-          : forcedNfeLevelsOf(
-              source.learnerId || toId(learner) || speciesId,
-              source.level,
-            ),
       };
     } else if (source.kind === "relearner") {
       // Relearning costs a Heart Scale + a trip — a real hassle rated above
@@ -244,7 +231,6 @@ export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
         learner,
         sourceTitle,
         leveled: Boolean(evoLevel),
-        forcedNfeLevels: Number.isFinite(evoLevel) ? 0 : null,
       };
     } else {
       // Taught outright (TM/tutor/Sketch): the label doubles as the short
@@ -267,9 +253,6 @@ export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
         ...candidate,
         level: candidate.level + STONE_ROUTE_OFFSET * items.length,
         how: `${candidate.how} + ${items.join(" + ")}`,
-        // Scarce-resource routes keep their established last-resort pricing;
-        // NFE convenience must not make one leapfrog an ordinary route.
-        forcedNfeLevels: null,
       };
     }
 
@@ -326,25 +309,6 @@ function unspentEvolutionItems(learnerId, inputId, ownedItems = {}) {
 // importing the progression module into this dependency-light one.
 const RENEWABLE_ITEM_COUNT = 6;
 
-// Extra levels for which a leveling donor must remain unevolved after its
-// earliest normal evolution point. Fully evolved donors and moves learned
-// before that point cost zero. Friendship/affection evolutions have no fixed
-// departure level, matching legal-move treatment, so they add no forced
-// delay. Branching lines use the earliest ordinary departure available.
-function forcedNfeLevelsOf(learnerId, learnLevel) {
-  if (!Number.isFinite(learnLevel)) return null;
-  const learner = GEN7_PROGRESSION_SPECIES[toId(learnerId)];
-  if (!learner?.evos?.length) return 0;
-
-  const departures = learner.evos
-    .map((evoId) =>
-      evolutionDepartureLevel(GEN7_PROGRESSION_SPECIES[toId(evoId)]),
-    )
-    .filter((level) => Number.isFinite(level));
-  if (!departures.length) return 0;
-  return Math.max(0, learnLevel - Math.min(...departures));
-}
-
 function formatBreedingSourceTitle({
   detail,
   moveName,
@@ -385,9 +349,7 @@ function collectDonorRoutes(target, entries, moveId) {
       how: donorCost.how,
       leveled: Boolean(donorCost.leveled),
       hassle: donorCost.hassle || 0,
-      forcedNfeLevels: donorCost.forcedNfeLevels ?? null,
       sourceTitle: donorCost.sourceTitle || "",
-      donorFamily: familyRootOf(donor.species.id),
       path:
         donorCost.hops === 0
           ? [donorCost.learner || donor.species.name]
@@ -397,75 +359,21 @@ function collectDonorRoutes(target, entries, moveId) {
   return routes;
 }
 
-// Donor routes stay grouped by evolutionary family so runner-up display can
-// skip duplicate forms. Within and across those families, ordinary leveling
-// routes prefer less forced-NFE time; taught, relearner, and scarce-item
-// routes retain their established acquisition pricing.
-function sortDonorRoutes(routes, levelCap) {
-  const groups = new Map();
-  for (const route of routes) {
-    const group = groups.get(route.donorFamily);
-    if (group) group.push(route);
-    else groups.set(route.donorFamily, [route]);
-  }
-  return [...groups.values()]
-    .map((group) => rankLineRoutes(group, levelCap))
-    .sort((a, b) => compareBreedingCosts(a[0], b[0]))
-    .flat();
+// The same total order selects the winner and presents alternatives. Family
+// deduplication happens later, after ranking, so the cheapest form in each
+// evolutionary line is the one the player sees.
+function sortDonorRoutes(routes) {
+  return [...routes].sort(compareBreedingCosts);
 }
 
-function rankLineRoutes(group, levelCap) {
-  const leveled = [];
-  const others = [];
-  for (const route of group) {
-    (leveledRouteOption(route, levelCap) ? leveled : others).push(route);
-  }
-  leveled.sort(compareBreedingCosts);
-  others.sort(compareBreedingCosts);
-  if (!leveled.length) return others;
-  const merged = [];
-  let placed = false;
-  for (const route of others) {
-    if (!placed && compareBreedingCosts(leveled[0], route) < 0) {
-      merged.push(...leveled);
-      placed = true;
-    }
-    merged.push(route);
-  }
-  if (!placed) merged.push(...leveled);
-  return merged;
-}
-
-// A direct donation the player levels a specific form into, as the shared
-// evolution-route shape — null otherwise. Multi-hop donors hatch already
-// knowing the move, teach/relearner routes level nothing, priced-out stone
-// routes (level pushed past any cap) must keep losing on raw level, and a
-// candy-down (level below the form's arrival) fields the form without
-// leveling through it — none of those join the least-delay preference.
-function leveledRouteOption(route, levelCap) {
-  if (route.hops !== 1 || !route.leveled) return null;
-  if (route.level > levelCap) return null;
-  const formArrivalLevel = arrivalLevelOf(toId(route.path[0]));
-  if (route.level < formArrivalLevel) return null;
-  return { formArrivalLevel, learnLevel: route.level };
-}
-
-// The shortest possible chain always wins. Among ordinary leveling routes
-// of equal length, less time forced into an NFE donor wins before raw learn
-// level (Staravia@43 beats Starly@37). Non-leveling and scarce-resource
-// routes keep the established raw acquisition order. The final tiebreaks on
+// The shortest possible chain always wins; lower acquisition level is the
+// next priority, even when that means carrying an NFE donor longer. The
+// final tiebreaks on
 // path/how/sourceTitle exist purely to make the order TOTAL — the result
 // must not depend on pool input order, which would leak into cache
 // signatures and tooltip text.
 export function compareBreedingCosts(a, b) {
   if (a.hops !== b.hops) return a.hops - b.hops;
-  if (
-    Number.isFinite(a.forcedNfeLevels) &&
-    Number.isFinite(b.forcedNfeLevels) &&
-    a.forcedNfeLevels !== b.forcedNfeLevels
-  ) {
-    return a.forcedNfeLevels - b.forcedNfeLevels;
-  }
   if (a.level !== b.level) return a.level - b.level;
   return (
     (a.hassle || 0) - (b.hassle || 0) ||

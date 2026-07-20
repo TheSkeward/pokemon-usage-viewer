@@ -63,9 +63,8 @@ export function arrivalLevelOf(formId) {
 }
 
 // The level at which the pre-evolution normally leaves play on the path
-// into `child`. Breeding-route pricing also uses this boundary to measure
-// how long a donor must be held unevolved after it could normally evolve.
-export function evolutionDepartureLevel(child) {
+// into `child`.
+function evolutionDepartureLevel(child) {
   const evoType = child?.evoType || "";
   if (evoType === "") {
     return Number.isFinite(child?.evoLevel) ? child.evoLevel : Infinity;

@@ -12,55 +12,29 @@ const { buildRebornTeamAnalysis, collectEggDonorRequests } = await import(
 );
 const { progressionAt, loadShared } = await import("./helpers/harness.mjs");
 const {
-  acquisitionOf,
   buildRebornBreedingContext,
   compareBreedingCosts,
 } = await import("../src/reborn/breeding.js");
 
-test("breeding cost keeps hops primary, then minimizes forced NFE levels", () => {
-  const awkwardDirect = {
+test("breeding cost keeps hops primary, then minimizes acquisition level", () => {
+  const highLevelDirect = {
+    hops: 1,
+    level: 99,
+    path: ["Direct"],
+  };
+  const lowLevelDirect = {
     hops: 1,
     level: 37,
-    forcedNfeLevels: 23,
-    path: ["Starly"],
+    path: ["Low-level direct"],
   };
-  const easierDirect = {
-    hops: 1,
-    level: 43,
-    forcedNfeLevels: 9,
-    path: ["Staravia"],
-  };
-  const easyTwoHop = {
+  const lowLevelTwoHop = {
     hops: 2,
-    level: 20,
-    forcedNfeLevels: 0,
+    level: 1,
     path: ["Root", "Relay"],
   };
 
-  assert.ok(compareBreedingCosts(easierDirect, awkwardDirect) < 0);
-  assert.ok(compareBreedingCosts(awkwardDirect, easyTwoHop) < 0);
-});
-
-test("leveling acquisition measures delay past the donor's normal evolution", () => {
-  const levelingMove = (learnerId, learnerName, level) => ({
-    availableSources: [{ kind: "level-up", learnerId, learnerName, level }],
-  });
-
-  assert.equal(
-    acquisitionOf(levelingMove("starly", "Starly", 37), "starly")
-      .forcedNfeLevels,
-    23,
-  );
-  assert.equal(
-    acquisitionOf(levelingMove("staravia", "Staravia", 43), "staravia")
-      .forcedNfeLevels,
-    9,
-  );
-  assert.equal(
-    acquisitionOf(levelingMove("staraptor", "Staraptor", 49), "staraptor")
-      .forcedNfeLevels,
-    0,
-  );
+  assert.ok(compareBreedingCosts(lowLevelDirect, highLevelDirect) < 0);
+  assert.ok(compareBreedingCosts(highLevelDirect, lowLevelTwoHop) < 0);
 });
 
 test("collectEggDonorRequests keys on egg-best moves and dedupes by donor", () => {
@@ -176,13 +150,9 @@ test("analysis attaches donor guides with the donor's own interim moves", async 
   }
 });
 
-// Donor selection obeys the least-evolutionary-delay preference (shared
-// with legalMoves.js delayed routes): within one line, the least-devolved
-// form whose learn level fits under the cap fathers the egg — leveling a
-// Staravia to 43 beats carrying an unevolved Starly to 37 — and the deeper
-// devolution returns only when the cap forces it. donorLevel moves with the
-// choice, so the interim guide's working cap (donorLevel − 1) follows.
-test("donor routes prefer the least-devolved form the cap allows", async () => {
+// Donor selection minimizes the learn level after breeding-hop count, even
+// when the lower-level learner is a less-evolved form.
+test("donor routes prefer Starly@37 over Staravia@43", async () => {
   const { pokemonIndex } = await loadShared();
   const braveBirdSourceAt = async (levelCap) => {
     const context = await buildRebornBreedingContext({
@@ -197,9 +167,9 @@ test("donor routes prefer the least-devolved form the cap allows", async () => {
   };
 
   const at45 = await braveBirdSourceAt(45);
-  assert.equal(at45.donorName, "Staravia");
-  assert.equal(at45.donorLevel, 43);
-  assert.equal(at45.detail, "Staravia breeding chain (@43)");
+  assert.equal(at45.donorName, "Starly");
+  assert.equal(at45.donorLevel, 37);
+  assert.equal(at45.detail, "Starly breeding chain (@37)");
 
   const at40 = await braveBirdSourceAt(40);
   assert.equal(at40.donorName, "Starly");
@@ -207,7 +177,7 @@ test("donor routes prefer the least-devolved form the cap allows", async () => {
   assert.equal(at40.detail, "Starly breeding chain (@37)");
 });
 
-test("equal-hop donor families prefer less forced NFE time over an earlier level", async () => {
+test("equal-hop donor families prefer the earlier learn level", async () => {
   const { pokemonIndex } = await loadShared();
   const context = await buildRebornBreedingContext({
     pokemonIndex,
@@ -218,7 +188,7 @@ test("equal-hop donor families prefer less forced NFE time over an earlier level
     query: "Abomasnow\nBreloom\nBulbasaur",
   });
   const at45 = context.byPokemonId.abomasnow.sources.seedbomb;
-  assert.equal(at45.donorName, "Breloom");
-  assert.equal(at45.donorLevel, 44);
+  assert.equal(at45.donorName, "Shroomish");
+  assert.equal(at45.donorLevel, 36);
   assert.match(at45.sourceTitle, /Bulbasaur breeding chain \(@37\)/);
 });
