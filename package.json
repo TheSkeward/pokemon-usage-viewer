@@ -26,7 +26,7 @@
     "build:core-index": "node scripts/build-core-index.mjs",
     "build:team-index": "node scripts/build-team-index.mjs",
     "report:teams": "node scripts/report-team-corpus.mjs",
-    "scrape:teams": "node scripts/scrape-replay-teams.mjs && node scripts/scrape-sample-teams.mjs && node scripts/scrape-rmt-teams.mjs && node scripts/scrape-tournament-teams.mjs",
+    "scrape:teams": "node scripts/harvest-teams.mjs",
     "build:manifest": "node scripts/build-manifest.mjs",
     "build:site": "node scripts/build-manifest.mjs && npm run build && node scripts/copy-data.mjs",
     "refresh:data": "npm run build:data -- --refresh-current && npm run build:resolver-index && npm run build:set-index && npm run build:move-meta && npm run build:item-damage && npm run build:reborn-legal-moves && npm run build:progression-species && npm run build:held-items && npm run build:unburden-species && npm run build:base-stats && npm run build:gen5-items && npm run build:teammate-index && npm run build:observed-sets && npm run build:core-index && npm run build:team-index",
