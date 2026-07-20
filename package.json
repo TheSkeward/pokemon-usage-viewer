@@ -25,6 +25,7 @@
     "build:observed-sets": "node scripts/build-observed-sets.mjs",
     "build:core-index": "node scripts/build-core-index.mjs",
     "build:team-index": "node scripts/build-team-index.mjs",
+    "report:teams": "node scripts/report-team-corpus.mjs",
     "scrape:teams": "node scripts/scrape-replay-teams.mjs && node scripts/scrape-sample-teams.mjs && node scripts/scrape-rmt-teams.mjs && node scripts/scrape-tournament-teams.mjs",
     "build:manifest": "node scripts/build-manifest.mjs",
     "build:site": "node scripts/build-manifest.mjs && npm run build && node scripts/copy-data.mjs",

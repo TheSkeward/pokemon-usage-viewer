@@ -17,7 +17,12 @@ globalThis.localStorage = {
   length: 0,
 };
 globalThis.fetch = async (url) => {
-  const rel = String(url).replace(/^\/?data\//, "").replace(/^\//, "");
+  // Strip the ?v=<dataSignature> cache-buster (utils/dataUrl.js) like any
+  // static file server would — the filesystem has no query strings.
+  const rel = String(url)
+    .replace(/\?.*$/, "")
+    .replace(/^\/?data\//, "")
+    .replace(/^\//, "");
   try {
     const buf = await readFile(path.join(DATA, rel));
     return {

@@ -227,3 +227,39 @@ test("tournament: replay-link format attribution incl. smogtours ids", () => {
     ["smogtours-gen7ou-1234"],
   );
 });
+
+const { summarizeCorpus, topCores } = await import(
+  "../scripts/report-team-corpus.mjs"
+);
+
+test("corpus report: source weights, rating bands, dedup, skip-markers excluded", () => {
+  const replays = [
+    { format: "gen7ou", rating: 1800, teams: [["a", "b"], ["c", "d"]] },
+    { format: "gen7ou", rating: 1550, teams: [["a", "b"], ["c", "d"]] },
+    { format: "gen7ou", rating: null, source: "tournament", teams: [["a", "b"], ["c", "d"]] },
+  ];
+  const skuntankSet = {
+    speciesId: "skuntank", species: "Skuntank",
+    moves: ["Crunch"], moveIds: ["crunch"],
+  };
+  const teams = [
+    { format: "gen7ou", source: "sample", sets: [skuntankSet, { ...skuntankSet, speciesId: "aggron", species: "Aggron" }, { ...skuntankSet, speciesId: "b1" }, { ...skuntankSet, speciesId: "b2" }] },
+    { format: "gen7ou", source: "sample", sets: [skuntankSet, { ...skuntankSet, speciesId: "aggron", species: "Aggron" }, { ...skuntankSet, speciesId: "b1" }, { ...skuntankSet, speciesId: "b2" }] },
+    { format: "gen7ou", source: "rmt", sets: [] }, // teamless skip marker
+  ];
+  const summary = summarizeCorpus({ replays, teams });
+  assert.equal(summary.pasteRecords, 2); // marker excluded
+  assert.equal(summary.uniqueTeams, 1); // identical sample teams dedup
+  const ou = summary.formats.get("gen7ou");
+  assert.equal(ou.sources.get("ladder").records, 2);
+  assert.equal(ou.sources.get("ladder").weight, 1.02); // 1.0 + 0.02
+  assert.equal(ou.sources.get("tournament-replay").weight, 60);
+  assert.equal(ou.sources.get("sample").weight, 2000);
+  assert.equal(ou.ratings.get("1760+"), 1);
+  assert.equal(ou.ratings.get("1500-1629"), 1);
+  assert.equal(ou.ratings.get("unrated"), 0); // tournament replay not a ladder band
+
+  const cores = topCores({ replays, teams });
+  const pairs = cores.get("singles").map((p) => p.pair);
+  assert.ok(pairs.includes("aggron+skuntank"));
+});
