@@ -10,16 +10,19 @@ import { REAL_FORMATS } from "./config.mjs";
 import { readArchive } from "./build-observed-sets.mjs";
 import { collectCompositions, buildCoreIndex } from "./build-core-index.mjs";
 import { buildTeamIndex } from "./build-team-index.mjs";
-import { replayWeight, teamWeight } from "./teamscrape/weights.mjs";
+import { RATING_FLOORS, replayWeight, teamWeight } from "./teamscrape/weights.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const ARCHIVE_DIR = path.join(scriptDir, "teamscrape", "archive");
 
+// Band edges come from the weighting's own floors (weights.mjs), so the
+// report's bands always describe the bands the weights actually use.
+const { elite, strong, mid } = RATING_FLOORS;
 const RATING_BANDS = [
-  ["1760+", (r) => r != null && r >= 1760],
-  ["1630-1759", (r) => r != null && r >= 1630 && r < 1760],
-  ["1500-1629", (r) => r != null && r >= 1500 && r < 1630],
-  ["<1500", (r) => r != null && r < 1500],
+  [`${elite}+`, (r) => r != null && r >= elite],
+  [`${strong}-${elite - 1}`, (r) => r != null && r >= strong && r < elite],
+  [`${mid}-${strong - 1}`, (r) => r != null && r >= mid && r < strong],
+  [`<${mid}`, (r) => r != null && r < mid],
   ["unrated", (r) => r == null],
 ];
 

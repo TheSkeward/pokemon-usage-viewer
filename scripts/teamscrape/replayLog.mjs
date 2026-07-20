@@ -4,6 +4,7 @@
 // switches). Only base composition is extracted — moves/items stay unread
 // because replay reveals are too partial to qualify as observed sets.
 import { toId } from "../../src/utils/ids.js";
+import { GEN7_PROGRESSION_SPECIES } from "../../src/generated/gen7ProgressionSpecies.generated.js";
 
 // "|switch|p1a: Nickname|Skuntank, L78, F|100/100" → details field holds the
 // species before the first comma. `|poke|p1|Skuntank, F|item` likewise.
@@ -32,14 +33,52 @@ export function parseReplayTeams(log) {
 }
 
 // Mega/battle-only forms collapse to the caught form so compositions count
-// the TEAM-SHEET species, matching the optimizer's representative ids. Ids
-// are already toId'd (hyphens gone), so the suffixes match bare.
-const BATTLE_FORM_SUFFIXES = /(mega[xy]?|primal|ultra|totem|busted|school|complete)$/;
-// Species whose REAL name ends in a battle-form suffix.
-const SUFFIX_EXEMPT = new Set(["yanmega"]);
+// the TEAM-SHEET species, matching the optimizer's representative ids.
+// Battle-only forme words as they appear in the species table's hyphenated
+// names — matched as name tokens, never as id suffixes, so a species whose
+// real name merely ends in one (Yanmega) can't false-positive.
+const BATTLE_FORME_TOKENS = new Set([
+  "primal",
+  "ultra",
+  "totem",
+  "busted",
+  "school",
+  "complete",
+]);
+
+// Form id → team-sheet id for every battle form the species table knows,
+// built once at module load. Megas collapse to their base species; other
+// battle forms drop only the forme tokens, so a totem of a regional form
+// keeps its region (Raticate-Alola-Totem → raticatealola, not raticate).
+const SHEET_ID_BY_FORM_ID = new Map();
+for (const record of Object.values(GEN7_PROGRESSION_SPECIES)) {
+  if (record.isMega) {
+    SHEET_ID_BY_FORM_ID.set(record.id, record.baseSpeciesId);
+    continue;
+  }
+  const parts = record.name.split("-");
+  if (parts.some((part) => BATTLE_FORME_TOKENS.has(part.toLowerCase()))) {
+    SHEET_ID_BY_FORM_ID.set(
+      record.id,
+      toId(
+        parts
+          .filter((part) => !BATTLE_FORME_TOKENS.has(part.toLowerCase()))
+          .join(""),
+      ),
+    );
+  }
+}
+
+// Battle-form ids the species table lacks — it stores neither Necrozma-Ultra
+// nor the busted+totem compound Mimikyu-Busted-Totem — so only these two
+// still need suffix stripping. Applied after a lookup miss, never to an
+// in-table species.
+const ABSENT_BATTLE_FORM_SUFFIXES = /(ultra|totem)$/;
+
 export function toTeamSheetId(speciesId) {
   const id = toId(speciesId);
-  if (SUFFIX_EXEMPT.has(id)) return id;
-  const stripped = id.replace(BATTLE_FORM_SUFFIXES, "");
+  const mapped = SHEET_ID_BY_FORM_ID.get(id);
+  if (mapped) return mapped;
+  const stripped = id.replace(ABSENT_BATTLE_FORM_SUFFIXES, "");
   return stripped || id;
 }

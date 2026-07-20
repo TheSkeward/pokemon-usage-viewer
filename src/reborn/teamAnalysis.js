@@ -29,6 +29,7 @@ import { selectObservedSet } from "../teamBuilder/observedSets.js";
 import { loadTeamIndex } from "../teamBuilder/teamIndex.js";
 import { findFieldableRealTeam } from "../teamBuilder/realTeams.js";
 import { toId } from "../utils/ids.js";
+import { STAT_LABELS } from "../utils/stats.js";
 import { MAX_OPPONENT_TYPE_BIAS } from "./progression.js";
 import { getItemDamageMultiplier } from "./itemDamage.js";
 import {
@@ -629,8 +630,6 @@ function buildRecommendedSet({ member, profile, topSet, assignedItem, levelCap }
   };
 }
 
-const EV_LABELS = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"];
-
 export function formatTeamPokepaste(sets = []) {
   return sets.filter(Boolean).map(formatShowdownSet).join("\n\n");
 }
@@ -651,11 +650,11 @@ export function formatShowdownSet(set) {
   return lines.join("\n");
 }
 
-function formatEvLine(evs) {
+export function formatEvLine(evs) {
   if (!Array.isArray(evs)) return "";
 
   return evs
-    .map((value, index) => (value > 0 ? `${value} ${EV_LABELS[index]}` : null))
+    .map((value, index) => (value > 0 ? `${value} ${STAT_LABELS[index]}` : null))
     .filter(Boolean)
     .join(" / ");
 }

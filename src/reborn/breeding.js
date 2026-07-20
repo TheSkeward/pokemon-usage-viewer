@@ -8,6 +8,7 @@ import {
   loadRebornLegalMoveData,
 } from "./legalMoves";
 import { normalizeLevelCap } from "./progression.js";
+import { toId } from "../utils/ids.js";
 
 const BLOCKED_EGG_GROUPS = new Set(["Undiscovered", "Ditto"]);
 
@@ -150,7 +151,7 @@ export async function buildRebornBreedingContext({
         // caps the donor's working life. Drives the interim-donor guide.
         donorLevel:
           best.hops === 1 &&
-          /^(evo)?@/.test(best.how || "") &&
+          best.leveled &&
           Number.isFinite(best.level) &&
           best.level > 1
             ? best.level
@@ -180,12 +181,15 @@ export async function buildRebornBreedingContext({
   };
 }
 
-// The cheapest way a species gets a move without breeding, as
-// {level, how}: level-up sources cost their level ("@35"); evolution moves
-// cost the species' evolution level ("evo@32" — you must evolve to learn
-// it); anything else (TM/tutor/Sketch) is teachable outright at level 0,
-// labelled by its source ("TM42"). Delayed-evolution level-ups
-// ("Level 38 (Slakoth)") still parse to their level.
+// The cheapest way a species gets a move without breeding, judged from each
+// source's structured fields (kind/level/learnerId — labels are display-
+// only), as {level, how}: level-up sources cost their level ("@35");
+// evolution moves cost the species' evolution level ("evo@32" — you must
+// evolve to learn it); anything else (TM/tutor/Sketch) is teachable outright
+// at level 0, labelled by its source ("TM42"). Delayed-evolution level-ups
+// still cost their level. `leveled` marks the routes the player levels a
+// specific form through (@N / evo@N) — the ones that can cap a donor's
+// working life and join the least-delay preference.
 //
 // Scarce-resource pricing: when the form that learns the move can only be
 // obtained by consuming evolution items the player doesn't renewably own —
@@ -197,53 +201,52 @@ export async function buildRebornBreedingContext({
 export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
   let best = null;
   for (const source of move.availableSources || []) {
-    const label = source.label || "";
+    const learner = source.learnerName || null;
+    const sourceTitle = source.sourceTitle || source.detail || source.label || "";
     let candidate;
-    // "Level 9 (Vigoroth, candy down)" / "Level 38 (Slakoth)": the
-    // parenthetical names the form that ACTUALLY learns the move — the chain
-    // must credit it, not the fielded species.
-    const levelMatch = /^Level (\d+)(?:\s*\(([^,)]+)[,)])?/.exec(label);
-    if (levelMatch) {
-      const level = Number.parseInt(levelMatch[1], 10);
+    if (source.kind === "level-up" && Number.isFinite(source.level)) {
+      // The source's learner names the form that ACTUALLY learns the move
+      // (Vigoroth, Slakoth) — the chain must credit it, not the fielded
+      // species.
       candidate = {
-        level,
-        how: `@${level}`,
-        learner: source.learnerName || levelMatch[2] || null,
-        sourceTitle: source.sourceTitle || source.detail || source.label || "",
+        level: source.level,
+        how: `@${source.level}`,
+        learner,
+        sourceTitle,
+        leveled: true,
         // Candy-down and delayed-evolution routes cost real extra work over a
         // plain level-up at the SAME level (Drapion@9 means candying a
         // level-40 evo back down; Skorupi@9 is just leveling) — they lose
         // equal-level ties, never a level advantage.
-        hassle:
-          source.candyDown || source.delayedEvolution || /candy down/i.test(label)
-            ? 1
-            : 0,
+        hassle: source.candyDown || source.delayedEvolution ? 1 : 0,
       };
-    } else if (/relearner/i.test(label)) {
+    } else if (source.kind === "relearner") {
       // Relearning costs a Heart Scale + a trip — a real hassle rated above
       // ANY level-up. Sorted after every natural level so it's a last
       // resort, never a tiebreak winner.
       candidate = {
         level: 200,
         how: "Relearner",
-        learner: source.learnerName || null,
-        sourceTitle: source.sourceTitle || source.detail || source.label || "",
+        learner,
+        sourceTitle,
       };
-    } else if (/evolution/i.test(label)) {
+    } else if (source.onEvolution) {
       const evoLevel = GEN7_PROGRESSION_SPECIES[speciesId]?.evoLevel ?? null;
       candidate = {
         level: evoLevel ?? 0,
         how: evoLevel ? `evo@${evoLevel}` : "on evolution",
-        learner: source.learnerName || null,
-        sourceTitle: source.sourceTitle || source.detail || source.label || "",
+        learner,
+        sourceTitle,
+        leveled: Boolean(evoLevel),
       };
     } else {
-      // "TM42: After Badge 01" → "TM42"; "Sketch" → "Sketch"; etc.
+      // Taught outright (TM/tutor/Sketch): the label doubles as the short
+      // acquisition tag ("TM42", "Sketch").
       candidate = {
         level: 0,
-        how: label.split(":")[0].trim() || "taught",
-        learner: source.learnerName || null,
-        sourceTitle: source.sourceTitle || source.detail || source.label || "",
+        how: String(source.label || "").trim() || "taught",
+        learner,
+        sourceTitle,
       };
     }
     // Charge unspent evolution items between the player's actual form and
@@ -313,12 +316,6 @@ function unspentEvolutionItems(learnerId, inputId, ownedItems = {}) {
 // importing the progression module into this dependency-light one.
 const RENEWABLE_ITEM_COUNT = 6;
 
-function toId(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
-}
-
 function formatBreedingSourceTitle({
   detail,
   moveName,
@@ -357,6 +354,7 @@ function collectDonorRoutes(target, entries, moveId) {
       hops: donorCost.hops + 1,
       level: donorCost.level,
       how: donorCost.how,
+      leveled: Boolean(donorCost.leveled),
       hassle: donorCost.hassle || 0,
       sourceTitle: donorCost.sourceTitle || "",
       donorFamily: familyRootOf(donor.species.id),
@@ -425,7 +423,7 @@ function rankLineRoutes(group, levelCap) {
 // candy-down (level below the form's arrival) fields the form without
 // leveling through it — none of those join the least-delay preference.
 function leveledRouteOption(route, levelCap) {
-  if (route.hops !== 1 || !/^(evo)?@/.test(route.how || "")) return null;
+  if (route.hops !== 1 || !route.leveled) return null;
   if (route.level > levelCap) return null;
   const formArrivalLevel = arrivalLevelOf(toId(route.path[0]));
   if (route.level < formArrivalLevel) return null;

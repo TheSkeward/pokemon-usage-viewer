@@ -8,44 +8,48 @@ import { normalizeLevelCap } from "./progression.js";
 import { dataUrl } from "../utils/dataUrl.js";
 import { getActiveGame } from "../games/registry.js";
 import { hydrateLegalMove } from "../moveMeta.js";
-import { toId as normalizeId } from "../utils/ids.js";
+import { moveId as toId, toId as toPokemonId } from "../utils/ids.js";
 
 const legalMoveCache = new Map();
 const tmByMoveId = mapOptionsByMoveId(REBORN_TM_OPTIONS);
 const tmxByMoveId = mapOptionsByMoveId(REBORN_TMX_OPTIONS);
 const tutorByMoveId = mapOptionsByMoveId(REBORN_TUTOR_OPTIONS);
 
-export async function loadRebornLegalMoveData(pokemonId) {
+export function loadRebornLegalMoveData(pokemonId) {
   const game = getActiveGame();
-  const id = toId(pokemonId);
-  if (!id) return null;
+  const id = toPokemonId(pokemonId);
+  if (!id) return Promise.resolve(null);
   // Keyed by game so switching games can't serve one game's learnset for
-  // another (the ids overlap almost entirely).
+  // another (the ids overlap almost entirely). The cache holds the in-flight
+  // PROMISE so concurrent callers share one fetch; failures are evicted so a
+  // transient error can be retried.
   const cacheKey = `${game.id}|${id}`;
   if (legalMoveCache.has(cacheKey)) return legalMoveCache.get(cacheKey);
 
-  const response = await fetch(
-    dataUrl(`${game.data.legalMovesDir}/all/${id}.json`),
-  );
-  if (response.status === 404) {
-    legalMoveCache.set(cacheKey, null);
-    return null;
-  }
+  const promise = (async () => {
+    const response = await fetch(
+      dataUrl(`${game.data.legalMovesDir}/all/${id}.json`),
+    );
+    if (response.status === 404) return null;
 
-  if (!response.ok) {
-    throw new Error(`Failed to load Reborn legal moves for ${id}`);
-  }
+    if (!response.ok) {
+      throw new Error(`Failed to load Reborn legal moves for ${id}`);
+    }
 
-  const data = await response.json();
-  // Per-mon files store moves as { id, sources }; rejoin each with its intrinsic
-  // metadata from the central table so downstream consumers get the full move
-  // object (name/type/category/basePower/priority) they expect.
-  const hydrated = {
-    ...data,
-    moves: (data.moves || []).map(hydrateLegalMove),
-  };
-  legalMoveCache.set(cacheKey, hydrated);
-  return hydrated;
+    const data = await response.json();
+    // Per-mon files store moves as { id, sources }; rejoin each with its intrinsic
+    // metadata from the central table so downstream consumers get the full move
+    // object (name/type/category/basePower/priority) they expect.
+    return {
+      ...data,
+      moves: (data.moves || []).map(hydrateLegalMove),
+    };
+  })().catch((error) => {
+    legalMoveCache.delete(cacheKey);
+    throw error;
+  });
+  legalMoveCache.set(cacheKey, promise);
+  return promise;
 }
 
 // A form's ARRIVAL: the level at which it starts existing (base forms at 1;
@@ -121,12 +125,9 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         ? child.evoMoveLevel
         : Infinity;
     }
-    // Elective triggers (useItem / levelHold / trade / remaining levelExtra).
-    const departing = GEN7_PROGRESSION_SPECIES[child?.prevoId];
-    if (!departing?.prevoId) return 1;
-    return (departing.evoType || "") === "" && Number.isFinite(departing.evoLevel)
-      ? departing.evoLevel
-      : 1;
+    // Elective triggers (useItem / levelHold / trade / remaining levelExtra):
+    // the departing form's arrival level.
+    return arrivalLevelOf(child?.prevoId);
   };
   const departureByAncestor = new Map();
   {
@@ -248,11 +249,16 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
           isEvolvedLevelOneMove(level, evolvedSpecies),
         ));
 
+    // Every source carries structured {kind, level, learnerId} (plus the
+    // candyDown/delayedEvolution/onEvolution discriminators where they
+    // apply) — donor pricing (breeding.js) reads these fields, so the labels
+    // are display-only.
     if (levelSources.length > 0) {
       const best = levelSources[0];
       sources.push({
         kind: "level-up",
         label: `Level ${best.level}`,
+        level: best.level,
         learnerId: best.learnerId || null,
         learnerName: best.learnerName || null,
         sourceTitle: best.learnerName
@@ -264,6 +270,8 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         sources.push({
           kind: "relearner",
           label: "Move relearner",
+          level: null,
+          learnerId: null,
         });
       }
     } else if (candyEntries.length > 0) {
@@ -272,10 +280,10 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       sources.push({
         kind: "level-up",
         label: `Level ${best.level} (${learner}, candy down)`,
+        level: best.level,
         learnerId: best.from || null,
         learnerName: learner,
         sourceTitle: `${learner} learns ${move.name} at level ${best.level} after being candied down.`,
-        // Structured flag for donor pricing (breeding.js).
         candyDown: true,
       });
     } else if (delayedEntries.length > 0) {
@@ -288,6 +296,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       sources.push({
         kind: "level-up",
         label: `Level ${best.level} (${learner})`,
+        level: best.level,
         learnerId: best.from || null,
         learnerName: learner,
         sourceTitle: `${learner} learns ${move.name} at level ${best.level} before evolving.`,
@@ -297,6 +306,9 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       sources.push({
         kind: "level-up",
         label: "On evolution",
+        level: null,
+        learnerId: null,
+        onEvolution: true,
       });
     }
 
@@ -311,6 +323,8 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       sources.push({
         kind: "relearner",
         label: "Move relearner",
+        level: null,
+        learnerId: null,
       });
     }
 
@@ -320,7 +334,12 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       move.sources?.sketch &&
       !sources.some((source) => source.kind === "level-up")
     ) {
-      sources.push({ kind: "level-up", label: "Sketch" });
+      sources.push({
+        kind: "level-up",
+        label: "Sketch",
+        level: null,
+        learnerId: null,
+      });
     }
 
     // Reborn-only relearner moves (its expanded move-relearner pool) are
@@ -333,6 +352,8 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       sources.push({
         kind: "relearner",
         label: "Move relearner",
+        level: null,
+        learnerId: null,
       });
     }
 
@@ -342,6 +363,8 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         kind: "tm",
         label: tmOption.code,
         detail: tmOption.available,
+        level: null,
+        learnerId: null,
       });
     }
 
@@ -351,6 +374,8 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         kind: "tmx",
         label: tmxOption.code,
         detail: tmxOption.available,
+        level: null,
+        learnerId: null,
       });
     }
 
@@ -364,6 +389,8 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         kind: "tutor",
         label: "Tutor",
         detail: tutorOption.available,
+        level: null,
+        learnerId: null,
       });
     }
 
@@ -378,6 +405,8 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         label: eggSource.label || "Egg",
         detail: eggSource.detail || "Breeding chain",
         sourceTitle: eggSource.sourceTitle || eggSource.detail || "",
+        level: null,
+        learnerId: null,
         // The direct donor the chain fathers the move from, and the level it
         // must reach to learn the move itself (one-hop leveling routes only)
         // — the analysis page's interim-donor guide keys on these.
@@ -476,11 +505,4 @@ function getBestSourcePriority(move) {
 
 function mapOptionsByMoveId(options) {
   return new Map(options.map((option) => [toId(option.move), option]));
-}
-
-// Reborn legal-move data stores every Hidden Power variant under the single
-// "hiddenpower" id, so collapse them here when resolving move ids.
-function toId(value) {
-  const id = normalizeId(value);
-  return id.startsWith("hiddenpower") ? "hiddenpower" : id;
 }

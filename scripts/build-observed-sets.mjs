@@ -10,6 +10,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { REAL_FORMATS } from "./config.mjs";
 import { writeJson } from "./set-index/io.mjs";
 import { teamWeight } from "./teamscrape/weights.mjs";
+import { STAT_KEYS } from "../src/utils/stats.js";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const ARCHIVE_DIR = path.join(scriptDir, "teamscrape", "archive");
@@ -37,7 +38,7 @@ export function readArchive(dir, prefix) {
 
 function setKey(formatId, set) {
   const evs = set.evs
-    ? ["hp", "atk", "def", "spa", "spd", "spe"].map((k) => set.evs[k] || 0).join(".")
+    ? STAT_KEYS.map((k) => set.evs[k] || 0).join(".")
     : "";
   return [
     formatId,

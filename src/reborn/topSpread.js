@@ -1,6 +1,6 @@
 import { dataUrl } from "../utils/dataUrl.js";
 import { fetchJsonCached } from "../utils/fetchJsonCached.js";
-import { toId } from "../utils/ids.js";
+import { moveId as toMoveId } from "../utils/ids.js";
 
 // Loads a team member's most-used competitive set details from its stitched set
 // index — top EV spread + nature ("Nature:HP/Atk/Def/SpA/SpD/Spe"), ability, and
@@ -68,13 +68,6 @@ function moveRankMap(entries) {
     if (!map.has(id)) map.set(id, index);
   }
   return map;
-}
-
-// Reborn legal-move data keys every Hidden Power variant under "hiddenpower";
-// collapse usage names the same way so they join by id.
-function toMoveId(name) {
-  const id = toId(name);
-  return id.startsWith("hiddenpower") ? "hiddenpower" : id;
 }
 
 // Highest real-usage entry's name; the stitched tail carries usage: null.

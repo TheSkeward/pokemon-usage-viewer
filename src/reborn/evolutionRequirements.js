@@ -19,6 +19,7 @@
 // looks wrong, the fix is C/K/utility — never a special legality rule.
 
 import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
+import { toId } from "../utils/ids.js";
 import { getItemAvailability } from "./itemAvailability.js";
 import { tunable } from "../teamBuilder/scoringConstants.js";
 
@@ -71,17 +72,12 @@ function needsApophyll(species) {
 
 function ownedItemCount(access, itemName) {
   if (!access?.ownedItems) return 0;
-  const id = String(itemName || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
+  const id = toId(itemName);
   return id ? access.ownedItems[id] || 0 : 0;
 }
 
 const STONE_KEY_BY_ITEM_ID = new Map(
-  EVOLUTION_STONE_FIELDS.map((field) => [
-    field.item.toLowerCase().replace(/[^a-z0-9]+/g, ""),
-    field.key,
-  ]),
+  EVOLUTION_STONE_FIELDS.map((field) => [toId(field.item), field.key]),
 );
 const ITEM_GATE_KEYS = new Set([
   ...STONE_KEY_BY_ITEM_ID.values(),
@@ -89,10 +85,7 @@ const ITEM_GATE_KEYS = new Set([
 ]);
 
 function evoItemAccessKey(evoItem) {
-  const id = String(evoItem || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
-  return STONE_KEY_BY_ITEM_ID.get(id) || "evoAccessOtherEvoItems";
+  return STONE_KEY_BY_ITEM_ID.get(toId(evoItem)) || "evoAccessOtherEvoItems";
 }
 
 function requiredAccessKeys(evoType, condition, species) {

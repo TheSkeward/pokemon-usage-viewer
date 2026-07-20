@@ -1,5 +1,6 @@
 import { LINE_REPRESENTATIVE_CANDIDATES } from './generated/gen7LineRepresentativeCandidates.generated.js';
 import { dataUrl } from './utils/dataUrl.js';
+import { toId as normalizeSearch } from './utils/ids.js';
 
 const LEAD_SMOOTHING_K = 200;
 
@@ -547,4 +548,3 @@ function addLeadMetrics(rows) {
     return { ...row, leadRawCount, leadTendency };
   });
 }
-function normalizeSearch(value) { return value.toLowerCase().replace(/[^a-z0-9]+/g, ''); }

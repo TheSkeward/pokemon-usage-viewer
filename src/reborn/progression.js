@@ -13,6 +13,7 @@ import { REBORN_ANALYSIS_TYPES } from "./typeChart.js";
 import { EVOLUTION_ACCESS_FIELDS } from "./evolutionRequirements.js";
 import { getRebornCheckpoint } from "./badgeTimeline.js";
 import { getActiveGame } from "../games/registry.js";
+import { toId as normalizeSearch } from "../utils/ids.js";
 
 // Per-game: each game's playthrough progression is its own saved state (the
 // descriptor pins Reborn's pre-registry literal so existing saves survive).
@@ -302,8 +303,3 @@ function normalizeOwnedItems(value) {
   return owned;
 }
 
-function normalizeSearch(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
-}

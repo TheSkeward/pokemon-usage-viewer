@@ -6,9 +6,11 @@ import { computeFinalStats } from "./damageModel.js";
 import { describeEvolutionPath } from "./evolutionRequirements.js";
 import {
   buildRebornTeamAnalysis,
+  formatEvLine,
   formatTeamPokepaste,
   REBORN_ANALYSIS_TYPES,
 } from "./teamAnalysis";
+import { STAT_KEYS } from "../utils/stats.js";
 
 // The page re-renders several times per optimize (result render, analysis-
 // pending render, confidence render, investment render) with IDENTICAL panel
@@ -300,12 +302,10 @@ function renderRealTeamMove(name) {
 
 // Team-index members carry evs as a {hp,atk,...} object; the poképaste and
 // EV-line formatters expect the HP→Spe array.
-const EV_STAT_ORDER = ["hp", "atk", "def", "spa", "spd", "spe"];
-
 function evsToArray(evs) {
   if (!evs) return null;
   if (Array.isArray(evs)) return evs;
-  return EV_STAT_ORDER.map((stat) => evs[stat] || 0);
+  return STAT_KEYS.map((stat) => evs[stat] || 0);
 }
 
 function realTeamPokepasteSets(team) {
@@ -508,12 +508,8 @@ function renderSetMove(move) {
 }
 
 function formatEvs(evs) {
-  if (!Array.isArray(evs)) return "";
-  const labels = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"];
-  const parts = evs
-    .map((value, index) => (value > 0 ? `${value} ${labels[index]}` : null))
-    .filter(Boolean);
-  return parts.length ? `EVs: ${parts.join(" / ")}` : "";
+  const line = formatEvLine(evs);
+  return line ? `EVs: ${line}` : "";
 }
 
 function renderSummaryCard({ detail, label, value }) {

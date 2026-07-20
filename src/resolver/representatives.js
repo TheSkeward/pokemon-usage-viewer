@@ -3,6 +3,7 @@ import {
   resolveBestAvailableLightBundle,
   resolveQueryEntries,
 } from "../data";
+import { toId as normalizeName } from "../utils/ids.js";
 
 export async function computeResolverRepresentativeResults({
   availability,
@@ -360,10 +361,4 @@ function scoreRepresentativeCandidate(
     exactFormBonus +
     exactBonus
   );
-}
-
-function normalizeName(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
 }

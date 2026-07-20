@@ -350,7 +350,9 @@ export function parseSpread(spreadName) {
   const evs = evPart.split("/").map((value) => Number.parseInt(value, 10));
   if (evs.length < 6 || evs.some((value) => !Number.isFinite(value))) return null;
 
-  return { nature: toId(naturePart), evs };
+  // natureLabel is the spread's verbatim nature text ("Adamant"), for
+  // display; nature is its id, for the multiplier tables.
+  return { nature: toId(naturePart), natureLabel: naturePart, evs };
 }
 
 function statValue(base, ev, level, natureMultiplier) {

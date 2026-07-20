@@ -15,15 +15,23 @@ export const WEIGHTS = {
   sample_team: 1000.0,
 };
 
+// Ladder-rating band floors, descending. The corpus report derives its band
+// labels from these so its bands can't drift from the weighting.
+export const RATING_FLOORS = {
+  elite: 1760, // rated_1760_plus
+  strong: 1630, // rated_1630_1759
+  mid: 1500, // rated_1500_1629
+};
+
 // Replay archive records: rating bands, except tournament-thread replays,
 // which are elite prepared play regardless of their (absent) ladder rating.
 export function replayWeight(record) {
   if (record.source === "tournament") return WEIGHTS.tournament_team;
   const rating = record.rating;
   if (rating == null) return WEIGHTS.unrated_replay;
-  if (rating >= 1760) return WEIGHTS.rated_1760_plus;
-  if (rating >= 1630) return WEIGHTS.rated_1630_1759;
-  if (rating >= 1500) return WEIGHTS.rated_1500_1629;
+  if (rating >= RATING_FLOORS.elite) return WEIGHTS.rated_1760_plus;
+  if (rating >= RATING_FLOORS.strong) return WEIGHTS.rated_1630_1759;
+  if (rating >= RATING_FLOORS.mid) return WEIGHTS.rated_1500_1629;
   return WEIGHTS.rated_below_1500;
 }
 

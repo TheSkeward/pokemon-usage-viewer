@@ -1,6 +1,7 @@
 import { REBORN_SHOP_ITEM_BADGES } from "../generated/rebornItemTimeline.generated.js";
 import { GEN7_HELD_ITEMS_BY_ID } from "../generated/gen7HeldItems.generated.js";
 import { HIDDEN_INVENTORY_ITEM_IDS } from "./rebornSeeds";
+import { toId } from "../utils/ids.js";
 // Curated evolution-item availability for Pokémon Reborn.
 //
 // This is a small, SOURCED table — not scraped data and not guesswork dressed
@@ -72,9 +73,7 @@ export function getEvolutionItemIds() {
 }
 
 export function getItemAvailability(itemName) {
-  const id = String(itemName || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
+  const id = toId(itemName);
   if (!id) return { status: "unknown", source: "no item recorded" };
   return (
     ITEM_AVAILABILITY[id] || {

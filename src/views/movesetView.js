@@ -8,9 +8,9 @@ import {
 import { describeNature } from "../natures.js";
 import { computeFinalStats, parseSpread } from "../reborn/damageModel.js";
 import { toId } from "../utils/ids.js";
+import { STAT_LABELS } from "../utils/stats.js";
 
 const HIDDEN_MOVESET_ENTRY_KEYS = new Set(["other", "nothing"]);
-const SPREAD_STATS = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"];
 
 export function renderMovesetPanel(container, options = {}) {
   const {
@@ -263,8 +263,7 @@ function renderStandardRow(entry, index, sectionTitle, pokemonId = "") {
 function spreadTooltip(spreadName, pokemonId) {
   const parsed = parseSpread(spreadName);
   if (!parsed || !pokemonId) return "";
-  const natureName = String(spreadName).split(":")[0];
-  const lines = [describeNature(natureName)].filter(Boolean);
+  const lines = [describeNature(parsed.natureLabel)].filter(Boolean);
   const stats = computeFinalStats({
     pokemonId,
     level: 100,
@@ -343,22 +342,18 @@ function formatEntryName(name, sectionTitle) {
 }
 
 function prettyPrintSpread(value) {
-  const parts = value.split(":");
-  if (parts.length !== 2) return value;
+  const parsed = parseSpread(value);
+  if (!parsed || parsed.evs.length !== 6) return value;
 
-  const [nature, evs] = parts;
-  const evParts = evs.split("/");
-  if (evParts.length !== 6) return value;
-
-  const rendered = evParts
-    .map((ev, index) => {
-      const amount = Number.parseInt(ev, 10);
-      if (!Number.isFinite(amount) || amount <= 0) return null;
-      return `${amount} ${SPREAD_STATS[index]}`;
-    })
+  const rendered = parsed.evs
+    .map((amount, index) =>
+      amount > 0 ? `${amount} ${STAT_LABELS[index]}` : null,
+    )
     .filter(Boolean);
 
-  return rendered.length > 0 ? `${nature} — ${rendered.join(" / ")}` : nature;
+  return rendered.length > 0
+    ? `${parsed.natureLabel} — ${rendered.join(" / ")}`
+    : parsed.natureLabel;
 }
 
 function bindMoveInteractions(container) {
