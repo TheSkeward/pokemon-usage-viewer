@@ -68,8 +68,8 @@ function moveUsageMap(entries) {
 function moveRankMap(entries) {
   const map = new Map();
   if (!Array.isArray(entries)) return map;
-  for (let index = 0; index < entries.length; index += 1) {
-    const name = entries[index]?.name;
+  for (const [index, entry] of entries.entries()) {
+    const name = entry?.name;
     if (typeof name !== 'string') continue;
     const id = toMoveId(name);
     if (!map.has(id)) map.set(id, index);

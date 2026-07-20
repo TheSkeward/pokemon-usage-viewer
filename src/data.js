@@ -626,7 +626,9 @@ function buildAggregateRows(dataset) {
   const monthCount = months.length;
   if (!monthCount) return [];
   return Object.entries(dataset.history || {}).map(([pokemonId, entry]) => {
-    let usageSum = 0, rawCountSum = 0, leadRawCountSum = 0;
+    let usageSum = 0;
+    let rawCountSum = 0;
+    let leadRawCountSum = 0;
     for (const month of months) {
       const monthData = entry.months[month];
       if (!monthData) continue;

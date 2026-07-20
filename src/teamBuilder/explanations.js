@@ -34,14 +34,14 @@ function coverageContribution(choice, team) {
   const vector = choice.legalityProfile?.coverageVector;
   if (!vector) return [];
   const contributions = [];
-  for (let i = 0; i < REBORN_ANALYSIS_TYPES.length; i++) {
+  for (const [i, type] of REBORN_ANALYSIS_TYPES.entries()) {
     const value = vector[i] || 0;
     if (value < 0.45) continue;
     const isBest = team.every((other) => {
       if (other === choice) return true;
       return (other.legalityProfile?.coverageVector?.[i] || 0) <= value + 1e-9;
     });
-    if (isBest) contributions.push(REBORN_ANALYSIS_TYPES[i]);
+    if (isBest) contributions.push(type);
   }
   return contributions;
 }

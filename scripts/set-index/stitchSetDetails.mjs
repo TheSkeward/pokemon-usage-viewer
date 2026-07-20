@@ -42,10 +42,9 @@ export function stitchPokemonSetDetail({
   });
   const seen = createSeenState(detail);
 
-  for (let index = 0; index < present.length; index += 1) {
+  for (const [index, aggregate] of present.entries()) {
     if (index === primaryIndex) continue;
 
-    const aggregate = present[index];
     const sourceText = formatSource(aggregate, formatsIndex);
 
     const contributed = appendAdditionalEntries({
@@ -101,8 +100,8 @@ function choosePrimaryIndex({ present, ranking, trace, family }) {
   if (tracedMatch >= 0) return tracedMatch;
 
   let deepestOwnFamily = -1;
-  for (let index = 0; index < present.length; index += 1) {
-    if (present[index].family === family) deepestOwnFamily = index;
+  for (const [index, aggregate] of present.entries()) {
+    if (aggregate.family === family) deepestOwnFamily = index;
   }
 
   return deepestOwnFamily >= 0 ? deepestOwnFamily : present.length - 1;
@@ -362,8 +361,7 @@ function createSeenState(detail) {
 
 function createSeenMap(entries) {
   const map = new Map();
-  for (let index = 0; index < entries.length; index += 1) {
-    const entry = entries[index];
+  for (const [index, entry] of entries.entries()) {
     const key = normalizeName(entry.name);
     if (!key) continue;
     map.set(key, { index, trace: Boolean(entry.trace) });
@@ -375,8 +373,7 @@ function sortAndReindex(target, seenMap) {
   target.sort(compareTraceLast);
   seenMap.clear();
 
-  for (let index = 0; index < target.length; index += 1) {
-    const entry = target[index];
+  for (const [index, entry] of target.entries()) {
     const key = normalizeName(entry.name);
     if (!key) continue;
     seenMap.set(key, { index, trace: Boolean(entry.trace) });
