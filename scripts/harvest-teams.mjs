@@ -1,7 +1,9 @@
 /**
- * @fileoverview Runs every team harvester in sequence so that one source's
+ * @fileoverview Runs team harvesters in sequence so that one source's
  * failure cannot skip the others, and writes each scraper's exit code and
- * output tail to last-harvest.json in the committed archive. The harvest only
+ * output tail to last-harvest.json in the committed archive.
+ * --only=<names> (comma-separated: replays, samples, rmt, tournament) runs
+ * a subset. The harvest only
  * runs in CI, whose step log is impractical to retrieve after the fact, so
  * the archive itself carries the evidence of what each scraper did.
  */
@@ -13,13 +15,47 @@ import { ARCHIVE_DIR } from './scrape-replay-teams.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 
-/** Harvesters in run order. @type {!Array<string>} */
+/**
+ * Harvesters in run order. Names are the selection vocabulary for --only and
+ * match the archive filename prefixes.
+ * @type {!Array<{name: string, script: string}>}
+ */
 export const SCRAPERS = [
-  path.join(scriptDir, 'scrape-replay-teams.mjs'),
-  path.join(scriptDir, 'scrape-sample-teams.mjs'),
-  path.join(scriptDir, 'scrape-rmt-teams.mjs'),
-  path.join(scriptDir, 'scrape-tournament-teams.mjs'),
+  { name: 'replays', script: path.join(scriptDir, 'scrape-replay-teams.mjs') },
+  { name: 'samples', script: path.join(scriptDir, 'scrape-sample-teams.mjs') },
+  { name: 'rmt', script: path.join(scriptDir, 'scrape-rmt-teams.mjs') },
+  {
+    name: 'tournament',
+    script: path.join(scriptDir, 'scrape-tournament-teams.mjs'),
+  },
 ];
+
+/**
+ * Resolves an --only= selection to script paths. The replay backfill takes
+ * ~40 minutes per run, so any single-source question (are the forum seed
+ * URLs right?) must be runnable without it.
+ *
+ * @param {string} only Comma-separated scraper names; empty selects all.
+ * @return {!Array<string>} Script paths in run order.
+ */
+export function selectScrapers(only) {
+  const names = String(only || '')
+    .split(',')
+    .map((name) => name.trim())
+    .filter(Boolean);
+  if (!names.length) return SCRAPERS.map(({ script }) => script);
+  const byName = new Map(SCRAPERS.map(({ name, script }) => [name, script]));
+  const unknown = names.filter((name) => !byName.has(name));
+  if (unknown.length) {
+    throw new Error(
+      `unknown scraper name(s) ${unknown.join(', ')} — ` +
+        `valid: ${[...byName.keys()].join(', ')}`,
+    );
+  }
+  return SCRAPERS.filter(({ name }) => names.includes(name)).map(
+    ({ script }) => script,
+  );
+}
 
 const OUTPUT_TAIL_LINES = 30;
 
@@ -72,8 +108,11 @@ export async function runHarvest(scripts, recordPath) {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const only =
+    process.argv.find((a) => a.startsWith('--only='))?.slice('--only='.length) ??
+    '';
   const { failures } = await runHarvest(
-    SCRAPERS,
+    selectScrapers(only),
     path.join(ARCHIVE_DIR, 'last-harvest.json'),
   );
   if (failures) process.exitCode = 1;

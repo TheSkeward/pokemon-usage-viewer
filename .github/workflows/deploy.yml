@@ -27,6 +27,14 @@ on:
         options:
           - "false"
           - "true"
+      harvest_only:
+        description:
+          "Harvest only these scrapers (comma-separated: replays, samples,
+          rmt, tournament; empty = all). Runs the harvest without requiring
+          refresh_data."
+        required: false
+        default: ""
+        type: string
   schedule:
     # Daily at 10:17 UTC.
     - cron: '17 10 * * *'
@@ -89,16 +97,19 @@ jobs:
       # new teams. Scrape failures must not block the data refresh or deploy —
       # the ladders can be quiet and the hosts can be down.
       - name: Harvest competitive teams
-        if: github.event_name == 'schedule' || github.event.inputs.refresh_data == 'true'
+        if: github.event_name == 'schedule' || github.event.inputs.refresh_data == 'true' || github.event.inputs.harvest_only != ''
         continue-on-error: true
-        run: npm run scrape:teams
+        run: npm run scrape:teams -- --only="${{ github.event.inputs.harvest_only }}"
 
       - name: Refresh data
         if: github.event_name == 'schedule' || github.event.inputs.refresh_data == 'true'
         run: npm run refresh:data && npm run build:manifest
 
+      # Also runs for harvest-only dispatches: the archives and
+      # last-harvest.json are the run's whole output, and staging the
+      # untouched refresh trees is a no-op.
       - name: Commit refreshed generated data
-        if: github.event_name == 'schedule' || github.event.inputs.refresh_data == 'true'
+        if: github.event_name == 'schedule' || github.event.inputs.refresh_data == 'true' || github.event.inputs.harvest_only != ''
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
