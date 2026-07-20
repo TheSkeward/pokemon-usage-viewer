@@ -202,7 +202,9 @@ const MAX_RESULT_CACHE = 400;
 // v42: legality honors post-game level caps above 100 (previously truncated
 // to 100), so candidates, available moves, and scores change for
 // progressions with caps in the 101-150 range.
-const RESULT_CACHE_VERSION = "42";
+// v43: equal-hop breeding routes minimize forced NFE donor levels before
+// raw learn level, changing egg-source instructions and interim guides.
+const RESULT_CACHE_VERSION = "43";
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.

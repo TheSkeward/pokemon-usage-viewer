@@ -11,9 +11,57 @@ const { buildRebornTeamAnalysis, collectEggDonorRequests } = await import(
   "../src/reborn/teamAnalysis.js"
 );
 const { progressionAt, loadShared } = await import("./helpers/harness.mjs");
-const { buildRebornBreedingContext } = await import(
-  "../src/reborn/breeding.js"
-);
+const {
+  acquisitionOf,
+  buildRebornBreedingContext,
+  compareBreedingCosts,
+} = await import("../src/reborn/breeding.js");
+
+test("breeding cost keeps hops primary, then minimizes forced NFE levels", () => {
+  const awkwardDirect = {
+    hops: 1,
+    level: 37,
+    forcedNfeLevels: 23,
+    path: ["Starly"],
+  };
+  const easierDirect = {
+    hops: 1,
+    level: 43,
+    forcedNfeLevels: 9,
+    path: ["Staravia"],
+  };
+  const easyTwoHop = {
+    hops: 2,
+    level: 20,
+    forcedNfeLevels: 0,
+    path: ["Root", "Relay"],
+  };
+
+  assert.ok(compareBreedingCosts(easierDirect, awkwardDirect) < 0);
+  assert.ok(compareBreedingCosts(awkwardDirect, easyTwoHop) < 0);
+});
+
+test("leveling acquisition measures delay past the donor's normal evolution", () => {
+  const levelingMove = (learnerId, learnerName, level) => ({
+    availableSources: [{ kind: "level-up", learnerId, learnerName, level }],
+  });
+
+  assert.equal(
+    acquisitionOf(levelingMove("starly", "Starly", 37), "starly")
+      .forcedNfeLevels,
+    23,
+  );
+  assert.equal(
+    acquisitionOf(levelingMove("staravia", "Staravia", 43), "staravia")
+      .forcedNfeLevels,
+    9,
+  );
+  assert.equal(
+    acquisitionOf(levelingMove("staraptor", "Staraptor", 49), "staraptor")
+      .forcedNfeLevels,
+    0,
+  );
+});
 
 test("collectEggDonorRequests keys on egg-best moves and dedupes by donor", () => {
   const eggSource = (donorName, detail, donorLevel = null) => ({
@@ -157,4 +205,20 @@ test("donor routes prefer the least-devolved form the cap allows", async () => {
   assert.equal(at40.donorName, "Starly");
   assert.equal(at40.donorLevel, 37);
   assert.equal(at40.detail, "Starly breeding chain (@37)");
+});
+
+test("equal-hop donor families prefer less forced NFE time over an earlier level", async () => {
+  const { pokemonIndex } = await loadShared();
+  const context = await buildRebornBreedingContext({
+    pokemonIndex,
+    progression: {
+      ...progressionAt({ badge: 5, levelCap: 45 }),
+      daycareUnlocked: true,
+    },
+    query: "Abomasnow\nBreloom\nBulbasaur",
+  });
+  const at45 = context.byPokemonId.abomasnow.sources.seedbomb;
+  assert.equal(at45.donorName, "Breloom");
+  assert.equal(at45.donorLevel, 44);
+  assert.match(at45.sourceTitle, /Bulbasaur breeding chain \(@37\)/);
 });

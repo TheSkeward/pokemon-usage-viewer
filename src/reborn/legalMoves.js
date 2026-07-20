@@ -62,6 +62,29 @@ export function arrivalLevelOf(formId) {
     : 1;
 }
 
+// The level at which the pre-evolution normally leaves play on the path
+// into `child`. Breeding-route pricing also uses this boundary to measure
+// how long a donor must be held unevolved after it could normally evolve.
+export function evolutionDepartureLevel(child) {
+  const evoType = child?.evoType || "";
+  if (evoType === "") {
+    return Number.isFinite(child?.evoLevel) ? child.evoLevel : Infinity;
+  }
+  if (evoType === "levelFriendship") return Infinity;
+  if (
+    evoType === "levelExtra" &&
+    /affection/i.test(child?.evoCondition || "")
+  ) {
+    return Infinity;
+  }
+  if (evoType === "levelMove") {
+    return Number.isFinite(child?.evoMoveLevel)
+      ? child.evoMoveLevel
+      : Infinity;
+  }
+  return arrivalLevelOf(child?.prevoId);
+}
+
 // Preference among leveling routes that each field a not-yet-final form: the
 // least evolutionary delay wins — the latest-arriving form places first
 // (leveling a Staravia to 43 beats carrying an unevolved Starly to 37), and
@@ -108,38 +131,20 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
   //     any later entry means deliberately keeping it unevolved (Munna's
   //     Calm Mind@35).
   //   - level-while-knowing-a-move: the move's own learn level.
-  const hopDeparture = (child) => {
-    const evoType = child?.evoType || "";
-    if (evoType === "") {
-      return Number.isFinite(child?.evoLevel) ? child.evoLevel : Infinity;
-    }
-    if (evoType === "levelFriendship") return Infinity;
-    if (
-      evoType === "levelExtra" &&
-      /affection/i.test(child?.evoCondition || "")
-    ) {
-      return Infinity;
-    }
-    if (evoType === "levelMove") {
-      return Number.isFinite(child?.evoMoveLevel)
-        ? child.evoMoveLevel
-        : Infinity;
-    }
-    // Elective triggers (useItem / levelHold / trade / remaining levelExtra):
-    // the departing form's arrival level.
-    return arrivalLevelOf(child?.prevoId);
-  };
   const departureByAncestor = new Map();
   {
     let current = speciesRecord;
     const walked = new Set();
     while (current?.prevoId && !walked.has(current.id)) {
       walked.add(current.id);
-      departureByAncestor.set(current.prevoId, hopDeparture(current));
+      departureByAncestor.set(
+        current.prevoId,
+        evolutionDepartureLevel(current),
+      );
       current = GEN7_PROGRESSION_SPECIES[current.prevoId];
     }
   }
-  const directDeparture = hopDeparture(speciesRecord);
+  const directDeparture = evolutionDepartureLevel(speciesRecord);
   const departureOf = (fromId) =>
     fromId ? (departureByAncestor.get(fromId) ?? directDeparture) : directDeparture;
   // An entry below a form's arrival can't be leveled through on the default
