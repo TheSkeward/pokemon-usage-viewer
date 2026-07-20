@@ -96,12 +96,16 @@ export function groupInlineTeams(sets) {
   return teams;
 }
 
+const EARLY_POSTS = 5;
+
 async function harvestThread(formatId, thread, seen, file) {
   const threadId = /\.(\d+)\/?$/.exec(thread)?.[1] || 'unknown';
   let appended = 0;
   let inline = 0;
   let inlineSets = 0;
   let authorPosts = 0;
+  let scannedChars = 0;
+  let longest = { chars: 0, text: '' };
   let opAuthor = null;
   let title = null;
   let postIndex = 0;
@@ -120,18 +124,25 @@ async function harvestThread(formatId, thread, seen, file) {
     }
     const posts = extractPosts(html);
     if (page === 1) opAuthor = posts[0]?.author ?? null;
-    // The curated collection lives in the thread author's posts — the
-    // opening post and any reserved posts (NU keeps its teams in the first
-    // reply). Other users' replies are submissions, approved or not, and
-    // must not enter at sample trust. Markup without recognizable posts
-    // falls back to a whole-page link sweep.
-    const scoped = opAuthor
-      ? posts.filter((post) => post.author === opAuthor)
+    // The curated collection lives at the TOP of the thread — the opening
+    // post plus reserved posts, which are not always by the same account
+    // (NU keeps its teams in the first reply) — and in the thread author's
+    // later posts. Deeper replies by others are submissions, approved or
+    // not, and must not enter at sample trust. Markup without recognizable
+    // posts falls back to a whole-page link sweep.
+    const scoped = posts.length
+      ? posts.filter((post, index) =>
+        (page === 1 && index < EARLY_POSTS) ||
+          (opAuthor && post.author === opAuthor))
       : null;
     for (const post of scoped ?? [{ html, text: '' }]) {
       postIndex += 1;
       if (scoped) {
         authorPosts += 1;
+        scannedChars += post.text.length;
+        if (post.text.length > longest.chars) {
+          longest = { chars: post.text.length, text: post.text };
+        }
         const { sets } = parseShowdownTeam(post.text);
         inlineSets += sets.length;
         groupInlineTeams(sets).forEach((teamSets, group) => {
@@ -172,6 +183,17 @@ async function harvestThread(formatId, thread, seen, file) {
         appended += 1;
       }
     }
+  }
+  // With sets landing everywhere via pokepaste links but never inline, the
+  // open question is whether inline text reaches the parser at all — the
+  // longest scanned post's head answers it: readable set lines mean a
+  // parser gap, prose or emptiness means the teams live elsewhere.
+  if (!inlineSets && scannedChars) {
+    const head = longest.text.slice(0, 120).replace(/\s+/g, ' ').trim();
+    console.log(
+      `  scanned ${authorPosts} post(s), ${scannedChars} chars, 0 sets — ` +
+        `longest starts ${JSON.stringify(head)}`,
+    );
   }
   return {
     appended, inline, inlineSets, authorPosts, linked: linked.size, title,
