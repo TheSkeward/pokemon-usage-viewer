@@ -325,12 +325,15 @@ export function compareChoices(a, b) {
   );
 }
 
-// A line's form options are fixed for the duration of a search but were being
-// re-sorted and re-deduped on every combination that touched the line (millions
-// of times for ~N distinct answers). Cache the result on the line; the cache is
-// populated by prepareFitScoring and cleared by resetFitScoring, so it never
-// outlives a single search (no cross-edit staleness). When a line already carries
-// a prepared `_choiceOptions` (compact lines shipped to a worker), it's used as-is.
+/**
+ * A line's form options are fixed for the duration of a search but were being
+ * re-sorted and re-deduped on every combination that touched the line (millions
+ * of times for ~N distinct answers). Cache the result on the line; the cache is
+ * populated by prepareFitScoring and cleared by resetFitScoring, so it never
+ * outlives a single search (no cross-edit staleness). When a line already carries
+ * a prepared `_choiceOptions` (compact lines shipped to a worker), it's used as-is.
+ * @return {!Array<!Object>}
+ */
 export function getLineChoiceOptions(line) {
   if (line._choiceOptions) return line._choiceOptions;
 
@@ -372,8 +375,11 @@ export function getLineChoiceOptions(line) {
   return (line._choiceOptions = kept.slice(0, 6));
 }
 
-// The best legal form/mega assignment for a fixed set of lines: each line offers
-// a few form options, with at most one mega across the whole team.
+/**
+ * The best legal form/mega assignment for a fixed set of lines: each line offers
+ * a few form options, with at most one mega across the whole team.
+ * @return {?Object} The best evaluateTeam record.
+ */
 export function bestAssignmentForLines(comboLines, targetSize, opponentTypeBias) {
   const optionsPerLine = comboLines.map(getLineChoiceOptions);
   const team = [];
@@ -397,10 +403,12 @@ export function bestAssignmentForLines(comboLines, targetSize, opponentTypeBias)
   return best;
 }
 
-// Scores a team once and caches the sort keys, so the argmax loop never
-// recomputes a team's score. The identity key is NOT computed here: it's only
-// consulted to break an exact score tie (rare), so it's materialized lazily by
-// identityOf() and memoized onto the result.
+/**
+ * Scores a team once and caches the sort keys, so the argmax loop never
+ * recomputes a team's score. The identity key is NOT computed here: it's only
+ * consulted to break an exact score tie (rare), so it's materialized lazily by
+ * identityOf() and memoized onto the result.
+ */
 export function evaluateTeam(team, megaUsed, targetSize, opponentTypeBias) {
   return {
     team,
@@ -411,6 +419,7 @@ export function evaluateTeam(team, megaUsed, targetSize, opponentTypeBias) {
   };
 }
 
+/** @return {string} The evaluated team's identity key, memoized. */
 export function identityOf(evaluated) {
   if (evaluated._identityKey === undefined) {
     evaluated._identityKey = teamIdentityKey(evaluated.team);
@@ -418,16 +427,22 @@ export function identityOf(evaluated) {
   return evaluated._identityKey;
 }
 
-// Strictly-better test with a deterministic identity tie-break, so equal-scoring
-// teams resolve the same way no matter what order they were enumerated in. Score
-// is the sole quality key (usage tier is already folded into score, so we do NOT
-// gate on meaningful-pick count).
+/**
+ * Strictly-better test with a deterministic identity tie-break, so equal-scoring
+ * teams resolve the same way no matter what order they were enumerated in. Score
+ * is the sole quality key (usage tier is already folded into score, so we do NOT
+ * gate on meaningful-pick count).
+ * @return {boolean}
+ */
 export function betterEvaluated(a, b) {
   if (a.sizePriority !== b.sizePriority) return a.sizePriority > b.sizePriority;
   if (a.score !== b.score) return a.score > b.score;
   return identityOf(a) < identityOf(b);
 }
 
+/**
+ * @return {string} Order-independent listing of the team's input:form pairs.
+ */
 export function teamIdentityKey(team) {
   return team
     .map((choice) => `${choice.inputPokemonId}:${choice.pokemonId}`)
@@ -436,17 +451,25 @@ export function teamIdentityKey(team) {
 }
 
 // --- Top-N team collection ---------------------------------------------------
-// Team SELECTION scores a relaxation (optimistic max-over-builds coverage), so
-// the single best relaxed team is not guaranteed to be the best team after
-// concrete builds are realized — a line can look like it patches two holes that
-// no single build patches together. The search therefore keeps the TOP N relaxed
-// teams; the realization pass (teamSelection) assigns concrete builds to each
-// and re-ranks by the exact realized score. Bounded, deterministic (insertion
-// uses the same betterEvaluated comparator incl. the identity tie-break).
+
+/**
+ * Team SELECTION scores a relaxation (optimistic max-over-builds coverage), so
+ * the single best relaxed team is not guaranteed to be the best team after
+ * concrete builds are realized — a line can look like it patches two holes that
+ * no single build patches together. The search therefore keeps the TOP N relaxed
+ * teams; the realization pass (teamSelection) assigns concrete builds to each
+ * and re-ranks by the exact realized score. Bounded, deterministic (insertion
+ * uses the same betterEvaluated comparator incl. the identity tie-break).
+ * @return {{capacity: number, items: !Array<!Object>}}
+ */
 export function createTopTeams(capacity) {
   return { capacity: Math.max(1, capacity), items: [] };
 }
 
+/**
+ * Inserts the evaluated team at its sorted position, evicting the worst entry
+ * once past capacity.
+ */
 export function offerTopTeam(top, evaluated) {
   const items = top.items;
   if (
@@ -461,9 +484,12 @@ export function offerTopTeam(top, evaluated) {
   if (items.length > top.capacity) items.pop();
 }
 
-// The exact realized score of a CONCRETE team (its members' real coverage
-// vectors, never the optimistic selection relaxation) — used to re-rank the
-// top-N relaxed teams after build assignment.
+/**
+ * The exact realized score of a CONCRETE team (its members' real coverage
+ * vectors, never the optimistic selection relaxation) — used to re-rank the
+ * top-N relaxed teams after build assignment.
+ * @return {number}
+ */
 export function getRealizedTeamScore(team, opponentTypeBias = {}) {
   return (
     sumTeamScore(team) +
@@ -471,13 +497,17 @@ export function getRealizedTeamScore(team, opponentTypeBias = {}) {
   );
 }
 
+/** @return {number} Team size counted no further than the target. */
 export function getTeamSizePriority(team, targetSize) {
   return Math.min(team.length, targetSize);
 }
 
 // --- Combination enumeration -----------------------------------------------
 
-// Exact C(n, k) as a Number (the values here fit in a double precisely).
+/**
+ * Exact C(n, k) as a Number (the values here fit in a double precisely).
+ * @return {number}
+ */
 export function comb(n, k) {
   if (k < 0 || k > n || n < 0) return 0;
   const r = Math.min(k, n - k);
@@ -486,8 +516,13 @@ export function comb(n, k) {
   return Math.round(result);
 }
 
-// Yields each size-k index combination of [0..n) in lexicographic order, reusing
-// one array.
+/**
+ * Yields each size-k index combination of [0..n) in lexicographic order, reusing
+ * one array.
+ * @param {number} n
+ * @param {number} k
+ * @param {function(!Array<number>)} callback
+ */
 export function forEachCombination(n, k, callback) {
   if (k === 0) {
     callback([]);
@@ -535,19 +570,23 @@ function unrankCombination(rank, n, k) {
   return result;
 }
 
-// Enumerates lexicographic combinations [start, end) of choosing targetSize lines
-// from `lines`, scores each, and returns the single best as compact id refs (so it
-// survives a worker postMessage). Pure and self-contained: it prepares and resets
-// its own fit state, so it can run in a worker or on the main thread as a fallback.
-// `lines` must carry a prepared `choiceOptions` array per line (the form options).
-// Progress reporting cadence: ~20 reports per range, clamped so tiny ranges
-// don't spam and huge ones still stride at most every 64k combos. The cadence
-// must stay range-relative: a fixed stride leaves a short worker range with
-// under two reports, so its progress sits silent and then jumps.
+/**
+ * Progress reporting cadence: ~20 reports per range, clamped so tiny ranges
+ * don't spam and huge ones still stride at most every 64k combos. The cadence
+ * must stay range-relative: a fixed stride leaves a short worker range with
+ * under two reports, so its progress sits silent and then jumps.
+ */
 export const SEARCH_PROGRESS_MAX_STRIDE = 65_536;
 const SEARCH_PROGRESS_MIN_STRIDE = 2_048;
 const SEARCH_PROGRESS_REPORTS_PER_RANGE = 20;
 
+/**
+ * Enumerates lexicographic combinations [start, end) of choosing targetSize lines
+ * from `lines`, scores each, and returns the single best as compact id refs (so it
+ * survives a worker postMessage). Pure and self-contained: it prepares and resets
+ * its own fit state, so it can run in a worker or on the main thread as a fallback.
+ * `lines` must carry a prepared `choiceOptions` array per line (the form options).
+ */
 export function searchCombinationRange(lines, targetSize, opponentTypeBias, start, end, topCount = 1, onProgress = null) {
   for (const line of lines) line._choiceOptions = line.choiceOptions;
   prepareFitScoring(lines, opponentTypeBias);

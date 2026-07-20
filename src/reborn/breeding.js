@@ -9,6 +9,13 @@ import { toId } from "../utils/ids.js";
 
 const BLOCKED_EGG_GROUPS = new Set(["Undiscovered", "Ditto"]);
 
+/**
+ * Computes, for every owned species in the pool, which egg moves breeding can
+ * deliver and through which donor chain (cheapest by compareBreedingCosts).
+ * Empty context when the daycare is locked or the pool has no owned species.
+ * @return {!Promise<{byPokemonId: !Object<string, {moveIds: !Array<string>,
+ *     sources: !Object<string, !Object>}>, ownedSpecies: !Array<!Object>}>}
+ */
 export async function buildRebornBreedingContext({
   pokemonIndex = [],
   progression = {},
@@ -174,23 +181,25 @@ export async function buildRebornBreedingContext({
   };
 }
 
-// The cheapest way a species gets a move without breeding, judged from each
-// source's structured fields (kind/level/learnerId — labels are display-
-// only), as {level, how}: level-up sources cost their level ("@35");
-// evolution moves cost the species' evolution level ("evo@32" — you must
-// evolve to learn it); anything else (TM/tutor/Sketch) is teachable outright
-// at level 0, labelled by its source ("TM42"). Delayed-evolution level-ups
-// still cost their level. `leveled` marks the routes the player levels a
-// specific form through (@N / evo@N) — the ones that can cap a donor's
-// working life and join the least-delay preference.
-//
-// Scarce-resource pricing: when the form that learns the move can only be
-// obtained by consuming evolution items the player doesn't renewably own —
-// a stone, a Link Stone, a trade hold-item — the route is priced out of the
-// normal level range entirely (STONE_ROUTE_OFFSET added to its level), so
-// ANY plain level-up or candy-down beats it, at any level, and it still
-// ranks above nothing-at-all. Items tracked at 6+ ("I can buy as many as I
-// need") waive the penalty: renewable stock isn't scarce.
+/**
+ * The cheapest way a species gets a move without breeding, judged from each
+ * source's structured fields (kind/level/learnerId — labels are display-
+ * only), as {level, how}: level-up sources cost their level ("@35");
+ * evolution moves cost the species' evolution level ("evo@32" — you must
+ * evolve to learn it); anything else (TM/tutor/Sketch) is teachable outright
+ * at level 0, labelled by its source ("TM42"). Delayed-evolution level-ups
+ * still cost their level. `leveled` marks the routes the player levels a
+ * specific form through (@N / evo@N) — the ones that can cap a donor's
+ * working life and join the least-delay preference.
+ *
+ * Scarce-resource pricing: when the form that learns the move can only be
+ * obtained by consuming evolution items the player doesn't renewably own —
+ * a stone, a Link Stone, a trade hold-item — the route is priced out of the
+ * normal level range entirely (STONE_ROUTE_OFFSET added to its level), so
+ * ANY plain level-up or candy-down beats it, at any level, and it still
+ * ranks above nothing-at-all. Items tracked at 6+ ("I can buy as many as I
+ * need") waive the penalty: renewable stock isn't scarce.
+ */
 export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
   let best = null;
   for (const source of move.availableSources || []) {
@@ -366,12 +375,15 @@ function sortDonorRoutes(routes) {
   return [...routes].sort(compareBreedingCosts);
 }
 
-// The shortest possible chain always wins; lower acquisition level is the
-// next priority, even when that means carrying an NFE donor longer. The
-// final tiebreaks on
-// path/how/sourceTitle exist purely to make the order TOTAL — the result
-// must not depend on pool input order, which would leak into cache
-// signatures and tooltip text.
+/**
+ * The shortest possible chain always wins; lower acquisition level is the
+ * next priority, even when that means carrying an NFE donor longer. The
+ * final tiebreaks on
+ * path/how/sourceTitle exist purely to make the order TOTAL — the result
+ * must not depend on pool input order, which would leak into cache
+ * signatures and tooltip text.
+ * @return {number}
+ */
 export function compareBreedingCosts(a, b) {
   if (a.hops !== b.hops) return a.hops - b.hops;
   if (a.level !== b.level) return a.level - b.level;
@@ -383,6 +395,13 @@ export function compareBreedingCosts(a, b) {
   );
 }
 
+/**
+ * A copy of the progression with the mon's breeding-derived egg-move
+ * availability stamped in as availableEggMoveIdsForPokemon /
+ * availableEggMoveSourcesForPokemon (both empty when the context has nothing
+ * for it).
+ * @return {!Object}
+ */
 export function applyBreedingContextToProgression(
   progression,
   pokemonId,
@@ -485,12 +504,16 @@ function canBreed(donorId, targetId) {
   return familyHasGender(donorId, "M") && familyHasGender(targetId, "F");
 }
 
-// Whether the daycare can produce fresh members of this line at all: the
-// family must have a breedable egg group AND a possible mother (the hatched
-// species is the mother's). Consumed by line resolution — with the daycare
-// unlocked, a hatchable line's EVERY form is fieldable from any input, while
-// genderless/male-only/Undiscovered lines (Magnezone, Tauros) still can't
-// reach downward.
+/**
+ * Whether the daycare can produce fresh members of this line at all: the
+ * family must have a breedable egg group AND a possible mother (the hatched
+ * species is the mother's). Consumed by line resolution — with the daycare
+ * unlocked, a hatchable line's EVERY form is fieldable from any input, while
+ * genderless/male-only/Undiscovered lines (Magnezone, Tauros) still can't
+ * reach downward.
+ * @param {string} pokemonId
+ * @return {boolean}
+ */
 export function canHatchLine(pokemonId) {
   return (
     getBreedableEggGroups(pokemonId).length > 0 &&
@@ -524,6 +547,12 @@ function getBreedableEggGroups(pokemonId) {
   return [...groups];
 }
 
+/**
+ * Every species record in the mon's evolutionary family — the root form plus
+ * all evolution branches.
+ * @param {string} pokemonId
+ * @return {!Array<!Object>}
+ */
 export function familyForms(pokemonId) {
   const forms = [];
   const walked = new Set();

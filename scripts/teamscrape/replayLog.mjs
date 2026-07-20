@@ -1,8 +1,10 @@
-// Extracts per-side team compositions from a Showdown replay's battle log.
-// Species come from team-preview `|poke|` lines unioned with `|switch|`/
-// `|drag|` appearances (formats without preview, Zoroark reveals, forced
-// switches). Only base composition is extracted — moves/items stay unread
-// because replay reveals are too partial to qualify as observed sets.
+/**
+ * @fileoverview Extracts per-side team compositions from a Showdown replay's
+ * battle log. Species come from team-preview `|poke|` lines unioned with
+ * `|switch|`/`|drag|` appearances (formats without preview, Zoroark reveals,
+ * forced switches). Only base composition is extracted — moves/items stay
+ * unread because replay reveals are too partial to qualify as observed sets.
+ */
 import { toId } from "../../src/utils/ids.js";
 import { GEN7_PROGRESSION_SPECIES } from "../../src/generated/gen7ProgressionSpecies.generated.js";
 
@@ -12,6 +14,10 @@ function speciesFromDetails(details) {
   return toId(String(details || "").split(",")[0]);
 }
 
+/**
+ * @param {string} log Raw battle log text.
+ * @return {!Array<!Array<string>>} [p1, p2] as sorted species-id arrays.
+ */
 export function parseReplayTeams(log) {
   const sides = { p1: new Set(), p2: new Set() };
   for (const line of String(log || "").split("\n")) {
@@ -75,6 +81,11 @@ for (const record of Object.values(GEN7_PROGRESSION_SPECIES)) {
 // in-table species.
 const ABSENT_BATTLE_FORM_SUFFIXES = /(ultra|totem)$/;
 
+/**
+ * Collapses a battle-only form id to the team-sheet id of the caught form.
+ * @param {string} speciesId
+ * @return {string}
+ */
 export function toTeamSheetId(speciesId) {
   const id = toId(speciesId);
   const mapped = SHEET_ID_BY_FORM_ID.get(id);

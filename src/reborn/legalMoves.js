@@ -15,6 +15,13 @@ const tmByMoveId = mapOptionsByMoveId(REBORN_TM_OPTIONS);
 const tmxByMoveId = mapOptionsByMoveId(REBORN_TMX_OPTIONS);
 const tutorByMoveId = mapOptionsByMoveId(REBORN_TUTOR_OPTIONS);
 
+/**
+ * Loads a mon's legal-move file for the active game, with each move rejoined
+ * to its central metadata (hydrateLegalMove).
+ * @param {string} pokemonId
+ * @return {!Promise<?Object>} The legal-move data ({pokemonId, name, moves,
+ *     ...}), or null for an unknown id or a mon without a file.
+ */
 export function loadRebornLegalMoveData(pokemonId) {
   const game = getActiveGame();
   const id = toPokemonId(pokemonId);
@@ -52,8 +59,12 @@ export function loadRebornLegalMoveData(pokemonId) {
   return promise;
 }
 
-// A form's ARRIVAL: the level at which it starts existing (base forms at 1;
-// level evolutions at their evolution level; others whenever taken).
+/**
+ * A form's ARRIVAL: the level at which it starts existing (base forms at 1;
+ * level evolutions at their evolution level; others whenever taken).
+ * @param {?string} formId
+ * @return {number}
+ */
 export function arrivalLevelOf(formId) {
   const form = GEN7_PROGRESSION_SPECIES[formId];
   if (!form?.prevoId) return 1;
@@ -84,17 +95,33 @@ function evolutionDepartureLevel(child) {
   return arrivalLevelOf(child?.prevoId);
 }
 
-// Preference among leveling routes that each field a not-yet-final form: the
-// least evolutionary delay wins — the latest-arriving form places first
-// (leveling a Staravia to 43 beats carrying an unevolved Starly to 37), and
-// learn level ascends within the same form. Options are
-// {formArrivalLevel, learnLevel}; callers admit only routes whose learn
-// level fits under the level cap. Shared by the delayed-evolution sort below
-// and breeding-donor selection (breeding.js) so both obey one rule.
+/**
+ * Preference among leveling routes that each field a not-yet-final form: the
+ * least evolutionary delay wins — the latest-arriving form places first
+ * (leveling a Staravia to 43 beats carrying an unevolved Starly to 37), and
+ * learn level ascends within the same form. Options are
+ * {formArrivalLevel, learnLevel}; callers admit only routes whose learn
+ * level fits under the level cap. Shared by the delayed-evolution sort below
+ * and breeding-donor selection (breeding.js) so both obey one rule.
+ * @param {{formArrivalLevel: number, learnLevel: number}} a
+ * @param {{formArrivalLevel: number, learnLevel: number}} b
+ * @return {number}
+ */
 export function compareEvolutionRouteOptions(a, b) {
   return b.formArrivalLevel - a.formArrivalLevel || a.learnLevel - b.learnLevel;
 }
 
+/**
+ * The moves actually obtainable under the current progression — level cap,
+ * selected TMs/TMXs/tutors, egg-move selections behind the daycare unlock,
+ * move relearner — each stamped with availableSources ({kind, level,
+ * learnerId, ...} records) and a delayedEvolution flag when every route
+ * delays an evolution. Hidden Power is excluded until the Type Changer is
+ * unlocked, then expanded into one variant per real type.
+ * @param {?Object} legalMoveData Output of loadRebornLegalMoveData.
+ * @param {!Object=} progression
+ * @return {!Array<!Object>} Sorted by best source kind, then type, then name.
+ */
 export function getAvailableRebornMoves(legalMoveData, progression = {}) {
   const levelCap = normalizeLevelCap(progression.levelCap);
   const selectedTmIds = new Set(progression.availableTmIds || []);
@@ -467,6 +494,9 @@ function isEvolvedLevelOneMove(level, evolvedSpecies) {
   return evolvedSpecies && level === 1;
 }
 
+/**
+ * @return {!Map<string, !Object>} getAvailableRebornMoves keyed by move id.
+ */
 export function getAvailableMoveMap(legalMoveData, progression) {
   return new Map(
     getAvailableRebornMoves(legalMoveData, progression).map((move) => [
@@ -476,6 +506,10 @@ export function getAvailableMoveMap(legalMoveData, progression) {
   );
 }
 
+/**
+ * @param {string} moveName
+ * @return {string} Canonical move id.
+ */
 export function getRebornMoveId(moveName) {
   return toId(moveName);
 }

@@ -40,6 +40,15 @@ import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.ge
 
 export { REBORN_ANALYSIS_TYPES };
 
+/**
+ * Full analysis of a fielded team under the current progression: per-member
+ * legality profiles with recommended sets, team-wide defensive and offensive
+ * type grids, a prose explanation, the breeding context, and the most-seen
+ * real team the pool could field.
+ * @return {!Promise<{members: !Array<!Object>, breeding: !Object,
+ *     defensive: !Object, explanation: !Object, offensive: !Object,
+ *     profiles: !Array<!Object>, fieldableRealTeam: ?Object}>}
+ */
 export async function buildRebornTeamAnalysis(
   team = [],
   progression = {},
@@ -278,9 +287,13 @@ async function buildMemberLegalMoveEntry({
   return { member, moves, profile, topSet, row };
 }
 
-// Which breeding donors a member's recommended set actually leans on: every
-// recommended move whose BEST acquisition (same priority order the source
-// chips use) is an egg source carrying a donor name. Exported for tests.
+/**
+ * Which breeding donors a member's recommended set actually leans on: every
+ * recommended move whose BEST acquisition (same priority order the source
+ * chips use) is an egg source carrying a donor name. Exported for tests.
+ * @return {!Array<{donorId: string, donorName: string,
+ *     moves: !Array<!Object>}>}
+ */
 export function collectEggDonorRequests(profile) {
   const byDonor = new Map();
   for (const move of profile?.recommendedMoves || []) {
@@ -418,13 +431,17 @@ async function attachDonorInterimGuides({
   }
 }
 
-// Per-member context the item recommender needs but can only get from the move
-// analysis: the types its *recommended* damaging moves cover, and whether its
-// top competitive set actually runs Unburden. Both gate gem recommendations —
-// a type Gem is useless without a move of its type, and the Unburden speed
-// payoff only applies if Unburden is the set's ability (not merely a legal one,
-// e.g. Liepard's top sets run Prankster). Uses the same pipeline as the analysis
-// panel so the gates match what the player sees.
+/**
+ * Per-member context the item recommender needs but can only get from the move
+ * analysis: the types its *recommended* damaging moves cover, and whether its
+ * top competitive set actually runs Unburden. Both gate gem recommendations —
+ * a type Gem is useless without a move of its type, and the Unburden speed
+ * payoff only applies if Unburden is the set's ability (not merely a legal one,
+ * e.g. Liepard's top sets run Prankster). Uses the same pipeline as the analysis
+ * panel so the gates match what the player sees.
+ * @return {!Promise<!Map<string, {damageTypes: !Set<string>,
+ *     unburden: boolean, fieldSetterShare: number}>>} Keyed by teamMemberKey.
+ */
 export async function getTeamItemContext(
   team = [],
   progression = {},
@@ -477,6 +494,12 @@ export async function getTeamItemContext(
   return byMember;
 }
 
+/**
+ * A candidate's full legality profile from its available moves: recommended
+ * moveset, damage estimates, coverage/utility summaries, and the scoring
+ * inputs derived from them.
+ * @return {!Object}
+ */
 export function buildCandidateLegalityProfile({
   member: rawMember,
   moves = [],
@@ -630,10 +653,19 @@ function buildRecommendedSet({ member, profile, topSet, assignedItem, levelCap }
   };
 }
 
+/**
+ * @param {!Array<?Object>} sets
+ * @return {string} Blank-line-separated Showdown export blocks.
+ */
 export function formatTeamPokepaste(sets = []) {
   return sets.filter(Boolean).map(formatShowdownSet).join("\n\n");
 }
 
+/**
+ * One set in Showdown team-export format; empty string for a null set.
+ * @param {?Object} set
+ * @return {string}
+ */
 export function formatShowdownSet(set) {
   if (!set) return "";
 
@@ -650,6 +682,10 @@ export function formatShowdownSet(set) {
   return lines.join("\n");
 }
 
+/**
+ * @param {?Array<number>} evs [HP,Atk,Def,SpA,SpD,Spe] EVs.
+ * @return {string} "252 HP / 4 Atk" style line; empty when not an array.
+ */
 export function formatEvLine(evs) {
   if (!Array.isArray(evs)) return "";
 
@@ -972,9 +1008,12 @@ function hasOpponentSleepMove(moves) {
   return moves.some((move) => OPPONENT_SLEEP_MOVE_IDS.has(move.id));
 }
 
-// Like isDamagingMove, but accounts for conditional attacks (Snore, Dream
-// Eater, Belch). A null heldItem (the item-blind prepass) fails the berry
-// gate — no berry known means Belch cannot be counted on.
+/**
+ * Like isDamagingMove, but accounts for conditional attacks (Snore, Dream
+ * Eater, Belch). A null heldItem (the item-blind prepass) fails the berry
+ * gate — no berry known means Belch cannot be counted on.
+ * @return {boolean}
+ */
 export function isUsableDamagingMove(move, moves, heldItem = null) {
   if (!isDamagingMove(move)) return false;
   if (

@@ -80,9 +80,14 @@ function baseMoveType(move) {
   return move.rawType ?? move.type;
 }
 
-// The type a move actually deals damage as under the ability: -ate abilities
-// convert Normal moves, Liquid Voice makes sound moves Water (Primarina's
-// whole STAB plan), Normalize makes everything Normal. Unchanged otherwise.
+/**
+ * The type a move actually deals damage as under the ability: -ate abilities
+ * convert Normal moves, Liquid Voice makes sound moves Water (Primarina's
+ * whole STAB plan), Normalize makes everything Normal. Unchanged otherwise.
+ * @param {?string} ability
+ * @param {!Object} move
+ * @return {string}
+ */
 export function getAbilityEffectiveMoveType(ability, move) {
   const id = abilityId(ability);
   const type = baseMoveType(move);
@@ -92,12 +97,17 @@ export function getAbilityEffectiveMoveType(ability, move) {
   return type;
 }
 
-// Move-property-conditional damage multiplier for the assumed ability. Only
-// one branch can fire per call in practice (a mon has one ability), but the
-// composition is written multiplicatively so a single ability with several
-// clauses (the -ate type gate + boost) stays readable. Fixed-damage moves
-// never see this — estimateMoveDamage resolves them before multipliers,
-// matching the games (Huge Power does not change Seismic Toss).
+/**
+ * Move-property-conditional damage multiplier for the assumed ability. Only
+ * one branch can fire per call in practice (a mon has one ability), but the
+ * composition is written multiplicatively so a single ability with several
+ * clauses (the -ate type gate + boost) stays readable. Fixed-damage moves
+ * never see this — estimateMoveDamage resolves them before multipliers,
+ * matching the games (Huge Power does not change Seismic Toss).
+ * @param {?string} ability
+ * @param {!Object} move
+ * @return {number}
+ */
 export function getAbilityDamageMultiplier(ability, move) {
   const id = abilityId(ability);
   if (!id) return 1;
@@ -170,12 +180,20 @@ const NATURE_ATTACK_MULTIPLIERS = {
 // — the defender that fraction-of-HP moves (Super Fang) are scored against,
 // matching the base-70 neutral-wall convention used for defenses.
 const REFERENCE_HP_BASE = 70;
+/**
+ * @param {number} level
+ * @return {number} The reference defender's full HP at the level.
+ */
 export function referenceHp(level) {
   const lvl = normalizeLevel(level);
   return Math.floor(((2 * REFERENCE_HP_BASE + 31) * lvl) / 100) + lvl + 10;
 }
 
-// Membership derives from fixedMoveDamage itself, so the two can never drift.
+/**
+ * Membership derives from fixedMoveDamage itself, so the two can never drift.
+ * @param {string} moveId
+ * @return {boolean}
+ */
 export function isFixedDamageMove(moveId) {
   return fixedMoveDamage(moveId, 1) != null;
 }
@@ -223,6 +241,10 @@ const VARIABLE_POWER_MOVE_IDS = new Set([
   "magnitude",
 ]);
 
+/**
+ * @param {string} moveId
+ * @return {boolean}
+ */
 export function isVariablePowerMove(moveId) {
   return VARIABLE_POWER_MOVE_IDS.has(moveId);
 }
@@ -237,14 +259,21 @@ function weightBucketPower(kg) {
   return 20;
 }
 
-// Effective base power of a variable-power move at the attacker's level, vs
-// the reference defender. Returns null for moves outside the family.
-// The user's side of the speed formulas is their EXACT speed — the top
-// spread's EVs + nature, the same figure the stat tooltip displays — passed
-// in as attackerSpe; only when no stat line exists (no spread data, or a
-// bare estimateMoveDamage call) does it fall back to the mon's uninvested
-// speed at level. The defender's side is always the reference: median base
-// speed, uninvested.
+/**
+ * Effective base power of a variable-power move at the attacker's level, vs
+ * the reference defender. Returns null for moves outside the family.
+ * The user's side of the speed formulas is their EXACT speed — the top
+ * spread's EVs + nature, the same figure the stat tooltip displays — passed
+ * in as attackerSpe; only when no stat line exists (no spread data, or a
+ * bare estimateMoveDamage call) does it fall back to the mon's uninvested
+ * speed at level. The defender's side is always the reference: median base
+ * speed, uninvested.
+ * @param {string} moveId
+ * @param {number} level
+ * @param {?string} attackerId
+ * @param {?number} attackerSpe
+ * @return {?number}
+ */
 export function variableMovePower(moveId, level, attackerId = null, attackerSpe = null) {
   if (!VARIABLE_POWER_MOVE_IDS.has(moveId)) return null;
   const lvl = normalizeLevel(level);
@@ -294,20 +323,28 @@ export function variableMovePower(moveId, level, attackerId = null, attackerSpe 
   }
 }
 
-// Damage a move actually lands into a defensive type, for coverage purposes.
-// Fixed-damage moves ignore effectiveness multipliers but NOT immunities
-// (Gen 7 rules): Seismic Toss deals its flat damage to anything Fighting can
-// touch and zero to Ghosts — it is never "super effective" and never resisted.
+/**
+ * Damage a move actually lands into a defensive type, for coverage purposes.
+ * Fixed-damage moves ignore effectiveness multipliers but NOT immunities
+ * (Gen 7 rules): Seismic Toss deals its flat damage to anything Fighting can
+ * touch and zero to Ghosts — it is never "super effective" and never resisted.
+ * @return {number}
+ */
 export function coverageDamageIntoType(moveId, moveType, damage, defenseType) {
   const multiplier = getTypeMultiplier(moveType, [defenseType]);
   if (isFixedDamageMove(moveId)) return multiplier === 0 ? 0 : damage;
   return damage * multiplier;
 }
 
-// True damage of fixed/fractional moves at a level. These ignore the user's
-// stats, STAB, and items in-game, so they're priced at their real damage — a
-// lvl-25 Seismic Toss deals exactly 25. Returns null when the move isn't one
-// of these.
+/**
+ * True damage of fixed/fractional moves at a level. These ignore the user's
+ * stats, STAB, and items in-game, so they're priced at their real damage — a
+ * lvl-25 Seismic Toss deals exactly 25. Returns null when the move isn't one
+ * of these.
+ * @param {string} moveId
+ * @param {number} level
+ * @return {?number}
+ */
 export function fixedMoveDamage(moveId, level) {
   const lvl = normalizeLevel(level);
   switch (moveId) {
@@ -333,6 +370,10 @@ export function fixedMoveDamage(moveId, level) {
   }
 }
 
+/**
+ * @param {*} levelCap
+ * @return {number} The level clamped to [1, 100]; 100 when unparseable.
+ */
 export function normalizeLevel(levelCap) {
   const parsed = Number.parseInt(levelCap, 10);
   if (!Number.isFinite(parsed)) return DEFAULT_LEVEL;
@@ -341,7 +382,12 @@ export function normalizeLevel(levelCap) {
   return parsed;
 }
 
-// Smogon spread strings look like "Nature:HP/Atk/Def/SpA/SpD/Spe".
+/**
+ * Smogon spread strings look like "Nature:HP/Atk/Def/SpA/SpD/Spe".
+ * @param {*} spreadName
+ * @return {?{nature: string, natureLabel: string, evs: !Array<number>}} Null
+ *     when the string doesn't parse.
+ */
 export function parseSpread(spreadName) {
   if (typeof spreadName !== "string") return null;
   const [naturePart, evPart] = spreadName.split(":");
@@ -360,11 +406,15 @@ function statValue(base, ev, level, natureMultiplier) {
   return Math.floor((inner + 5) * natureMultiplier);
 }
 
-// Computes a member's effective Atk and SpA at the given level. With a real top
-// spread we honour its EVs + nature; without one we assume the Pokémon invests
-// in its naturally stronger attacking side (252 EVs + a boosting nature), which
-// is how it would actually be built and is enough to settle the physical vs
-// special question for the recommender.
+/**
+ * Computes a member's effective Atk and SpA at the given level. With a real top
+ * spread we honour its EVs + nature; without one we assume the Pokémon invests
+ * in its naturally stronger attacking side (252 EVs + a boosting nature), which
+ * is how it would actually be built and is enough to settle the physical vs
+ * special question for the recommender.
+ * @return {?{level: number, atk: number, spa: number, spe: number}} Null when
+ *     the species has no base-stat row.
+ */
 export function getAttackingStats({ pokemonId, levelCap, spread }) {
   const stats = GEN7_BASE_STATS[toId(pokemonId)];
   if (!stats) return null;
@@ -404,10 +454,13 @@ export function getAttackingStats({ pokemonId, levelCap, spread }) {
   };
 }
 
-// The full six-stat line a nature + EV spread produces at a level (31 IVs
-// assumed, matching Smogon spreads). Display-layer only — scoring never calls
-// this. `evs` is the [HP,Atk,Def,SpA,SpD,Spe] array; nature by name or id.
-// Returns null when the species has no base-stat row.
+/**
+ * The full six-stat line a nature + EV spread produces at a level (31 IVs
+ * assumed, matching Smogon spreads). Display-layer only — scoring never calls
+ * this. `evs` is the [HP,Atk,Def,SpA,SpD,Spe] array; nature by name or id.
+ * Returns null when the species has no base-stat row.
+ * @return {?Object<string, number>} level, hp, atk, def, spa, spd, spe.
+ */
 export function computeFinalStats({ pokemonId, level, nature, evs }) {
   const id = toId(pokemonId);
   const stats = GEN7_BASE_STATS[id];
@@ -437,9 +490,12 @@ export function computeFinalStats({ pokemonId, level, nature, evs }) {
   return result;
 }
 
-// Estimated unresisted damage for one move. Fixed-damage moves (Seismic Toss,
-// Night Shade, ...) use their REAL in-game damage at the attacker's level —
-// no stats, no STAB, no item boosts, exactly as the games compute them.
+/**
+ * Estimated unresisted damage for one move. Fixed-damage moves (Seismic Toss,
+ * Night Shade, ...) use their REAL in-game damage at the attacker's level —
+ * no stats, no STAB, no item boosts, exactly as the games compute them.
+ * @return {number}
+ */
 export function estimateMoveDamage({
   moveId = null,
   basePower,

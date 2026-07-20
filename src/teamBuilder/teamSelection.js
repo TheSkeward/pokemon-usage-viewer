@@ -16,6 +16,15 @@ import {
 import { parallelFullSearch, PARALLEL_THRESHOLD } from "./parallelSearch.js";
 import { tunable } from "./scoringConstants.js";
 
+/**
+ * Selects the best team the pool's resolved lines can field — exhaustive or
+ * budgeted search over line combinations, then form/mega assignment.
+ * @return {!Promise<{team: !Array<!Object>, megaUsed: ?Object,
+ *     lines: !Array<!Object>, unresolved: !Array<!Object>,
+ *     linesConsidered: number, searchExact: boolean,
+ *     benchSwapScores: ?Object, teamScore: ?number, searchPolish: ?Object,
+ *     bestEvaluated: ?Object}>}
+ */
 export async function choosePoolTeam(
   lines,
   opponentTypeBias = {},
@@ -69,12 +78,14 @@ export async function choosePoolTeam(
   };
 }
 
-// Post-selection build assignment (roadmap Phase 3): with the six lines fixed,
-// pick one build per member (at most one build per evolutionary line holds by
-// construction — builds are alternatives of the same member) maximizing the
-// realized team score. Always scores through the exact path (real coverage
-// vectors, never the selection relaxation). Deterministic: fixed enumeration
-// order, strict improvement. Returns { team, score }.
+/**
+ * Post-selection build assignment (roadmap Phase 3): with the six lines fixed,
+ * pick one build per member (at most one build per evolutionary line holds by
+ * construction — builds are alternatives of the same member) maximizing the
+ * realized team score. Always scores through the exact path (real coverage
+ * vectors, never the selection relaxation). Deterministic: fixed enumeration
+ * order, strict improvement. Returns { team, score }.
+ */
 export function assignTeamBuilds(team, opponentTypeBias = {}) {
   if (!team.length) return { team, score: 0 };
   const options = team.map((choice) =>

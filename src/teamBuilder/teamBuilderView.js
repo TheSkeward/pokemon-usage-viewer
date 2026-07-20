@@ -26,6 +26,9 @@ import {
 } from "./explanations.js";
 import { getTelemetrySummary, loadTelemetrySamples } from "./telemetry.js";
 
+/**
+ * Renders the full Team Builder page into `app` and wires up its controls.
+ */
 export function renderTeamBuilderPage({
   app,
   baseUrl,
@@ -118,11 +121,14 @@ function usageTrustTooltip(state) {
   );
 }
 
-// One-line, read-only summary of the gamestate a recommendation assumes.
-// Every chip opens (and scrolls to) the control that changes it, so "where do
-// I change X" is one click, and a stale assumption is visible at a glance.
-// Exported so light progression edits (level cap typing, bias drags — which
-// deliberately don't re-render the page) can refresh the strip in place.
+/**
+ * One-line, read-only summary of the gamestate a recommendation assumes.
+ * Every chip opens (and scrolls to) the control that changes it, so "where do
+ * I change X" is one click, and a stale assumption is visible at a glance.
+ * Exported so light progression edits (level cap typing, bias drags — which
+ * deliberately don't re-render the page) can refresh the strip in place.
+ * @return {string} The strip's HTML.
+ */
 export function renderGamestateStrip(progression = {}) {
   const chips = [];
   const chip = (label, targetId) =>
@@ -1247,6 +1253,12 @@ function getSelectedTeamChoice({ setDetails, state }) {
   );
 }
 
+/**
+ * @param {!Array<!Object>} team
+ * @param {string} sortBy Column key.
+ * @param {string=} sortDir "asc" or "desc".
+ * @return {!Array<!Object>} A sorted copy; the input team is not mutated.
+ */
 export function getSortedTeam(team, sortBy, sortDir = "desc", progression = {}) {
   const rows = [...team];
   const direction = sortDir === "asc" ? 1 : -1;

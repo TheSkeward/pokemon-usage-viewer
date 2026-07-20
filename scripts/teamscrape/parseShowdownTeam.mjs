@@ -1,16 +1,18 @@
-// Parser for the Showdown/pokepaste team-export text format: blank-line-
-// separated set blocks of the shape
-//   Nickname (Species) (M) @ Item
-//   Ability: ...
-//   Level: 50            (optional; also Shiny/Happiness/Hidden Power/Dynamax)
-//   EVs: 252 HP / 4 Atk  (optional)
-//   Adamant Nature       (optional)
-//   IVs: 0 Spe           (optional)
-//   - Move
-// Inverse of formatShowdownSet (src/reborn/teamAnalysis.js). Tolerant by
-// design: scraped pastes carry smogon-dialect quirks (curly quotes, stray
-// whitespace, missing sections), and a malformed block yields null rather
-// than aborting the team.
+/**
+ * @fileoverview Parser for the Showdown/pokepaste team-export text format:
+ * blank-line-separated set blocks of the shape
+ *   Nickname (Species) (M) @ Item
+ *   Ability: ...
+ *   Level: 50            (optional; also Shiny/Happiness/Hidden Power/Dynamax)
+ *   EVs: 252 HP / 4 Atk  (optional)
+ *   Adamant Nature       (optional)
+ *   IVs: 0 Spe           (optional)
+ *   - Move
+ * Inverse of formatShowdownSet (src/reborn/teamAnalysis.js). Tolerant by
+ * design: scraped pastes carry smogon-dialect quirks (curly quotes, stray
+ * whitespace, missing sections), and a malformed block yields null rather
+ * than aborting the team.
+ */
 
 import { toId } from "../../src/utils/ids.js";
 
@@ -60,6 +62,13 @@ function parseHeaderLine(line) {
   return { species: species.trim(), gender, item };
 }
 
+/**
+ * Parses one export block into a set record.
+ * @param {string} block
+ * @return {?Object} The set (names plus toId'd ids for species/item/ability/
+ *     moves; null fields where the paste omits a section), or null for a
+ *     malformed block.
+ */
 export function parseShowdownSet(block) {
   const lines = block
     .replace(/ /g, " ")
@@ -124,11 +133,15 @@ export function parseShowdownSet(block) {
   return set;
 }
 
-// Returns { sets, dropped, format } — dropped counts malformed blocks so
-// harvest telemetry can distinguish "empty paste" from "paste we failed to
-// read"; format is the id from a "=== [gen7ou] My Team ===" header when the
-// paste carries one (the reliable per-paste attribution in mixed-tier
-// tournament dump threads), else null.
+/**
+ * Returns { sets, dropped, format } — dropped counts malformed blocks so
+ * harvest telemetry can distinguish "empty paste" from "paste we failed to
+ * read"; format is the id from a "=== [gen7ou] My Team ===" header when the
+ * paste carries one (the reliable per-paste attribution in mixed-tier
+ * tournament dump threads), else null.
+ * @param {string} text
+ * @return {{sets: !Array<!Object>, dropped: number, format: ?string}}
+ */
 export function parseShowdownTeam(text) {
   const blocks = String(text || "")
     .replace(/\r\n/g, "\n")

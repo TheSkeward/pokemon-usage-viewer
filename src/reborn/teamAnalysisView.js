@@ -20,6 +20,11 @@ import { STAT_KEYS } from "../utils/stats.js";
 // flashing back to its "Checking..." placeholder on every re-render.
 let analysisMemo = { key: null, promise: null };
 
+/**
+ * Renders the team-analysis panel into `root` (cleared for an empty team),
+ * memoizing the underlying analysis by input signature.
+ * @param {?Element} root
+ */
 export function renderRebornTeamAnalysisPanel(root, {
   family,
   itemAssignments,

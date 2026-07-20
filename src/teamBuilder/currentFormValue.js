@@ -1,41 +1,44 @@
-// Current-form usefulness (the C term of the individual value model): how good is
-// the form you can actually field RIGHT NOW at doing its ONE best job.
-//
-// Built from a small set of mechanical, stage-relative features — not a sprawling
-// role junk drawer and not raw peak damage (which is blind to speed, bulk, and
-// role). The features are observations; only a handful of role combines carry any
-// judgement:
-//
-//   damage_q   how hard it hits now, vs a stage-typical strong hit
-//   speed_q    base Speed percentile (full dex blended with reachable-at-cap)
-//   physical_bulk_q / special_bulk_q  side-specific HP x defense percentiles
-//   bulk_q     geometric mean of the two bulk sides
-//   type_resilience_q  defensive type balance, with neutral centered at 0.5
-//   effective_bulk_q  balanced bulk adjusted by broad defensive typing
-//   fast_attacker_penalty_q  bounded failure-to-act discount when both speed
-//              and effective bulk are poor
-//   reliability_q  does it have a functional attacking kit (a few real options)
-//   utility_q  role-aware utility value — recovery / setup / hazards / speed
-//              control tags from the move meta, accuracy-weighted, saturating
-//              at UTILITY_SATURATION (real infrastructure counts; chip status
-//              barely does)
-//   priority_utility_q  the utility_q subset that acts with positive priority,
-//              either intrinsically or through the assumed ability
-//   screen_protection_q  physical/special axes protected by one executable
-//              screen action (Aurora Veil covers both; ordinary screens one)
-//   screen_delivery_q  whether that action arrives by priority or base Speed
-//   screen_support_q  geometric completion of protection and delivery
-//   tempo_speed_q  post-turn +1 Speed percentile supplied by Speed Boost
-//   tempo_reliability_q  does the set carry a full-protect ramp turn
-//
-// Then a few role scores (geometric means, so a role needs ALL its axes) and
-// C = max(role). A fast frail attacker, a bulky pivot, and a hard hitter each get
-// a legitimate route to a high C.
-//
-// Percentiles are taken against the dex (global blended with reachable-at-cap —
-// see capRefs), never within the (possibly weak) input pool — otherwise the best
-// trash becomes king of the dump. damage_q is the stage-relative axis: it scales
-// with the level cap via the damage estimate.
+/**
+ * @fileoverview Current-form usefulness (the C term of the individual value
+ * model): how good is the form you can actually field RIGHT NOW at doing its
+ * ONE best job.
+ *
+ * Built from a small set of mechanical, stage-relative features — not a
+ * sprawling role junk drawer and not raw peak damage (which is blind to speed,
+ * bulk, and role). The features are observations; only a handful of role
+ * combines carry any judgement:
+ *
+ *   damage_q   how hard it hits now, vs a stage-typical strong hit
+ *   speed_q    base Speed percentile (full dex blended with reachable-at-cap)
+ *   physical_bulk_q / special_bulk_q  side-specific HP x defense percentiles
+ *   bulk_q     geometric mean of the two bulk sides
+ *   type_resilience_q  defensive type balance, with neutral centered at 0.5
+ *   effective_bulk_q  balanced bulk adjusted by broad defensive typing
+ *   fast_attacker_penalty_q  bounded failure-to-act discount when both speed
+ *              and effective bulk are poor
+ *   reliability_q  does it have a functional attacking kit (a few real options)
+ *   utility_q  role-aware utility value — recovery / setup / hazards / speed
+ *              control tags from the move meta, accuracy-weighted, saturating
+ *              at UTILITY_SATURATION (real infrastructure counts; chip status
+ *              barely does)
+ *   priority_utility_q  the utility_q subset that acts with positive priority,
+ *              either intrinsically or through the assumed ability
+ *   screen_protection_q  physical/special axes protected by one executable
+ *              screen action (Aurora Veil covers both; ordinary screens one)
+ *   screen_delivery_q  whether that action arrives by priority or base Speed
+ *   screen_support_q  geometric completion of protection and delivery
+ *   tempo_speed_q  post-turn +1 Speed percentile supplied by Speed Boost
+ *   tempo_reliability_q  does the set carry a full-protect ramp turn
+ *
+ * Then a few role scores (geometric means, so a role needs ALL its axes) and
+ * C = max(role). A fast frail attacker, a bulky pivot, and a hard hitter each
+ * get a legitimate route to a high C.
+ *
+ * Percentiles are taken against the dex (global blended with reachable-at-cap
+ * — see capRefs), never within the (possibly weak) input pool — otherwise the
+ * best trash becomes king of the dump. damage_q is the stage-relative axis: it
+ * scales with the level cap via the damage estimate.
+ */
 
 import {
   GEN7_BASE_STATS,
@@ -48,7 +51,10 @@ import {
 } from "../reborn/typeChart.js";
 import { SCORING_DEFAULTS, tunable } from "./scoringConstants.js";
 
-// Not sweepable — it defines the scale the other judgements are expressed in.
+/**
+ * Not sweepable — it defines the scale the other judgements are expressed in.
+ * @const {number}
+ */
 export const CURRENT_VALUE_SCALE = SCORING_DEFAULTS.CURRENT_VALUE_SCALE;
 
 function statsOf(id) {
@@ -163,10 +169,14 @@ function percentile(value, sorted) {
   return lo / sorted.length;
 }
 
-// A stage-typical strong hit at this level cap, using the same core math as the
-// damage estimator (base-70 reference defender). damage_q divides the mon's best
-// hit by this, so "hits hard" is judged against the current stage rather than an
-// absolute bar.
+/**
+ * A stage-typical strong hit at this level cap, using the same core math as the
+ * damage estimator (base-70 reference defender). damage_q divides the mon's best
+ * hit by this, so "hits hard" is judged against the current stage rather than an
+ * absolute bar.
+ * @param {number} levelCap
+ * @return {number}
+ */
 export function stageReferenceDamage(levelCap) {
   const lvl = Math.max(1, Math.min(100, levelCap || 50));
   const statAt = (base) => Math.floor((2 * base * lvl) / 100) + 5;
@@ -190,11 +200,15 @@ function geomean(values) {
 }
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 
-// Saturating ceiling for the additive role routes: identity below the knee,
-// asymptotic to (never reaching) 1 above it. Sub-knee values are bit-identical
-// to a hard clamp01, so only the elite band decompresses — overshoots stay
-// ordered instead of tying at 1.0, which would flatten top-mon ordering and the
-// local gradient the confidence sweep needs.
+/**
+ * Saturating ceiling for the additive role routes: identity below the knee,
+ * asymptotic to (never reaching) 1 above it. Sub-knee values are bit-identical
+ * to a hard clamp01, so only the elite band decompresses — overshoots stay
+ * ordered instead of tying at 1.0, which would flatten top-mon ordering and the
+ * local gradient the confidence sweep needs.
+ * @param {number} x
+ * @return {number}
+ */
 export function softCeiling(x) {
   if (x <= 0) return 0;
   const knee = tunable("ROLE_CEILING_KNEE");
@@ -203,11 +217,15 @@ export function softCeiling(x) {
   return knee + band * (1 - Math.exp(-(x - knee) / band));
 }
 
-// Signed standalone defensive value in neutral-hit equivalents. This is the
-// same type chart the team-fit layer uses, but it answers a different question:
-// whether one member's strong defensive side has enough broadly useful switch-
-// in opportunities to count as a real specialist role. Neutral matchups add 0;
-// resistance 0.5, immunity 1, weakness -1, and a 4x weakness -3.
+/**
+ * Signed standalone defensive value in neutral-hit equivalents. This is the
+ * same type chart the team-fit layer uses, but it answers a different question:
+ * whether one member's strong defensive side has enough broadly useful switch-
+ * in opportunities to count as a real specialist role. Neutral matchups add 0;
+ * resistance 0.5, immunity 1, weakness -1, and a 4x weakness -3.
+ * @param {!Array<string>=} defenseTypes
+ * @return {number}
+ */
 export function defensiveTypeBalance(defenseTypes = []) {
   return REBORN_ANALYSIS_TYPES.reduce(
     (total, attackType) =>
@@ -270,16 +288,23 @@ const RELIABLE_TEMPO_RAMP_MOVES = new Set([
   "spikyshield",
 ]);
 
-// Mega Evolution happens after the pre-Mega ability has had a chance to
-// matter. A Sharpedo that begins the turn with Speed Boost and then becomes
-// Mega Sharpedo therefore keeps the earned boost even though Strong Jaw is
-// the active ability used by its attacks.
+/**
+ * Mega Evolution happens after the pre-Mega ability has had a chance to
+ * matter. A Sharpedo that begins the turn with Speed Boost and then becomes
+ * Mega Sharpedo therefore keeps the earned boost even though Strong Jaw is
+ * the active ability used by its attacks.
+ * @return {boolean}
+ */
 export function hasSpeedBoostTempo(profile) {
   return [profile?.preMegaAbility, profile?.assumedAbility].some(
     (ability) => normalizedAbility(ability) === "speedboost",
   );
 }
 
+/**
+ * @return {boolean} Speed Boost tempo plus a full-protect ramp move on the
+ *     recommended set.
+ */
 export function hasReliableTempoRamp(profile) {
   if (!hasSpeedBoostTempo(profile)) return false;
   return (profile?.recommendedMoves || []).some((move) =>
@@ -289,11 +314,14 @@ export function hasReliableTempoRamp(profile) {
   );
 }
 
-// Priority utility is deliberately narrower than either "status move" or
-// "priority move": it must perform a scored support job, be a Status move,
-// and actually execute above normal priority. Prankster supplies that last
-// fact for every Status move on the assumed build. Protect-style priority
-// with no infrastructure role and damaging priority attacks do not qualify.
+/**
+ * Priority utility is deliberately narrower than either "status move" or
+ * "priority move": it must perform a scored support job, be a Status move,
+ * and actually execute above normal priority. Prankster supplies that last
+ * fact for every Status move on the assumed build. Protect-style priority
+ * with no infrastructure role and damaging priority attacks do not qualify.
+ * @return {boolean}
+ */
 export function isPriorityUtilityMove(move, assumedAbility = null) {
   if (move?.category !== "Status") return false;
   const hasUtilityRole = (move.roles || []).some(
@@ -321,11 +349,14 @@ function weatherIsAvailable(weather, recommendedMoves, assumedAbility) {
   );
 }
 
-// Team protection is valued per action, not by unioning a whole set. A normal
-// screen covers one damage axis; Aurora Veil covers both, but only when its
-// hail requirement is actually supplied by the set or assumed ability.
-// Priority is complete delivery; otherwise the user's measured Speed is the
-// delivery axis. Return the best executable single screen action on the set.
+/**
+ * Team protection is valued per action, not by unioning a whole set. A normal
+ * screen covers one damage axis; Aurora Veil covers both, but only when its
+ * hail requirement is actually supplied by the set or assumed ability.
+ * Priority is complete delivery; otherwise the user's measured Speed is the
+ * delivery axis. Return the best executable single screen action on the set.
+ * @return {{protection_q: number, delivery_q: number, value_q: number}}
+ */
 export function singleActionScreenSupport(
   recommendedMoves,
   assumedAbility = null,
@@ -367,6 +398,10 @@ export function singleActionScreenSupport(
   return best;
 }
 
+/**
+ * @return {!Array<number>} Accuracy-weighted role counts, one slot per
+ *     UTILITY_TAGS entry.
+ */
 export function utilityTagVector(recommendedMoves, assumedAbility = null) {
   const vector = new Array(UTILITY_TAGS.length).fill(0);
   for (const move of recommendedMoves || []) {
@@ -388,7 +423,7 @@ export function utilityTagVector(recommendedMoves, assumedAbility = null) {
   return vector;
 }
 
-// The moves whose area-altering effect a duration-extender item prolongs.
+/** The moves whose area-altering effect a duration-extender item prolongs. */
 export const FIELD_SETTING_MOVE_IDS = new Set([
   "electricterrain",
   "grassyterrain",
@@ -396,6 +431,10 @@ export const FIELD_SETTING_MOVE_IDS = new Set([
   "psychicterrain",
 ]);
 
+/**
+ * @return {number} Accuracy-weighted sum of each move's best utility-role
+ *     weight.
+ */
 export function utilityValue(recommendedMoves, fieldExtenderOwned = false) {
   let total = 0;
   for (const move of recommendedMoves || []) {
@@ -414,6 +453,9 @@ export function utilityValue(recommendedMoves, fieldExtenderOwned = false) {
   return total;
 }
 
+/**
+ * @return {number} The priority-executing subset of utility value.
+ */
 export function priorityUtilityValue(recommendedMoves, assumedAbility = null) {
   let total = 0;
   for (const move of recommendedMoves || []) {
@@ -432,7 +474,10 @@ export function priorityUtilityValue(recommendedMoves, assumedAbility = null) {
   return total;
 }
 
-// The fielded form's features, all in [0,1].
+/**
+ * The fielded form's features, all in [0,1].
+ * @return {!Object<string, number>}
+ */
 export function currentFormFeatures(profile, levelCap) {
   const currentId = profile?.currentId;
 
@@ -564,8 +609,12 @@ export function currentFormFeatures(profile, levelCap) {
   };
 }
 
-// C = max over a few mechanically-derived roles. Returns the score in points plus
-// the breakdown, for instrumentation.
+/**
+ * C = max over a few mechanically-derived roles. Returns the score in points plus
+ * the breakdown, for instrumentation.
+ * @return {{value: number, bestRole: string, features: !Object,
+ *     roles: !Object}}
+ */
 export function currentFormValue(profile, levelCap) {
   if (!profile) {
     return { value: 0, bestRole: "none", features: {}, roles: {} };
@@ -646,10 +695,13 @@ export function currentFormValue(profile, levelCap) {
 // (Investment friction K lives in src/reborn/evolutionRequirements.js — the
 // legality engine is the single source of K truth.)
 
-// Fraction of the represented final form's key attributes the fielded form
-// already has — the best of its offense / bulk / speed ratios. Used only to
-// bucket the readiness gate (near-final vs mid-evo), so an OFFENSIVE line that's
-// nearly ready on offense counts as near-final even if it never gets bulky.
+/**
+ * Fraction of the represented final form's key attributes the fielded form
+ * already has — the best of its offense / bulk / speed ratios. Used only to
+ * bucket the readiness gate (near-final vs mid-evo), so an OFFENSIVE line that's
+ * nearly ready on offense counts as near-final even if it never gets bulky.
+ * @return {number}
+ */
 export function formReadinessRatio(currentId, representativeId) {
   const ratios = [
     ratio(mainAttackOf(currentId), mainAttackOf(representativeId)),

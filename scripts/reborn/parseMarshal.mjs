@@ -1,21 +1,32 @@
-// A minimal Ruby Marshal (version 4.8) reader — just the subset needed to read
-// Reborn's compiled `mons.dat` (a MonDataHash of species → MonWrapper → MonData).
-// Maintains the symbol table and object link table that Marshal uses for
-// back-references (`;` symlinks and `@` object links).
+/**
+ * @fileoverview A minimal Ruby Marshal (version 4.8) reader — just the subset
+ * needed to read Reborn's compiled `mons.dat` (a MonDataHash of species →
+ * MonWrapper → MonData). Maintains the symbol table and object link table
+ * that Marshal uses for back-references (`;` symlinks and `@` object links).
+ */
 
+/**
+ * Parses a Marshal payload into JS values: Ruby Hash → Map, String →
+ * {rubyString}, Symbol → RubySymbol, generic object → RubyObject.
+ * @param {!Buffer} buffer
+ * @return {*} The root value.
+ */
 export function parseMarshal(buffer) {
   const reader = new MarshalReader(buffer);
   reader.expectVersion();
   return reader.readValue();
 }
 
-// Wrapper markers so consumers can distinguish Ruby symbols/objects from plain
-// strings and maps after parsing.
+/**
+ * Wrapper markers so consumers can distinguish Ruby symbols/objects from plain
+ * strings and maps after parsing.
+ */
 export class RubySymbol {
   constructor(name) {
     this.name = name;
   }
 }
+/** A parsed Ruby object: its class name plus an ivar-name → value Map. */
 export class RubyObject {
   constructor(className) {
     this.className = className;

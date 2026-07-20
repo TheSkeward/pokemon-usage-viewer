@@ -1,8 +1,10 @@
-// Extracts level-up (incl. level-0 evolution moves), egg, and TM/tutor-compatible
-// move lists from Reborn's compiled mons.dat, keyed by our pokemon-index ids.
-// Reborn is the authoritative learnset source for the game this tool targets;
-// mainline @pkmn/dex diverges (e.g. Bibarel's evolution move is Water Gun in
-// Reborn, Aqua Jet in USUM).
+/**
+ * @fileoverview Extracts level-up (incl. level-0 evolution moves), egg, and
+ * TM/tutor-compatible move lists from Reborn's compiled mons.dat, keyed by our
+ * pokemon-index ids. Reborn is the authoritative learnset source for the game
+ * this tool targets; mainline @pkmn/dex diverges (e.g. Bibarel's evolution
+ * move is Water Gun in Reborn, Aqua Jet in USUM).
+ */
 
 import { readFileSync } from "node:fs";
 import { Dex } from "@pkmn/dex";
@@ -21,6 +23,11 @@ const moveId = (sym) => {
   return MOVE_ALIASES[id] || id;
 };
 
+/**
+ * @param {string} monsDatPath
+ * @return {!Map<string, !Map<string, !Object>>} Base species id →
+ *     (Reborn form name → MonData RubyObject).
+ */
 export function loadRebornMons(monsDatPath) {
   const top = parseMarshal(readFileSync(monsDatPath));
   // base species id → { species symbol, forms: Map(formName → MonData) }
@@ -119,6 +126,13 @@ function extractMoves(primary, base) {
   };
 }
 
+/**
+ * @param {string} monsDatPath
+ * @param {!Array<{id: string}>} pokemonIndex
+ * @return {{learnsets: !Object<string, !Object>, unmapped: !Array<string>}}
+ *     Learnsets keyed by pokemon id (levelUp/evolutionMoves/eggMoves/
+ *     compatibleMoves/relearnerMoves); unmapped lists ids mons.dat lacks.
+ */
 export function buildRebornLearnsets(monsDatPath, pokemonIndex) {
   const bySpecies = loadRebornMons(monsDatPath);
   const learnsets = {};

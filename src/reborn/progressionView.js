@@ -32,9 +32,12 @@ import {
   GEN7_HELD_ITEMS_BY_ID,
 } from "../generated/gen7HeldItems.generated.js";
 
-// `includeBias: false` lets the modern layout render the opponent-bias group
-// next to the Optimize button instead (it changes per-fight, unlike the
-// save-file settings here); classic keeps it in this panel.
+/**
+ * `includeBias: false` lets the modern layout render the opponent-bias group
+ * next to the Optimize button instead (it changes per-fight, unlike the
+ * save-file settings here); classic keeps it in this panel.
+ * @return {string} Panel HTML.
+ */
 export function renderRebornProgressionPanel(progression, { includeBias = true } = {}) {
   return `
     <section class="panel progression-panel">
@@ -195,6 +198,10 @@ function renderCheckpointControl(progression) {
   `;
 }
 
+/**
+ * @param {!Object<string, number>} bias Per-type bias weights.
+ * @return {string} The opponent-type-bias control group HTML.
+ */
 export function renderOpponentTypeBias(bias) {
   const activeCount = REBORN_ANALYSIS_TYPES.filter(
     (type) => (bias[type] || 0) > 0,

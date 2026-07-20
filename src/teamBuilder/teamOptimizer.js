@@ -227,6 +227,13 @@ function ensureHydrated() {
   return hydration;
 }
 
+/**
+ * End-to-end optimize: resolves the pool's lines under the progression,
+ * attaches teammate lift, runs the team search, and memoizes/persists the
+ * result (degraded runs render best-effort but never persist).
+ * @return {!Promise<!Object>} The choosePoolTeam result extended with
+ *     timings, telemetryMeta, degraded, and poolKey.
+ */
 export async function optimizeTeamFromPool({
   availability,
   family,
@@ -439,12 +446,14 @@ export async function optimizeTeamFromPool({
   return result;
 }
 
-// Attaches the post-analysis (confidence sweep + investment plan) to its
-// result and writes the result back through to IndexedDB, so a later hit —
-// memo or reload — restores the analysis panels instead of re-paying the
-// sweep and two future-cap optimizes. Degraded results never persist (same
-// rule as the result itself), and a result that predates this build simply
-// lacks the field and recomputes.
+/**
+ * Attaches the post-analysis (confidence sweep + investment plan) to its
+ * result and writes the result back through to IndexedDB, so a later hit —
+ * memo or reload — restores the analysis panels instead of re-paying the
+ * sweep and two future-cap optimizes. Degraded results never persist (same
+ * rule as the result itself), and a result that predates this build simply
+ * lacks the field and recomputes.
+ */
 export function persistPostAnalysis(result, postAnalysis) {
   if (!result || result.degraded || !postAnalysis) return;
   result.postAnalysis = postAnalysis;
