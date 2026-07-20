@@ -526,7 +526,7 @@ function getBreedableEggGroups(pokemonId) {
   return [...groups];
 }
 
-function familyForms(pokemonId) {
+export function familyForms(pokemonId) {
   const forms = [];
   const walked = new Set();
   const visit = (id) => {

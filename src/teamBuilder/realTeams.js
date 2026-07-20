@@ -1,11 +1,16 @@
 // Which scraped real team (teamIndex.js) the player could field RIGHT NOW:
 // every member must be covered by a distinct pool line, every listed move
-// must be obtainable under the progression (no breeding context in v1 —
-// conservative, so egg-move-dependent teams simply don't qualify yet), and
-// every held item must be covered by tracked inventory. Display-only —
-// nothing here feeds scoring.
+// must be obtainable under the progression + breeding context (the same egg-
+// move availability the analysis panel's own sets use), and every held item
+// must be covered by tracked inventory. Display-only — nothing here feeds
+// scoring.
 import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
 import { getCurrentRebornSpeciesForChoice } from "../reborn/currentSpecies.js";
+import {
+  applyBreedingContextToProgression,
+  canHatchLine,
+  familyForms,
+} from "../reborn/breeding.js";
 import {
   getAvailableRebornMoves,
   loadRebornLegalMoveData,
@@ -14,10 +19,15 @@ import { toId } from "../utils/ids.js";
 
 // The forms one pool line can field: for each of its choices, the input form,
 // the current best-reachable form, and every form on the evolution path
-// between them — delaying evolution is always allowed, devolving is not, so
-// a pre-evolution of the input never qualifies.
+// between them — delaying evolution is always allowed, devolving is not.
+// EXCEPT under daycare reachability (result-cache changelog v21, teamOptimizer
+// line resolution): with the daycare unlocked, a hatchable line fields ANY
+// family form from any input — breed an egg, raise the hatchling — so the set
+// expands to every form reachable from the family root at the cap under the
+// evolution-access rules, devolved forms and sibling branches included.
 export function getLineFieldableIds(line, progression = {}) {
   const ids = new Set();
+  const hatchExpanded = new Set();
   const choices = [
     line?.best,
     line?.bestNonMega,
@@ -31,6 +41,32 @@ export function getLineFieldableIds(line, progression = {}) {
       getCurrentRebornSpeciesForChoice(choice, progression)?.id || inputId,
     );
     for (const id of evolutionPathIds(inputId, currentId)) ids.add(id);
+
+    if (
+      !progression?.daycareUnlocked ||
+      hatchExpanded.has(inputId) ||
+      !canHatchLine(inputId)
+    ) {
+      continue;
+    }
+    hatchExpanded.add(inputId);
+    // A hatchling starts at the family root, so "reachable family form" is
+    // exactly what getCurrentRebornSpeciesForChoice answers with the root as
+    // input and each form as the representative: it walks the same evolution-
+    // access rules and returns the deepest reachable form on that branch —
+    // the root→current path is then fieldable by delaying, branch by branch.
+    const forms = familyForms(inputId);
+    const rootId = forms[0]?.id;
+    for (const form of forms) {
+      if (!rootId || form.isMega) continue;
+      const current = getCurrentRebornSpeciesForChoice(
+        { inputPokemonId: rootId, pokemonId: form.id },
+        progression,
+      );
+      for (const id of evolutionPathIds(rootId, toId(current?.id || rootId))) {
+        ids.add(id);
+      }
+    }
   }
   return ids;
 }
@@ -114,6 +150,7 @@ export async function findFieldableRealTeam({
   lines = [],
   progression = {},
   recommendedIds = new Set(),
+  breedingContext = null,
 }) {
   const candidates = [...(teams || [])].sort((a, b) =>
     compareRealTeams(a, b, recommendedIds),
@@ -127,6 +164,7 @@ export async function findFieldableRealTeam({
     fieldableByLine,
     ownedItems: progression.ownedItems || {},
     progression,
+    breedingContext,
     availableMoveIdsCache: new Map(),
   };
 
@@ -163,13 +201,21 @@ async function memberMovesAvailable(member, context) {
 
   const speciesId = toId(member.speciesId);
   if (!context.availableMoveIdsCache.has(speciesId)) {
+    // Same memberProgression pattern as buildMemberLegalMoveEntry: the
+    // breeding context supplies this species' poolable egg moves, so egg-
+    // move-dependent real teams qualify when the pool can breed those moves.
+    const memberProgression = applyBreedingContextToProgression(
+      context.progression,
+      speciesId,
+      context.breedingContext,
+    );
     context.availableMoveIdsCache.set(
       speciesId,
       loadRebornLegalMoveData(speciesId)
         .then(
           (data) =>
             new Set(
-              getAvailableRebornMoves(data, context.progression).map(
+              getAvailableRebornMoves(data, memberProgression).map(
                 (move) => move.id,
               ),
             ),

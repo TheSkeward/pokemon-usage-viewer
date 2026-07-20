@@ -104,6 +104,7 @@ export async function buildRebornTeamAnalysis(
       family,
       lines: breedingOptions.lines || [],
       progression,
+      breedingContext,
       members,
     }),
   };
@@ -112,7 +113,13 @@ export async function buildRebornTeamAnalysis(
 // The most-seen scraped real team the current pool could field, ranked toward
 // the recommended picks. Display-only — nothing here feeds scoring — and
 // missing team-index data costs nothing (the loader resolves to []).
-async function computeFieldableRealTeam({ family, lines, progression, members }) {
+async function computeFieldableRealTeam({
+  family,
+  lines,
+  progression,
+  breedingContext,
+  members,
+}) {
   try {
     const teams = await loadTeamIndex(family);
     if (!teams.length) return null;
@@ -126,6 +133,7 @@ async function computeFieldableRealTeam({ family, lines, progression, members })
       lines,
       progression,
       recommendedIds,
+      breedingContext,
     });
   } catch {
     return null;

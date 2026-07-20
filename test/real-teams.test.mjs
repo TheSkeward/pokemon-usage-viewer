@@ -67,12 +67,32 @@ test("line can field input, current, and every delayed form between them", () =>
   assert.ok(!atLowCap.has("staraptor"), "not reachable under the cap yet");
 });
 
-test("a devolved form is never fieldable", () => {
+test("a devolved form is not fieldable without the daycare", () => {
   const evolvedInput = makeLine("staravia", "staraptor");
   const ids = getLineFieldableIds(evolvedInput, { levelCap: "100" });
   assert.ok(ids.has("staravia"));
   assert.ok(ids.has("staraptor"));
-  assert.ok(!ids.has("starly"), "devolving is not allowed");
+  assert.ok(!ids.has("starly"), "no daycare: devolving is not allowed");
+});
+
+test("daycare + hatchable line fields any family form (v21 rule)", () => {
+  const evolvedInput = makeLine("staravia", "staraptor");
+  const ids = getLineFieldableIds(evolvedInput, {
+    levelCap: "100",
+    daycareUnlocked: true,
+  });
+  assert.ok(ids.has("starly"), "hatch an egg and keep the hatchling unevolved");
+  assert.ok(ids.has("staravia"));
+  assert.ok(ids.has("staraptor"));
+
+  // The hatchling still obeys the level cap on the way back up.
+  const capped = getLineFieldableIds(evolvedInput, {
+    levelCap: "20",
+    daycareUnlocked: true,
+  });
+  assert.ok(capped.has("starly"));
+  assert.ok(capped.has("staravia"), "input form itself is always fieldable");
+  assert.ok(!capped.has("staraptor"), "level 34 evolution is out of cap reach");
 });
 
 test("assignment: one line covers at most one member, scarcest member seats first", () => {
@@ -175,4 +195,51 @@ test("findFieldableRealTeam returns the best FIELDABLE team, or null", async () 
     await findFieldableRealTeam({ teams: [], lines, progression }),
     null,
   );
+});
+
+test("moves gate: every listed move must be obtainable under the progression", async () => {
+  const lines = [makeLine("starly", "staraptor")];
+  const team = makeTeam("birds", 5, 2, ["staraptor"]);
+  team.members[0].moveIds = ["bravebird"];
+
+  // Brave Bird's earliest route is Starly@37 (delayed evolution), so at cap
+  // 34 Staraptor is fieldable but the move is not obtainable yet.
+  assert.equal(
+    await findFieldableRealTeam({ teams: [team], lines, progression: { levelCap: "34" } }),
+    null,
+  );
+  const picked = await findFieldableRealTeam({
+    teams: [team],
+    lines,
+    progression: { levelCap: "45" },
+  });
+  assert.equal(picked?.key, "birds");
+});
+
+test("moves gate honors the breeding context for egg moves", async () => {
+  const lines = [makeLine("starly", "staraptor")];
+  const team = makeTeam("eggbirds", 5, 2, ["staraptor"]);
+  team.members[0].moveIds = ["doubleedge"]; // egg-only on Staraptor
+  const progression = { levelCap: "100", daycareUnlocked: true };
+
+  assert.equal(
+    await findFieldableRealTeam({ teams: [team], lines, progression }),
+    null,
+    "no breeding context: egg-only moves are not obtainable",
+  );
+
+  const picked = await findFieldableRealTeam({
+    teams: [team],
+    lines,
+    progression,
+    breedingContext: {
+      byPokemonId: {
+        staraptor: {
+          moveIds: ["doubleedge"],
+          sources: { doubleedge: { label: "Egg", detail: "test donor" } },
+        },
+      },
+    },
+  });
+  assert.equal(picked?.key, "eggbirds");
 });
