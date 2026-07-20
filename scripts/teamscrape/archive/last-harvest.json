@@ -1,27 +1,27 @@
 {
-  "finishedAt": "2026-07-20T17:48:44.996Z",
+  "finishedAt": "2026-07-20T18:32:33.305Z",
   "results": [
     {
       "script": "scrape-sample-teams.mjs",
       "exitCode": 0,
       "outputTail": [
-        "gen7ou https://www.smogon.com/forums/threads/usum-ou-sample-teams.3667587/: +0 (archive 0)",
-        "  paste a75a1c114c9c8f4e: 5 unreadable block(s)",
-        "  paste 3329dbb7a4c40a9f: 3 unreadable block(s)",
-        "gen7uu https://www.smogon.com/forums/threads/usum-uu-sample-teams.3621217/: +43 (archive 43)",
-        "gen7ru https://www.smogon.com/forums/threads/usum-ru-sample-teams.3645873/: +1 (archive 1)",
-        "gen7nu https://www.smogon.com/forums/threads/usum-nu-sample-teams.3641525/: +0 (archive 0)",
-        "gen7pu https://www.smogon.com/forums/threads/usum-pu-sample-teams.3611496/: +6 (archive 6)",
-        "gen7lc https://www.smogon.com/forums/threads/usum-lc-sample-teams.3639319/: +7 (archive 7)",
-        "  paste 8866b0595cbc0552: 1 unreadable block(s)",
-        "gen7ubers https://www.smogon.com/forums/threads/usum-ubers-sample-teams.3639330/: +62 (archive 62)",
-        "gen7doublesou https://www.smogon.com/forums/threads/usum-doubles-ou-sample-teams.3645990/: +0 (archive 0)"
+        "gen7ou https://www.smogon.com/forums/threads/usum-ou-sample-teams.3667587/: +0 of 0 paste link(s) — \"UU - The UU Open IX - Round 5 | Smogon Forums\" (archive 0)",
+        "gen7uu https://www.smogon.com/forums/threads/usum-uu-sample-teams.3621217/: +0 of 43 paste link(s) — \"USUM Sample Teams | Smogon Forums\" (archive 43)",
+        "gen7ru https://www.smogon.com/forums/threads/usum-ru-sample-teams.3645873/: +0 of 1 paste link(s) — \"Resource - RU Viability Rankings - V3 | Smogon Forums\" (archive 1)",
+        "gen7nu https://www.smogon.com/forums/threads/usum-nu-sample-teams.3641525/: +0 of 0 paste link(s) — \"Resource - USUM NU Sample Teams v2.0 | Smogon Forums\" (archive 0)",
+        "gen7pu https://www.smogon.com/forums/threads/usum-pu-sample-teams.3611496/: +0 of 6 paste link(s) — \"Resource - PU Sample Teams and Resources Thread | Smogon Forums\" (archive 6)",
+        "gen7lc https://www.smogon.com/forums/threads/usum-lc-sample-teams.3639319/: +0 of 7 paste link(s) — \"Resource - Multigen LC Sample Teams | Smogon Forums\" (archive 7)",
+        "gen7ubers https://www.smogon.com/forums/threads/usum-ubers-sample-teams.3639330/: +0 of 62 paste link(s) — \"Resource - USM Sample Teams [Submissions closed] | Smogon Forums\" (archive 62)",
+        "gen7doublesou https://www.smogon.com/forums/threads/usum-doubles-ou-sample-teams.3645990/: +0 of 0 paste link(s) — \"Resource - Doubles OU Sample Teams and Team Showcase | Smogon Forums\" (archive 0)"
       ]
     },
     {
       "script": "scrape-rmt-teams.mjs",
       "exitCode": 0,
       "outputTail": [
+        "rmt listing https://www.smogon.com/forums/forums/rmt-archive.469/: 390 row(s) across 30 page(s)",
+        "rmt listing https://www.smogon.com/forums/forums/rate-my-team.148/: 570 row(s) across 30 page(s)",
+        "rmt: unmapped prefixes (add to sources.json rmt.prefixMap to harvest): \"Announcement\"×60, \"Guide\"×30, \"Implemented\"×60, \"Proposal\"×240, \"Gen 7\"×60, \"Gen 3\"×120, \"Gen 8\"×60, \"Gen 6\"×60, \"Gen 4\"×30, \"Gen 2\"×90",
         "rmt: +0 new teams this run"
       ]
     },
@@ -29,6 +29,11 @@
       "script": "scrape-tournament-teams.mjs",
       "exitCode": 0,
       "outputTail": [
+        "  thread 3611697: 403 https://www.smogon.com/forums/threads/oras-ou-role-compendium-v2.3611697/",
+        "  thread 3630338: 403 https://www.smogon.com/forums/threads/oras-speed-tiers-v2.3630338/",
+        "  thread 3611699: 403 https://www.smogon.com/forums/threads/oras-ou-sets-viability-rankings-v5.3611699/",
+        "  thread 3611703: 403 https://www.smogon.com/forums/threads/oras-ou-ev-spread-compendium-v2-read-post-12.3611703/",
+        "  thread 3502343: 403 https://www.smogon.com/forums/threads/look-xy-ou-suspect-process-round-2-swag-swagger-banned-to-ubers-look.3502343/",
         "tournament: +0 paste teams, +0 replays"
       ]
     }
