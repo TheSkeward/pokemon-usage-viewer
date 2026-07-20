@@ -1,9 +1,12 @@
 /**
  * @fileoverview Curated sample-team harvester: visits the Smogon sample-team
- * threads listed in teamscrape/sources.json, follows every pokepast.es link,
- * and appends each new paste's parsed team to a committed JSONL archive
- * (samples-<format>.jsonl). Curated threads are the high-trust source for
- * whole observed sets; replays only contribute compositions.
+ * threads listed in teamscrape/sources.json and appends each team found in
+ * the THREAD AUTHOR's posts — pokepaste links and inline importables both —
+ * to a committed JSONL archive (samples-<format>.jsonl). Author scoping is
+ * the curation boundary: the collection lives in the opening post and the
+ * author's reserved posts, while other users' replies are submissions of
+ * unknown standing. Curated threads are the high-trust source for whole
+ * observed sets; replays only contribute compositions.
  *
  * Same politeness contract as scrape-replay-teams.mjs.
  */
@@ -13,7 +16,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseShowdownTeam } from './teamscrape/parse-showdown-team.mjs';
 import { toTeamSheetId } from './teamscrape/replay-log.mjs';
 import { readArchiveIds } from './scrape-replay-teams.mjs';
-import { extractFirstPostText } from './teamscrape/forum-html.mjs';
+import { extractPosts } from './teamscrape/forum-html.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
@@ -93,27 +96,15 @@ export function groupInlineTeams(sets) {
   return teams;
 }
 
-function harvestInlineTeams({ html, formatId, thread, seen, file }) {
-  const threadId = /\.(\d+)\/?$/.exec(thread)?.[1] || 'unknown';
-  const text = extractFirstPostText(html);
-  const { sets } = parseShowdownTeam(text);
-  let appended = 0;
-  groupInlineTeams(sets).forEach((teamSets, index) => {
-    const pasteId = `thread-${threadId}-op-${index}`;
-    if (seen.has(pasteId)) return;
-    const record =
-      normalizeSampleTeam({ pasteId, formatId, thread, sets: teamSets });
-    fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
-    seen.add(pasteId);
-    appended += 1;
-  });
-  return { appended, opChars: text.length, opSets: sets.length };
-}
-
 async function harvestThread(formatId, thread, seen, file) {
+  const threadId = /\.(\d+)\/?$/.exec(thread)?.[1] || 'unknown';
   let appended = 0;
-  let inline = { appended: 0, opChars: 0, opSets: 0 };
+  let inline = 0;
+  let inlineSets = 0;
+  let authorPosts = 0;
+  let opAuthor = null;
   let title = null;
+  let postIndex = 0;
   const linked = new Set();
   for (let page = 1; page <= MAX_THREAD_PAGES; page += 1) {
     const url = page === 1 ? thread : `${thread}page-${page}`;
@@ -126,39 +117,65 @@ async function harvestThread(formatId, thread, seen, file) {
     }
     if (page === 1) {
       title = (/<title>([^<]*)<\/title>/.exec(html)?.[1] || '').trim() || null;
-      inline = harvestInlineTeams({ html, formatId, thread, seen, file });
-      console.log(
-        `  op: ${inline.opChars} chars, ${inline.opSets} inline set(s)`);
     }
-    for (const pasteId of extractPasteIds(html)) {
-      linked.add(pasteId);
-      if (seen.has(pasteId)) continue;
-      let pasteText;
-      try {
-        pasteText = await fetchText(`https://pokepast.es/${pasteId}/raw`);
-      } catch (error) {
-        console.warn(`  skip paste ${pasteId}: ${error.message}`);
-        continue;
+    const posts = extractPosts(html);
+    if (page === 1) opAuthor = posts[0]?.author ?? null;
+    // The curated collection lives in the thread author's posts — the
+    // opening post and any reserved posts (NU keeps its teams in the first
+    // reply). Other users' replies are submissions, approved or not, and
+    // must not enter at sample trust. Markup without recognizable posts
+    // falls back to a whole-page link sweep.
+    const scoped = opAuthor
+      ? posts.filter((post) => post.author === opAuthor)
+      : null;
+    for (const post of scoped ?? [{ html, text: '' }]) {
+      postIndex += 1;
+      if (scoped) {
+        authorPosts += 1;
+        const { sets } = parseShowdownTeam(post.text);
+        inlineSets += sets.length;
+        groupInlineTeams(sets).forEach((teamSets, group) => {
+          const pasteId = `thread-${threadId}-op-${postIndex}-${group}`;
+          if (seen.has(pasteId)) return;
+          const record =
+            normalizeSampleTeam({ pasteId, formatId, thread, sets: teamSets });
+          fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
+          seen.add(pasteId);
+          inline += 1;
+        });
       }
-      const { sets, dropped } = parseShowdownTeam(pasteText);
-      if (dropped) {
-        // A snippet of a fully unreadable paste shows WHAT it was (another
-        // game's export, prose, ...) — the difference between a parser gap
-        // and a paste that was never a team.
-        const head = pasteText.slice(0, 60).replace(/\s+/g, ' ').trim();
-        console.warn(
-          `  paste ${pasteId}: ${dropped} unreadable block(s)` +
-            (sets.length ? '' : ` — starts ${JSON.stringify(head)}`),
-        );
+      for (const pasteId of extractPasteIds(post.html)) {
+        linked.add(pasteId);
+        if (seen.has(pasteId)) continue;
+        let pasteText;
+        try {
+          pasteText = await fetchText(`https://pokepast.es/${pasteId}/raw`);
+        } catch (error) {
+          console.warn(`  skip paste ${pasteId}: ${error.message}`);
+          continue;
+        }
+        const { sets, dropped } = parseShowdownTeam(pasteText);
+        if (dropped) {
+          // A snippet of a fully unreadable paste shows WHAT it was (another
+          // game's export, prose, ...) — the difference between a parser gap
+          // and a paste that was never a team.
+          const head = pasteText.slice(0, 60).replace(/\s+/g, ' ').trim();
+          console.warn(
+            `  paste ${pasteId}: ${dropped} unreadable block(s)` +
+              (sets.length ? '' : ` — starts ${JSON.stringify(head)}`),
+          );
+        }
+        if (!sets.length) continue;
+        const record = normalizeSampleTeam({ pasteId, formatId, thread, sets });
+        fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
+        seen.add(pasteId);
+        appended += 1;
       }
-      if (!sets.length) continue;
-      const record = normalizeSampleTeam({ pasteId, formatId, thread, sets });
-      fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
-      seen.add(pasteId);
-      appended += 1;
     }
   }
-  return { appended, inline, linked: linked.size, title };
+  return {
+    appended, inline, inlineSets, authorPosts, linked: linked.size, title,
+  };
 }
 
 async function main() {
@@ -172,11 +189,12 @@ async function main() {
     for (const thread of urls) {
       attempts += 1;
       try {
-        const { appended, inline, linked, title } = await harvestThread(
-          formatId, thread, seen, file);
+        const { appended, inline, inlineSets, authorPosts, linked, title } =
+          await harvestThread(formatId, thread, seen, file);
         console.log(
           `${formatId} ${thread}: +${appended} of ${linked} paste link(s), ` +
-            `+${inline.appended} inline — "${title ?? 'no <title>'}" ` +
+            `+${inline} inline (${authorPosts} author post(s), ` +
+            `${inlineSets} sets) — "${title ?? 'no <title>'}" ` +
             `(archive ${seen.size})`,
         );
       } catch (error) {

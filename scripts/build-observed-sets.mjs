@@ -42,6 +42,20 @@ export function readArchive(dir, prefix) {
   return records;
 }
 
+/**
+ * Paste-team source prefixes; the one list every team-archive consumer
+ * shares. (Thread-visit marker files also match some prefixes; their
+ * records carry no sets and every consumer drops set-less records.)
+ * @type {!Array<string>}
+ */
+export const TEAM_ARCHIVE_PREFIXES =
+  ['samples-', 'rmt-', 'tournament-', 'forum-'];
+
+/** @return {!Array<!Object>} All paste-team records across the sources. */
+export function readTeamArchives(dir) {
+  return TEAM_ARCHIVE_PREFIXES.flatMap((prefix) => readArchive(dir, prefix));
+}
+
 function setKey(formatId, set) {
   const evs = set.evs
     ? STAT_KEYS.map((k) => set.evs[k] || 0).join('.')
@@ -115,11 +129,7 @@ export function buildObservedSetIndex(teams) {
 }
 
 async function main() {
-  const teams = [
-    ...readArchive(ARCHIVE_DIR, 'samples-'),
-    ...readArchive(ARCHIVE_DIR, 'rmt-'),
-    ...readArchive(ARCHIVE_DIR, 'tournament-'),
-  ];
+  const teams = readTeamArchives(ARCHIVE_DIR);
   const byFamily = buildObservedSetIndex(teams);
   let written = 0;
   for (const [family, files] of byFamily) {

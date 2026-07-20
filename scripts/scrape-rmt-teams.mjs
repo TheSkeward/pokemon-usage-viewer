@@ -23,7 +23,9 @@ import {
   extractFirstPostText,
   extractThreadRows,
   listingDebugInfo,
+  listingPageUrl,
 } from './teamscrape/forum-html.mjs';
+import { tierFromTitle } from './teamscrape/tier-names.mjs';
 import { REAL_FORMATS } from './config.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -41,28 +43,10 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const knownFormats = new Set(REAL_FORMATS.map((format) => format.id));
 
-// Tier named in a thread title, most-specific first ("Doubles UU" must not
-// read as UU; "OU" appears inside almost every compound tier name).
-const TIER_PATTERNS = [
-  ['doublesubers', /\bdoubles?\s*ubers\b/i],
-  ['doublesuu', /\bdoubles?\s*uu\b/i],
-  ['doublesou', /\bdoubles\b/i],
-  ['anythinggoes', /\banything\s*goes\b|\bAG\b/],
-  ['ubers', /\bubers?\b/i],
-  ['nfe', /\bNFE\b/i],
-  ['zu', /\bZU\b/i],
-  ['lc', /\bLC\b|\blittle\s*cup\b/i],
-  ['pu', /\bPU\b/i],
-  ['nu', /\bNU\b/i],
-  ['ru', /\bRU\b/i],
-  ['uu', /\bUU\b/i],
-  ['ou', /\bOU\b/i],
-];
-
 /**
  * Thread → format id: the explicit prefix map first ("SM OU"), else a
- * generation-only prefix ("Gen 7", the RMT Archive's labeling) refined by
- * the tier named in the thread title.
+ * generation-only prefix ("Gen 7", the past-gen forum's labeling) refined
+ * by the tier named in the thread title.
  * @return {?string}
  */
 function resolveFormat(row, rmt) {
@@ -71,11 +55,8 @@ function resolveFormat(row, rmt) {
   if (direct) return direct;
   const gen = rmt.genPrefixMap?.[row.prefix];
   if (gen) {
-    for (const [tier, pattern] of TIER_PATTERNS) {
-      if (pattern.test(row.title || '')) {
-        return knownFormats.has(gen + tier) ? gen + tier : null;
-      }
-    }
+    const tier = tierFromTitle(row.title);
+    if (tier) return knownFormats.has(gen + tier) ? gen + tier : null;
   }
   return null;
 }
@@ -158,8 +139,7 @@ async function main() {
       let pagesWalked = 0;
       for (
         let page = 1; page <= MAX_LISTING_PAGES && fresh < maxNew; page += 1) {
-        const url = page === 1 ? listing : `${listing}page-${page}`;
-        const html = await fetchText(url);
+        const html = await fetchText(listingPageUrl(listing, page));
         const rows = extractThreadRows(html, listing);
         if (!rows.length) {
           if (page === 1) {

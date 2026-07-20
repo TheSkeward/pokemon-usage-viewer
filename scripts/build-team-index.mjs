@@ -11,7 +11,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { REAL_FORMATS } from './config.mjs';
 import { writeJson } from './set-index/io.mjs';
-import { readArchive } from './build-observed-sets.mjs';
+import { readTeamArchives } from './build-observed-sets.mjs';
 import { teamWeight } from './teamscrape/weights.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -99,11 +99,7 @@ export function buildTeamIndex(records) {
 }
 
 async function main() {
-  const records = [
-    ...readArchive(ARCHIVE_DIR, 'samples-'),
-    ...readArchive(ARCHIVE_DIR, 'rmt-'),
-    ...readArchive(ARCHIVE_DIR, 'tournament-'),
-  ];
+  const records = readTeamArchives(ARCHIVE_DIR);
   const byFamily = buildTeamIndex(records);
   for (const [family, files] of byFamily) {
     const dir = path.join(OUT_ROOT, family);

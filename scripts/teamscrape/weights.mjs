@@ -15,6 +15,10 @@ export const WEIGHTS = {
   rated_1630_1759: 0.2,
   rated_1760_plus: 1.0,
   rmt: 5.0,
+  // Community-shared forum teams (bazaars, teambuilding competitions):
+  // uncurated like RMT, so provisionally priced at RMT's tier pending an
+  // explicit ruling.
+  forum_team: 5.0,
   tournament_team: 60.0,
   sample_team: 1000.0,
 };
@@ -71,5 +75,6 @@ export function replayWeight(record) {
 export function teamWeight(record) {
   if (record.source === 'tournament') return WEIGHTS.tournament_team;
   if (record.source === 'rmt') return WEIGHTS.rmt;
+  if (record.source === 'forum') return WEIGHTS.forum_team;
   return WEIGHTS.sample_team;
 }

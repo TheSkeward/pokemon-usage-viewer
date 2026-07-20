@@ -9,7 +9,7 @@
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { REAL_FORMATS } from './config.mjs';
-import { readArchive } from './build-observed-sets.mjs';
+import { readArchive, readTeamArchives } from './build-observed-sets.mjs';
 import { collectCompositions, buildCoreIndex } from './build-core-index.mjs';
 import { buildTeamIndex } from './build-team-index.mjs';
 import {
@@ -125,11 +125,7 @@ const fmt = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(3));
 
 function main() {
   const replays = readArchive(ARCHIVE_DIR, 'replays-');
-  const teams = [
-    ...readArchive(ARCHIVE_DIR, 'samples-'),
-    ...readArchive(ARCHIVE_DIR, 'rmt-'),
-    ...readArchive(ARCHIVE_DIR, 'tournament-'),
-  ];
+  const teams = readTeamArchives(ARCHIVE_DIR);
   if (!replays.length && !teams.length) {
     console.log('team corpus: archives are empty — nothing harvested yet');
     return;

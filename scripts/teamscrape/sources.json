@@ -12,9 +12,9 @@
     ]
   },
   "rmt": {
-    "comment": "RMT forum listing to walk (rate-my-team.148 is the forum whose rows carry Gen-N labels; rmt-archive.469 is a suggestions forum). Threads are attributed via their prefix label: prefixMap maps tier prefixes directly, genPrefixMap maps generation-only labels with the tier read from the thread title — non-gen7 generations are mapped so they resolve (to untracked formats, quietly skipped) instead of reporting as unmapped every run. Truly unmapped prefixes are reported by the scraper log so the maps can grow.",
+    "comment": "RMT listings to walk. past-gen-teams.319 holds the old-gen RMTs, labeled by generation; ?prefix_id=474 filters the listing to Gen 7 so every row is relevant. Threads are attributed via their prefix label: prefixMap maps tier prefixes directly, genPrefixMap maps generation-only labels with the tier read from the thread title. Unmapped prefixes are reported by the scraper log so the maps can grow.",
     "listings": [
-      "https://www.smogon.com/forums/forums/rate-my-team.148/"
+      "https://www.smogon.com/forums/forums/past-gen-teams.319/?prefix_id=474"
     ],
     "prefixMap": {
       "SM OU": "gen7ou",
@@ -72,6 +72,14 @@
     ],
     "gen7doublesou": [
       "https://www.smogon.com/forums/threads/usum-doubles-ou-sample-teams.3645990/"
+    ]
+  },
+  "forums": {
+    "comment": "Competitive-discussion forum roots to walk in full, one level of subforums included: bazaars, teambuilding competitions, and team archives live here. Harvested from every post at community-paste trust (source \"forum\"); gen combines with tiers read from thread and subforum titles when a paste has no === header.",
+    "gen": "gen7",
+    "discoverSubforums": true,
+    "listings": [
+      "https://www.smogon.com/forums/forums/gen-7-competitive-discussion.249/"
     ]
   }
 }

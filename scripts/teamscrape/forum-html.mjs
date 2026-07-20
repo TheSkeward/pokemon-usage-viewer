@@ -20,9 +20,19 @@ export function htmlToText(html) {
     .replace(/&nbsp;/g, ' ');
 }
 
+// Smogon serves site-rooted hrefs (/forums/threads/...); the bare
+// /threads/... form appears in other XenForo installs' roots.
+const THREAD_ANCHOR =
+  /<a[^>]+href="((?:\/forums)?\/threads\/[^"]*?\.(\d+)\/)"[^>]*>([^<]*)/;
+
 /**
- * Listing rows: prefix label span(s) followed by the thread link. Returns
- * rows in listing order; prefix null when unlabeled.
+ * Listing rows: each thread's prefix label, link, and title. XenForo wraps
+ * exactly these in a structItem-title block, so rows are read block-scoped —
+ * a flat proximity regex mis-associates labels whenever other row furniture
+ * (icons, last-post links) sits between the label and the title anchor,
+ * which is how a whole listing of labeled threads read as unlabeled. The
+ * flat form remains as the fallback for markup without structItem blocks
+ * (other XenForo skins).
  *
  * @return {!Array<{threadId: string, url: string, prefix: ?string,
  *     title: string}>}
@@ -30,13 +40,8 @@ export function htmlToText(html) {
 export function extractThreadRows(html, baseUrl) {
   const rows = [];
   const seen = new Set();
-  // Smogon serves site-rooted hrefs (/forums/threads/...); the bare
-  // /threads/... form appears in other XenForo installs' roots.
-  const rowRegex =
-    /(?:<span[^>]*class="label[^"]*"[^>]*>([^<]+)<\/span>[\s\S]{0,400}?)?<a[^>]+href="((?:\/forums)?\/threads\/[^"]*?\.(\d+)\/)"[^>]*(?:data-preview-url|class="")[^>]*>([^<]*)/g;
-  for (const match of html.matchAll(rowRegex)) {
-    const [, prefix, href, threadId, title] = match;
-    if (seen.has(threadId)) continue;
+  const push = (threadId, href, prefix, title) => {
+    if (seen.has(threadId)) return;
     seen.add(threadId);
     rows.push({
       threadId,
@@ -44,8 +49,73 @@ export function extractThreadRows(html, baseUrl) {
       prefix: prefix ? htmlToText(prefix).trim() : null,
       title: htmlToText(title || '').trim(),
     });
+  };
+
+  const blocks = String(html).split(/class="structItem-title"/).slice(1);
+  if (blocks.length) {
+    for (const block of blocks) {
+      const anchor = block.match(THREAD_ANCHOR);
+      if (!anchor) continue;
+      const labels = [...block.slice(0, anchor.index).matchAll(
+        /<span[^>]*class="label[^"]*"[^>]*>([^<]+)<\/span>/g,
+      )];
+      push(
+        anchor[2],
+        anchor[1],
+        labels.length ? labels[labels.length - 1][1] : null,
+        anchor[3],
+      );
+    }
+    return rows;
+  }
+
+  const rowRegex = new RegExp(
+    `(?:<span[^>]*class="label[^"]*"[^>]*>([^<]+)</span>[\\s\\S]{0,400}?)?` +
+      `${THREAD_ANCHOR.source.replace('<a[^>]+', '<a[^>]+')}`,
+    'g',
+  );
+  for (const match of html.matchAll(rowRegex)) {
+    const [, prefix, href, threadId, title] = match;
+    push(threadId, href, prefix, title);
   }
   return rows;
+}
+
+/**
+ * Listing page N's URL. XenForo paginates with a /page-N path segment, which
+ * must precede any query string (a prefix-filtered listing keeps its
+ * ?prefix_id= across pages).
+ * @return {string}
+ */
+export function listingPageUrl(listing, page) {
+  if (page === 1) return listing;
+  const [base, query] = String(listing).split('?');
+  const paged = `${base.endsWith('/') ? base : `${base}/`}page-${page}`;
+  return query ? `${paged}?${query}` : paged;
+}
+
+/**
+ * Every post on a thread page: author plus body (raw html and text).
+ * XenForo stamps data-author on each message article; the body is scoped to
+ * the message-body article inside it, so signatures and quoted previews
+ * outside the body do not leak in.
+ * @return {!Array<{author: string, html: string, text: string}>}
+ */
+export function extractPosts(html) {
+  const parts = String(html).split(/<article[^>]+data-author="([^"]*)"/);
+  const posts = [];
+  for (let i = 1; i < parts.length; i += 2) {
+    const chunk = parts[i + 1] || '';
+    const body = chunk.match(
+      /<article[^>]*class="[^"]*message-body[^"]*"[^>]*>([\s\S]*?)<\/article>/,
+    );
+    posts.push({
+      author: parts[i],
+      html: body ? body[1] : '',
+      text: body ? htmlToText(body[1]) : '',
+    });
+  }
+  return posts;
 }
 
 /**

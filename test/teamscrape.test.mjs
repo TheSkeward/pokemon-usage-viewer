@@ -143,19 +143,25 @@ const { htmlToText, extractThreadRows, extractFirstPostText } = await import(
 );
 
 test('rmt: listing rows carry prefixes, first post yields inline sets', () => {
-  // Smogon's hrefs are site-rooted (/forums/threads/...): the first harvest
-  // matched zero rows because the row regex only knew the bare /threads/
-  // form other XenForo roots serve.
+  // Smogon's markup: site-rooted hrefs (/forums/threads/...) inside
+  // structItem-title blocks. The early harvests read a whole listing of
+  // labeled threads as unlabeled because a flat proximity regex
+  // mis-associated labels across row furniture; block scoping is the fix.
   const listing = `
-    <span class="label label--primary">SM OU</span>
-    <a href="/forums/threads/my-cool-team.3651234/" data-preview-url="/forums/threads/3651234/preview">My cool team</a>
-    <a href="/threads/unlabeled-thread.999/" data-preview-url="x">No prefix</a>`;
+    <div class="structItem-title">
+      <span class="label label--primary">Gen 7</span>
+      <a href="/forums/threads/my-cool-team.3651234/" data-preview-url="/forums/threads/3651234/preview">My cool OU team</a>
+    </div>
+    <a href="/forums/threads/my-cool-team.3651234/latest">jump</a>
+    <div class="structItem-title">
+      <a href="/threads/unlabeled-thread.999/" data-preview-url="x">No prefix</a>
+    </div>`;
   const rows = extractThreadRows(
-    listing, 'https://www.smogon.com/forums/forums/rmt-archive.469/');
+    listing, 'https://www.smogon.com/forums/forums/past-gen-teams.319/');
   assert.equal(rows.length, 2);
-  assert.equal(rows[0].prefix, 'SM OU');
+  assert.equal(rows[0].prefix, 'Gen 7');
   assert.equal(rows[0].threadId, '3651234');
-  assert.equal(rows[0].title, 'My cool team');
+  assert.equal(rows[0].title, 'My cool OU team');
   assert.equal(
     rows[0].url,
     'https://www.smogon.com/forums/threads/my-cool-team.3651234/',
@@ -189,6 +195,7 @@ test('weight ladder: bands, tournament override, unrated-mixture inversion', () 
   assert.equal(replayWeight({ rating: null, id: 'smogtours-gen7lc-957737' }), 60);
   assert.equal(replayWeight({ rating: null, id: 'rom-gen7nfe-852496' }), WEIGHTS.unrated_replay);
   assert.equal(teamWeight({ source: 'rmt' }), 5);
+  assert.equal(teamWeight({ source: 'forum' }), WEIGHTS.forum_team);
   assert.equal(teamWeight({ source: 'tournament' }), 60);
   assert.equal(teamWeight({}), 1000);
 });

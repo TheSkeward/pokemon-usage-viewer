@@ -15,7 +15,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { REAL_FORMATS } from './config.mjs';
 import { writeJson } from './set-index/io.mjs';
-import { readArchive } from './build-observed-sets.mjs';
+import { readArchive, readTeamArchives } from './build-observed-sets.mjs';
 import { replayWeight, teamWeight } from './teamscrape/weights.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -131,11 +131,7 @@ export function buildCoreIndex(compositions) {
 
 async function main() {
   const replays = readArchive(ARCHIVE_DIR, 'replays-');
-  const samples = [
-    ...readArchive(ARCHIVE_DIR, 'samples-'),
-    ...readArchive(ARCHIVE_DIR, 'rmt-'),
-    ...readArchive(ARCHIVE_DIR, 'tournament-'),
-  ];
+  const samples = readTeamArchives(ARCHIVE_DIR);
   const byFamily = collectCompositions({ replays, samples });
   for (const [family, compositions] of byFamily) {
     const index = buildCoreIndex(compositions);
