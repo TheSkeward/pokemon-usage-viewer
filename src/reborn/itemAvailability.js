@@ -1,7 +1,7 @@
-import { REBORN_SHOP_ITEM_BADGES } from "../generated/rebornItemTimeline.generated.js";
-import { GEN7_HELD_ITEMS_BY_ID } from "../generated/gen7HeldItems.generated.js";
-import { HIDDEN_INVENTORY_ITEM_IDS } from "./rebornSeeds";
-import { toId } from "../utils/ids.js";
+import { REBORN_SHOP_ITEM_BADGES } from '../generated/rebornItemTimeline.generated.js';
+import { GEN7_HELD_ITEMS_BY_ID } from '../generated/gen7HeldItems.generated.js';
+import { HIDDEN_INVENTORY_ITEM_IDS } from './rebornSeeds';
+import { toId } from '../utils/ids.js';
 // Curated evolution-item availability for Pokémon Reborn.
 //
 // This is a small, SOURCED table — not scraped data and not guesswork dressed
@@ -23,34 +23,34 @@ import { toId } from "../utils/ids.js";
 
 const ITEM_AVAILABILITY = {
   // Wild-held by the evolving line itself (50% — reliably farmable).
-  ovalstone: { status: "farmable", source: "wild-held by Happiny (50%)" },
+  ovalstone: { status: 'farmable', source: 'wild-held by Happiny (50%)' },
 
   // Wild-held at low rates (5%) by common wild lines — farmable, tedious.
-  metalcoat: { status: "farmable-tedious", source: "wild-held (Magnemite/Beldum, 5%)" },
-  kingsrock: { status: "farmable-tedious", source: "wild-held (Poliwhirl/Politoed line, 5%)" },
-  razorclaw: { status: "farmable-tedious", source: "wild-held (Sneasel, 5%)" },
-  razorfang: { status: "farmable-tedious", source: "wild-held (Bruxish, 5%)" },
-  electirizer: { status: "farmable-tedious", source: "wild-held (Elekid, 5%)" },
-  magmarizer: { status: "farmable-tedious", source: "wild-held (Magby, 5%)" },
-  dragonscale: { status: "farmable-tedious", source: "wild-held (Horsea/Seadra, 5%)" },
-  deepseatooth: { status: "farmable-tedious", source: "wild-held (Carvanha/Sharpedo, 5%)" },
-  deepseascale: { status: "farmable-tedious", source: "wild-held (Chinchou/Lanturn/Relicanth, 5%)" },
-  lightball: { status: "farmable-tedious", source: "wild-held (Pikachu, 5%)" },
+  metalcoat: { status: 'farmable-tedious', source: 'wild-held (Magnemite/Beldum, 5%)' },
+  kingsrock: { status: 'farmable-tedious', source: 'wild-held (Poliwhirl/Politoed line, 5%)' },
+  razorclaw: { status: 'farmable-tedious', source: 'wild-held (Sneasel, 5%)' },
+  razorfang: { status: 'farmable-tedious', source: 'wild-held (Bruxish, 5%)' },
+  electirizer: { status: 'farmable-tedious', source: 'wild-held (Elekid, 5%)' },
+  magmarizer: { status: 'farmable-tedious', source: 'wild-held (Magby, 5%)' },
+  dragonscale: { status: 'farmable-tedious', source: 'wild-held (Horsea/Seadra, 5%)' },
+  deepseatooth: { status: 'farmable-tedious', source: 'wild-held (Carvanha/Sharpedo, 5%)' },
+  deepseascale: { status: 'farmable-tedious', source: 'wild-held (Chinchou/Lanturn/Relicanth, 5%)' },
+  lightball: { status: 'farmable-tedious', source: 'wild-held (Pikachu, 5%)' },
 
   // Reborn systems: mining rocks + department store carry the standard stones
   // and the Link Stone across the playthrough.
-  linkstone: { status: "farmable-tedious", source: "Reborn mining / commerce (trade-evolution item)" },
-  firestone: { status: "farmable-tedious", source: "Reborn mining / dept. store" },
-  waterstone: { status: "farmable-tedious", source: "Reborn mining / dept. store" },
-  thunderstone: { status: "farmable-tedious", source: "Reborn mining / dept. store" },
-  leafstone: { status: "farmable-tedious", source: "Reborn mining / dept. store" },
-  moonstone: { status: "farmable-tedious", source: "Reborn mining / dept. store" },
-  sunstone: { status: "farmable-tedious", source: "Reborn mining / dept. store" },
-  shinystone: { status: "farmable-tedious", source: "Reborn mining / dept. store" },
-  duskstone: { status: "farmable-tedious", source: "Reborn mining / dept. store" },
-  dawnstone: { status: "farmable-tedious", source: "Reborn mining / dept. store" },
-  icestone: { status: "farmable-tedious", source: "Reborn mining / dept. store" },
-  everstone: { status: "farmable-tedious", source: "Reborn mining" },
+  linkstone: { status: 'farmable-tedious', source: 'Reborn mining / commerce (trade-evolution item)' },
+  firestone: { status: 'farmable-tedious', source: 'Reborn mining / dept. store' },
+  waterstone: { status: 'farmable-tedious', source: 'Reborn mining / dept. store' },
+  thunderstone: { status: 'farmable-tedious', source: 'Reborn mining / dept. store' },
+  leafstone: { status: 'farmable-tedious', source: 'Reborn mining / dept. store' },
+  moonstone: { status: 'farmable-tedious', source: 'Reborn mining / dept. store' },
+  sunstone: { status: 'farmable-tedious', source: 'Reborn mining / dept. store' },
+  shinystone: { status: 'farmable-tedious', source: 'Reborn mining / dept. store' },
+  duskstone: { status: 'farmable-tedious', source: 'Reborn mining / dept. store' },
+  dawnstone: { status: 'farmable-tedious', source: 'Reborn mining / dept. store' },
+  icestone: { status: 'farmable-tedious', source: 'Reborn mining / dept. store' },
+  everstone: { status: 'farmable-tedious', source: 'Reborn mining' },
 };
 
 /**
@@ -60,12 +60,12 @@ const ITEM_AVAILABILITY = {
  * @type {Array<{id: string, name: string}>}
  */
 export const REBORN_EXTRA_INVENTORY_ITEMS = Object.freeze([
-  { id: "linkstone", name: "Link Stone" },
+  { id: 'linkstone', name: 'Link Stone' },
   // Reborn-original (E16+): the holder's area-altering moves last 8 turns
   // instead of 5 — the fangame's generalized Terrain Extender. Outside the
   // usage prior's universe, so its scoring signal is the borrowed-prior
   // field-extender bonus (see scoringConstants FIELD_EXTENDER_UTILITY_BONUS).
-  { id: "amplifieldrock", name: "Amplifield Rock" },
+  { id: 'amplifieldrock', name: 'Amplifield Rock' },
 ]);
 
 /**
@@ -85,10 +85,10 @@ export function getEvolutionItemIds() {
  */
 export function getItemAvailability(itemName) {
   const id = toId(itemName);
-  if (!id) return { status: "unknown", source: "no item recorded" };
+  if (!id) return { status: 'unknown', source: 'no item recorded' };
   return (
     ITEM_AVAILABILITY[id] || {
-      status: "unknown",
+      status: 'unknown',
       source: `no availability data for ${itemName}`,
     }
   );

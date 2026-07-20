@@ -1,7 +1,7 @@
-import path from "node:path";
-import { DATA_ROOT, HIDDEN_ENTRY_KEYS } from "./constants.mjs";
-import { readJsonIfExists } from "./io.mjs";
-import { normalizeName } from "./stringUtils.mjs";
+import path from 'node:path';
+import { DATA_ROOT, HIDDEN_ENTRY_KEYS } from './constants.mjs';
+import { readJsonIfExists } from './io.mjs';
+import { normalizeName } from './stringUtils.mjs';
 
 /**
  * Aggregates a candidate's monthly moveset sidecars, weighting each entry's
@@ -18,11 +18,11 @@ export async function aggregateCandidateSource(candidate) {
   for (const month of candidate.months) {
     const sourcePath = path.join(
       DATA_ROOT,
-      "sources",
+      'sources',
       month,
       candidate.formatId,
       String(candidate.cutoff),
-      "moveset.json",
+      'moveset.json',
     );
 
     const source = await readJsonIfExists(sourcePath);
@@ -73,7 +73,7 @@ function getOrCreateAggregate({ byPokemon, candidate, entry, pokemonId }) {
     aggregate = {
       selection: candidate.selection,
       family: candidate.family,
-      month: candidate.selection === "all" ? null : candidate.months[0],
+      month: candidate.selection === 'all' ? null : candidate.months[0],
       formatId: candidate.formatId,
       cutoff: candidate.cutoff,
       monthsAvailable: candidate.months.length,

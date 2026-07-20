@@ -19,16 +19,16 @@
 import {
   getRebornCheckpoint,
   getItemUnlockBadge,
-} from "./badgeTimeline.js";
+} from './badgeTimeline.js';
 import {
   REBORN_TM_OPTIONS,
   REBORN_TMX_OPTIONS,
   REBORN_TUTOR_GROUPS,
-} from "./progressionOptions.js";
-import { fixedMoveDamage } from "./damageModel.js";
-import { getMoveMetaById } from "../moveMeta.js";
-import { toId } from "../utils/ids.js";
-import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
+} from './progressionOptions.js';
+import { fixedMoveDamage } from './damageModel.js';
+import { getMoveMetaById } from '../moveMeta.js';
+import { toId } from '../utils/ids.js';
+import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
 
 /** Moves in a canonical set — a full Showdown moveset. */
 export const CANONICAL_SET_SIZE = 4;
@@ -48,7 +48,7 @@ const MACHINE_BADGE_BY_MOVE = (() => {
     if (!map.has(moveId) || badge < map.get(moveId)) map.set(moveId, badge);
   };
   const badgeOf = (text) => {
-    const match = /Badge\s+(\d+)/i.exec(String(text || ""));
+    const match = /Badge\s+(\d+)/i.exec(String(text || ''));
     return match ? Number.parseInt(match[1], 10) : null;
   };
   for (const option of [...REBORN_TM_OPTIONS, ...REBORN_TMX_OPTIONS]) {
@@ -64,11 +64,11 @@ const MACHINE_BADGE_BY_MOVE = (() => {
 
 // Badge 0's checkpoint id is "start" (cap 20), not "badge-0".
 const capOfBadge = (badge) =>
-  getRebornCheckpoint(badge === 0 ? "start" : `badge-${badge}`)?.levelCap ??
+  getRebornCheckpoint(badge === 0 ? 'start' : `badge-${badge}`)?.levelCap ??
   null;
 
 const badgePhrase = (badge) =>
-  badge === 0 ? "from the start" : `@${badge} badge${badge === 1 ? "" : "s"}`;
+  badge === 0 ? 'from the start' : `@${badge} badge${badge === 1 ? '' : 's'}`;
 
 /**
  * The canonical competitive set: the top-N usage moves of the represented form.
@@ -109,8 +109,8 @@ export function computeSetReadiness({
   // variant must satisfy the canonical id.
   const isMoveAvailable = (id) =>
     availableIds.has(id) ||
-    (id === "hiddenpower" &&
-      [...availableIds].some((moveId) => moveId.startsWith("hiddenpower")));
+    (id === 'hiddenpower' &&
+      [...availableIds].some((moveId) => moveId.startsWith('hiddenpower')));
   const rawById = new Map(
     (legalMoveData?.moves || []).map((move) => [move.id, move]),
   );
@@ -129,13 +129,13 @@ export function computeSetReadiness({
 
     if (isMoveAvailable(id)) {
       return isLevelScalingMove(id)
-        ? { id, label, status: "scaling", detail: "level-scaling — full power at 100" }
-        : { id, label, status: "ready", detail: "" };
+        ? { id, label, status: 'scaling', detail: 'level-scaling — full power at 100' }
+        : { id, label, status: 'ready', detail: '' };
     }
 
     const raw = rawById.get(id);
     if (!raw) {
-      return { id, label, status: "blocked", detail: "not learnable in Reborn" };
+      return { id, label, status: 'blocked', detail: 'not learnable in Reborn' };
     }
 
     // Earliest way to get it, as a cap-equivalent. Level-1 entries on an
@@ -145,7 +145,7 @@ export function computeSetReadiness({
     const levels = [
       ...(raw.sources?.levelUp || []),
       ...(raw.sources?.preEvolutionLevelUp || []).map((entry) =>
-        typeof entry === "number" ? entry : entry.level,
+        typeof entry === 'number' ? entry : entry.level,
       ),
     ].filter((level) => !(speciesIsEvolved && level === 1));
     if (levels.length) {
@@ -171,43 +171,43 @@ export function computeSetReadiness({
       return {
         id,
         label,
-        status: "later",
+        status: 'later',
         detail: progression.daycareUnlocked
-          ? "egg move — needs a chain parent in your pool"
-          : "egg move — needs the daycare",
+          ? 'egg move — needs a chain parent in your pool'
+          : 'egg move — needs the daycare',
       };
     }
     if (!candidates.length && hasLevelOneRelist) {
       // Its only route is the relearner (a level-1 relist on an evolved
       // form); no cap-equivalent — the gate is the unlock, not a level.
-      return { id, label, status: "later", detail: "needs the move relearner" };
+      return { id, label, status: 'later', detail: 'needs the move relearner' };
     }
     if (!candidates.length) {
-      return { id, label, status: "blocked", detail: "no reachable source yet" };
+      return { id, label, status: 'blocked', detail: 'no reachable source yet' };
     }
 
     candidates.sort((a, b) => a.cap - b.cap);
     capNeeds.push(candidates[0].cap);
-    return { id, label, status: "later", detail: candidates[0].detail };
+    return { id, label, status: 'later', detail: candidates[0].detail };
   });
 
   const itemName = topSet?.item || null;
-  const itemId = itemName ? toId(itemName) : "";
-  let item = { name: itemName, status: "none", detail: "" };
+  const itemId = itemName ? toId(itemName) : '';
+  let item = { name: itemName, status: 'none', detail: '' };
   if (itemName) {
     if ((progression.ownedItems || {})[itemId] > 0) {
-      item = { name: itemName, status: "ready", detail: "owned" };
+      item = { name: itemName, status: 'ready', detail: 'owned' };
     } else {
       const badge = getItemUnlockBadge(itemId);
       if (badge != null) {
         capNeeds.push(capOfBadge(badge) ?? 100);
         item = {
           name: itemName,
-          status: "later",
+          status: 'later',
           detail: badgePhrase(badge),
         };
       } else {
-        item = { name: itemName, status: "unknown", detail: "timing untracked" };
+        item = { name: itemName, status: 'unknown', detail: 'timing untracked' };
       }
     }
   }
@@ -221,8 +221,8 @@ export function computeSetReadiness({
   // scaling sentinel alone (a fully-ready set at cap 100) is not a pickup.
   const currentCap = Number.parseInt(progression.levelCap, 10) || 0;
   const hasPending =
-    moves.some((move) => move.status === "later") ||
-    (item.name != null && item.status === "later");
+    moves.some((move) => move.status === 'later') ||
+    (item.name != null && item.status === 'later');
   let pendingPickups = false;
   if (fullAtCap != null && fullAtCap <= currentCap) {
     fullAtCap = null;
@@ -233,10 +233,10 @@ export function computeSetReadiness({
     pendingPickups,
     moves,
     readyMoveCount: moves.filter(
-      (move) => move.status === "ready" || move.status === "scaling",
+      (move) => move.status === 'ready' || move.status === 'scaling',
     ).length,
     item,
-    ability: { name: topSet?.ability || null, status: "ready" },
+    ability: { name: topSet?.ability || null, status: 'ready' },
     scaling,
     // null = the set is complete right now (and nothing scales with level).
     fullAtCap,

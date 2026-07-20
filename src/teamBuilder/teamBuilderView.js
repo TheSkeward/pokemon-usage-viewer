@@ -1,30 +1,30 @@
-import { escapeHtml, escapeAttr } from "../utils/html.js";
+import { escapeHtml, escapeAttr } from '../utils/html.js';
 
 // vite `define` stamps the deployed commit; the guard covers dev runs.
 const RUNNING_BUILD_ID =
-  typeof __BUILD_ID__ !== "undefined" ? String(__BUILD_ID__) : "dev";
-import { gamesToLikelySee } from "./traceUsage.js";
-import { renderMovesetPanel } from "../views/movesetView";
-import { renderRebornLegalMovesPanel } from "../reborn/legalMovesView";
+  typeof __BUILD_ID__ !== 'undefined' ? String(__BUILD_ID__) : 'dev';
+import { gamesToLikelySee } from './traceUsage.js';
+import { renderMovesetPanel } from '../views/movesetView';
+import { renderRebornLegalMovesPanel } from '../reborn/legalMovesView';
 import {
   renderRebornProgressionPanel,
   renderOpponentTypeBias,
-} from "../reborn/progressionView";
-import { detailsStateAttrs } from "../utils/detailsState.js";
-import { EVOLUTION_ACCESS_FIELDS } from "../reborn/evolutionRequirements.js";
+} from '../reborn/progressionView';
+import { detailsStateAttrs } from '../utils/detailsState.js';
+import { EVOLUTION_ACCESS_FIELDS } from '../reborn/evolutionRequirements.js';
 import {
   getRebornCheckpoint,
   getRebornCheckpointShortLabel,
-} from "../reborn/badgeTimeline.js";
-import { renderRebornTeamAnalysisPanel } from "../reborn/teamAnalysisView";
-import { getCurrentRebornSpeciesForChoice } from "../reborn/currentSpecies.js";
-import { describeEvolutionPath } from "../reborn/evolutionRequirements.js";
-import { teamMemberKey } from "./itemRecommendations";
+} from '../reborn/badgeTimeline.js';
+import { renderRebornTeamAnalysisPanel } from '../reborn/teamAnalysisView';
+import { getCurrentRebornSpeciesForChoice } from '../reborn/currentSpecies.js';
+import { describeEvolutionPath } from '../reborn/evolutionRequirements.js';
+import { teamMemberKey } from './itemRecommendations';
 import {
   explainSeatedChoice,
   explainExcludedChoice,
-} from "./explanations.js";
-import { getTelemetrySummary, loadTelemetrySamples } from "./telemetry.js";
+} from './explanations.js';
+import { getTelemetrySummary, loadTelemetrySamples } from './telemetry.js';
 
 /**
  * Renders the full Team Builder page into `app` and wires up its controls.
@@ -46,27 +46,27 @@ export function renderTeamBuilderPage({
   // Optimize, and the provenance/performance footer dead last — the average
   // player never needs it.
   app.innerHTML = `
-    ${embedded ? "" : renderStandaloneHeader({ baseUrl })}
+    ${embedded ? '' : renderStandaloneHeader({ baseUrl })}
 
     ${renderPoolControls({ embedded, poolStats, state })}
 
     ${renderGamestateStrip(state.progression)}
 
-    ${state.loading ? renderLoading(state) : ""}
+    ${state.loading ? renderLoading(state) : ''}
 
     ${state.result ? renderResult({ familyLabel, formatsIndex, setDetails, state }) : renderEmpty(state)}
 
-    <details class="progression-collapse" ${detailsStateAttrs("progression-panel", false)}>
+    <details class="progression-collapse" ${detailsStateAttrs('progression-panel', false)}>
       <summary>Reborn Progression <span class="muted">(level cap, TMs, evolution access, items — the save-file settings)</span></summary>
       ${renderRebornProgressionPanel(state.progression, { includeBias: false })}
     </details>
 
-    ${state.result?.team?.length ? renderProvenanceFooter(state.manifest, state.result) : ""}
+    ${state.result?.team?.length ? renderProvenanceFooter(state.manifest, state.result) : ''}
   `;
 
   renderSelectedSetDetails({ app, pokemonIndex, setDetails, state });
   const analysisPanelReady = renderRebornTeamAnalysisPanel(
-    app.querySelector("#reborn-team-analysis-root"),
+    app.querySelector('#reborn-team-analysis-root'),
     {
       family: state.family,
       itemAssignments: state.itemRecommendations,
@@ -108,9 +108,9 @@ function renderStandaloneHeader({ baseUrl }) {
 function usageTrustTooltip(state) {
   const weights = (state.result?.lines || [])
     .map((line) => (line.best || line.bestNonMega)?.usageWeight)
-    .filter((weight) => typeof weight === "number")
+    .filter((weight) => typeof weight === 'number')
     .sort((a, b) => a - b);
-  if (!weights.length) return "";
+  if (!weights.length) return '';
   const fmt = (value) => value.toFixed(2);
   const median = weights[Math.floor(weights.length / 2)];
   const converged = weights.filter((weight) => weight >= 0.99).length;
@@ -133,7 +133,7 @@ export function renderGamestateStrip(progression = {}) {
   const chips = [];
   const chip = (label, targetId) =>
     chips.push(
-      `<button type="button" class="gamestate-chip" data-open-progression="${escapeAttr(targetId || "")}">${escapeHtml(label)}</button>`,
+      `<button type="button" class="gamestate-chip" data-open-progression="${escapeAttr(targetId || '')}">${escapeHtml(label)}</button>`,
     );
 
   const checkpoint = getRebornCheckpoint(progression.checkpoint);
@@ -142,12 +142,12 @@ export function renderGamestateStrip(progression = {}) {
       ? `${getRebornCheckpointShortLabel(checkpoint)} · cap ${progression.levelCap || checkpoint.levelCap}`
       : progression.levelCap
         ? `Cap ${progression.levelCap}`
-        : "No badges set",
-    "",
+        : 'No badges set',
+    '',
   );
-  chip(`TMs ${(progression.availableTmIds || []).length}`, "tms");
-  chip(`TMXs ${(progression.availableTmxIds || []).length}`, "tmxs");
-  chip(`Tutors ${(progression.availableTutorMoveIds || []).length}`, "tutors");
+  chip(`TMs ${(progression.availableTmIds || []).length}`, 'tms');
+  chip(`TMXs ${(progression.availableTmxIds || []).length}`, 'tmxs');
+  chip(`Tutors ${(progression.availableTutorMoveIds || []).length}`, 'tutors');
 
   const blocked = EVOLUTION_ACCESS_FIELDS.filter(
     (field) => progression[field.key] === false,
@@ -155,29 +155,29 @@ export function renderGamestateStrip(progression = {}) {
   chip(
     blocked.length
       ? `Evo access: ${blocked.length} blocked`
-      : "Evo access: all",
-    "evo-access",
+      : 'Evo access: all',
+    'evo-access',
   );
 
-  chip(`Items ${Object.keys(progression.ownedItems || {}).length}`, "items");
+  chip(`Items ${Object.keys(progression.ownedItems || {}).length}`, 'items');
 
   const bias = Object.entries(progression.opponentTypeBias || {}).filter(
     ([, level]) => level > 0,
   );
   chip(
     bias.length
-      ? `Bias: ${bias.map(([type, level]) => `${type} ${level}`).join(", ")}`
-      : "Bias: —",
-    "bias",
+      ? `Bias: ${bias.map(([type, level]) => `${type} ${level}`).join(', ')}`
+      : 'Bias: —',
+    'bias',
   );
 
-  if (progression.moveRelearnerUnlocked) chip("Relearner ✓", "");
-  if (progression.daycareUnlocked) chip("Daycare ✓", "");
-  if (progression.hiddenPowerTypeChangerUnlocked) chip("HP Changer ✓", "");
+  if (progression.moveRelearnerUnlocked) chip('Relearner ✓', '');
+  if (progression.daycareUnlocked) chip('Daycare ✓', '');
+  if (progression.hiddenPowerTypeChangerUnlocked) chip('HP Changer ✓', '');
 
   return `
     <div class="gamestate-strip" title="The gamestate this page's scores and legality assume. Click a chip to edit it.">
-      ${chips.join("")}
+      ${chips.join('')}
     </div>
   `;
 }
@@ -188,7 +188,7 @@ function renderPoolControls({ embedded, poolStats, state }) {
       <div class="panel-header">
         <div>
           <h2>Owned Pokémon Pool</h2>
-          <p>${poolStats.uniqueCount} unique entries${poolStats.duplicateCount ? ` · ${poolStats.duplicateCount} duplicates ignored` : ""}. Autosaved in this browser.</p>
+          <p>${poolStats.uniqueCount} unique entries${poolStats.duplicateCount ? ` · ${poolStats.duplicateCount} duplicates ignored` : ''}. Autosaved in this browser.</p>
         </div>
       </div>
 
@@ -196,18 +196,18 @@ function renderPoolControls({ embedded, poolStats, state }) {
         <label>
           <span>Period</span>
           <select id="selection-input">
-            <option value="all" ${state.selection === "all" ? "selected" : ""}>All available</option>
+            <option value="all" ${state.selection === 'all' ? 'selected' : ''}>All available</option>
           </select>
         </label>
 
         ${
           embedded
-            ? ""
+            ? ''
             : `<label>
                 <span>Family</span>
                 <select id="family-input">
-                  <option value="singles" ${state.family === "singles" ? "selected" : ""}>Singles</option>
-                  <option value="doubles" ${state.family === "doubles" ? "selected" : ""}>Doubles</option>
+                  <option value="singles" ${state.family === 'singles' ? 'selected' : ''}>Singles</option>
+                  <option value="doubles" ${state.family === 'doubles' ? 'selected' : ''}>Doubles</option>
                 </select>
               </label>`
         }
@@ -219,12 +219,12 @@ function renderPoolControls({ embedded, poolStats, state }) {
       </div>
 
       <div class="toolbar">
-        <button class="view-tab primary-action" id="optimize-button"${usageTrustTooltip(state) ? ` title="${escapeAttr(usageTrustTooltip(state))}"` : ""}>${state.loading ? "Optimizing..." : "Normalize + optimize team"}</button>
+        <button class="view-tab primary-action" id="optimize-button"${usageTrustTooltip(state) ? ` title="${escapeAttr(usageTrustTooltip(state))}"` : ''}>${state.loading ? 'Optimizing...' : 'Normalize + optimize team'}</button>
         <button class="view-tab" id="copy-pool-button">Copy pool</button>
         <button class="view-tab" id="export-gamestate-button" title="Download pool + progression + inventory as a JSON backup file. Everything lives in this browser's local storage — one data clear loses it all without a backup.">Export gamestate</button>
         <button class="view-tab" id="import-gamestate-button" title="Restore a downloaded gamestate backup (replaces the current pool and progression).">Import gamestate</button>
         <input type="file" id="import-gamestate-input" accept="application/json,.json" style="display: none" />
-        <button class="view-tab" id="generate-availability-button" ${state.result?.lines?.length ? "" : "disabled"} title="${state.result?.lines?.length ? "Generate a pasteable list of every available Pokémon, its current move pool, and your held items" : "Optimize the team first to resolve your pool"}">Generate availability list</button>
+        <button class="view-tab" id="generate-availability-button" ${state.result?.lines?.length ? '' : 'disabled'} title="${state.result?.lines?.length ? 'Generate a pasteable list of every available Pokémon, its current move pool, and your held items' : 'Optimize the team first to resolve your pool'}">Generate availability list</button>
         <button class="view-tab danger-button" id="clear-pool-button">Clear saved pool</button>
         <span class="muted" data-pool-status>${escapeHtml(state.statusMessage)}</span>
       </div>
@@ -241,7 +241,7 @@ function renderPoolControls({ embedded, poolStats, state }) {
 }
 
 function renderAvailabilityOutput(availabilityText) {
-  if (!availabilityText) return "";
+  if (!availabilityText) return '';
 
   return `
     <div class="availability-output">
@@ -303,7 +303,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
 
   const megaText = result.megaUsed
     ? `Mega used: ${escapeHtml(result.megaUsed.name)}`
-    : "No Mega selected";
+    : 'No Mega selected';
 
   const sortedTeam = getSortedTeam(
     result.team,
@@ -319,8 +319,8 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
         <div>
           <h2>Recommended ${escapeHtml(familyLabel)} Team</h2>
           <p>${result.team.length} picks from ${result.linesConsidered} resolved input lines. ${megaText}.</p>
-          <p>Scored at level cap ${escapeHtml(String(state.progression?.levelCap || "?"))}: each pick's current-form value plus a readiness-gated competitive ceiling, minus build friction (evolution requirements are shown as information, never priced); the team is chosen with damage-aware coverage and shared-weakness fit, at most one Mega, one build realized per line. Displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its set.</p>
-          <p class="muted" data-progression-stale-warning ${progressionStale ? "" : "hidden"}>Progression changed after this team was optimized. Re-optimize before trusting row scores or legal move notes.</p>
+          <p>Scored at level cap ${escapeHtml(String(state.progression?.levelCap || '?'))}: each pick's current-form value plus a readiness-gated competitive ceiling, minus build friction (evolution requirements are shown as information, never priced); the team is chosen with damage-aware coverage and shared-weakness fit, at most one Mega, one build realized per line. Displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its set.</p>
+          <p class="muted" data-progression-stale-warning ${progressionStale ? '' : 'hidden'}>Progression changed after this team was optimized. Re-optimize before trusting row scores or legal move notes.</p>
         </div>
         <button type="button" class="view-tab" data-copy-pokepaste title="Copies once the Team Analysis below has finished loading">Copy team as poképaste</button>
       </div>
@@ -331,16 +331,16 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
           <thead>
             <tr>
               <th>#</th>
-              ${renderSortHeader("current", "Current", state)}
-              ${renderSortHeader("name", "Eventual", state)}
-              ${renderSortHeader("tier", "Usage", state)}
-              ${renderSortHeader("lead", "Lead %", state)}
-              ${renderSortHeader("score", "Score", state)}
+              ${renderSortHeader('current', 'Current', state)}
+              ${renderSortHeader('name', 'Eventual', state)}
+              ${renderSortHeader('tier', 'Usage', state)}
+              ${renderSortHeader('lead', 'Lead %', state)}
+              ${renderSortHeader('score', 'Score', state)}
               <th>Notes</th>
             </tr>
           </thead>
           <tbody>
-            ${sortedTeam.map((row, index) => renderTeamRow({ formatsIndex, index, itemRecommendations: state.itemRecommendations, progression: state.progression, progressionStale, row, setDetails })).join("")}
+            ${sortedTeam.map((row, index) => renderTeamRow({ formatsIndex, index, itemRecommendations: state.itemRecommendations, progression: state.progression, progressionStale, row, setDetails })).join('')}
           </tbody>
         </table>
       </div>
@@ -367,7 +367,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
 }
 
 function renderPostAnalysisSkippedSection(state) {
-  if (state.analysisPending || state.confidence || state.investment) return "";
+  if (state.analysisPending || state.confidence || state.investment) return '';
 
   // Deferred (background-triggered optimize with no persisted copy): the
   // stability sweep + investment projection are two more full optimizer runs
@@ -384,7 +384,7 @@ function renderPostAnalysisSkippedSection(state) {
   }
 
   const skipped = state.postAnalysisSkipped;
-  if (!skipped) return "";
+  if (!skipped) return '';
 
   const poolSize = skipped.poolSize || 0;
   const builds = skipped.builds || 0;
@@ -410,7 +410,7 @@ function renderConfidenceSection(state) {
     `;
   }
   const confidence = state.confidence;
-  if (!confidence) return "";
+  if (!confidence) return '';
 
   const byTier = { core: [], likely: [], flex: [], fragile: [] };
   for (const member of confidence.members) {
@@ -420,12 +420,12 @@ function renderConfidenceSection(state) {
     `<strong>${escapeHtml(member.inputName)}</strong> ${Math.round(member.frequency * 100)}%`;
   const rows = [];
   if (byTier.core.length)
-    rows.push(`<p>Core: ${byTier.core.map(chip).join(" · ")}</p>`);
+    rows.push(`<p>Core: ${byTier.core.map(chip).join(' · ')}</p>`);
   if (byTier.likely.length)
-    rows.push(`<p>Likely: ${byTier.likely.map(chip).join(" · ")}</p>`);
+    rows.push(`<p>Likely: ${byTier.likely.map(chip).join(' · ')}</p>`);
   if (byTier.flex.length || byTier.fragile.length)
     rows.push(
-      `<p>Flex slots (genuine close calls): ${[...byTier.flex, ...byTier.fragile].map(chip).join(" · ")}</p>`,
+      `<p>Flex slots (genuine close calls): ${[...byTier.flex, ...byTier.fragile].map(chip).join(' · ')}</p>`,
     );
   if (confidence.alternatives.length) {
     rows.push(
@@ -435,14 +435,14 @@ function renderConfidenceSection(state) {
           (alt) =>
             `${escapeHtml(alt.inputName)} ${Math.round(alt.frequency * 100)}%`,
         )
-        .join(" · ")}</p>`,
+        .join(' · ')}</p>`,
     );
   }
   return `
     <section class="panel">
       <h2>Recommendation stability</h2>
       <p class="muted">Inclusion frequency across ${confidence.settings} settings of every model judgement (usage weight, coverage, utility strictness, readiness gates, friction, ability assumption, shortlist size).</p>
-      ${rows.join("\n")}
+      ${rows.join('\n')}
     </section>
   `;
 }
@@ -450,7 +450,7 @@ function renderConfidenceSection(state) {
 // --- Explanations -------------------------------------------------------------
 function renderExplanationsSection(state) {
   const result = state.result;
-  if (!result?.team?.length) return "";
+  if (!result?.team?.length) return '';
   const confidenceByInput = new Map(
     (state.confidence?.members || []).map((member) => [
       member.inputPokemonId,
@@ -471,21 +471,21 @@ function renderExplanationsSection(state) {
       const confidenceEntry = confidenceByInput.get(choice.inputPokemonId);
       const lines = explainSeatedChoice(choice, result.team, confidenceEntry);
       const headline = [
-        choice.currentRole ? String(choice.currentRole).replace(/_/g, " ") : null,
+        choice.currentRole ? String(choice.currentRole).replace(/_/g, ' ') : null,
         confidenceEntry
           ? `seats in ${Math.round(confidenceEntry.frequency * 100)}% of settings`
           : null,
       ]
         .filter(Boolean)
-        .join(" · ");
+        .join(' · ');
       return `
         <details>
-          <summary><strong>${escapeHtml(choice.inputName)}</strong> — ${escapeHtml(choice.legalityProfile?.currentName || choice.name)}${headline ? ` · ${escapeHtml(headline)}` : ""}</summary>
-          <ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
+          <summary><strong>${escapeHtml(choice.inputName)}</strong> — ${escapeHtml(choice.legalityProfile?.currentName || choice.name)}${headline ? ` · ${escapeHtml(headline)}` : ''}</summary>
+          <ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul>
         </details>
       `;
     })
-    .join("\n");
+    .join('\n');
 
   const teamIds = new Set(result.team.map((choice) => choice.inputPokemonId));
   const weakestSeat = [...result.team].sort(
@@ -509,21 +509,21 @@ function renderExplanationsSection(state) {
       const marginNote =
         margin > 0
           ? `−${margin} vs the weakest seat`
-          : "lost on team fit, not raw score";
+          : 'lost on team fit, not raw score';
       return `
         <details>
           <summary>${escapeHtml(choice.inputName)} — benched (${escapeHtml(marginNote)})</summary>
-          <ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
+          <ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul>
         </details>
       `;
     })
-    .join("\n");
+    .join('\n');
 
   return `
     <section class="panel">
       <h2>Why these picks</h2>
       ${seated}
-      ${notableBench.length ? `<h3>Notable exclusions</h3>${excluded}` : ""}
+      ${notableBench.length ? `<h3>Notable exclusions</h3>${excluded}` : ''}
     </section>
   `;
 }
@@ -535,47 +535,47 @@ function renderInvestmentSection(state) {
   if (state.analysisPending && !state.investment) {
     return state.confidence
       ? `<section class="panel"><h2>Investment picks</h2><p class="muted">Evaluating the pool at the next level caps…</p></section>`
-      : "";
+      : '';
   }
   const plan = state.investment;
-  if (!plan) return "";
+  if (!plan) return '';
 
   // Progressive delivery: the first future cap renders as soon as it lands;
   // this note says the deeper cap is still cooking (hint-grade projections
   // are default-build shortlist runs — see SCORING.md).
   const partialNote = plan.partial
-    ? `<p class="muted">Cap ${escapeHtml((plan.pendingCaps || []).join(" / "))} still computing — this list may grow.</p>`
-    : "";
+    ? `<p class="muted">Cap ${escapeHtml((plan.pendingCaps || []).join(' / '))} still computing — this list may grow.</p>`
+    : '';
 
   const trainRows = plan.trainSoon
     .slice(0, 8)
     .map((entry) => {
       const bits = [];
-      if (entry.evolves) bits.push(`evolves into ${escapeHtml(entry.evolvesInto || "?")}`);
+      if (entry.evolves) bits.push(`evolves into ${escapeHtml(entry.evolvesInto || '?')}`);
       bits.push(`+${entry.gain} value at cap ${entry.cap}`);
-      if (entry.seatsLater) bits.push("projected to SEAT");
-      return `<li><strong>${escapeHtml(entry.inputName)}</strong> — ${bits.join(", ")}</li>`;
+      if (entry.seatsLater) bits.push('projected to SEAT');
+      return `<li><strong>${escapeHtml(entry.inputName)}</strong> — ${bits.join(', ')}</li>`;
     })
-    .join("");
+    .join('');
   const closeRows = plan.closeBench
     .slice(0, 6)
     .map((entry) => `<li>${escapeHtml(entry.inputName)}</li>`)
-    .join("");
+    .join('');
   const holdRows = plan.holdOff
     .slice(0, 6)
     .map(
       (entry) =>
         `<li>${escapeHtml(entry.inputName)} — +${entry.gain} at cap ${entry.cap}</li>`,
     )
-    .join("");
+    .join('');
 
   return `
     <section class="panel">
-      <h2>Level-cap investment projection (caps ${plan.caps.join(" / ")})</h2>
+      <h2>Level-cap investment projection (caps ${plan.caps.join(' / ')})</h2>
       ${partialNote}
       <p class="muted">Projects only the level cap forward — evolutions and level-up moves that unlock by training. New TMs, tutors, items, and locations from future badges are NOT modeled here.</p>
-      ${trainRows ? `<h3>Train for the next caps</h3><ul>${trainRows}</ul>` : ""}
-      ${closeRows ? `<h3>Close bench (nearly seat today)</h3><ul>${closeRows}</ul>` : ""}
+      ${trainRows ? `<h3>Train for the next caps</h3><ul>${trainRows}</ul>` : ''}
+      ${closeRows ? `<h3>Close bench (nearly seat today)</h3><ul>${closeRows}</ul>` : ''}
       ${holdRows ? `<h3>Do not invest yet</h3><ul>${holdRows}</ul>` : `<p class="muted">Nothing else in the pool gains meaningfully at the next caps.</p>`}
     </section>
   `;
@@ -584,17 +584,17 @@ function renderInvestmentSection(state) {
 // --- Provenance ----------------------------------------------------------------
 function renderProvenanceFooter(manifest, result) {
   const timings = result?.timings;
-  if (!manifest && !timings) return "";
+  if (!manifest && !timings) return '';
   const timingText = timings
     ? ` · resolved in ${(timings.resolveMs / 1000).toFixed(1)}s, searched in ${(timings.searchMs / 1000).toFixed(1)}s`
-    : "";
+    : '';
   return `
     <section class="panel">
       <p class="muted" style="font-size: 0.85em">
-        Data: Reborn ${escapeHtml(manifest?.rebornVersion || "?")} ·
-        scoring ${escapeHtml(manifest?.scoringVersion || "?")} ·
-        signature ${escapeHtml(manifest?.dataSignature || "?")} ·
-        built ${escapeHtml((manifest?.generatedAt || "").slice(0, 10))} ·
+        Data: Reborn ${escapeHtml(manifest?.rebornVersion || '?')} ·
+        scoring ${escapeHtml(manifest?.scoringVersion || '?')} ·
+        signature ${escapeHtml(manifest?.dataSignature || '?')} ·
+        built ${escapeHtml((manifest?.generatedAt || '').slice(0, 10))} ·
         build ${escapeHtml(RUNNING_BUILD_ID.slice(0, 7))}${timingText}${renderSwapAuditText(result?.searchPolish)}
       </p>
       ${renderTelemetryDetails()}
@@ -610,10 +610,10 @@ function renderSwapAuditCallout(result) {
   if (swaps.length) {
     const detail = swaps
       .map((swap) => `${swap.out?.name || swap.out} → ${swap.in?.name || swap.in}`)
-      .join(", ");
+      .join(', ');
     return `
       <p class="audit-callout audit-callout--info">
-        The quick search seated ${swaps.length === 1 ? "a beatable pick" : `${swaps.length} beatable picks`};
+        The quick search seated ${swaps.length === 1 ? 'a beatable pick' : `${swaps.length} beatable picks`};
         the full-pool swap audit corrected this team before display
         (${escapeHtml(detail)}). The table below is the corrected team.
       </p>
@@ -628,7 +628,7 @@ function renderSwapAuditCallout(result) {
       </p>
     `;
   }
-  return "";
+  return '';
 }
 
 // The swap audit's verdict, including the healthy case: "shortlist held" is
@@ -638,24 +638,24 @@ function renderSwapAuditCallout(result) {
 // (modest individual rank, matched no gate: team-context value the
 // individual score can't see) and a heuristic bug (high rank, still missed).
 function renderSwapAuditText(searchPolish) {
-  if (!searchPolish) return "";
+  if (!searchPolish) return '';
   if (!searchPolish.swaps.length) {
     return ` · swap audit: shortlist held (${searchPolish.audited} lines audited)`;
   }
   const parts = searchPolish.swaps.map((swap) => {
     const attribution = swap.attribution || {};
     const matched = attribution.matched?.length
-      ? `matched ${attribution.matched.slice(0, 3).join(", ")}${
-          attribution.matched.length > 3
-            ? ` +${attribution.matched.length - 3} more`
-            : ""
-        } but outranked`
-      : "matched no shortlist gate";
+      ? `matched ${attribution.matched.slice(0, 3).join(', ')}${
+        attribution.matched.length > 3
+          ? ` +${attribution.matched.length - 3} more`
+          : ''
+      } but outranked`
+      : 'matched no shortlist gate';
     return `${swap.in.name} in for ${swap.out.name}, +${swap.gain} (ranked ${attribution.rank}/${attribution.of}; ${matched})`;
   });
   return ` · swap audit: ${searchPolish.swaps.length} repair${
-    searchPolish.swaps.length === 1 ? "" : "s"
-  } — ${escapeHtml(parts.join("; "))}`;
+    searchPolish.swaps.length === 1 ? '' : 's'
+  } — ${escapeHtml(parts.join('; '))}`;
 }
 
 // Accumulated in-browser performance percentiles:
@@ -669,14 +669,14 @@ function renderTelemetryDetails() {
   try {
     summary = getTelemetrySummary();
   } catch {
-    return "";
+    return '';
   }
-  if (!summary || !summary.total) return "";
+  if (!summary || !summary.total) return '';
   const ms = (value) =>
-    value == null ? "–" : value >= 10_000 ? `${(value / 1000).toFixed(1)}s` : `${value}ms`;
+    value == null ? '–' : value >= 10_000 ? `${(value / 1000).toFixed(1)}s` : `${value}ms`;
   const dist = (d) => `${ms(d.p50)} / ${ms(d.p90)} / ${ms(d.p95)}`;
   const range = (r) => (r.min === r.max ? `${r.min}` : `${r.min}–${r.max}`);
-  const labels = { cold: "cold", warm: "warm cache", result: "result-cache hit" };
+  const labels = { cold: 'cold', warm: 'warm cache', result: 'result-cache hit' };
   const rows = summary.segments
     .map(
       (segment) => `
@@ -686,39 +686,39 @@ function renderTelemetryDetails() {
           <td>${segment.n}</td>
           <td>${dist(segment.resolveMs)}</td>
           <td>${dist(segment.searchMs)}</td>
-          <td>${segment.totalMs ? dist(segment.totalMs) : "–"}</td>
+          <td>${segment.totalMs ? dist(segment.totalMs) : '–'}</td>
           <td>${range(segment.builds)} (${escapeHtml(segment.buildBucket)})</td>
         </tr>`,
     )
-    .join("");
+    .join('');
   const staleNote = summary.stale
-    ? ` · ${summary.stale} run${summary.stale === 1 ? "" : "s"} from previous builds excluded`
-    : "";
+    ? ` · ${summary.stale} run${summary.stale === 1 ? '' : 's'} from previous builds excluded`
+    : '';
   // Phase attribution of the most recent completed run: the "where did my
   // wait actually go" line.
-  let lastRunLine = "";
+  let lastRunLine = '';
   try {
     const samples = loadTelemetrySamples();
     const last = samples[samples.length - 1];
     if (last?.phases) {
       const parts = Object.entries(last.phases)
         .map(([key, value]) => `${key} ${ms(value)}`)
-        .join(" · ");
+        .join(' · ');
       const totals = [
-        last.totalMs != null ? `team on screen ${ms(last.totalMs)}` : "",
-        last.movesetMs != null ? `movesets ${ms(last.movesetMs)}` : "",
-        last.fullMs != null ? `everything ${ms(last.fullMs)}` : "",
+        last.totalMs != null ? `team on screen ${ms(last.totalMs)}` : '',
+        last.movesetMs != null ? `movesets ${ms(last.movesetMs)}` : '',
+        last.fullMs != null ? `everything ${ms(last.fullMs)}` : '',
       ]
         .filter(Boolean)
-        .join(", ");
-      lastRunLine = `<p>Last run: ${escapeHtml(parts)}${totals ? ` — ${escapeHtml(totals)}` : ""}</p>`;
+        .join(', ');
+      lastRunLine = `<p>Last run: ${escapeHtml(parts)}${totals ? ` — ${escapeHtml(totals)}` : ''}</p>`;
     }
   } catch {
-    lastRunLine = "";
+    lastRunLine = '';
   }
   return `
-    <details class="muted" style="font-size: 0.85em" ${detailsStateAttrs("telemetry", false)}>
-      <summary>Performance (${summary.total} run${summary.total === 1 ? "" : "s"} on this build${summary.cores ? `, ${summary.cores} cores` : ""})</summary>
+    <details class="muted" style="font-size: 0.85em" ${detailsStateAttrs('telemetry', false)}>
+      <summary>Performance (${summary.total} run${summary.total === 1 ? '' : 's'} on this build${summary.cores ? `, ${summary.cores} cores` : ''})</summary>
       <table>
         <thead>
           <tr><th>cache</th><th>pool</th><th>n</th><th>resolve p50/p90/p95</th><th>search p50/p90/p95</th><th>total p50/p90/p95</th><th>builds</th></tr>
@@ -736,19 +736,19 @@ function renderTelemetryDetails() {
 }
 
 const SHORT_FORMAT = {
-  gen7anythinggoes: "AG",
-  gen7ubers: "Ubers",
-  gen7ou: "OU",
-  gen7uu: "UU",
-  gen7ru: "RU",
-  gen7nu: "NU",
-  gen7pu: "PU",
-  gen7zu: "ZU",
-  gen7nfe: "NFE",
-  gen7lc: "LC",
-  gen7doublesubers: "D-Ubers",
-  gen7doublesou: "DOU",
-  gen7doublesuu: "DUU",
+  gen7anythinggoes: 'AG',
+  gen7ubers: 'Ubers',
+  gen7ou: 'OU',
+  gen7uu: 'UU',
+  gen7ru: 'RU',
+  gen7nu: 'NU',
+  gen7pu: 'PU',
+  gen7zu: 'ZU',
+  gen7nfe: 'NFE',
+  gen7lc: 'LC',
+  gen7doublesubers: 'D-Ubers',
+  gen7doublesou: 'DOU',
+  gen7doublesuu: 'DUU',
 };
 
 // One compact line under the team table listing the resolved input lines that
@@ -780,7 +780,7 @@ function renderBenchLine(result) {
     });
   }
 
-  if (!bench.length) return "";
+  if (!bench.length) return '';
 
   // Worst = worst fit RIGHT NOW: the bottom 10% (rounded up) by best
   // swap-onto-the-team score at the current cap/gamestate. Deliberately NOT a
@@ -821,7 +821,7 @@ function renderBenchLine(result) {
       ? `${c.formatId}/${c.cutoff}`
       : t
         ? `trace:${t.formatId}/${t.cutoff}/${t.games}`
-        : "none";
+        : 'none';
     if (!groups.has(key)) {
       groups.set(key, {
         tierRank: c ? c.tierRank : Infinity,
@@ -877,7 +877,7 @@ function renderBenchLine(result) {
         ? `${SHORT_FORMAT[group.formatId] || group.formatId} ${group.cutoff}`
         : group.games != null
           ? `${SHORT_FORMAT[group.formatId] || group.formatId} ${group.cutoff} (${group.games})`
-          : "no usage data";
+          : 'no usage data';
 
       const chips = group.entries
         .map((entry) => {
@@ -886,17 +886,17 @@ function renderBenchLine(result) {
           const boxIndex =
             benchPosition <= MAX_BENCH_INDEX
               ? `<span class="bench-index bench-index--box${Math.floor((benchPosition - 1) / BOX_SIZE)}">${benchPosition}.</span> `
-              : "";
+              : '';
           const isWorst = worstInputIds.has(representative.inputPokemonId);
           const formName = chipFormName(entry);
           const fieldsAs =
             representative.name !== formName
               ? ` · fields as ${representative.name}`
-              : "";
+              : '';
           const usage = ceiling
             ? ` <em>${truncatePercent(ceiling.value)}</em>`
-            : "";
-          const classes = `bench-chip${isWorst ? " worst" : ""}`;
+            : '';
+          const classes = `bench-chip${isWorst ? ' worst' : ''}`;
           const collides =
             (nameCounts.get(formName) || 0) > 1 &&
             representative.inputName &&
@@ -905,11 +905,11 @@ function renderBenchLine(result) {
             ? `${formName} (${representative.inputName})`
             : formName;
           const worstNote = isWorst
-            ? " · flagged: worst fit for the current team right now (bottom 10% by best swap-in score at this level cap — not a judgement of eventual value)"
-            : "";
+            ? ' · flagged: worst fit for the current team right now (bottom 10% by best swap-in score at this level cap — not a judgement of eventual value)'
+            : '';
           return `<span class="${classes}" title="from input ${escapeHtml(representative.inputName)}${escapeHtml(fieldsAs)}${escapeHtml(worstNote)}">${boxIndex}${escapeHtml(chipName)}${usage}</span>`;
         })
-        .join("");
+        .join('');
 
       // Trace tiers explain their parenthetical: it's a visibility horizon,
       // not a usage percent, and the reader shouldn't have to know the
@@ -917,7 +917,7 @@ function renderBenchLine(result) {
       const tierTitle =
         group.games != null
           ? ` title="Below the meaningful-usage bar (50% chance of being seen within 25 games ≈ 2.7%) in every tier. Best trace signal: ~${truncatePercent(group.maxTraceValue)} here — 50% chance of being seen within ${group.games} games."`
-          : "";
+          : '';
       return `<span class="bench-group"><span class="bench-tier"${tierTitle}>${escapeHtml(label)}</span>${chips}</span>`;
     })
     .join('<span class="bench-sep">·</span>');
@@ -1004,9 +1004,9 @@ function pickWorstBench(bench, swapScores) {
   const flagCount = Math.max(1, Math.ceil(bench.length * 0.1));
   const scored = swapScores
     ? bench.filter(
-        (entry) =>
-          typeof swapScores.get(entry.representative.inputPokemonId) === "number",
-      )
+      (entry) =>
+        typeof swapScores.get(entry.representative.inputPokemonId) === 'number',
+    )
     : [];
 
   if (scored.length) {
@@ -1045,39 +1045,39 @@ function compareRankWorseFirst(a, b) {
 }
 
 function renderItemRec(item) {
-  if (!item) return "";
+  if (!item) return '';
 
-  let qualifier = "";
-  let title = "";
+  let qualifier = '';
+  let title = '';
 
   if (item.fallback) {
-    qualifier = "fallback";
-    title = "No commonly-run item owned; filled from your spare inventory.";
+    qualifier = 'fallback';
+    title = 'No commonly-run item owned; filled from your spare inventory.';
   } else if (item.proxy) {
     qualifier =
-      typeof item.usage === "number"
+      typeof item.usage === 'number'
         ? `~${formatItemPercent(item.usage)} proxy`
-        : "proxy";
+        : 'proxy';
     title = item.seed
       ? "Reborn Field Seed; demand proxied from this Pokémon's terrain-seed usage."
-      : "Reborn type Gem; competitive demand proxied from the matching Z-Crystal.";
-  } else if (typeof item.usage === "number") {
+      : 'Reborn type Gem; competitive demand proxied from the matching Z-Crystal.';
+  } else if (typeof item.usage === 'number') {
     qualifier = formatItemPercent(item.usage);
     title =
       "Share of this Pokémon's observed competitive sets holding this item.";
   } else {
-    qualifier = "situational";
+    qualifier = 'situational';
     title =
       "Seen on this Pokémon's sets but without a headline usage share — a real option, just not a statistically ranked one.";
   }
 
   if (item.unburden) {
-    qualifier = qualifier ? `${qualifier}, Unburden` : "Unburden";
+    qualifier = qualifier ? `${qualifier}, Unburden` : 'Unburden';
     title =
-      "Consumable item weighted up because this Pokémon can have Unburden.";
+      'Consumable item weighted up because this Pokémon can have Unburden.';
   }
 
-  return `<div class="representative-note item-rec-note"${title ? ` title="${escapeAttr(title)}"` : ""}>Item: ${escapeHtml(item.name)}${qualifier ? ` (${escapeHtml(qualifier)})` : ""}</div>`;
+  return `<div class="representative-note item-rec-note"${title ? ` title="${escapeAttr(title)}"` : ''}>Item: ${escapeHtml(item.name)}${qualifier ? ` (${escapeHtml(qualifier)})` : ''}</div>`;
 }
 
 // Sub-2% item usage keeps a decimal so a genuine 0.4% never rounds to a
@@ -1088,11 +1088,11 @@ function formatItemPercent(value) {
 
 function renderSortHeader(sortBy, label, state) {
   const active = state.teamSort === sortBy;
-  const arrow = active ? (state.teamSortDir === "asc" ? " ▲" : " ▼") : "";
+  const arrow = active ? (state.teamSortDir === 'asc' ? ' ▲' : ' ▼') : '';
 
   return `
     <th>
-      <button class="sort-header-button ${active ? "active" : ""}" data-team-sort="${escapeHtml(sortBy)}">
+      <button class="sort-header-button ${active ? 'active' : ''}" data-team-sort="${escapeHtml(sortBy)}">
         ${escapeHtml(label)}${arrow}
       </button>
     </th>
@@ -1122,13 +1122,13 @@ function renderTeamRow({
   // whose usage bundle is Noibat's) is the pick's past, not its future.
   const eventualDiffers = Boolean(currentSpecies?.representativeIsFuture);
   const note = progressionStale
-    ? "Progression changed; re-optimize for current scores and legal move notes."
-    : row.note || "";
+    ? 'Progression changed; re-optimize for current scores and legal move notes.'
+    : row.note || '';
   const recommendedItem = itemRecommendations?.[teamMemberKey(row)];
 
   return `
     <tr
-      class="team-pick-row ${selected ? "selected-row" : ""}"
+      class="team-pick-row ${selected ? 'selected-row' : ''}"
       data-pool-set-id="${escapeHtml(row.pokemonId)}"
       data-team-input-id="${escapeHtml(row.inputPokemonId)}"
       data-team-pokemon-id="${escapeHtml(row.pokemonId)}"
@@ -1141,27 +1141,27 @@ function renderTeamRow({
         ${
           row.inputName && row.inputName !== currentName
             ? `<div class="representative-note">from ${escapeHtml(row.inputName)}${escapeHtml(evolutionNote)}</div>`
-            : ""
+            : ''
         }
         ${renderItemRec(recommendedItem)}
       </td>
       <td data-current-species-note>
         ${
           eventualDiffers
-            ? `<strong>${escapeHtml(row.name)}</strong>${row.isMega ? `<div class="representative-note">Mega slot</div>` : ""}`
+            ? `<strong>${escapeHtml(row.name)}</strong>${row.isMega ? `<div class="representative-note">Mega slot</div>` : ''}`
             : `<span class="muted">—</span>`
         }
       </td>
       <td>${renderMeaningfulUsage(row, formatsIndex)}</td>
       <td>${formatPercent(row.bundle?.leads?.value)}</td>
-      <td>${Number.isFinite(row.score) ? Math.round(row.score).toLocaleString() : ""}</td>
+      <td>${Number.isFinite(row.score) ? Math.round(row.score).toLocaleString() : ''}</td>
       <td data-team-note>${escapeHtml(note)}</td>
     </tr>
 
     ${
       selected
         ? `<tr class="team-builder-set-row"><td colspan="7"><div id="team-builder-set-details-root"></div></td></tr>`
-        : ""
+        : ''
     }
   `;
 }
@@ -1172,7 +1172,7 @@ function renderTeamRow({
 function renderMeaningfulUsage(row, formatsIndex) {
   const ranking = row.bundle?.ranking;
   const headline = renderSource(row.bundle?.usage, formatsIndex);
-  if (!ranking || typeof ranking.value !== "number") {
+  if (!ranking || typeof ranking.value !== 'number') {
     // Below the meaningful bar everywhere: same relaxed seen-within-N-games
     // treatment as the bench tail — "ZU 1500 (65)" reads "at its ZU-1500
     // usage, even odds of seeing one within 65 games" — from the resolver
@@ -1182,22 +1182,22 @@ function renderMeaningfulUsage(row, formatsIndex) {
     const games = trace ? gamesToLikelySee(trace.value) : null;
     if (trace && games != null) {
       const label = `${SHORT_FORMAT[trace.formatId] || trace.formatId} ${trace.cutoff} (${games})`;
-      return `<span class="muted" title="${escapeAttr(`Below the meaningful-usage bar (50% chance of being seen within 25 games ≈ 2.7%) in every tier. Best trace signal: ~${truncatePercent(trace.value)} here — 50% chance of being seen within ${games} games. Best available: ${headline || "none"}`)}">${escapeHtml(label)}</span>`;
+      return `<span class="muted" title="${escapeAttr(`Below the meaningful-usage bar (50% chance of being seen within 25 games ≈ 2.7%) in every tier. Best trace signal: ~${truncatePercent(trace.value)} here — 50% chance of being seen within ${games} games. Best available: ${headline || 'none'}`)}">${escapeHtml(label)}</span>`;
     }
-    return `<span class="muted" title="${escapeAttr(`No recorded usage in any tier. Best available: ${headline || "none"}`)}">no usage data</span>`;
+    return `<span class="muted" title="${escapeAttr(`No recorded usage in any tier. Best available: ${headline || 'none'}`)}">no usage data</span>`;
   }
   const label = `${SHORT_FORMAT[ranking.formatId] || ranking.formatId} ${ranking.cutoff}`;
-  return `<span title="${escapeAttr(`First meaningful tier. Best available: ${headline || "none"}`)}">${escapeHtml(label)} · ${escapeHtml(truncatePercent(ranking.value))}</span>`;
+  return `<span title="${escapeAttr(`First meaningful tier. Best available: ${headline || 'none'}`)}">${escapeHtml(label)} · ${escapeHtml(truncatePercent(ranking.value))}</span>`;
 }
 
 function renderSelectedSetDetails({ app, pokemonIndex, setDetails, state }) {
-  const detailsRoot = app.querySelector("#team-builder-set-details-root");
+  const detailsRoot = app.querySelector('#team-builder-set-details-root');
   if (!detailsRoot) return;
 
   const selected = getSelectedTeamChoice({ setDetails, state });
 
   if (!selected) {
-    detailsRoot.innerHTML = "";
+    detailsRoot.innerHTML = '';
     return;
   }
 
@@ -1210,20 +1210,20 @@ function renderSelectedSetDetails({ app, pokemonIndex, setDetails, state }) {
   renderMovesetPanel(detailsRoot, {
     selectedPokemonName: selected.name,
     movesetEntry: detail,
-    lookupLabel: detail ? setDetails.describeSource(detail) : "",
+    lookupLabel: detail ? setDetails.describeSource(detail) : '',
     // The set is sourced from the mon's first meaningful usage tier, which is
     // why this evolution stage was chosen over (or instead of) another.
     // Surface that tier's usage so the pick is legible — but only when the shown
     // set actually came from the ranking tier (guard against the deepest-tier
     // fallback and cross-family sourcing, where the number wouldn't match).
     sourceUsageLabel: describeSourceUsage(selected.bundle?.ranking, detail),
-    aggregate: state.selection === "all",
+    aggregate: state.selection === 'all',
     stitched: Boolean(detail?.stitched),
     status: setDetails.getStatus(),
   });
 
-  const legalMovesRoot = document.createElement("div");
-  legalMovesRoot.dataset.rebornLegalMovesRoot = "true";
+  const legalMovesRoot = document.createElement('div');
+  legalMovesRoot.dataset.rebornLegalMovesRoot = 'true';
   detailsRoot.appendChild(legalMovesRoot);
   renderRebornLegalMovesPanel(legalMovesRoot, {
     currentSpecies,
@@ -1237,7 +1237,7 @@ function renderSelectedSetDetails({ app, pokemonIndex, setDetails, state }) {
 
   if (setDetails.getMessage()) {
     detailsRoot.insertAdjacentHTML(
-      "afterbegin",
+      'afterbegin',
       `<section class="panel"><p class="muted">${escapeHtml(setDetails.getMessage())}</p></section>`,
     );
   }
@@ -1259,20 +1259,20 @@ function getSelectedTeamChoice({ setDetails, state }) {
  * @param {string=} sortDir "asc" or "desc".
  * @return {!Array<!Object>} A sorted copy; the input team is not mutated.
  */
-export function getSortedTeam(team, sortBy, sortDir = "desc", progression = {}) {
+export function getSortedTeam(team, sortBy, sortDir = 'desc', progression = {}) {
   const rows = [...team];
-  const direction = sortDir === "asc" ? 1 : -1;
+  const direction = sortDir === 'asc' ? 1 : -1;
   const currentName = (row) =>
     getCurrentRebornSpeciesForChoice(row, progression)?.name || row.name;
 
   rows.sort((a, b) => {
     let primary = 0;
 
-    if (sortBy === "lead") {
+    if (sortBy === 'lead') {
       primary = compareNumber(a.bundle?.leads?.value, b.bundle?.leads?.value);
-    } else if (sortBy === "usage") {
+    } else if (sortBy === 'usage') {
       primary = compareNumber(a.bundle?.usage?.value, b.bundle?.usage?.value);
-    } else if (sortBy === "tier") {
+    } else if (sortBy === 'tier') {
       // "Descending" = best tier first (lowest tierRank), then highest usage
       // within the tier — AG 1760 1.14%, AG 1760 1.12%, PU 1500 1.58%, ...
       // Unranked rows form a trace TAIL after every ranked one, ordered the
@@ -1280,7 +1280,7 @@ export function getSortedTeam(team, sortBy, sortDir = "desc", progression = {}) 
       // the tier ladder, then trace usage; no-trace rows dead last.
       const rankOf = (row) => row.bundle?.ranking?.tierRank ?? Infinity;
       const valueOf = (row) =>
-        typeof row.bundle?.ranking?.value === "number"
+        typeof row.bundle?.ranking?.value === 'number'
           ? row.bundle.ranking.value
           : -Infinity;
       const traceGamesOf = (row) => {
@@ -1291,7 +1291,7 @@ export function getSortedTeam(team, sortBy, sortDir = "desc", progression = {}) 
       };
       const traceRankOf = (row) => row.bundle?.trace?.tierRank ?? Infinity;
       const traceValueOf = (row) =>
-        typeof row.bundle?.trace?.value === "number"
+        typeof row.bundle?.trace?.value === 'number'
           ? row.bundle.trace.value
           : -Infinity;
       primary =
@@ -1300,9 +1300,9 @@ export function getSortedTeam(team, sortBy, sortDir = "desc", progression = {}) 
         compareNumber(traceGamesOf(b), traceGamesOf(a)) ||
         compareNumber(traceRankOf(b), traceRankOf(a)) ||
         compareNumber(traceValueOf(a), traceValueOf(b));
-    } else if (sortBy === "score") {
+    } else if (sortBy === 'score') {
       primary = compareNumber(a.score, b.score);
-    } else if (sortBy === "current" || sortBy === "input") {
+    } else if (sortBy === 'current' || sortBy === 'input') {
       primary = currentName(a).localeCompare(currentName(b));
     } else {
       primary = a.name.localeCompare(b.name);
@@ -1321,20 +1321,20 @@ export function getSortedTeam(team, sortBy, sortDir = "desc", progression = {}) 
 }
 
 function compareNumber(a, b) {
-  const safeA = typeof a === "number" ? a : -Infinity;
-  const safeB = typeof b === "number" ? b : -Infinity;
+  const safeA = typeof a === 'number' ? a : -Infinity;
+  const safeB = typeof b === 'number' ? b : -Infinity;
 
   return safeA === safeB ? 0 : safeA - safeB;
 }
 
-function getSortLabel(sortBy, sortDir = "desc") {
-  const direction = sortDir === "asc" ? "ascending" : "descending";
+function getSortLabel(sortBy, sortDir = 'desc') {
+  const direction = sortDir === 'asc' ? 'ascending' : 'descending';
 
-  if (sortBy === "lead") return `Lead % ${direction}`;
-  if (sortBy === "usage") return `Usage % ${direction}`;
-  if (sortBy === "tier") return `meaningful usage tier (best tier first when ${direction})`;
-  if (sortBy === "score") return `optimizer score ${direction}`;
-  if (sortBy === "current" || sortBy === "input") {
+  if (sortBy === 'lead') return `Lead % ${direction}`;
+  if (sortBy === 'usage') return `Usage % ${direction}`;
+  if (sortBy === 'tier') return `meaningful usage tier (best tier first when ${direction})`;
+  if (sortBy === 'score') return `optimizer score ${direction}`;
+  if (sortBy === 'current' || sortBy === 'input') {
     return `current form ${direction}`;
   }
 
@@ -1342,39 +1342,39 @@ function getSortLabel(sortBy, sortDir = "desc") {
 }
 
 function renderUnresolved(unresolved = []) {
-  if (!unresolved.length) return "";
+  if (!unresolved.length) return '';
 
   return `
     <section class="panel">
       <h2>Unresolved inputs</h2>
-      <p class="muted">${unresolved.map((line) => escapeHtml(line.inputName)).join(", ")}</p>
+      <p class="muted">${unresolved.map((line) => escapeHtml(line.inputName)).join(', ')}</p>
     </section>
   `;
 }
 
 function renderSource(source, formatsIndex) {
-  if (!source) return "";
+  if (!source) return '';
 
   const label =
     formatsIndex.find((format) => format.id === source.formatId)?.label ||
     source.formatId;
 
-  return source.selection === "all"
+  return source.selection === 'all'
     ? `${escapeHtml(label)} @ ${source.cutoff} (${source.monthsPresent}/${source.monthsAvailable} mo)`
     : `${escapeHtml(label)} @ ${source.cutoff}`;
 }
 
 function formatPercent(value) {
-  return typeof value === "number" ? value.toFixed(2) : "";
+  return typeof value === 'number' ? value.toFixed(2) : '';
 }
 
 // The mon's usage at the tier its set was sourced from, for the detail pane —
 // only when that tier matches the meaningful-tier ranking (so the percentage
 // genuinely describes the "Movesets from …" source shown beside it).
 function describeSourceUsage(ranking, detail) {
-  if (!ranking || !detail || typeof ranking.value !== "number") return "";
+  if (!ranking || !detail || typeof ranking.value !== 'number') return '';
   if (ranking.formatId !== detail.formatId || ranking.cutoff !== detail.cutoff) {
-    return "";
+    return '';
   }
   return `${formatPercent(ranking.value)}% usage at this tier`;
 }

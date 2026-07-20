@@ -22,7 +22,7 @@ export function getMovesetCandidates(availability, family, selection) {
         availability,
         selection,
         formatId,
-        "moveset",
+        'moveset',
         cutoff,
       );
 
@@ -53,7 +53,7 @@ export function getCandidateMonths(
   dataKind,
   cutoff,
 ) {
-  if (selection === "all") {
+  if (selection === 'all') {
     return Object.keys(availability?.months || {})
       .sort()
       .filter((month) =>
@@ -74,7 +74,7 @@ export function formatSource(source, formatsIndex) {
     formatsIndex.find((format) => format.id === source.formatId)?.label ||
     source.formatId;
 
-  if (source.selection === "all") {
+  if (source.selection === 'all') {
     return `${label} @ ${source.cutoff} (${source.monthsPresent}/${source.monthsAvailable} mo)`;
   }
 

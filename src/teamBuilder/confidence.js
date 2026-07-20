@@ -22,9 +22,9 @@
  * reproduce.
  */
 
-import { scoreCandidate } from "./candidateScoring.js";
-import { choosePoolTeam } from "./teamSelection.js";
-import { setScoringOverrides } from "./scoringConstants.js";
+import { scoreCandidate } from './candidateScoring.js';
+import { choosePoolTeam } from './teamSelection.js';
+import { setScoringOverrides } from './scoringConstants.js';
 
 /**
  * CONSTRAINT for new settings: overrides are process-globals on THIS thread.
@@ -36,93 +36,93 @@ import { setScoringOverrides } from "./scoringConstants.js";
  * knobs only.
  */
 export const CONFIDENCE_GRID = [
-  { key: "usage-low", overrides: { USAGE_INFLUENCE: 0.15 } },
-  { key: "usage-high", overrides: { USAGE_INFLUENCE: 0.45 } },
-  { key: "coverage-light", overrides: { COVERAGE_WEIGHT: 0.3 } },
-  { key: "coverage-heavy", overrides: { COVERAGE_WEIGHT: 0.75 } },
-  { key: "coverage-scale-low", overrides: { COVERAGE_SCALE: 80 } },
-  { key: "coverage-scale-high", overrides: { COVERAGE_SCALE: 150 } },
-  { key: "portfolio-off", overrides: { PORTFOLIO_WEIGHT: 0 } },
-  { key: "portfolio-heavy", overrides: { PORTFOLIO_WEIGHT: 0.5 } },
+  { key: 'usage-low', overrides: { USAGE_INFLUENCE: 0.15 } },
+  { key: 'usage-high', overrides: { USAGE_INFLUENCE: 0.45 } },
+  { key: 'coverage-light', overrides: { COVERAGE_WEIGHT: 0.3 } },
+  { key: 'coverage-heavy', overrides: { COVERAGE_WEIGHT: 0.75 } },
+  { key: 'coverage-scale-low', overrides: { COVERAGE_SCALE: 80 } },
+  { key: 'coverage-scale-high', overrides: { COVERAGE_SCALE: 150 } },
+  { key: 'portfolio-off', overrides: { PORTFOLIO_WEIGHT: 0 } },
+  { key: 'portfolio-heavy', overrides: { PORTFOLIO_WEIGHT: 0.5 } },
   {
-    key: "type-specialist-strict",
+    key: 'type-specialist-strict',
     overrides: { TYPE_RESILIENCE_FULL_SURPLUS: 6 },
   },
   {
-    key: "type-specialist-generous",
+    key: 'type-specialist-generous',
     overrides: { TYPE_RESILIENCE_FULL_SURPLUS: 3 },
   },
   {
-    key: "balanced-bulk-type-light",
+    key: 'balanced-bulk-type-light',
     overrides: { BALANCED_BULK_TYPE_WEIGHT: 0.2 },
   },
   {
-    key: "balanced-bulk-type-heavy",
+    key: 'balanced-bulk-type-heavy',
     overrides: { BALANCED_BULK_TYPE_WEIGHT: 0.4 },
   },
   {
-    key: "fast-frailty-light",
+    key: 'fast-frailty-light',
     overrides: { FAST_ATTACKER_FRAILTY_WEIGHT: 0.02 },
   },
   {
-    key: "fast-frailty-heavy",
+    key: 'fast-frailty-heavy',
     overrides: { FAST_ATTACKER_FRAILTY_WEIGHT: 0.05 },
   },
   {
-    key: "tempo-strict",
+    key: 'tempo-strict',
     overrides: { TEMPO_RELIABILITY_BONUS: 0.1 },
   },
   {
-    key: "tempo-generous",
+    key: 'tempo-generous',
     overrides: { TEMPO_RELIABILITY_BONUS: 0.2 },
   },
   {
-    key: "extender-light",
+    key: 'extender-light',
     overrides: { FIELD_EXTENDER_UTILITY_BONUS: 0.24 },
   },
   {
-    key: "extender-heavy",
+    key: 'extender-heavy',
     overrides: { FIELD_EXTENDER_UTILITY_BONUS: 0.6 },
   },
   {
-    key: "ceiling-knee-low",
+    key: 'ceiling-knee-low',
     overrides: { ROLE_CEILING_KNEE: 0.85 },
   },
   {
-    key: "ceiling-knee-high",
+    key: 'ceiling-knee-high',
     overrides: { ROLE_CEILING_KNEE: 0.95 },
   },
   {
-    key: "utility-strict",
+    key: 'utility-strict',
     overrides: {
       UTILITY_ROLE_WEIGHT: 0.55,
       PRIORITY_UTILITY_ROLE_WEIGHT: 0.75,
     },
   },
   {
-    key: "utility-generous",
+    key: 'utility-generous',
     overrides: {
       UTILITY_ROLE_WEIGHT: 0.9,
       PRIORITY_UTILITY_ROLE_WEIGHT: 1,
     },
   },
   {
-    key: "collapse-mild",
+    key: 'collapse-mild',
     overrides: { SHARED_WEAK_PENALTY: 120, UNCOVERED_WEAK_PENALTY: 170 },
   },
   {
-    key: "collapse-harsh",
+    key: 'collapse-harsh',
     overrides: { SHARED_WEAK_PENALTY: 260, UNCOVERED_WEAK_PENALTY: 380 },
   },
-  { key: "gate-down", overrides: { ONLINE_JITTER: -1 } },
-  { key: "gate-up", overrides: { ONLINE_JITTER: 1 } },
-  { key: "rcap-global", overrides: { REACHABLE_BLEND: 0.25 } },
-  { key: "rcap-local", overrides: { REACHABLE_BLEND: 0.75 } },
-  { key: "friction-light", overrides: { FRICTION_SCALE: 0.5 } },
-  { key: "friction-heavy", overrides: { FRICTION_SCALE: 2 } },
-  { key: "ability-secondary", overrides: { ABILITY_ASSUMPTION: "secondary" } },
-  { key: "shortlist-24", overrides: { SHORTLIST_MAX: 24 } },
-  { key: "shortlist-36", overrides: { SHORTLIST_MAX: 36 } },
+  { key: 'gate-down', overrides: { ONLINE_JITTER: -1 } },
+  { key: 'gate-up', overrides: { ONLINE_JITTER: 1 } },
+  { key: 'rcap-global', overrides: { REACHABLE_BLEND: 0.25 } },
+  { key: 'rcap-local', overrides: { REACHABLE_BLEND: 0.75 } },
+  { key: 'friction-light', overrides: { FRICTION_SCALE: 0.5 } },
+  { key: 'friction-heavy', overrides: { FRICTION_SCALE: 2 } },
+  { key: 'ability-secondary', overrides: { ABILITY_ASSUMPTION: 'secondary' } },
+  { key: 'shortlist-24', overrides: { SHORTLIST_MAX: 24 } },
+  { key: 'shortlist-36', overrides: { SHORTLIST_MAX: 36 } },
 ];
 
 // The sweep trades a little optimality for a lot of speed: every setting runs
@@ -146,10 +146,10 @@ const SWEEP_FORM_OPTIONS = 3;
  * @return {string} "core", "likely", "flex", or "fragile".
  */
 export function classifyFrequency(frequency) {
-  if (frequency >= 0.9) return "core";
-  if (frequency >= 0.6) return "likely";
-  if (frequency >= 0.25) return "flex";
-  return "fragile";
+  if (frequency >= 0.9) return 'core';
+  if (frequency >= 0.6) return 'likely';
+  if (frequency >= 0.25) return 'flex';
+  return 'fragile';
 }
 
 /**
@@ -196,7 +196,7 @@ export async function computeTeamConfidence({
 
   // The baseline run counts too — the real recommendation is one of the grid's
   // data points, not an outside observer.
-  record(baseTeamIds, "baseline");
+  record(baseTeamIds, 'baseline');
 
   for (const setting of CONFIDENCE_GRID) {
     if (shouldAbort()) return null;
@@ -270,7 +270,7 @@ function selectSweepContenders(allLines, team) {
     const choice = line.best || line.bestNonMega;
     return choice?.teamScore ?? choice?.score ?? -Infinity;
   };
-  const idOf = (line) => (line.best || line.bestNonMega)?.inputPokemonId || "";
+  const idOf = (line) => (line.best || line.bestNonMega)?.inputPokemonId || '';
   const ranked = [...allLines].sort(
     (a, b) => scoreOf(b) - scoreOf(a) || idOf(a).localeCompare(idOf(b)),
   );
@@ -355,7 +355,7 @@ function rescoreLine(line, context) {
     return bScore - aScore || String(a.pokemonId).localeCompare(String(b.pokemonId));
   });
   const typingOf = (option) =>
-    (option.legalityProfile?.currentTypes || []).join("/");
+    (option.legalityProfile?.currentTypes || []).join('/');
   const kept = ranked.length ? [ranked[0]] : [];
   for (const option of ranked.slice(1)) {
     if (kept.length >= SWEEP_FORM_OPTIONS) break;

@@ -1,17 +1,17 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { softCeiling } from "../src/teamBuilder/currentFormValue.js";
-import { setScoringOverrides } from "../src/teamBuilder/scoringConstants.js";
+import { softCeiling } from '../src/teamBuilder/currentFormValue.js';
+import { setScoringOverrides } from '../src/teamBuilder/scoringConstants.js';
 
-test("soft ceiling is identity below the knee", () => {
+test('soft ceiling is identity below the knee', () => {
   for (const x of [0, 0.2, 0.5, 0.9]) {
     assert.equal(softCeiling(x), x);
   }
   assert.equal(softCeiling(-0.3), 0);
 });
 
-test("soft ceiling keeps overshooting roles ordered and strictly below 1", () => {
+test('soft ceiling keeps overshooting roles ordered and strictly below 1', () => {
   const inputs = [0.91, 0.95, 1.0, 1.01, 1.05, 1.1, 1.5];
   const outputs = inputs.map(softCeiling);
   for (let i = 0; i < outputs.length; i++) {

@@ -1,4 +1,4 @@
-import "./styles/main.css";
+import './styles/main.css';
 
 import {
   formatBelongsToFamily,
@@ -12,21 +12,21 @@ import {
   loadFormatsIndex,
   loadMovesetData,
   loadPokemonIndex,
-} from "./data";
-import { bindAppEvents } from "./app/appEvents";
-import { renderBrowserPage } from "./app/browserPage";
-import { captureFocusState, restoreFocusState } from "./app/focusState";
-import { renderFatalAppError, renderAppShell } from "./app/appShellView";
-import { renderResolverPage } from "./app/resolverPage";
-import { readStateFromUrl, writeStateToUrl } from "./router";
-import { getState, replaceState, setState } from "./state";
-import { mountPoolOptimizer } from "./poolWidget";
-import { computeResolverRepresentativeResults } from "./resolver/representatives";
-import { createPrecomputedSetDetailsLoader } from "./setDetails/precomputedSetDetails";
-import { startUpdateNotifier } from "./updateNotifier";
+} from './data';
+import { bindAppEvents } from './app/appEvents';
+import { renderBrowserPage } from './app/browserPage';
+import { captureFocusState, restoreFocusState } from './app/focusState';
+import { renderFatalAppError, renderAppShell } from './app/appShellView';
+import { renderResolverPage } from './app/resolverPage';
+import { readStateFromUrl, writeStateToUrl } from './router';
+import { getState, replaceState, setState } from './state';
+import { mountPoolOptimizer } from './poolWidget';
+import { computeResolverRepresentativeResults } from './resolver/representatives';
+import { createPrecomputedSetDetailsLoader } from './setDetails/precomputedSetDetails';
+import { startUpdateNotifier } from './updateNotifier';
 
-const app = document.querySelector("#app");
-const DESC_SORT_FIELDS = new Set(["usage", "rawCount", "leadTendency"]);
+const app = document.querySelector('#app');
+const DESC_SORT_FIELDS = new Set(['usage', 'rawCount', 'leadTendency']);
 const LITERAL_RESOLVE_LIMIT = 25;
 const RESOLVER_INPUT_DEBOUNCE_MS = 300;
 
@@ -37,7 +37,7 @@ let pokemonIndex = [];
 let browserMovesetData = null;
 let browserMovesetKey = null;
 let resolverResults = [];
-let resolverLoadingState = { loading: false, message: "" };
+let resolverLoadingState = { loading: false, message: '' };
 let syncGeneration = 0;
 let resolverDebounceTimer = null;
 
@@ -80,7 +80,7 @@ function ensureValidFamilyAndFormat() {
   ) {
     setState({
       format: fallbackFormat,
-      month: "all",
+      month: 'all',
       selectedPokemon: null,
       resolverSelectedPokemon: null,
     });
@@ -93,14 +93,14 @@ function ensureValidMonth() {
   const synthetic = isSyntheticFormat(state.format, formatsIndex);
 
   if (synthetic) {
-    if (state.month === "all" || !months.includes(state.month)) {
+    if (state.month === 'all' || !months.includes(state.month)) {
       setState({ month: getLatestMonth(dataset), selectedPokemon: null });
     }
     return;
   }
 
-  if (state.month !== "all" && !months.includes(state.month)) {
-    setState({ month: "all", selectedPokemon: null });
+  if (state.month !== 'all' && !months.includes(state.month)) {
+    setState({ month: 'all', selectedPokemon: null });
   }
 }
 
@@ -110,17 +110,17 @@ function ensureValidResolverMonth() {
   const months = Object.keys(availability?.months || {});
 
   if (
-    state.resolverMonth !== "all" &&
+    state.resolverMonth !== 'all' &&
     (!state.resolverMonth || !months.includes(state.resolverMonth))
   ) {
-    setState({ resolverMonth: latest || "all" });
+    setState({ resolverMonth: latest || 'all' });
   }
 }
 
 async function ensureBrowserMovesetData() {
   const state = getState();
 
-  if (state.view !== "browser") {
+  if (state.view !== 'browser') {
     browserMovesetData = null;
     browserMovesetKey = null;
     return;
@@ -159,9 +159,9 @@ function renderApp() {
 
   renderAppShell(app, state);
 
-  const pageRoot = document.querySelector("#page-root");
+  const pageRoot = document.querySelector('#page-root');
 
-  if (state.view === "resolver") {
+  if (state.view === 'resolver') {
     renderResolverPage(pageRoot, {
       availability,
       formatsIndex,
@@ -170,7 +170,7 @@ function renderApp() {
       setDetails: resolverSetDetails,
       state,
     });
-  } else if (state.view === "pool") {
+  } else if (state.view === 'pool') {
     renderPoolPage(pageRoot);
   } else {
     renderBrowserPage(pageRoot, {
@@ -187,7 +187,7 @@ function renderApp() {
 function renderPoolPage(pageRoot) {
   pageRoot.innerHTML = `<section id="pool-root" class="page-stack"></section>`;
 
-  mountPoolOptimizer(document.querySelector("#pool-root"), {
+  mountPoolOptimizer(document.querySelector('#pool-root'), {
     embedded: true,
     family: getState().family,
   });
@@ -220,7 +220,7 @@ async function handleFamilyChange(nextFamily) {
   setState({
     family: nextFamily,
     format: nextFormat,
-    month: "all",
+    month: 'all',
     selectedPokemon: null,
     resolverSelectedPokemon: null,
   });
@@ -241,7 +241,7 @@ async function handleFormatChange(format) {
 
   const nextDataset = await loadFormatData(format);
   const synthetic = isSyntheticFormat(format, formatsIndex);
-  const month = synthetic ? getLatestMonth(nextDataset) : "all";
+  const month = synthetic ? getLatestMonth(nextDataset) : 'all';
 
   dataset = nextDataset;
 
@@ -297,12 +297,12 @@ async function handleSort(nextSortBy) {
   const state = getState();
   const nextSortDir =
     state.sortBy === nextSortBy
-      ? state.sortDir === "asc"
-        ? "desc"
-        : "asc"
+      ? state.sortDir === 'asc'
+        ? 'desc'
+        : 'asc'
       : DESC_SORT_FIELDS.has(nextSortBy)
-        ? "desc"
-        : "asc";
+        ? 'desc'
+        : 'asc';
 
   setState({ sortBy: nextSortBy, sortDir: nextSortDir });
 
@@ -318,7 +318,7 @@ async function handleBrowserPokemonClick(pokemonId) {
   setState({
     selectedPokemon: state.selectedPokemon === pokemonId ? null : pokemonId,
     resolverSelectedPokemon: null,
-    view: "browser",
+    view: 'browser',
   });
 
   await sync({ recomputeResolverResults: false });
@@ -334,7 +334,7 @@ async function handleResolverPokemonClick(pokemonId) {
   setState({
     resolverSelectedPokemon: nextSelected,
     selectedPokemon: null,
-    view: "resolver",
+    view: 'resolver',
   });
 
   if (nextSelected) {
@@ -354,7 +354,7 @@ function clearPendingResolverDebounce() {
 }
 
 function getResolverLoadingMessage() {
-  const tokens = (getState().resolverQuery || "")
+  const tokens = (getState().resolverQuery || '')
     .split(/[,\n]+/)
     .map((token) => token.trim())
     .filter(Boolean);
@@ -367,13 +367,13 @@ function getResolverLoadingMessage() {
     return `Resolving ${tokens.length} inputs...`;
   }
 
-  return "Resolving Pokémon...";
+  return 'Resolving Pokémon...';
 }
 
 function renderResolverLoadingNow() {
   const state = getState();
 
-  if (state.view !== "resolver" || !state.resolverQuery.trim()) return;
+  if (state.view !== 'resolver' || !state.resolverQuery.trim()) return;
 
   resolverLoadingState = {
     loading: true,
@@ -405,7 +405,7 @@ async function sync(options = {}) {
   if (generation !== syncGeneration) return;
 
   if (recomputeResolverResults) {
-    resolverLoadingState = { loading: false, message: "" };
+    resolverLoadingState = { loading: false, message: '' };
     resolverResults = nextResolverResults;
     ensureResolverSelectionStillExists();
   }
@@ -434,7 +434,7 @@ function ensureResolverSelectionStillExists() {
 function syncResolverSetDetailsSelection() {
   const state = getState();
 
-  if (state.view !== "resolver") return;
+  if (state.view !== 'resolver') return;
 
   if (!state.resolverSelectedPokemon) {
     resolverSetDetails.cancel();

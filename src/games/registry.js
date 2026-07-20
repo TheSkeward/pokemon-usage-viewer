@@ -10,7 +10,7 @@
  * Optimizer cache keys fold the game id in, so switching games can never
  * serve one game's cached results to another.
  */
-import { REBORN_GAME } from "./reborn.js";
+import { REBORN_GAME } from './reborn.js';
 
 const GAMES = Object.freeze({
   [REBORN_GAME.id]: REBORN_GAME,
@@ -39,7 +39,7 @@ export function listGames() {
  */
 export function setActiveGame(id) {
   if (!GAMES[id]) {
-    throw new Error(`Unknown game "${id}" (known: ${Object.keys(GAMES).join(", ")})`);
+    throw new Error(`Unknown game "${id}" (known: ${Object.keys(GAMES).join(', ')})`);
   }
   activeGameId = id;
 }

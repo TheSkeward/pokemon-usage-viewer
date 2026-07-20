@@ -1,17 +1,17 @@
-import { dataUrl } from "../utils/dataUrl.js";
-import { fetchJsonCached } from "../utils/fetchJsonCached.js";
-import { toId } from "../utils/ids.js";
-import { TYPE_GEMS } from "../reborn/typeGems.js";
+import { dataUrl } from '../utils/dataUrl.js';
+import { fetchJsonCached } from '../utils/fetchJsonCached.js';
+import { toId } from '../utils/ids.js';
+import { TYPE_GEMS } from '../reborn/typeGems.js';
 import {
   GEN7_HELD_ITEMS,
   GEN7_HELD_ITEMS_BY_ID,
-} from "../generated/gen7HeldItems.generated.js";
+} from '../generated/gen7HeldItems.generated.js';
 import {
   REBORN_SEEDS,
   GEN7_TERRAIN_SEEDS,
   REBORN_SEED_STAT_VECTORS,
-} from "../reborn/rebornSeeds.js";
-import { GEN7_BASE_STATS } from "../generated/gen7BaseStats.generated.js";
+} from '../reborn/rebornSeeds.js';
+import { GEN7_BASE_STATS } from '../generated/gen7BaseStats.generated.js';
 
 const TERRAIN_SEED_IDS = GEN7_TERRAIN_SEEDS.map((name) => toId(name));
 const REBORN_SEED_BY_ID = new Map(
@@ -51,7 +51,7 @@ function itemEligibleForMember(itemId, allowedTypes, fieldSetterShare = null) {
 }
 
 /** @const {string} */
-export const FIELD_EXTENDER_ITEM_ID = "amplifieldrock";
+export const FIELD_EXTENDER_ITEM_ID = 'amplifieldrock';
 // Measured conditional propensity of the nearest mainline analog (Light Clay
 // held given screens usage, rawCount-weighted across gen7) — the fraction of
 // setter sets that pay the item slot for the duration extender.
@@ -74,7 +74,7 @@ export function withFieldExtenderCandidate(items, fieldSetterShare) {
     ...items,
     {
       id: FIELD_EXTENDER_ITEM_ID,
-      name: "Amplifield Rock",
+      name: 'Amplifield Rock',
       usage: null,
       weight: FIELD_EXTENDER_PROPENSITY * fieldSetterShare,
       fieldExtender: true,
@@ -200,7 +200,7 @@ export function assignTeamItems({ team, usageByMember, ownedItems, itemContext }
       id: itemId,
       name:
         GEN7_HELD_ITEMS_BY_ID[itemId]?.name ||
-        (itemId === FIELD_EXTENDER_ITEM_ID ? "Amplifield Rock" : itemId),
+        (itemId === FIELD_EXTENDER_ITEM_ID ? 'Amplifield Rock' : itemId),
       usage: null,
       fallback: true,
     };
@@ -234,8 +234,8 @@ async function fetchMemberItems({ family, pokemonId, selection, unburden }) {
     fetchSetIndex({ family, pokemonId, selection }).then(
       (primary) =>
         primary ||
-        (selection !== "all"
-          ? fetchSetIndex({ family, pokemonId, selection: "all" })
+        (selection !== 'all'
+          ? fetchSetIndex({ family, pokemonId, selection: 'all' })
           : null),
     ),
     fetchGen5Items(pokemonId),
@@ -250,7 +250,7 @@ async function fetchMemberItems({ family, pokemonId, selection, unburden }) {
     const id = toId(item.name);
     if (!id) continue;
 
-    const hasUsage = typeof item.usage === "number";
+    const hasUsage = typeof item.usage === 'number';
     const weight = hasUsage
       ? item.usage
       : Math.max(0.0001, TAIL_BASE_WEIGHT - tailRank * TAIL_STEP);
@@ -274,7 +274,7 @@ async function fetchMemberItems({ family, pokemonId, selection, unburden }) {
   // weight so it also enriches non-gem items.
   for (const item of gen5Items) {
     const id = toId(item.name);
-    if (!id || typeof item.usage !== "number") continue;
+    if (!id || typeof item.usage !== 'number') continue;
 
     const entry = { id, name: item.name, usage: item.usage, weight: item.usage, gen5: true };
     applyUnburden(entry, unburden);

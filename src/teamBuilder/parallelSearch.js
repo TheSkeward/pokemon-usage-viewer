@@ -8,7 +8,7 @@
  * never load-bearing, so a failure just costs time.
  */
 
-import { searchCombinationRange } from "./searchKernel.js";
+import { searchCombinationRange } from './searchKernel.js';
 
 /**
  * Below this many combinations the worker round-trip (spawn already
@@ -54,7 +54,7 @@ function getWorkerPool() {
     }
     return workerPool;
   }
-  if (typeof Worker === "undefined" || typeof navigator === "undefined") {
+  if (typeof Worker === 'undefined' || typeof navigator === 'undefined') {
     workerPoolBroken = true;
     return null;
   }
@@ -64,8 +64,8 @@ function getWorkerPool() {
     workerPool = Array.from(
       { length: size },
       () =>
-        new Worker(new URL("./searchWorker.js", import.meta.url), {
-          type: "module",
+        new Worker(new URL('./searchWorker.js', import.meta.url), {
+          type: 'module',
         }),
     );
   } catch {
@@ -195,7 +195,7 @@ function runOnWorker(worker, compactLines, targetSize, bias, start, end, topCoun
   return new Promise((resolve, reject) => {
     let timer = setTimeout(() => {
       cleanup();
-      reject(new Error("worker timeout"));
+      reject(new Error('worker timeout'));
     }, workerTimeoutMs);
     const onMessage = (event) => {
       if (event.data?.id !== id) return;
@@ -206,26 +206,26 @@ function runOnWorker(worker, compactLines, targetSize, bias, start, end, topCoun
         clearTimeout(timer);
         timer = setTimeout(() => {
           cleanup();
-          reject(new Error("worker timeout"));
+          reject(new Error('worker timeout'));
         }, workerTimeoutMs);
         onProgress?.(event.data.progress);
         return;
       }
       cleanup();
       if (event.data.ok) resolve(event.data.result);
-      else reject(new Error(event.data.error || "worker error"));
+      else reject(new Error(event.data.error || 'worker error'));
     };
     const onError = (event) => {
       cleanup();
-      reject(new Error(event?.message || "worker error"));
+      reject(new Error(event?.message || 'worker error'));
     };
     const cleanup = () => {
       clearTimeout(timer);
-      worker.removeEventListener("message", onMessage);
-      worker.removeEventListener("error", onError);
+      worker.removeEventListener('message', onMessage);
+      worker.removeEventListener('error', onError);
     };
-    worker.addEventListener("message", onMessage);
-    worker.addEventListener("error", onError);
+    worker.addEventListener('message', onMessage);
+    worker.addEventListener('error', onError);
     worker.postMessage({ id, compactLines, targetSize, bias, start, end, topCount });
   });
 }

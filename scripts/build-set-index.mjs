@@ -1,25 +1,25 @@
-import fs from "node:fs/promises";
-import path from "node:path";
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import {
   DATA_ROOT,
   FALLBACK_FAMILY_ORDER,
   FAMILIES,
   OUT_ROOT,
-} from "./set-index/constants.mjs";
-import { aggregateCandidateSource } from "./set-index/aggregateMovesets.mjs";
-import { getMovesetCandidates } from "./set-index/candidates.mjs";
-import { readJson, readJsonIfExists, writeJson } from "./set-index/io.mjs";
-import { buildSpeciesContext } from "./set-index/speciesContext.mjs";
+} from './set-index/constants.mjs';
+import { aggregateCandidateSource } from './set-index/aggregateMovesets.mjs';
+import { getMovesetCandidates } from './set-index/candidates.mjs';
+import { readJson, readJsonIfExists, writeJson } from './set-index/io.mjs';
+import { buildSpeciesContext } from './set-index/speciesContext.mjs';
 import {
   appendRelatedSetOptions,
   stitchPokemonSetDetail,
-} from "./set-index/stitchSetDetails.mjs";
+} from './set-index/stitchSetDetails.mjs';
 
 async function main() {
   const [availability, formatsIndex, pokemonIndex] = await Promise.all([
-    readJson(path.join(DATA_ROOT, "availability.json")),
-    readJson(path.join(DATA_ROOT, "formats.json")),
-    readJson(path.join(DATA_ROOT, "pokemon-index.json")),
+    readJson(path.join(DATA_ROOT, 'availability.json')),
+    readJson(path.join(DATA_ROOT, 'formats.json')),
+    readJson(path.join(DATA_ROOT, 'pokemon-index.json')),
   ]);
 
   const speciesContext = buildSpeciesContext(pokemonIndex);
@@ -32,7 +32,7 @@ async function main() {
       family,
       formatsIndex,
       pokemonIndex,
-      selection: "all",
+      selection: 'all',
       speciesContext,
     });
   }
@@ -49,7 +49,7 @@ async function buildFamilySetIndex({
   const sourceFamilies = FALLBACK_FAMILY_ORDER[family] || [family];
 
   console.log(
-    `[set-index] building ${family}/${selection} from ${sourceFamilies.join(" → ")}`,
+    `[set-index] building ${family}/${selection} from ${sourceFamilies.join(' → ')}`,
   );
 
   const sourceAggregates = await buildSourceAggregates({
@@ -111,7 +111,7 @@ async function buildSourceAggregates({
 
 async function loadFamilyRankings(family) {
   const index = await readJsonIfExists(
-    path.join(DATA_ROOT, "resolver-index", family, "all.json"),
+    path.join(DATA_ROOT, 'resolver-index', family, 'all.json'),
   );
 
   const rankingByPokemon = new Map();

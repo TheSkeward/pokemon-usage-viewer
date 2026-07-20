@@ -249,7 +249,7 @@ async function getResolverTargetIds({ cli, explicitRealIds, implicitDependencyId
 
   const existingAvailability = (await readJsonIfExists(availabilityPath)) || { months: {} };
   const missingImplicitDeps = implicitDependencyIds.filter((formatId) =>
-    !formatAppearsAnywhereInAvailability(existingAvailability, formatId)
+    !formatAppearsAnywhereInAvailability(existingAvailability, formatId),
   );
 
   return missingImplicitDeps;
@@ -264,7 +264,7 @@ function formatAppearsAnywhereInAvailability(availability, formatId) {
 
 function sortRealIds(ids) {
   return [...new Set(ids)].sort(
-    (a, b) => (REAL_FORMAT_ORDER_INDEX.get(a) ?? Infinity) - (REAL_FORMAT_ORDER_INDEX.get(b) ?? Infinity)
+    (a, b) => (REAL_FORMAT_ORDER_INDEX.get(a) ?? Infinity) - (REAL_FORMAT_ORDER_INDEX.get(b) ?? Infinity),
   );
 }
 
@@ -339,7 +339,7 @@ async function buildRealFormatBrowserDataset(format, months, latestAvailableMont
       DEFAULT_RATING,
       'moveset',
       latestAvailableMonth,
-      cli
+      cli,
     );
 
     const browserMovesetPath = path.join(browserMovesetsDir, format.id, `${month}.json`);
@@ -522,13 +522,13 @@ async function buildAvailabilityAndResolverSources(targetRealIds, months, latest
                   usage: row.usage,
                   rawCount: row.rawCount,
                 },
-              ])
+              ]),
             ),
           };
 
           await writeJson(
             path.join(resolverSourcesDir, month, formatId, String(cutoff), 'usage.json'),
-            usageSidecar
+            usageSidecar,
           );
           counters.sidecarsWritten += 1;
           formatMonthEntry.usage.push(cutoff);
@@ -563,14 +563,14 @@ async function buildAvailabilityAndResolverSources(targetRealIds, months, latest
                     },
                   ];
                 })
-                .filter(Boolean)
+                .filter(Boolean),
             ),
           };
 
           if (Object.keys(leadsSidecar.pokemon).length > 0) {
             await writeJson(
               path.join(resolverSourcesDir, month, formatId, String(cutoff), 'leads.json'),
-              leadsSidecar
+              leadsSidecar,
             );
             counters.sidecarsWritten += 1;
             formatMonthEntry.leads.push(cutoff);
@@ -587,7 +587,7 @@ async function buildAvailabilityAndResolverSources(targetRealIds, months, latest
           cutoff,
           'moveset',
           latestAvailableMonth,
-          cli
+          cli,
         );
 
         if (movesetText) {
@@ -600,7 +600,7 @@ async function buildAvailabilityAndResolverSources(targetRealIds, months, latest
           if (Object.keys(movesetSidecar.pokemon).length > 0) {
             await writeJson(
               path.join(resolverSourcesDir, month, formatId, String(cutoff), 'moveset.json'),
-              movesetSidecar
+              movesetSidecar,
             );
             counters.sidecarsWritten += 1;
             formatMonthEntry.moveset.push(cutoff);
@@ -804,7 +804,7 @@ function extractSectionEntries(body, sectionName) {
 
   const sectionRegex = new RegExp(
     `\\+[-+]+\\+\\s*\\|\\s*${escaped}\\s*\\|\\s*([\\s\\S]*?)(?=\\+[-+]+\\+\\s*\\|\\s*${boundary}\\s*\\||$)`,
-    'i'
+    'i',
   );
 
   const sectionMatch = body.match(sectionRegex);
@@ -926,7 +926,7 @@ function printPhaseDelta(label, before) {
   const delta = diffCounters(before, counters);
 
   console.log(
-    `    ${label}: cache=${delta.cacheHits}, cache404=${delta.cache404Hits}, downloads=${delta.downloads}, download404=${delta.downloaded404s}, sidecars+${delta.sidecarsWritten}, removed=${delta.sidecarsRemoved}`
+    `    ${label}: cache=${delta.cacheHits}, cache404=${delta.cache404Hits}, downloads=${delta.downloads}, download404=${delta.downloaded404s}, sidecars+${delta.sidecarsWritten}, removed=${delta.sidecarsRemoved}`,
   );
 }
 

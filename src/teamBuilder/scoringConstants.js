@@ -16,7 +16,7 @@
  */
 
 /** @const {string} */
-export const SCORING_VERSION = "2.0.0";
+export const SCORING_VERSION = '2.0.0';
 
 /** @const {Object<string, *>} Frozen defaults, keyed by tunable name. */
 export const SCORING_DEFAULTS = Object.freeze({
@@ -125,7 +125,7 @@ export const SCORING_DEFAULTS = Object.freeze({
   RESIST_STACK_BONUS: 45, // per stacked resist (capped)
 
   // --- Ability assumption (when the caught mon's ability is unknown) ----------
-  ABILITY_ASSUMPTION: "primary", // "secondary" flips unknown mons for the sweep
+  ABILITY_ASSUMPTION: 'primary', // "secondary" flips unknown mons for the sweep
 
   // --- Usage-convergence blend (see SCORING.md) -------------------------------
   USAGE_RAMP_EXPONENT: 2, // w ramps as (cap/L*)^k — back-loaded handoff
@@ -212,9 +212,9 @@ export function getScoringOverrides() {
  */
 export function scoringOverridesSignature() {
   const overrides = globalThis.__SCORING_OVERRIDES__;
-  if (!overrides) return "base";
+  if (!overrides) return 'base';
   return Object.keys(overrides)
     .sort()
     .map((key) => `${key}=${overrides[key]}`)
-    .join(",");
+    .join(',');
 }

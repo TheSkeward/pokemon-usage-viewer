@@ -1,30 +1,30 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 import {
   currentFormFeatures,
   currentFormValue,
   defensiveTypeBalance,
-} from "../src/teamBuilder/currentFormValue.js";
+} from '../src/teamBuilder/currentFormValue.js';
 
 const damagingSet = (damage = 260) => [
   {
-    name: "Primary STAB",
-    category: "Special",
+    name: 'Primary STAB',
+    category: 'Special',
     estimatedDamage: damage,
     roles: [],
     accuracy: 100,
   },
   {
-    name: "Secondary STAB",
-    category: "Special",
+    name: 'Secondary STAB',
+    category: 'Special',
     estimatedDamage: damage * 0.85,
     roles: [],
     accuracy: 100,
   },
   {
-    name: "Coverage",
-    category: "Special",
+    name: 'Coverage',
+    category: 'Special',
     estimatedDamage: damage * 0.65,
     roles: [],
     accuracy: 100,
@@ -43,15 +43,15 @@ function profile({ currentId, currentTypes, damage = 260 }) {
   };
 }
 
-test("defensive type balance prices resists, immunities, and severe weaknesses", () => {
-  assert.equal(defensiveTypeBalance(["Water", "Fairy"]), 1);
-  assert.equal(defensiveTypeBalance(["Grass"]), -3);
-  assert.equal(defensiveTypeBalance(["Normal"]), 0);
+test('defensive type balance prices resists, immunities, and severe weaknesses', () => {
+  assert.equal(defensiveTypeBalance(['Water', 'Fairy']), 1);
+  assert.equal(defensiveTypeBalance(['Grass']), -3);
+  assert.equal(defensiveTypeBalance(['Normal']), 0);
 });
 
-test("side-specific bulk remains observable without replacing balanced bulk", () => {
+test('side-specific bulk remains observable without replacing balanced bulk', () => {
   const features = currentFormFeatures(
-    profile({ currentId: "primarina", currentTypes: ["Water", "Fairy"] }),
+    profile({ currentId: 'primarina', currentTypes: ['Water', 'Fairy'] }),
     100,
   );
 
@@ -61,17 +61,17 @@ test("side-specific bulk remains observable without replacing balanced bulk", ()
   assert.ok(features.effective_bulk_q > features.bulk_q);
 });
 
-test("neutral typing fixes effective bulk while favorable and vulnerable typing move it", () => {
+test('neutral typing fixes effective bulk while favorable and vulnerable typing move it', () => {
   const neutral = currentFormFeatures(
-    profile({ currentId: "tropius", currentTypes: ["Normal"] }),
+    profile({ currentId: 'tropius', currentTypes: ['Normal'] }),
     100,
   );
   const favorable = currentFormFeatures(
-    profile({ currentId: "tropius", currentTypes: ["Water", "Fairy"] }),
+    profile({ currentId: 'tropius', currentTypes: ['Water', 'Fairy'] }),
     100,
   );
   const vulnerable = currentFormFeatures(
-    profile({ currentId: "tropius", currentTypes: ["Grass", "Flying"] }),
+    profile({ currentId: 'tropius', currentTypes: ['Grass', 'Flying'] }),
     100,
   );
 
@@ -81,21 +81,21 @@ test("neutral typing fixes effective bulk while favorable and vulnerable typing 
   assert.ok(vulnerable.effective_bulk_q < vulnerable.bulk_q);
 });
 
-test("ordinary bulky roles consume effective rather than raw bulk", () => {
+test('ordinary bulky roles consume effective rather than raw bulk', () => {
   const neutralProfile = profile({
-    currentId: "tropius",
-    currentTypes: ["Normal"],
+    currentId: 'tropius',
+    currentTypes: ['Normal'],
   });
   const vulnerableProfile = {
     ...neutralProfile,
-    currentTypes: ["Grass", "Flying"],
+    currentTypes: ['Grass', 'Flying'],
     recommendedMoves: [
       ...neutralProfile.recommendedMoves,
       {
-        name: "Recover",
-        category: "Status",
+        name: 'Recover',
+        category: 'Status',
         estimatedDamage: 0,
-        roles: ["recovery"],
+        roles: ['recovery'],
         accuracy: 100,
       },
     ],
@@ -108,44 +108,44 @@ test("ordinary bulky roles consume effective rather than raw bulk", () => {
   assert.ok(
     vulnerable.roles.bulky_utility <
       currentFormValue(
-        { ...vulnerableProfile, currentTypes: ["Normal"] },
+        { ...vulnerableProfile, currentTypes: ['Normal'] },
         100,
       ).roles.bulky_utility,
   );
 });
 
-test("favorable typing can complete a genuinely strong one-sided bulky attacker", () => {
+test('favorable typing can complete a genuinely strong one-sided bulky attacker', () => {
   const value = currentFormValue(
-    profile({ currentId: "primarina", currentTypes: ["Water", "Fairy"] }),
+    profile({ currentId: 'primarina', currentTypes: ['Water', 'Fairy'] }),
     100,
   );
 
-  assert.equal(value.bestRole, "specialist_bulky_attacker");
+  assert.equal(value.bestRole, 'specialist_bulky_attacker');
   assert.ok(value.value <= 2000);
 });
 
-test("the specialist route cannot exceed the common attacker ceiling", () => {
+test('the specialist route cannot exceed the common attacker ceiling', () => {
   const value = currentFormValue(
     profile({
-      currentId: "aegislash",
-      currentTypes: ["Steel", "Ghost"],
+      currentId: 'aegislash',
+      currentTypes: ['Steel', 'Ghost'],
       damage: 400,
     }),
     100,
   );
 
-  assert.equal(value.bestRole, "specialist_bulky_attacker");
+  assert.equal(value.bestRole, 'specialist_bulky_attacker');
   // The unclamped route overshoots 1; the soft knee keeps it strictly
   // below the common 2000 ceiling.
   assert.ok(value.value > 1800);
   assert.ok(value.value < 2000);
 });
 
-test("one strong defensive side cannot overcome broadly vulnerable typing", () => {
+test('one strong defensive side cannot overcome broadly vulnerable typing', () => {
   const value = currentFormValue(
-    profile({ currentId: "sunflora", currentTypes: ["Grass"] }),
+    profile({ currentId: 'sunflora', currentTypes: ['Grass'] }),
     100,
   );
 
-  assert.notEqual(value.bestRole, "specialist_bulky_attacker");
+  assert.notEqual(value.bestRole, 'specialist_bulky_attacker');
 });

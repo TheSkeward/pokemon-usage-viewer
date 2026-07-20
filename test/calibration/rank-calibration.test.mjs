@@ -22,36 +22,36 @@
 //
 // Run separately from the fast mechanical/correctness suite (19 optimizer runs):
 //   npm run validate:calibration
-import test from "node:test";
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { runPool, bestChoice } from "../helpers/harness.mjs";
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { runPool, bestChoice } from '../helpers/harness.mjs';
 import {
   activePoorAnchors,
   poorAnchor,
   poorAnchorInput,
   poorAnchorLabel,
-} from "../helpers/calibrationAnchors.mjs";
+} from '../helpers/calibrationAnchors.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const { buckets } = JSON.parse(
-  readFileSync(path.join(HERE, "badge-buckets.json"), "utf8"),
+  readFileSync(path.join(HERE, 'badge-buckets.json'), 'utf8'),
 );
 
 const AMAZING = [
-  "Excadrill", "Scizor", "Blaziken", "Sharpedo", "Aegislash", "Primarina",
-  "Meowstic",
+  'Excadrill', 'Scizor', 'Blaziken', 'Sharpedo', 'Aegislash', 'Primarina',
+  'Meowstic',
 ];
 const GARBAGE = [
-  poorAnchor("Tropius"),
-  poorAnchor("Dunsparce"),
-  poorAnchor("Sunflora"),
-  poorAnchor("Ledian"),
-  poorAnchor("Luvdisc"),
-  poorAnchor("Delibird"),
-  poorAnchor("Unown"),
+  poorAnchor('Tropius'),
+  poorAnchor('Dunsparce'),
+  poorAnchor('Sunflora'),
+  poorAnchor('Ledian'),
+  poorAnchor('Luvdisc'),
+  poorAnchor('Delibird'),
+  poorAnchor('Unown'),
 ];
 
 // Level cap per badge, from the checkpoint schedule (badgeTimeline.js).
@@ -109,10 +109,10 @@ for (const badgeKey of Object.keys(buckets)) {
     // Readable findings record, pass or fail.
     console.log(
       `badge ${badge} (cap ${CAP[badge]}, ${bucket.length} reference + ${injected.length} probes) q75=${Math.round(q75)} q25=${Math.round(q25)}\n` +
-        `  amazing: ${AMAZING.map(describe).join("; ")}\n` +
+        `  amazing: ${AMAZING.map(describe).join('; ')}\n` +
         (activeGarbage.length
-          ? `  garbage: ${activeGarbage.map(describePoor).join("; ")}\n`
-          : ""),
+          ? `  garbage: ${activeGarbage.map(describePoor).join('; ')}\n`
+          : ''),
     );
 
     // Collect EVERY violation (no fail-fast): each is an independent

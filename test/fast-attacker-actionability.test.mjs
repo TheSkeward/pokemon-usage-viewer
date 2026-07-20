@@ -1,19 +1,19 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { currentFormValue } from "../src/teamBuilder/currentFormValue.js";
+import { currentFormValue } from '../src/teamBuilder/currentFormValue.js';
 
 const moves = [
   {
-    name: "Primary STAB",
-    category: "Physical",
+    name: 'Primary STAB',
+    category: 'Physical',
     estimatedDamage: 120,
     roles: [],
     accuracy: 100,
   },
   {
-    name: "Coverage",
-    category: "Physical",
+    name: 'Coverage',
+    category: 'Physical',
     estimatedDamage: 90,
     roles: [],
     accuracy: 100,
@@ -31,12 +31,12 @@ function profile(currentId, currentTypes) {
   };
 }
 
-test("fast attackers pay only for the overlap of middling speed and frailty", () => {
+test('fast attackers pay only for the overlap of middling speed and frailty', () => {
   const vulnerable = currentFormValue(
-    profile("delibird", ["Ice", "Flying"]),
+    profile('delibird', ['Ice', 'Flying']),
     25,
   );
-  const neutral = currentFormValue(profile("delibird", ["Normal"]), 25);
+  const neutral = currentFormValue(profile('delibird', ['Normal']), 25);
 
   assert.ok(vulnerable.features.speed_q > 0.5);
   assert.equal(vulnerable.features.effective_bulk_q, 0);
@@ -48,9 +48,9 @@ test("fast attackers pay only for the overlap of middling speed and frailty", ()
   assert.ok(vulnerable.roles.fast_attacker < neutral.roles.fast_attacker);
 });
 
-test("complete speed preserves the legitimate glass-cannon route", () => {
+test('complete speed preserves the legitimate glass-cannon route', () => {
   const value = currentFormValue(
-    profile("deoxysspeed", ["Psychic"]),
+    profile('deoxysspeed', ['Psychic']),
     100,
   );
 

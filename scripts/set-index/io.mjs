@@ -1,9 +1,9 @@
-import fs from "node:fs/promises";
-import path from "node:path";
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 /** @return {!Promise<*>} */
 export async function readJson(filePath) {
-  return JSON.parse(await fs.readFile(filePath, "utf8"));
+  return JSON.parse(await fs.readFile(filePath, 'utf8'));
 }
 
 /** @return {!Promise<*>} Parsed JSON, or null when the file does not exist. */
@@ -11,7 +11,7 @@ export async function readJsonIfExists(filePath) {
   try {
     return await readJson(filePath);
   } catch (error) {
-    if (error?.code === "ENOENT") return null;
+    if (error?.code === 'ENOENT') return null;
     throw error;
   }
 }

@@ -1,18 +1,18 @@
 import {
   readLocalStorage,
   writeLocalStorage,
-} from "../storage/safeLocalStorage";
+} from '../storage/safeLocalStorage';
 
 // Persistent open/closed state for <details> groups. Full-page re-renders
 // rebuild every group from HTML strings; the user's last toggle wins across
 // re-renders and reloads, and a group's default only applies before they
 // ever touch it.
-const DETAILS_STATE_KEY = "pokemon-usage-viewer:details-open:v1";
+const DETAILS_STATE_KEY = 'pokemon-usage-viewer:details-open:v1';
 
 function readMap() {
   try {
-    const parsed = JSON.parse(readLocalStorage(DETAILS_STATE_KEY, "") || "{}");
-    return parsed && typeof parsed === "object" ? parsed : {};
+    const parsed = JSON.parse(readLocalStorage(DETAILS_STATE_KEY, '') || '{}');
+    return parsed && typeof parsed === 'object' ? parsed : {};
   } catch {
     return {};
   }
@@ -25,8 +25,8 @@ function readMap() {
  */
 export function detailsStateAttrs(id, defaultOpen) {
   const saved = readMap()[id];
-  const open = typeof saved === "boolean" ? saved : defaultOpen;
-  return `data-details-id="${id}"${open ? " open" : ""}`;
+  const open = typeof saved === 'boolean' ? saved : defaultOpen;
+  return `data-details-id="${id}"${open ? ' open' : ''}`;
 }
 
 /**
@@ -43,8 +43,8 @@ export function saveDetailsOpen(id, open) {
 
 /** @param {!Element} root */
 export function bindPersistentDetails(root) {
-  root.querySelectorAll("details[data-details-id]").forEach((element) => {
-    element.addEventListener("toggle", () =>
+  root.querySelectorAll('details[data-details-id]').forEach((element) => {
+    element.addEventListener('toggle', () =>
       saveDetailsOpen(element.dataset.detailsId, element.open),
     );
   });

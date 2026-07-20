@@ -10,17 +10,17 @@
  * Quality weighting: curated sample teams count SAMPLE_WEIGHT; replays count
  * 1, or RATED_WEIGHT at/above the same 1500 bar the usage stats publish.
  */
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { REAL_FORMATS } from "./config.mjs";
-import { writeJson } from "./set-index/io.mjs";
-import { readArchive } from "./build-observed-sets.mjs";
-import { replayWeight, teamWeight } from "./teamscrape/weights.mjs";
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { REAL_FORMATS } from './config.mjs';
+import { writeJson } from './set-index/io.mjs';
+import { readArchive } from './build-observed-sets.mjs';
+import { replayWeight, teamWeight } from './teamscrape/weights.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const ARCHIVE_DIR = path.join(scriptDir, "teamscrape", "archive");
-const OUT_ROOT = path.join(scriptDir, "..", "site-data", "data", "core-index");
+const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
+const OUT_ROOT = path.join(scriptDir, '..', 'site-data', 'data', 'core-index');
 
 // Two elite ladder games' worth of evidence: uncurated singletons are noise,
 // while any curated/tournament/RMT sighting clears it alone (see weights.mjs).
@@ -86,7 +86,7 @@ export function buildCoreIndex(compositions) {
   const partners = new Map(); // monId → [{id, lift, count}]
   for (const [pair, weight] of pairWeight) {
     if (weight < MIN_PAIR_WEIGHT) continue;
-    const [a, b] = pair.split("|");
+    const [a, b] = pair.split('|');
     // Symmetrized lift in percentage points: mean of P(B|A)−P(B) and
     // P(A|B)−P(A), matching build-teammate-index's pair-mean convention.
     const liftAB = weight / monWeight.get(a) - monWeight.get(b) / total;
@@ -102,7 +102,7 @@ export function buildCoreIndex(compositions) {
   const trios = new Map(); // monId → [{ids, count}]
   for (const [trio, weight] of trioWeight) {
     if (weight < MIN_PAIR_WEIGHT) continue;
-    const ids = trio.split("|");
+    const ids = trio.split('|');
     for (const self of ids) {
       const list = trios.get(self) || [];
       list.push({ ids: ids.filter((id) => id !== self), count: weight });
@@ -130,11 +130,11 @@ export function buildCoreIndex(compositions) {
 }
 
 async function main() {
-  const replays = readArchive(ARCHIVE_DIR, "replays-");
+  const replays = readArchive(ARCHIVE_DIR, 'replays-');
   const samples = [
-    ...readArchive(ARCHIVE_DIR, "samples-"),
-    ...readArchive(ARCHIVE_DIR, "rmt-"),
-    ...readArchive(ARCHIVE_DIR, "tournament-"),
+    ...readArchive(ARCHIVE_DIR, 'samples-'),
+    ...readArchive(ARCHIVE_DIR, 'rmt-'),
+    ...readArchive(ARCHIVE_DIR, 'tournament-'),
   ];
   const byFamily = collectCompositions({ replays, samples });
   for (const [family, compositions] of byFamily) {
@@ -143,12 +143,12 @@ async function main() {
     for (const [monId, detail] of index) {
       await writeJson(path.join(dir, `${monId}.json`), detail);
     }
-    await writeJson(path.join(dir, "index.json"), [...index.keys()].sort());
+    await writeJson(path.join(dir, 'index.json'), [...index.keys()].sort());
     console.log(
       `core-index/${family}: ${index.size} mons from ${compositions.length} team sides`,
     );
   }
-  if (!byFamily.size) console.log("core-index: no archives yet — nothing to build");
+  if (!byFamily.size) console.log('core-index: no archives yet — nothing to build');
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

@@ -28,16 +28,24 @@ const resolverIndexCache = new Map();
 const aggregatedMovesetCandidateCache = new Map();
 
 /** @return {!Promise<!Array<!Object>>} */
-export async function loadFormatsIndex() { return loadJson(dataUrl('formats.json')); }
+export async function loadFormatsIndex() {
+  return loadJson(dataUrl('formats.json')); 
+}
 /** @return {!Promise<!Object>} */
-export async function loadAvailability() { return loadJson(dataUrl('availability.json')); }
+export async function loadAvailability() {
+  return loadJson(dataUrl('availability.json')); 
+}
 /** @return {!Promise<!Array<!Object>>} */
-export async function loadPokemonIndex() { return loadJson(dataUrl('pokemon-index.json')); }
+export async function loadPokemonIndex() {
+  return loadJson(dataUrl('pokemon-index.json')); 
+}
 /**
  * @param {string} formatId
  * @return {!Promise<!Object>}
  */
-export async function loadFormatData(formatId) { return loadJson(dataUrl(`by-format/${formatId}.json`)); }
+export async function loadFormatData(formatId) {
+  return loadJson(dataUrl(`by-format/${formatId}.json`)); 
+}
 
 /**
  * @param {string} formatId
@@ -49,7 +57,9 @@ export async function loadMovesetData(formatId, month) {
   const key = `${formatId}:${month}`;
   if (browserMovesetCache.has(key)) return browserMovesetCache.get(key);
   const response = await fetch(dataUrl(`movesets/${formatId}/${month}.json`));
-  if (response.status === 404) { browserMovesetCache.set(key, null); return null; }
+  if (response.status === 404) {
+    browserMovesetCache.set(key, null); return null; 
+  }
   if (!response.ok) throw new Error(`Failed to load movesets for ${formatId} ${month}`);
   const data = await response.json();
   browserMovesetCache.set(key, data);
@@ -112,9 +122,13 @@ async function loadJson(url) {
  * @param {string} family
  * @return {!Object} Family config; unknown families fall back to singles.
  */
-export function getFamilyConfig(family) { return FAMILY_CONFIGS[family] || FAMILY_CONFIGS.singles; }
+export function getFamilyConfig(family) {
+  return FAMILY_CONFIGS[family] || FAMILY_CONFIGS.singles; 
+}
 /** @return {string} */
-export function getDefaultBrowserFormat(family) { return getFamilyConfig(family).defaultBrowserFormat; }
+export function getDefaultBrowserFormat(family) {
+  return getFamilyConfig(family).defaultBrowserFormat; 
+}
 /** @return {boolean} */
 export function formatBelongsToFamily(formatsIndex, formatId, family) {
   const format = formatsIndex.find((entry) => entry.id === formatId);
@@ -190,11 +204,17 @@ export function getMovesetLookupContext(dataset, formatsIndex, state) {
 }
 
 /** @return {?Object} */
-export function getMovesetEntry(movesetData, pokemonId) { return movesetData?.pokemon?.[pokemonId] || null; }
+export function getMovesetEntry(movesetData, pokemonId) {
+  return movesetData?.pokemon?.[pokemonId] || null; 
+}
 /** @return {!Array<string>} Sorted month keys. */
-export function getAvailabilityMonths(availability) { return Object.keys(availability?.months || {}).sort(); }
+export function getAvailabilityMonths(availability) {
+  return Object.keys(availability?.months || {}).sort(); 
+}
 /** @return {string} */
-export function getLatestAvailabilityMonth(availability) { return availability?.latestMonth || getAvailabilityMonths(availability).at(-1) || ''; }
+export function getLatestAvailabilityMonth(availability) {
+  return availability?.latestMonth || getAvailabilityMonths(availability).at(-1) || ''; 
+}
 /** @return {string} */
 export function getAvailabilitySelectionLabel(availability, selection) {
   if (selection !== 'all') return selection;
@@ -358,7 +378,7 @@ export async function resolveBestAvailableLightBundle({ availability, family, se
   // even when a single month is selected: one month of a fringe mon is
   // noise, and the tier a set should be sourced from doesn't flap month to
   // month. The monthly usage/leads rows above keep their period semantics.
-  const allIndex = await loadResolverIndex(family, "all");
+  const allIndex = await loadResolverIndex(family, 'all');
   const canonical = allIndex?.pokemon?.[pokemonId] || null;
 
   const bundle = {
@@ -564,7 +584,7 @@ async function mapLimit(items, limit, mapper) {
         nextIndex += 1;
         results[index] = await mapper(items[index], index);
       }
-    })
+    }),
   );
 
   return results;
@@ -589,9 +609,17 @@ function getCandidateMonths(availability, selection, formatId, dataKind, cutoff)
   }
   return availability?.months?.[selection]?.[formatId]?.[dataKind]?.includes(cutoff) ? [selection] : [];
 }
-function filterVisibleMovesetEntries(entries = []) { return entries.filter((entry) => !HIDDEN_MOVESET_ENTRY_KEYS.has(normalizeSearch(entry.name))); }
-function accumulateSection(targetMap, entries = [], rawCount = 0) { for (const entry of entries) { const weight = (entry.usage / 100) * rawCount; targetMap.set(entry.name, (targetMap.get(entry.name) || 0) + weight); } }
-function finalizeSection(sourceMap, totalRawCount) { return [...sourceMap.entries()].map(([name, weight]) => ({ name, usage: totalRawCount > 0 ? (weight / totalRawCount) * 100 : 0 })).sort((a, b) => b.usage - a.usage || a.name.localeCompare(b.name)); }
+function filterVisibleMovesetEntries(entries = []) {
+  return entries.filter((entry) => !HIDDEN_MOVESET_ENTRY_KEYS.has(normalizeSearch(entry.name))); 
+}
+function accumulateSection(targetMap, entries = [], rawCount = 0) {
+  for (const entry of entries) {
+    const weight = (entry.usage / 100) * rawCount; targetMap.set(entry.name, (targetMap.get(entry.name) || 0) + weight); 
+  } 
+}
+function finalizeSection(sourceMap, totalRawCount) {
+  return [...sourceMap.entries()].map(([name, weight]) => ({ name, usage: totalRawCount > 0 ? (weight / totalRawCount) * 100 : 0 })).sort((a, b) => b.usage - a.usage || a.name.localeCompare(b.name)); 
+}
 
 function buildAggregateRows(dataset) {
   const months = dataset.months || [];

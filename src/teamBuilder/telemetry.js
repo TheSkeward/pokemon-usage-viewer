@@ -28,9 +28,9 @@
  * of silently vanishing — a cancelling caller must record the phase it
  * stopped in ("resolve"/"search") and the elapsed ms up to the abort.
  */
-import { SCORING_VERSION } from "./scoringConstants.js";
+import { SCORING_VERSION } from './scoringConstants.js';
 
-const STORE_KEY = "teamOptimizerTelemetryV1";
+const STORE_KEY = 'teamOptimizerTelemetryV1';
 const MAX_SAMPLES = 500;
 /**
  * Schema 3: samples cover the FULL user-perceived pipeline, not just the
@@ -48,11 +48,11 @@ export const TELEMETRY_SCHEMA = 3;
  *   "warm"   — some line-cache hits and/or an incremental search;
  *   "cold"   — every line resolved and the search ran from scratch.
  */
-export const CACHE_STATES = Object.freeze(["cold", "warm", "result"]);
+export const CACHE_STATES = Object.freeze(['cold', 'warm', 'result']);
 
 // The running bundle's build id (vite `define`); absent in dev/Node.
 const BUILD_ID =
-  typeof __BUILD_ID__ !== "undefined" && __BUILD_ID__ ? __BUILD_ID__ : "dev";
+  typeof __BUILD_ID__ !== 'undefined' && __BUILD_ID__ ? __BUILD_ID__ : 'dev';
 
 /**
  * @param {?string} dataSignature
@@ -63,7 +63,7 @@ export function telemetryEnv(dataSignature) {
     schema: TELEMETRY_SCHEMA,
     build: BUILD_ID,
     scoring: SCORING_VERSION,
-    data: dataSignature || "unversioned",
+    data: dataSignature || 'unversioned',
   };
 }
 
@@ -78,10 +78,10 @@ function envKey(env) {
  * @return {string}
  */
 export function poolBucket(poolSize) {
-  if (poolSize <= 12) return "1–12";
-  if (poolSize <= 24) return "13–24";
-  if (poolSize <= 36) return "25–36";
-  return "37+";
+  if (poolSize <= 12) return '1–12';
+  if (poolSize <= 24) return '13–24';
+  if (poolSize <= 36) return '25–36';
+  return '37+';
 }
 
 /**
@@ -91,9 +91,9 @@ export function poolBucket(poolSize) {
  * @return {string}
  */
 export function buildBucket(builds) {
-  if (builds <= 48) return "low";
-  if (builds <= 96) return "medium";
-  return "high";
+  if (builds <= 48) return 'low';
+  if (builds <= 96) return 'medium';
+  return 'high';
 }
 
 function storage() {
@@ -130,13 +130,13 @@ function saveTelemetrySamples(samples) {
 }
 
 const PHASE_KEYS = Object.freeze([
-  "setup", // optimizer: input groups, cache hydration, breeding context, keys
-  "resolve", // optimizer: per-line scoring/builds
-  "search", // optimizer: team search + realization
-  "items", // item context + usage loading for the chosen team
-  "render", // full page render (team, movesets, analysis panel, bench)
-  "confidence", // post-analysis: robustness sweep
-  "investment", // post-analysis: level-cap projection
+  'setup', // optimizer: input groups, cache hydration, breeding context, keys
+  'resolve', // optimizer: per-line scoring/builds
+  'search', // optimizer: team search + realization
+  'items', // item context + usage loading for the chosen team
+  'render', // full page render (team, movesets, analysis panel, bench)
+  'confidence', // post-analysis: robustness sweep
+  'investment', // post-analysis: level-cap projection
 ]);
 
 function roundMs(value) {
@@ -169,23 +169,23 @@ export function recordOptimizerSample({
   const sample = {
     t: Date.now(),
     env: envKey(telemetryEnv(dataSignature)),
-    cache: CACHE_STATES.includes(cache) ? cache : "cold",
+    cache: CACHE_STATES.includes(cache) ? cache : 'cold',
     resolveMs: roundMs(resolveMs),
     searchMs: roundMs(searchMs),
     poolSize: poolSize || 0,
     builds: builds || 0,
     cores:
-      (typeof navigator !== "undefined" && navigator.hardwareConcurrency) ||
+      (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ||
       null,
     ...(phases
       ? {
-          phases: Object.fromEntries(
-            PHASE_KEYS.filter((key) => phases[key] != null).map((key) => [
-              key,
-              roundMs(phases[key]),
-            ]),
-          ),
-        }
+        phases: Object.fromEntries(
+          PHASE_KEYS.filter((key) => phases[key] != null).map((key) => [
+            key,
+            roundMs(phases[key]),
+          ]),
+        ),
+      }
       : {}),
     ...(totalMs != null ? { totalMs: roundMs(totalMs) } : {}),
     // Click → movesets (Team Analysis panel) on screen: the wait users
@@ -250,7 +250,7 @@ export function getTelemetrySummary(samples = loadTelemetrySamples()) {
   const segments = [];
   for (const state of CACHE_STATES) {
     const inState = current.filter((sample) => sample.cache === state);
-    for (const bucket of ["1–12", "13–24", "25–36", "37+"]) {
+    for (const bucket of ['1–12', '13–24', '25–36', '37+']) {
       const group = inState.filter(
         (sample) => poolBucket(sample.poolSize) === bucket,
       );
@@ -266,29 +266,29 @@ export function getTelemetrySummary(samples = loadTelemetrySamples()) {
         // per-phase medians so a report attributes it without raw samples.
         ...(withTotals.length
           ? {
-              totalMs: distribution(withTotals.map((sample) => sample.totalMs)),
-              ...(withTotals.some((sample) => sample.movesetMs != null)
-                ? {
-                    movesetMs: distribution(
-                      withTotals
-                        .filter((sample) => sample.movesetMs != null)
-                        .map((sample) => sample.movesetMs),
-                    ),
-                  }
-                : {}),
-              phaseP50: Object.fromEntries(
-                PHASE_KEYS.map((key) => [
-                  key,
-                  percentile(
-                    withTotals
-                      .map((sample) => sample.phases?.[key])
-                      .filter((value) => value != null)
-                      .sort((a, b) => a - b),
-                    50,
-                  ),
-                ]).filter(([, value]) => value != null),
-              ),
-            }
+            totalMs: distribution(withTotals.map((sample) => sample.totalMs)),
+            ...(withTotals.some((sample) => sample.movesetMs != null)
+              ? {
+                movesetMs: distribution(
+                  withTotals
+                    .filter((sample) => sample.movesetMs != null)
+                    .map((sample) => sample.movesetMs),
+                ),
+              }
+              : {}),
+            phaseP50: Object.fromEntries(
+              PHASE_KEYS.map((key) => [
+                key,
+                percentile(
+                  withTotals
+                    .map((sample) => sample.phases?.[key])
+                    .filter((value) => value != null)
+                    .sort((a, b) => a - b),
+                  50,
+                ),
+              ]).filter(([, value]) => value != null),
+            ),
+          }
           : {}),
         builds: range(group.map((sample) => sample.builds)),
         buildBucket: buildBucket(
@@ -333,7 +333,7 @@ export function getTelemetrySummary(samples = loadTelemetrySamples()) {
     stale: samples.length - current.length - cancelled.length,
     cancelled: cancelled.length,
     cores:
-      (typeof navigator !== "undefined" && navigator.hardwareConcurrency) ||
+      (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ||
       null,
     segments,
   };
@@ -351,7 +351,7 @@ export function buildPerformanceReport() {
   const summary = getTelemetrySummary(samples);
   const last = samples[samples.length - 1] || null;
   return {
-    report: "team-optimizer-performance",
+    report: 'team-optimizer-performance',
     schema: TELEMETRY_SCHEMA,
     generatedAt: new Date().toISOString(),
     env: summary.env,
@@ -364,20 +364,20 @@ export function buildPerformanceReport() {
     },
     lastRun: last
       ? {
-          cache: last.cache,
-          resolveMs: last.resolveMs,
-          searchMs: last.searchMs,
-          ...(last.phases ? { phases: last.phases } : {}),
-          ...(last.totalMs != null ? { totalMs: last.totalMs } : {}),
-          ...(last.movesetMs != null ? { movesetMs: last.movesetMs } : {}),
-          ...(last.fullMs != null ? { fullMs: last.fullMs } : {}),
-          ...(last.polishSwaps != null
-            ? { polishSwaps: last.polishSwaps, polishGain: last.polishGain }
-            : {}),
-          poolSize: last.poolSize,
-          builds: last.builds,
-          cancelled: last.cancelled || false,
-        }
+        cache: last.cache,
+        resolveMs: last.resolveMs,
+        searchMs: last.searchMs,
+        ...(last.phases ? { phases: last.phases } : {}),
+        ...(last.totalMs != null ? { totalMs: last.totalMs } : {}),
+        ...(last.movesetMs != null ? { movesetMs: last.movesetMs } : {}),
+        ...(last.fullMs != null ? { fullMs: last.fullMs } : {}),
+        ...(last.polishSwaps != null
+          ? { polishSwaps: last.polishSwaps, polishGain: last.polishGain }
+          : {}),
+        poolSize: last.poolSize,
+        builds: last.builds,
+        cancelled: last.cancelled || false,
+      }
       : null,
   };
 }
@@ -387,10 +387,10 @@ export function buildPerformanceReport() {
 // pool bucket, else any bucket), falling back to rough static defaults for a
 // first run. Feeds the adaptive progress bar — display only, never scoring.
 const FALLBACK_BUDGETS = {
-  "1–12": { resolveMs: 600, searchMs: 300 },
-  "13–24": { resolveMs: 1200, searchMs: 900 },
-  "25–36": { resolveMs: 2000, searchMs: 1600 },
-  "37+": { resolveMs: 2600, searchMs: 3200 },
+  '1–12': { resolveMs: 600, searchMs: 300 },
+  '13–24': { resolveMs: 1200, searchMs: 900 },
+  '25–36': { resolveMs: 2000, searchMs: 1600 },
+  '37+': { resolveMs: 2600, searchMs: 3200 },
 };
 
 /**
@@ -408,7 +408,7 @@ export function estimateRunBudget(poolSize) {
       sample.env === env &&
       !sample.cancelled &&
       sample.phases &&
-      sample.cache !== "result",
+      sample.cache !== 'result',
   );
   const inBucket = usable.filter(
     (sample) => poolBucket(sample.poolSize) === bucket,
@@ -423,9 +423,9 @@ export function estimateRunBudget(poolSize) {
         50,
       ) || 0;
     return {
-      resolveMs: Math.max(200, median("resolve")),
-      searchMs: Math.max(200, median("search")),
-      tailMs: Math.max(150, median("items") + median("render")),
+      resolveMs: Math.max(200, median('resolve')),
+      searchMs: Math.max(200, median('search')),
+      tailMs: Math.max(150, median('items') + median('render')),
     };
   }
   const fallback = FALLBACK_BUDGETS[bucket];
@@ -443,7 +443,7 @@ export function clearTelemetry() {
 
 // Console escape hatch: __TEAM_TELEMETRY__.summary() / .samples() / .report()
 // / .clear() so raw numbers can be pulled out of a real browser session.
-if (typeof globalThis !== "undefined") {
+if (typeof globalThis !== 'undefined') {
   globalThis.__TEAM_TELEMETRY__ = {
     summary: getTelemetrySummary,
     samples: loadTelemetrySamples,

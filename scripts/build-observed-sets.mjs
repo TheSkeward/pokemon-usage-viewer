@@ -6,17 +6,17 @@
  * Mirrors the teammate-index runtime conventions: per-mon files plus an
  * index.json id list so the app can skip 404-generating fetches.
  */
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { REAL_FORMATS } from "./config.mjs";
-import { writeJson } from "./set-index/io.mjs";
-import { teamWeight } from "./teamscrape/weights.mjs";
-import { STAT_KEYS } from "../src/utils/stats.js";
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { REAL_FORMATS } from './config.mjs';
+import { writeJson } from './set-index/io.mjs';
+import { teamWeight } from './teamscrape/weights.mjs';
+import { STAT_KEYS } from '../src/utils/stats.js';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const ARCHIVE_DIR = path.join(scriptDir, "teamscrape", "archive");
-const OUT_ROOT = path.join(scriptDir, "..", "site-data", "data", "observed-sets");
+const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
+const OUT_ROOT = path.join(scriptDir, '..', 'site-data', 'data', 'observed-sets');
 
 const MAX_SETS_PER_MON = 20;
 const familyOf = new Map(REAL_FORMATS.map((f) => [f.id, f.family]));
@@ -29,8 +29,8 @@ export function readArchive(dir, prefix) {
   const records = [];
   if (!fs.existsSync(dir)) return records;
   for (const file of fs.readdirSync(dir)) {
-    if (!file.startsWith(prefix) || !file.endsWith(".jsonl")) continue;
-    for (const line of fs.readFileSync(path.join(dir, file), "utf8").split("\n")) {
+    if (!file.startsWith(prefix) || !file.endsWith('.jsonl')) continue;
+    for (const line of fs.readFileSync(path.join(dir, file), 'utf8').split('\n')) {
       if (!line.trim()) continue;
       try {
         records.push(JSON.parse(line));
@@ -44,16 +44,16 @@ export function readArchive(dir, prefix) {
 
 function setKey(formatId, set) {
   const evs = set.evs
-    ? STAT_KEYS.map((k) => set.evs[k] || 0).join(".")
-    : "";
+    ? STAT_KEYS.map((k) => set.evs[k] || 0).join('.')
+    : '';
   return [
     formatId,
-    set.itemId || "",
-    set.abilityId || "",
-    (set.nature || "").toLowerCase(),
+    set.itemId || '',
+    set.abilityId || '',
+    (set.nature || '').toLowerCase(),
     evs,
-    [...(set.moveIds || [])].sort().join(","),
-  ].join("|");
+    [...(set.moveIds || [])].sort().join(','),
+  ].join('|');
 }
 
 /**
@@ -116,9 +116,9 @@ export function buildObservedSetIndex(teams) {
 
 async function main() {
   const teams = [
-    ...readArchive(ARCHIVE_DIR, "samples-"),
-    ...readArchive(ARCHIVE_DIR, "rmt-"),
-    ...readArchive(ARCHIVE_DIR, "tournament-"),
+    ...readArchive(ARCHIVE_DIR, 'samples-'),
+    ...readArchive(ARCHIVE_DIR, 'rmt-'),
+    ...readArchive(ARCHIVE_DIR, 'tournament-'),
   ];
   const byFamily = buildObservedSetIndex(teams);
   let written = 0;
@@ -128,7 +128,7 @@ async function main() {
       await writeJson(path.join(dir, `${speciesId}.json`), detail);
       written += 1;
     }
-    await writeJson(path.join(dir, "index.json"), [...files.keys()].sort());
+    await writeJson(path.join(dir, 'index.json'), [...files.keys()].sort());
   }
   console.log(`observed-sets: ${written} mons from ${teams.length} sample teams`);
 }

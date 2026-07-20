@@ -1,13 +1,13 @@
-import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
-import { buildInputGroups } from "../teamBuilder/inputGroups";
-import { getCurrentRebornSpecies } from "./currentSpecies.js";
+import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
+import { buildInputGroups } from '../teamBuilder/inputGroups';
+import { getCurrentRebornSpecies } from './currentSpecies.js';
 import {
   getAvailableRebornMoves,
   loadRebornLegalMoveData,
-} from "./legalMoves";
-import { toId } from "../utils/ids.js";
+} from './legalMoves';
+import { toId } from '../utils/ids.js';
 
-const BLOCKED_EGG_GROUPS = new Set(["Undiscovered", "Ditto"]);
+const BLOCKED_EGG_GROUPS = new Set(['Undiscovered', 'Ditto']);
 
 /**
  * Computes, for every owned species in the pool, which egg moves breeding can
@@ -19,7 +19,7 @@ const BLOCKED_EGG_GROUPS = new Set(["Undiscovered", "Ditto"]);
 export async function buildRebornBreedingContext({
   pokemonIndex = [],
   progression = {},
-  query = "",
+  query = '',
 } = {}) {
   if (!progression.daycareUnlocked) return emptyContext();
 
@@ -120,7 +120,7 @@ export async function buildRebornBreedingContext({
       // The path spells every step; the parenthetical is how the ROOT
       // learner gets the move: "Azumarill → Granbull breeding chain (@1)".
       const detailOf = (route) =>
-        `${route.path.join(" → ")} breeding chain${route.how ? ` (${route.how})` : ""}`;
+        `${route.path.join(' → ')} breeding chain${route.how ? ` (${route.how})` : ''}`;
       const best = routes[0];
       const detail = detailOf(best);
       // Runner-ups must differ in root learner FAMILY from the winner and
@@ -141,7 +141,7 @@ export async function buildRebornBreedingContext({
       }
 
       targetBreeding.sources[moveId] = {
-        label: "Egg",
+        label: 'Egg',
         detail,
         donorName: best.path[best.path.length - 1],
         // The level the DIRECT donor must reach before it can pass this move
@@ -204,9 +204,9 @@ export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
   let best = null;
   for (const source of move.availableSources || []) {
     const learner = source.learnerName || null;
-    const sourceTitle = source.sourceTitle || source.detail || source.label || "";
+    const sourceTitle = source.sourceTitle || source.detail || source.label || '';
     let candidate;
-    if (source.kind === "level-up" && Number.isFinite(source.level)) {
+    if (source.kind === 'level-up' && Number.isFinite(source.level)) {
       // The source's learner names the form that ACTUALLY learns the move
       // (Vigoroth, Slakoth) — the chain must credit it, not the fielded
       // species.
@@ -222,13 +222,13 @@ export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
         // equal-level ties, never a level advantage.
         hassle: source.candyDown || source.delayedEvolution ? 1 : 0,
       };
-    } else if (source.kind === "relearner") {
+    } else if (source.kind === 'relearner') {
       // Relearning costs a Heart Scale + a trip — a real hassle rated above
       // ANY level-up. Sorted after every natural level so it's a last
       // resort, never a tiebreak winner.
       candidate = {
         level: 200,
-        how: "Relearner",
+        how: 'Relearner',
         learner,
         sourceTitle,
       };
@@ -236,7 +236,7 @@ export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
       const evoLevel = GEN7_PROGRESSION_SPECIES[speciesId]?.evoLevel ?? null;
       candidate = {
         level: evoLevel ?? 0,
-        how: evoLevel ? `evo@${evoLevel}` : "on evolution",
+        how: evoLevel ? `evo@${evoLevel}` : 'on evolution',
         learner,
         sourceTitle,
         leveled: Boolean(evoLevel),
@@ -246,7 +246,7 @@ export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
       // acquisition tag ("TM42", "Sketch").
       candidate = {
         level: 0,
-        how: String(source.label || "").trim() || "taught",
+        how: String(source.label || '').trim() || 'taught',
         learner,
         sourceTitle,
       };
@@ -261,7 +261,7 @@ export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
       candidate = {
         ...candidate,
         level: candidate.level + STONE_ROUTE_OFFSET * items.length,
-        how: `${candidate.how} + ${items.join(" + ")}`,
+        how: `${candidate.how} + ${items.join(' + ')}`,
       };
     }
 
@@ -274,7 +274,7 @@ export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
       best = candidate;
     }
   }
-  return best || { level: 0, how: "" };
+  return best || { level: 0, how: '' };
 }
 
 // Above every real level (caps top out at 150) and the relearner's 200, so a
@@ -297,12 +297,12 @@ function unspentEvolutionItems(learnerId, inputId, ownedItems = {}) {
     const record = GEN7_PROGRESSION_SPECIES[id];
     if (!record) break;
     const hopItems = [];
-    if (record.evoType === "useItem" && record.evoItem) {
+    if (record.evoType === 'useItem' && record.evoItem) {
       hopItems.push(record.evoItem);
-    } else if (record.evoType === "trade") {
+    } else if (record.evoType === 'trade') {
       // Reborn replaces trades with the Link Stone; a trade hold-item
       // (Metal Coat, King's Rock) is consumed alongside it.
-      hopItems.push("Link Stone");
+      hopItems.push('Link Stone');
       if (record.evoItem) hopItems.push(record.evoItem);
     }
     for (const item of hopItems) {
@@ -332,11 +332,11 @@ function formatBreedingSourceTitle({
     // The pool's next-best routes, so "is this really the cheapest way?" is
     // answerable from the tooltip instead of on faith.
     alternatives.length
-      ? `Other pool routes: ${alternatives.join("; ")}.`
+      ? `Other pool routes: ${alternatives.join('; ')}.`
       : null,
   ]
     .filter(Boolean)
-    .join("\n");
+    .join('\n');
 }
 
 // Every donor's settled route for one move, ready for ranking. A direct
@@ -358,7 +358,7 @@ function collectDonorRoutes(target, entries, moveId) {
       how: donorCost.how,
       leveled: Boolean(donorCost.leveled),
       hassle: donorCost.hassle || 0,
-      sourceTitle: donorCost.sourceTitle || "",
+      sourceTitle: donorCost.sourceTitle || '',
       path:
         donorCost.hops === 0
           ? [donorCost.learner || donor.species.name]
@@ -389,9 +389,9 @@ export function compareBreedingCosts(a, b) {
   if (a.level !== b.level) return a.level - b.level;
   return (
     (a.hassle || 0) - (b.hassle || 0) ||
-    (a.path || []).join("→").localeCompare((b.path || []).join("→")) ||
-    String(a.how || "").localeCompare(String(b.how || "")) ||
-    String(a.sourceTitle || "").localeCompare(String(b.sourceTitle || ""))
+    (a.path || []).join('→').localeCompare((b.path || []).join('→')) ||
+    String(a.how || '').localeCompare(String(b.how || '')) ||
+    String(a.sourceTitle || '').localeCompare(String(b.sourceTitle || ''))
   );
 }
 
@@ -501,7 +501,7 @@ function canBreed(donorId, targetId) {
   // what the parent itself already knew). Family granularity, like the egg
   // groups: any form's eligibility counts (Salandit can father for
   // female-only Salazzle; NidoranF's line has no such out).
-  return familyHasGender(donorId, "M") && familyHasGender(targetId, "F");
+  return familyHasGender(donorId, 'M') && familyHasGender(targetId, 'F');
 }
 
 /**
@@ -517,7 +517,7 @@ function canBreed(donorId, targetId) {
 export function canHatchLine(pokemonId) {
   return (
     getBreedableEggGroups(pokemonId).length > 0 &&
-    familyHasGender(pokemonId, "F")
+    familyHasGender(pokemonId, 'F')
   );
 }
 
@@ -526,8 +526,8 @@ export function canHatchLine(pokemonId) {
 // (genderless) for neither.
 function familyHasGender(pokemonId, sex) {
   return familyForms(pokemonId).some((record) => {
-    const gender = record.gender ?? "";
-    return gender === "" || gender === sex;
+    const gender = record.gender ?? '';
+    return gender === '' || gender === sex;
   });
 }
 
@@ -589,8 +589,8 @@ function hasMaleCapableKnower(learnerId) {
   const visit = (id) => {
     const record = GEN7_PROGRESSION_SPECIES[id];
     if (!record) return false;
-    const gender = record.gender ?? "";
-    if (gender === "" || gender === "M") return true;
+    const gender = record.gender ?? '';
+    if (gender === '' || gender === 'M') return true;
     return (record.evos || []).some(visit);
   };
   return visit(learnerId);

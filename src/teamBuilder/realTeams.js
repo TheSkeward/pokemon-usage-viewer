@@ -6,18 +6,18 @@
  * every held item must be covered by tracked inventory. Display-only —
  * nothing here feeds scoring.
  */
-import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
-import { getCurrentRebornSpeciesForChoice } from "../reborn/currentSpecies.js";
+import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
+import { getCurrentRebornSpeciesForChoice } from '../reborn/currentSpecies.js';
 import {
   applyBreedingContextToProgression,
   canHatchLine,
   familyForms,
-} from "../reborn/breeding.js";
+} from '../reborn/breeding.js';
 import {
   getAvailableRebornMoves,
   loadRebornLegalMoveData,
-} from "../reborn/legalMoves.js";
-import { toId } from "../utils/ids.js";
+} from '../reborn/legalMoves.js';
+import { toId } from '../utils/ids.js';
 
 /**
  * The forms one pool line can field: for each of its choices, the input
@@ -133,7 +133,7 @@ export function assignMembersToLines(candidateLinesByMember) {
 export function teamItemsCovered(members, ownedItems = {}) {
   const needed = new Map();
   for (const member of members || []) {
-    const itemId = toId(member.itemId || "");
+    const itemId = toId(member.itemId || '');
     if (!itemId) continue;
     needed.set(itemId, (needed.get(itemId) || 0) + 1);
   }
@@ -168,7 +168,7 @@ export function compareRealTeams(a, b, recommendedIds = new Set()) {
     (b.weight || 0) - (a.weight || 0) ||
     (b.count || 0) - (a.count || 0) ||
     teamSimilarity(b, recommendedIds) - teamSimilarity(a, recommendedIds) ||
-    String(a.key || "").localeCompare(String(b.key || ""))
+    String(a.key || '').localeCompare(String(b.key || ''))
   );
 }
 

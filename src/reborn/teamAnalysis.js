@@ -1,16 +1,16 @@
 import {
   getAvailableRebornMoves,
   loadRebornLegalMoveData,
-} from "./legalMoves";
-import { getCurrentRebornSpeciesForChoice } from "./currentSpecies.js";
+} from './legalMoves';
+import { getCurrentRebornSpeciesForChoice } from './currentSpecies.js';
 import {
   applyBreedingContextToProgression,
   buildRebornBreedingContext,
-} from "./breeding.js";
+} from './breeding.js';
 import {
   getTypeMultiplier,
   REBORN_ANALYSIS_TYPES,
-} from "./typeChart.js";
+} from './typeChart.js';
 import {
   coverageDamageIntoType,
   estimateMoveDamage,
@@ -21,22 +21,22 @@ import {
   isVariablePowerMove,
   normalizeLevel,
   parseSpread,
-} from "./damageModel.js";
-import { loadTopSet } from "./topSpread.js";
-import { computeSetReadiness } from "./setReadiness.js";
-import { teamMemberKey } from "../teamBuilder/itemRecommendations.js";
-import { selectObservedSet } from "../teamBuilder/observedSets.js";
-import { loadTeamIndex } from "../teamBuilder/teamIndex.js";
-import { findFieldableRealTeam } from "../teamBuilder/realTeams.js";
-import { toId } from "../utils/ids.js";
-import { STAT_LABELS } from "../utils/stats.js";
-import { MAX_OPPONENT_TYPE_BIAS } from "./progression.js";
-import { getItemDamageMultiplier } from "./itemDamage.js";
+} from './damageModel.js';
+import { loadTopSet } from './topSpread.js';
+import { computeSetReadiness } from './setReadiness.js';
+import { teamMemberKey } from '../teamBuilder/itemRecommendations.js';
+import { selectObservedSet } from '../teamBuilder/observedSets.js';
+import { loadTeamIndex } from '../teamBuilder/teamIndex.js';
+import { findFieldableRealTeam } from '../teamBuilder/realTeams.js';
+import { toId } from '../utils/ids.js';
+import { STAT_LABELS } from '../utils/stats.js';
+import { MAX_OPPONENT_TYPE_BIAS } from './progression.js';
+import { getItemDamageMultiplier } from './itemDamage.js';
 import {
   FIELD_SETTING_MOVE_IDS,
   stageReferenceDamage,
-} from "../teamBuilder/currentFormValue.js";
-import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
+} from '../teamBuilder/currentFormValue.js';
+import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
 
 export { REBORN_ANALYSIS_TYPES };
 
@@ -189,7 +189,7 @@ async function buildMemberLegalMoveEntry({
     representativeId: row.pokemonId,
     representativeName: currentSpecies?.differsFromRepresentative
       ? currentSpecies.representativeName
-      : "",
+      : '',
     types: legalMoveData?.types || [],
   };
   const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
@@ -233,9 +233,9 @@ async function buildMemberLegalMoveEntry({
   // recommended moves they never ran beside.
   const observedSet = itemAware
     ? await selectObservedSet({
-        family,
-        candidateIds: [member.representativeId, member.id, megaBaseId],
-      })
+      family,
+      candidateIds: [member.representativeId, member.id, megaBaseId],
+    })
     : null;
   const attackerStats = getAttackingStats({
     pokemonId: member.id,
@@ -300,7 +300,7 @@ export function collectEggDonorRequests(profile) {
     const best = [...(move.availableSources || [])].sort(
       (a, b) => getSourcePriority(a) - getSourcePriority(b),
     )[0];
-    if (!best || best.kind !== "egg" || !best.donorName) continue;
+    if (!best || best.kind !== 'egg' || !best.donorName) continue;
     const donorId = toId(best.donorName);
     if (!donorId) continue;
     if (!byDonor.has(donorId)) {
@@ -313,7 +313,7 @@ export function collectEggDonorRequests(profile) {
     byDonor.get(donorId).moves.push({
       id: move.id,
       name: move.name,
-      detail: best.detail || "",
+      detail: best.detail || '',
       donorLevel: Number.isFinite(best.donorLevel) ? best.donorLevel : null,
     });
   }
@@ -417,7 +417,7 @@ async function attachDonorInterimGuides({
       const donatedMoveIds = new Set(
         request.moves.map((move) => move.id).filter(Boolean),
       );
-      const cacheKey = `${request.donorId}@${interimLevelCap}|${[...donatedMoveIds].sort().join(",")}`;
+      const cacheKey = `${request.donorId}@${interimLevelCap}|${[...donatedMoveIds].sort().join(',')}`;
       if (!guideCache.has(cacheKey)) {
         guideCache.set(
           cacheKey,
@@ -483,7 +483,7 @@ export async function getTeamItemContext(
       );
       byMember.set(teamMemberKey(row), {
         damageTypes,
-        unburden: toId(entry.topSet?.ability) === "unburden",
+        unburden: toId(entry.topSet?.ability) === 'unburden',
         fieldSetterShare: fieldMoves.length
           ? Math.max(canonicalShare, 0.15)
           : 0,
@@ -503,7 +503,7 @@ export async function getTeamItemContext(
 export function buildCandidateLegalityProfile({
   member: rawMember,
   moves = [],
-  representativeName = "",
+  representativeName = '',
   attackerStats,
   levelCap,
   moveUsage = new Map(),
@@ -513,7 +513,7 @@ export function buildCandidateLegalityProfile({
   ability = null,
   evolution = null,
   buildFriction = 0,
-  movePreference = "default",
+  movePreference = 'default',
   // The player owns a field-extender item (Amplifield Rock) — scoring gives
   // this build's field-setting move the borrowed-prior utility bonus.
   fieldExtenderOwned = false,
@@ -643,7 +643,7 @@ function buildRecommendedSet({ member, profile, topSet, assignedItem, levelCap }
 
   return {
     species: member.name,
-    representativeName: member.representativeName || "",
+    representativeName: member.representativeName || '',
     item: assignedItem?.name || topSet.item || null,
     ability: topSet.ability || null,
     nature: parsed?.nature ? capitalize(parsed.nature) : null,
@@ -658,7 +658,7 @@ function buildRecommendedSet({ member, profile, topSet, assignedItem, levelCap }
  * @return {string} Blank-line-separated Showdown export blocks.
  */
 export function formatTeamPokepaste(sets = []) {
-  return sets.filter(Boolean).map(formatShowdownSet).join("\n\n");
+  return sets.filter(Boolean).map(formatShowdownSet).join('\n\n');
 }
 
 /**
@@ -667,7 +667,7 @@ export function formatTeamPokepaste(sets = []) {
  * @return {string}
  */
 export function formatShowdownSet(set) {
-  if (!set) return "";
+  if (!set) return '';
 
   const lines = [set.item ? `${set.species} @ ${set.item}` : set.species];
   if (set.ability) lines.push(`Ability: ${set.ability}`);
@@ -679,7 +679,7 @@ export function formatShowdownSet(set) {
 
   for (const move of set.moves || []) lines.push(`- ${move}`);
 
-  return lines.join("\n");
+  return lines.join('\n');
 }
 
 /**
@@ -687,17 +687,17 @@ export function formatShowdownSet(set) {
  * @return {string} "252 HP / 4 Atk" style line; empty when not an array.
  */
 export function formatEvLine(evs) {
-  if (!Array.isArray(evs)) return "";
+  if (!Array.isArray(evs)) return '';
 
   return evs
     .map((value, index) => (value > 0 ? `${value} ${STAT_LABELS[index]}` : null))
     .filter(Boolean)
-    .join(" / ");
+    .join(' / ');
 }
 
 function capitalize(value) {
-  const text = String(value || "");
-  return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
+  const text = String(value || '');
+  return text ? text.charAt(0).toUpperCase() + text.slice(1) : '';
 }
 
 function analyzeDefensiveProfile(members) {
@@ -968,7 +968,7 @@ function isDamagingMove(move) {
   // Grass Knot, ...) also report 0 in the dex but resolve real TYPED power
   // against the reference defender (damageModel.variableMovePower).
   return (
-    move.category !== "Status" &&
+    move.category !== 'Status' &&
     (getMovePower(move) > 0 ||
       isFixedDamageMove(move.id) ||
       isVariablePowerMove(move.id))
@@ -982,23 +982,23 @@ function isDamagingMove(move) {
 //   Snore       needs the USER asleep      → a self-sleep move (Rest).
 //   Dream Eater needs the TARGET asleep    → a sleep-inducing move in the set;
 //               otherwise it lands for zero and must not read as coverage.
-const SLEEP_GATED_DAMAGING_MOVE_IDS = new Set(["snore"]);
-const SELF_SLEEP_MOVE_IDS = new Set(["rest"]);
-const OPPONENT_SLEEP_GATED_DAMAGING_MOVE_IDS = new Set(["dreameater"]);
+const SLEEP_GATED_DAMAGING_MOVE_IDS = new Set(['snore']);
+const SELF_SLEEP_MOVE_IDS = new Set(['rest']);
+const OPPONENT_SLEEP_GATED_DAMAGING_MOVE_IDS = new Set(['dreameater']);
 // Reliable opponent-sleep moves (Yawn's delayed sleep counts — it still puts
 // the target under). Chip-accuracy or gimmick sleepers are included where they
 // exist in the Reborn movepools; this only needs to answer "can this set sleep
 // the target at all".
 const OPPONENT_SLEEP_MOVE_IDS = new Set([
-  "spore", "sleeppowder", "hypnosis", "sing", "grasswhistle", "lovelykiss",
-  "darkvoid", "yawn",
+  'spore', 'sleeppowder', 'hypnosis', 'sing', 'grasswhistle', 'lovelykiss',
+  'darkvoid', 'yawn',
 ]);
 // Belch cannot be used until the user has EATEN a berry — without a held
 // berry it is not an attack at all. Every gen 7 berry id ends in "berry";
 // nothing else does.
-const BERRY_GATED_DAMAGING_MOVE_IDS = new Set(["belch"]);
+const BERRY_GATED_DAMAGING_MOVE_IDS = new Set(['belch']);
 function isBerryHeldItem(itemName) {
-  return /berry$/.test(toId(itemName || ""));
+  return /berry$/.test(toId(itemName || ''));
 }
 
 function hasSelfSleepMove(moves) {
@@ -1089,7 +1089,7 @@ function formatProfileMove(move, member, attackerStats) {
     roles: move.roles || [],
     screenAxes: move.screenAxes || [],
     requiresWeather: move.requiresWeather,
-    accuracy: typeof move.accuracy === "number" ? move.accuracy : 100,
+    accuracy: typeof move.accuracy === 'number' ? move.accuracy : 100,
   };
 }
 
@@ -1168,7 +1168,7 @@ const damageMemo = new Map();
 const DAMAGE_MEMO_LIMIT = 200_000;
 
 function getEstimatedDamage(move, member, attackerStats) {
-  const key = `${move.id}|${member.id}|${member.ability || ""}|${member.heldItem || ""}|${attackerStats?.atk ?? ""}|${attackerStats?.spa ?? ""}|${attackerStats?.spe ?? ""}|${attackerStats?.level ?? ""}`;
+  const key = `${move.id}|${member.id}|${member.ability || ''}|${member.heldItem || ''}|${attackerStats?.atk ?? ''}|${attackerStats?.spa ?? ''}|${attackerStats?.spe ?? ''}|${attackerStats?.level ?? ''}`;
   const cached = damageMemo.get(key);
   if (cached !== undefined) return cached;
   const value = computeEstimatedDamage(move, member, attackerStats);
@@ -1243,8 +1243,8 @@ const ESCALATING_HIT_MULTIPLIER = {
 //     opponent a free switch/setup turn unless they were attacking anyway.
 //     Valuing the dodge turn at HALF a turn under the same double-weight-
 //     the-earlier-turn rule as recharge/exposed-charge: (2·½ + 1·1)/3 = 2/3.
-const UNTARGETABLE_CHARGE = new Set(["phantomforce", "shadowforce", "skydrop"]);
-const LEAKY_DODGE_CHARGE = new Set(["fly", "bounce", "dig", "dive"]);
+const UNTARGETABLE_CHARGE = new Set(['phantomforce', 'shadowforce', 'skydrop']);
+const LEAKY_DODGE_CHARGE = new Set(['fly', 'bounce', 'dig', 'dive']);
 
 // Telegraph-then-fail-if-disrupted moves. The dex encodes their mechanic as a
 // custom condition, NOT flags.charge, so they must be listed here by hand.
@@ -1254,7 +1254,7 @@ const LEAKY_DODGE_CHARGE = new Set(["fly", "bounce", "dig", "dive"]);
 // the same 1/3 rule. Beak Blast shares the dex shape (condition, -3) but its
 // attack NEVER fails — the condition is the contact burn — so it keeps full
 // power; Counter/Mirror Coat are BP 0 and never enter this model.
-const FAILS_IF_DISRUPTED = new Set(["focuspunch", "shelltrap"]);
+const FAILS_IF_DISRUPTED = new Set(['focuspunch', 'shelltrap']);
 
 // How many "hits' worth" of base power a move lands per commitment, used to scale
 // the damage estimate so multi-hit and multi-turn moves are ranked by real output:
@@ -1277,10 +1277,10 @@ function getEffectiveHitMultiplier(move, ability = null) {
   if (escalating) return escalating;
 
   const multihit = move.multihit;
-  if (typeof multihit === "number") return multihit;
+  if (typeof multihit === 'number') return multihit;
   if (Array.isArray(multihit) && multihit.length === 2) {
     // Skill Link always lands the maximum count.
-    if (toId(ability) === "skilllink") return multihit[1];
+    if (toId(ability) === 'skilllink') return multihit[1];
     // The standard 2–5 roll is 35/35/15/15 → E[hits] = 3.1. Other ranges
     // (none in Gen 7 data today) fall back to the midpoint.
     if (multihit[0] === 2 && multihit[1] === 5) return 3.1;
@@ -1327,7 +1327,7 @@ function recommendCurrentMoves(
   attackerStats,
   moveUsage = new Map(),
   opponentTypeBias = {},
-  movePreference = "default",
+  movePreference = 'default',
   moveRank = new Map(),
 ) {
   const decorated = moves.map((move) =>
@@ -1347,7 +1347,7 @@ function recommendCurrentMoves(
   );
 
   const coveredTypes = new Set();
-  const isHiddenPower = (id) => String(id).startsWith("hiddenpower");
+  const isHiddenPower = (id) => String(id).startsWith('hiddenpower');
   const add = (move) => {
     if (!move || selected.length >= 4) return false;
     if (selected.some((entry) => entry.id === move.id)) return false;
@@ -1366,7 +1366,7 @@ function recommendCurrentMoves(
     return true;
   };
 
-  if (movePreference === "coverage") {
+  if (movePreference === 'coverage') {
     // Coverage build: best STAB nuke first, then greedily add fresh attacking
     // types by damage (the shared fill loop below keeps extending coverage).
     // A build the team optimizer can pick when it needs THIS mon's off-type
@@ -1379,7 +1379,7 @@ function recommendCurrentMoves(
         )
         .sort(compareByDamage)[0],
     );
-  } else if (movePreference === "utility") {
+  } else if (movePreference === 'utility') {
     // Utility build: the strongest role moves (recovery/hazards/speed control
     // rank above chip status via utilityWeight), plus the guaranteed attack
     // from the shared steps so it can't go fully passive.
@@ -1589,7 +1589,7 @@ function countSuperEffectiveTargets(attackType) {
 
 function getBestSourcePriority(move) {
   const priorities = {
-    "level-up": 0,
+    'level-up': 0,
     relearner: 1,
     tm: 2,
     tmx: 3,
@@ -1608,7 +1608,7 @@ function formatBestSource(move) {
     (a, b) => getSourcePriority(a) - getSourcePriority(b),
   )[0];
 
-  if (!source) return "Legal";
+  if (!source) return 'Legal';
   return source.detail ? `${source.label}: ${source.detail}` : source.label;
 }
 
@@ -1617,13 +1617,13 @@ function formatBestSourceTitle(move) {
     (a, b) => getSourcePriority(a) - getSourcePriority(b),
   )[0];
 
-  if (!source) return "";
-  return source.sourceTitle || source.detail || source.label || "";
+  if (!source) return '';
+  return source.sourceTitle || source.detail || source.label || '';
 }
 
 function getSourcePriority(source) {
   const priorities = {
-    "level-up": 0,
+    'level-up': 0,
     relearner: 1,
     tm: 2,
     tmx: 3,

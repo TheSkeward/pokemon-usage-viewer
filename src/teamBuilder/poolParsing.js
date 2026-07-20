@@ -21,8 +21,8 @@ export function parsePoolTokens(query, pokemonIndex) {
  */
 export function parseAbilityAnnotations(query, pokemonIndex) {
   const annotations = new Map();
-  for (const rawLine of String(query || "").split(/\n+/)) {
-    for (const part of rawLine.split(",")) {
+  for (const rawLine of String(query || '').split(/\n+/)) {
+    for (const part of rawLine.split(',')) {
       const match = /^(.*?)\s*[([]\s*([A-Za-z][A-Za-z' -]{1,28})\s*[)\]]\s*$/.exec(
         part.trim(),
       );
@@ -70,18 +70,18 @@ export function normalizePoolText(query, pokemonIndex) {
     byKey.set(key, canonical);
   }
 
-  return [...byKey.values()].sort((a, b) => a.localeCompare(b)).join(", ");
+  return [...byKey.values()].sort((a, b) => a.localeCompare(b)).join(', ');
 }
 
 function extractPoolNames(query, pokemonIndex) {
   const names = [];
 
-  for (const rawLine of String(query || "").split(/\n+/)) {
+  for (const rawLine of String(query || '').split(/\n+/)) {
     const line = rawLine.trim();
     if (!line) continue;
 
-    if (line.includes(",")) {
-      for (const part of line.split(",")) {
+    if (line.includes(',')) {
+      for (const part of line.split(',')) {
         const name = extractNameFromPoolToken(part, pokemonIndex);
         if (name) names.push(name);
       }
@@ -96,13 +96,13 @@ function extractPoolNames(query, pokemonIndex) {
 }
 
 function extractNameFromPoolToken(value, pokemonIndex) {
-  const text = String(value || "").trim();
-  if (!text) return "";
+  const text = String(value || '').trim();
+  if (!text) return '';
 
   const anywhere = findPokemonNameInText(text, pokemonIndex);
   if (anywhere) return anywhere;
 
-  for (const cell of text.split("\t")) {
+  for (const cell of text.split('\t')) {
     const fromCell = findPokemonNameInText(cell, pokemonIndex);
     if (fromCell) return fromCell;
   }
@@ -116,11 +116,11 @@ function extractNameFromPoolToken(value, pokemonIndex) {
     if (fromPrefix) return fromPrefix;
   }
 
-  return "";
+  return '';
 }
 
 function findPokemonNameInText(value, pokemonIndex) {
-  const text = String(value || "").trim();
+  const text = String(value || '').trim();
   const key = normalizeName(text);
   if (!key) return null;
 
@@ -138,7 +138,7 @@ function findPokemonNameInText(value, pokemonIndex) {
 }
 
 function normalizeName(value) {
-  return String(value || "")
+  return String(value || '')
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
+    .replace(/[^a-z0-9]+/g, '');
 }

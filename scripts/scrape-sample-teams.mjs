@@ -7,19 +7,19 @@
  *
  * Same politeness contract as scrape-replay-teams.mjs.
  */
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { parseShowdownTeam } from "./teamscrape/parseShowdownTeam.mjs";
-import { toTeamSheetId } from "./teamscrape/replayLog.mjs";
-import { readArchiveIds } from "./scrape-replay-teams.mjs";
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { parseShowdownTeam } from './teamscrape/parseShowdownTeam.mjs';
+import { toTeamSheetId } from './teamscrape/replayLog.mjs';
+import { readArchiveIds } from './scrape-replay-teams.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const ARCHIVE_DIR = path.join(scriptDir, "teamscrape", "archive");
-const SOURCES_PATH = path.join(scriptDir, "teamscrape", "sources.json");
+const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
+const SOURCES_PATH = path.join(scriptDir, 'teamscrape', 'sources.json');
 
 const USER_AGENT =
-  "pokemon-usage-viewer team harvester (github.com/TheSkeward/pokemon-usage-viewer)";
+  'pokemon-usage-viewer team harvester (github.com/TheSkeward/pokemon-usage-viewer)';
 const REQUEST_GAP_MS = 900;
 const MAX_THREAD_PAGES = 12;
 
@@ -27,7 +27,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function fetchText(url) {
   await sleep(REQUEST_GAP_MS);
-  const response = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+  const response = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
   if (!response.ok) throw new Error(`${response.status} ${url}`);
   return response.text();
 }
@@ -53,7 +53,7 @@ export function normalizeSampleTeam({ pasteId, formatId, thread, sets }) {
     id: pasteId,
     format: formatId,
     thread,
-    source: "sample",
+    source: 'sample',
     sets: sets.map((set) => ({
       species: set.species,
       speciesId: toTeamSheetId(set.speciesId),
@@ -104,7 +104,7 @@ async function harvestThread(formatId, thread, seen, file) {
 }
 
 async function main() {
-  const { threads } = JSON.parse(fs.readFileSync(SOURCES_PATH, "utf8"));
+  const { threads } = JSON.parse(fs.readFileSync(SOURCES_PATH, 'utf8'));
   fs.mkdirSync(ARCHIVE_DIR, { recursive: true });
   let failures = 0;
   let attempts = 0;
@@ -123,7 +123,7 @@ async function main() {
     }
   }
   if (attempts && failures === attempts) {
-    console.error("every thread failed — bad URLs or no network access to smogon.com");
+    console.error('every thread failed — bad URLs or no network access to smogon.com');
     process.exitCode = 1;
   }
 }

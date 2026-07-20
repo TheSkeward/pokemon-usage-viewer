@@ -9,7 +9,7 @@ import {
   setBadgeCheckpoint,
   optimizeSmallPool,
   check,
-} from "./helpers/env.mjs";
+} from './helpers/env.mjs';
 
 const browser = await launchBrowser();
 try {
@@ -19,12 +19,12 @@ try {
   await openAllDetails(page);
 
   check(
-    "obtainable rail renders",
-    await page.evaluate(() => Boolean(document.querySelector(".progression-obtainable-rail"))),
+    'obtainable rail renders',
+    await page.evaluate(() => Boolean(document.querySelector('.progression-obtainable-rail'))),
   );
 
   await page.evaluate(() => {
-    document.querySelector('[data-progression-group="availableTmIds"]').dataset.smokeMarker = "alive";
+    document.querySelector('[data-progression-group="availableTmIds"]').dataset.smokeMarker = 'alive';
     window.scrollTo(0, 500);
   });
   const clicked = await page.evaluate(() => {
@@ -42,29 +42,29 @@ try {
       (b) => b.value === value,
     );
     return {
-      markerAlive: group?.dataset.smokeMarker === "alive",
+      markerAlive: group?.dataset.smokeMarker === 'alive',
       twinCount: twins.length,
       allChecked: twins.every((b) => b.checked),
-      counter: group?.querySelector("[data-progression-group-count]")?.textContent || "",
+      counter: group?.querySelector('[data-progression-group-count]')?.textContent || '',
       scrollY: window.scrollY,
     };
   }, clicked);
 
-  check("tick does NOT rebuild the page DOM", state.markerAlive);
-  check("both twin renderings sync", state.twinCount === 2 && state.allChecked, JSON.stringify(state));
-  check("counter live-updates in place", /1\/\d+ selected/.test(state.counter), state.counter);
-  check("viewport stays pinned", state.scrollY === 500, String(state.scrollY));
+  check('tick does NOT rebuild the page DOM', state.markerAlive);
+  check('both twin renderings sync', state.twinCount === 2 && state.allChecked, JSON.stringify(state));
+  check('counter live-updates in place', /1\/\d+ selected/.test(state.counter), state.counter);
+  check('viewport stays pinned', state.scrollY === 500, String(state.scrollY));
 
   const tutor = await page.evaluate(() => {
-    const btn = document.querySelector("[data-progression-subgroup-all]");
+    const btn = document.querySelector('[data-progression-subgroup-all]');
     if (!btn) return null;
     btn.click();
-    return btn.dataset.progressionOptionIds.split(",").filter(Boolean).length;
+    return btn.dataset.progressionOptionIds.split(',').filter(Boolean).length;
   });
   await page.waitForTimeout(400);
-  check("tutor subgroup All exists and marks its moves", tutor > 0, String(tutor));
+  check('tutor subgroup All exists and marks its moves', tutor > 0, String(tutor));
   check(
-    "subgroup All UNIONS (the TM tick survives)",
+    'subgroup All UNIONS (the TM tick survives)',
     await page.evaluate(
       (value) =>
         [...document.querySelectorAll('[data-progression-option-list="availableTmIds"]')]
@@ -74,10 +74,10 @@ try {
     ),
   );
   check(
-    "scroll survives the full render bulk actions trigger",
+    'scroll survives the full render bulk actions trigger',
     Math.abs((await page.evaluate(() => window.scrollY)) - 500) < 50,
   );
 } finally {
   await browser.close();
 }
-console.log("progression-checkboxes: PASS");
+console.log('progression-checkboxes: PASS');

@@ -2,13 +2,13 @@ import {
   REBORN_TM_OPTIONS,
   REBORN_TMX_OPTIONS,
   REBORN_TUTOR_OPTIONS,
-} from "./progressionOptions.js";
-import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
-import { normalizeLevelCap } from "./progression.js";
-import { dataUrl } from "../utils/dataUrl.js";
-import { getActiveGame } from "../games/registry.js";
-import { hydrateLegalMove } from "../moveMeta.js";
-import { moveId as toId, toId as toPokemonId } from "../utils/ids.js";
+} from './progressionOptions.js';
+import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
+import { normalizeLevelCap } from './progression.js';
+import { dataUrl } from '../utils/dataUrl.js';
+import { getActiveGame } from '../games/registry.js';
+import { hydrateLegalMove } from '../moveMeta.js';
+import { moveId as toId, toId as toPokemonId } from '../utils/ids.js';
 
 const legalMoveCache = new Map();
 const tmByMoveId = mapOptionsByMoveId(REBORN_TM_OPTIONS);
@@ -68,7 +68,7 @@ export function loadRebornLegalMoveData(pokemonId) {
 export function arrivalLevelOf(formId) {
   const form = GEN7_PROGRESSION_SPECIES[formId];
   if (!form?.prevoId) return 1;
-  return (form.evoType || "") === "" && Number.isFinite(form.evoLevel)
+  return (form.evoType || '') === '' && Number.isFinite(form.evoLevel)
     ? form.evoLevel
     : 1;
 }
@@ -76,18 +76,18 @@ export function arrivalLevelOf(formId) {
 // The level at which the pre-evolution normally leaves play on the path
 // into `child`.
 function evolutionDepartureLevel(child) {
-  const evoType = child?.evoType || "";
-  if (evoType === "") {
+  const evoType = child?.evoType || '';
+  if (evoType === '') {
     return Number.isFinite(child?.evoLevel) ? child.evoLevel : Infinity;
   }
-  if (evoType === "levelFriendship") return Infinity;
+  if (evoType === 'levelFriendship') return Infinity;
   if (
-    evoType === "levelExtra" &&
-    /affection/i.test(child?.evoCondition || "")
+    evoType === 'levelExtra' &&
+    /affection/i.test(child?.evoCondition || '')
   ) {
     return Infinity;
   }
-  if (evoType === "levelMove") {
+  if (evoType === 'levelMove') {
     return Number.isFinite(child?.evoMoveLevel)
       ? child.evoMoveLevel
       : Infinity;
@@ -176,7 +176,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
   // An entry below a form's arrival can't be leveled through on the default
   // path — it's a candy-down route at level 2+, relearner-only at level 1.
   const ancestorName = (fromId) =>
-    GEN7_PROGRESSION_SPECIES[fromId]?.name || "its pre-evolution";
+    GEN7_PROGRESSION_SPECIES[fromId]?.name || 'its pre-evolution';
   const moves = [];
 
   for (const move of legalMoveData?.moves || []) {
@@ -186,7 +186,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     // (judged against the direct pre-evolution bound) during any data skew.
     const preEvolutionEntries = (move.sources?.preEvolutionLevelUp || []).map(
       (entry) =>
-        typeof entry === "number" ? { level: entry, from: null } : entry,
+        typeof entry === 'number' ? { level: entry, from: null } : entry,
     );
     // Reachable-by-leveling window per entry: at or above the learner
     // form's arrival (it must exist at that level) and at or below its
@@ -262,7 +262,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       .sort(
         (a, b) =>
           a.level - b.level ||
-          String(a.learnerName || "").localeCompare(String(b.learnerName || "")),
+          String(a.learnerName || '').localeCompare(String(b.learnerName || '')),
       );
     // A genuine evolution move (flagged by the generator: level-1 on this form,
     // and no pre-evolution learns it by level-up) is gained on evolving into this
@@ -287,29 +287,29 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     if (levelSources.length > 0) {
       const best = levelSources[0];
       sources.push({
-        kind: "level-up",
+        kind: 'level-up',
         label: `Level ${best.level}`,
         level: best.level,
         learnerId: best.learnerId || null,
         learnerName: best.learnerName || null,
         sourceTitle: best.learnerName
           ? `${best.learnerName} learns ${move.name} at level ${best.level}.`
-          : "",
+          : '',
       });
 
       if (moveRelearnerUnlocked) {
         sources.push({
-          kind: "relearner",
-          label: "Move relearner",
+          kind: 'relearner',
+          label: 'Move relearner',
           level: null,
           learnerId: null,
         });
       }
     } else if (candyEntries.length > 0) {
       const best = candyEntries[0];
-      const learner = best.from ? ancestorName(best.from) : "pre-evolution";
+      const learner = best.from ? ancestorName(best.from) : 'pre-evolution';
       sources.push({
-        kind: "level-up",
+        kind: 'level-up',
         label: `Level ${best.level} (${learner}, candy down)`,
         level: best.level,
         learnerId: best.from || null,
@@ -323,9 +323,9 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       // Legal, but flagged with the form being delayed: the default build
       // avoids it, and a build that uses it pays DELAYED_EVO_FRICTION.
       const best = delayedEntries[0];
-      const learner = best.from ? ancestorName(best.from) : "pre-evolution";
+      const learner = best.from ? ancestorName(best.from) : 'pre-evolution';
       sources.push({
-        kind: "level-up",
+        kind: 'level-up',
         label: `Level ${best.level} (${learner})`,
         level: best.level,
         learnerId: best.from || null,
@@ -335,8 +335,8 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       });
     } else if (isEvolutionMove) {
       sources.push({
-        kind: "level-up",
-        label: "On evolution",
+        kind: 'level-up',
+        label: 'On evolution',
         level: null,
         learnerId: null,
         onEvolution: true,
@@ -349,11 +349,11 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     if (
       (hasRelearnerOnlyLevelOne || hasLevelOnePreEvoOnly || hasOwnBelowArrival) &&
       moveRelearnerUnlocked &&
-      !sources.some((source) => source.kind === "relearner")
+      !sources.some((source) => source.kind === 'relearner')
     ) {
       sources.push({
-        kind: "relearner",
-        label: "Move relearner",
+        kind: 'relearner',
+        label: 'Move relearner',
         level: null,
         learnerId: null,
       });
@@ -363,11 +363,11 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     // move universe is legal at any level, no unlock required.
     if (
       move.sources?.sketch &&
-      !sources.some((source) => source.kind === "level-up")
+      !sources.some((source) => source.kind === 'level-up')
     ) {
       sources.push({
-        kind: "level-up",
-        label: "Sketch",
+        kind: 'level-up',
+        label: 'Sketch',
         level: null,
         learnerId: null,
       });
@@ -378,11 +378,11 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     if (
       move.sources?.rebornRelearner &&
       moveRelearnerUnlocked &&
-      !sources.some((source) => source.kind === "relearner")
+      !sources.some((source) => source.kind === 'relearner')
     ) {
       sources.push({
-        kind: "relearner",
-        label: "Move relearner",
+        kind: 'relearner',
+        label: 'Move relearner',
         level: null,
         learnerId: null,
       });
@@ -391,7 +391,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     const tmOption = tmByMoveId.get(move.id);
     if (move.sources?.tm && tmOption && selectedTmIds.has(tmOption.id)) {
       sources.push({
-        kind: "tm",
+        kind: 'tm',
         label: tmOption.code,
         detail: tmOption.available,
         level: null,
@@ -402,7 +402,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     const tmxOption = tmxByMoveId.get(move.id);
     if (move.sources?.tmx && tmxOption && selectedTmxIds.has(tmxOption.id)) {
       sources.push({
-        kind: "tmx",
+        kind: 'tmx',
         label: tmxOption.code,
         detail: tmxOption.available,
         level: null,
@@ -417,8 +417,8 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       selectedTutorMoveIds.has(tutorOption.id)
     ) {
       sources.push({
-        kind: "tutor",
-        label: "Tutor",
+        kind: 'tutor',
+        label: 'Tutor',
         detail: tutorOption.available,
         level: null,
         learnerId: null,
@@ -432,10 +432,10 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     ) {
       const eggSource = eggMoveSourceById[move.id] || {};
       sources.push({
-        kind: "egg",
-        label: eggSource.label || "Egg",
-        detail: eggSource.detail || "Breeding chain",
-        sourceTitle: eggSource.sourceTitle || eggSource.detail || "",
+        kind: 'egg',
+        label: eggSource.label || 'Egg',
+        detail: eggSource.detail || 'Breeding chain',
+        sourceTitle: eggSource.sourceTitle || eggSource.detail || '',
         level: null,
         learnerId: null,
         // The direct donor the chain fathers the move from, and the level it
@@ -463,8 +463,8 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
 // Hidden Power's real Gen 7 types — every type except Normal (impossible) and
 // Fairy (not generated by the IV formula).
 const HIDDEN_POWER_TYPES = [
-  "Fighting", "Flying", "Poison", "Ground", "Rock", "Bug", "Ghost", "Steel",
-  "Fire", "Water", "Grass", "Electric", "Psychic", "Ice", "Dragon", "Dark",
+  'Fighting', 'Flying', 'Poison', 'Ground', 'Rock', 'Bug', 'Ghost', 'Steel',
+  'Fire', 'Water', 'Grass', 'Electric', 'Psychic', 'Ice', 'Dragon', 'Dark',
 ];
 
 // Hidden Power is a lottery until the Type Changer is unlocked — its type is
@@ -475,9 +475,9 @@ const HIDDEN_POWER_TYPES = [
 // its own move) and let the recommender pick the best; the recommender caps a
 // set at ONE Hidden Power, since a mon can only have one.
 function expandHiddenPower(moves, progression) {
-  const hiddenPower = moves.find((move) => move.id === "hiddenpower");
+  const hiddenPower = moves.find((move) => move.id === 'hiddenpower');
   if (!hiddenPower) return moves;
-  const rest = moves.filter((move) => move.id !== "hiddenpower");
+  const rest = moves.filter((move) => move.id !== 'hiddenpower');
   if (!progression.hiddenPowerTypeChangerUnlocked) return rest;
   for (const type of HIDDEN_POWER_TYPES) {
     rest.push({
@@ -528,7 +528,7 @@ function compareSourcePriority(a, b) {
 
 function getBestSourcePriority(move) {
   const priorities = {
-    "level-up": 0,
+    'level-up': 0,
     relearner: 1,
     tm: 2,
     tmx: 3,

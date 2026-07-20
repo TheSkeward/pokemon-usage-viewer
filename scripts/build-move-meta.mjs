@@ -7,11 +7,11 @@
  * legal-move files only need to reference a move by id.
  */
 
-import fs from "node:fs";
-import path from "node:path";
-import { Dex } from "@pkmn/dex";
+import fs from 'node:fs';
+import path from 'node:path';
+import { Dex } from '@pkmn/dex';
 
-const OUT_PATH = path.resolve("src", "generated", "gen7MoveMeta.generated.js");
+const OUT_PATH = path.resolve('src', 'generated', 'gen7MoveMeta.generated.js');
 
 // Happiness-scaled moves report base power 0 in the dex, which would drop them
 // from the damage model entirely. Assume max happiness (the sensible playthrough
@@ -23,14 +23,14 @@ const ASSUMED_BASE_POWER = { return: 102 };
 // by hand. Status moves are always utility; this set only promotes *damaging*
 // moves to also count as utility.
 const CODED_UTILITY_MOVES = new Set([
-  "knockoff", "thief", "covet", "rapidspin", "pursuit", "anchorshot",
-  "spiritshackle", "thousandwaves", "thousandarrows", "bugbite", "pluck",
-  "incinerate", "feint", "brickbreak", "psychicfangs", "clearsmog",
-  "beakblast", "coreenforcer", "skydrop", "spectralthief", "fellstinger",
-  "rage", "skullbash", "plasmafists", "pollenpuff", "hyperspacehole",
-  "hyperspacefury", "phantomforce", "shadowforce", "uproar", "burnup",
-  "fling", "present", "smellingsalts", "wakeupslap", "firepledge",
-  "grasspledge", "waterpledge", "round",
+  'knockoff', 'thief', 'covet', 'rapidspin', 'pursuit', 'anchorshot',
+  'spiritshackle', 'thousandwaves', 'thousandarrows', 'bugbite', 'pluck',
+  'incinerate', 'feint', 'brickbreak', 'psychicfangs', 'clearsmog',
+  'beakblast', 'coreenforcer', 'skydrop', 'spectralthief', 'fellstinger',
+  'rage', 'skullbash', 'plasmafists', 'pollenpuff', 'hyperspacehole',
+  'hyperspacefury', 'phantomforce', 'shadowforce', 'uproar', 'burnup',
+  'fling', 'present', 'smellingsalts', 'wakeupslap', 'firepledge',
+  'grasspledge', 'waterpledge', 'round',
 ]);
 
 // A move carries utility beyond raw damage if it's a status move, or a damaging
@@ -45,7 +45,7 @@ const CODED_UTILITY_MOVES = new Set([
 // usage>0-or-weight>0 filters already keep unused filler out of every
 // utility-ranked path.
 function isUtilityMove(move) {
-  if (move.category === "Status") return true;
+  if (move.category === 'Status') return true;
   if (CODED_UTILITY_MOVES.has(move.id)) return true;
   if (move.drain || move.heal) return true;
   if (move.forceSwitch || move.selfSwitch) return true;
@@ -65,23 +65,23 @@ function isUtilityMove(move) {
   return false;
 }
 
-const HAZARD_REMOVE_MOVES = new Set(["rapidspin", "defog", "courtchange"]);
-const HAZARD_SIDE_CONDITIONS = new Set(["stealthrock", "spikes", "toxicspikes"]);
-const SCREEN_SIDE_CONDITIONS = new Set(["reflect", "lightscreen", "auroraveil"]);
-const DISRUPTION_VOLATILES = new Set(["taunt", "encore", "disable", "imprison"]);
+const HAZARD_REMOVE_MOVES = new Set(['rapidspin', 'defog', 'courtchange']);
+const HAZARD_SIDE_CONDITIONS = new Set(['stealthrock', 'spikes', 'toxicspikes']);
+const SCREEN_SIDE_CONDITIONS = new Set(['reflect', 'lightscreen', 'auroraveil']);
+const DISRUPTION_VOLATILES = new Set(['taunt', 'encore', 'disable', 'imprison']);
 
 // Screens differ in how much of the team they protect with one action.
 // Aurora Veil is the only Gen 7 dual-axis screen, and it is only executable
 // while hail is active.
 function screenFacts(move) {
-  if (move.sideCondition === "auroraveil") {
-    return { screenAxes: ["physical", "special"], requiresWeather: "hail" };
+  if (move.sideCondition === 'auroraveil') {
+    return { screenAxes: ['physical', 'special'], requiresWeather: 'hail' };
   }
-  if (move.sideCondition === "reflect") {
-    return { screenAxes: ["physical"] };
+  if (move.sideCondition === 'reflect') {
+    return { screenAxes: ['physical'] };
   }
-  if (move.sideCondition === "lightscreen") {
-    return { screenAxes: ["special"] };
+  if (move.sideCondition === 'lightscreen') {
+    return { screenAxes: ['special'] };
   }
   return null;
 }
@@ -94,33 +94,33 @@ function deriveRoles(move) {
   const secondaries =
     move.secondaries || (move.secondary ? [move.secondary] : []);
 
-  if (move.heal || move.drain) roles.add("recovery");
+  if (move.heal || move.drain) roles.add('recovery');
   if (move.boosts && Object.values(move.boosts).some((v) => v > 0))
-    roles.add("setup");
+    roles.add('setup');
   if (move.self?.boosts && Object.values(move.self.boosts).some((v) => v > 0))
-    roles.add("setup");
-  if (move.terrain || move.weather) roles.add("setup");
+    roles.add('setup');
+  if (move.terrain || move.weather) roles.add('setup');
 
-  if (move.status) roles.add("status");
-  for (const s of secondaries) if (s?.status) roles.add("status");
+  if (move.status) roles.add('status');
+  for (const s of secondaries) if (s?.status) roles.add('status');
 
-  if ((move.priority || 0) > 0) roles.add("priority");
+  if ((move.priority || 0) > 0) roles.add('priority');
 
-  if (HAZARD_SIDE_CONDITIONS.has(move.sideCondition)) roles.add("hazard_set");
-  if (HAZARD_REMOVE_MOVES.has(move.id)) roles.add("hazard_remove");
-  if (SCREEN_SIDE_CONDITIONS.has(move.sideCondition)) roles.add("screen");
-  if (move.forceSwitch) roles.add("phazing");
-  if (move.selfSwitch) roles.add("pivot");
+  if (HAZARD_SIDE_CONDITIONS.has(move.sideCondition)) roles.add('hazard_set');
+  if (HAZARD_REMOVE_MOVES.has(move.id)) roles.add('hazard_remove');
+  if (SCREEN_SIDE_CONDITIONS.has(move.sideCondition)) roles.add('screen');
+  if (move.forceSwitch) roles.add('phazing');
+  if (move.selfSwitch) roles.add('pivot');
 
-  if (move.status === "par") roles.add("speed_control");
-  if (move.sideCondition === "stickyweb") roles.add("speed_control");
-  if (move.pseudoWeather === "trickroom") roles.add("speed_control");
+  if (move.status === 'par') roles.add('speed_control');
+  if (move.sideCondition === 'stickyweb') roles.add('speed_control');
+  if (move.pseudoWeather === 'trickroom') roles.add('speed_control');
   for (const s of secondaries) {
-    if (s?.status === "par") roles.add("speed_control");
-    if (s?.boosts?.spe && s.boosts.spe < 0) roles.add("speed_control");
+    if (s?.status === 'par') roles.add('speed_control');
+    if (s?.boosts?.spe && s.boosts.spe < 0) roles.add('speed_control');
   }
 
-  if (DISRUPTION_VOLATILES.has(move.volatileStatus)) roles.add("disruption");
+  if (DISRUPTION_VOLATILES.has(move.volatileStatus)) roles.add('disruption');
 
   return [...roles];
 }

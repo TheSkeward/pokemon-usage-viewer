@@ -4,8 +4,8 @@
  * observedSets: index.json gates the per-format fetches so families with no
  * scraped teams never 404, and any failure degrades to "no data".
  */
-import { dataUrl } from "../utils/dataUrl.js";
-import { fetchJsonCached } from "../utils/fetchJsonCached.js";
+import { dataUrl } from '../utils/dataUrl.js';
+import { fetchJsonCached } from '../utils/fetchJsonCached.js';
 
 const teamsCache = new Map();
 

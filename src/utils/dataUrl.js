@@ -22,10 +22,10 @@ export function setDataVersionTag(tag) {
  * @return {string}
  */
 export function dataUrl(path) {
-  const base = import.meta.env.BASE_URL || "/";
-  const cleanBase = base.endsWith("/") ? base.slice(0, -1) : base;
-  const cleanPath = String(path).replace(/^\/+/, "");
+  const base = import.meta.env.BASE_URL || '/';
+  const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
+  const cleanPath = String(path).replace(/^\/+/, '');
   const version =
-    versionTag && cleanPath !== "manifest.json" ? `?v=${versionTag}` : "";
+    versionTag && cleanPath !== 'manifest.json' ? `?v=${versionTag}` : '';
   return `${cleanBase}/data/${cleanPath}${version}`;
 }

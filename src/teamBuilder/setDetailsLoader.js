@@ -1,7 +1,7 @@
 import {
   createPrecomputedSetDetailsLoader,
   describePrecomputedSetSource,
-} from "../setDetails/precomputedSetDetails";
+} from '../setDetails/precomputedSetDetails';
 
 /**
  * @param {{getFamily: function(): string, getSelection: function(): Object,

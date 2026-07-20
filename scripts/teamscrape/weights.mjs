@@ -36,7 +36,7 @@ export const RATING_FLOORS = {
  * @return {number}
  */
 export function replayWeight(record) {
-  if (record.source === "tournament") return WEIGHTS.tournament_team;
+  if (record.source === 'tournament') return WEIGHTS.tournament_team;
   const rating = record.rating;
   if (rating == null) return WEIGHTS.unrated_replay;
   if (rating >= RATING_FLOORS.elite) return WEIGHTS.rated_1760_plus;
@@ -51,7 +51,7 @@ export function replayWeight(record) {
  * @return {number}
  */
 export function teamWeight(record) {
-  if (record.source === "tournament") return WEIGHTS.tournament_team;
-  if (record.source === "rmt") return WEIGHTS.rmt;
+  if (record.source === 'tournament') return WEIGHTS.tournament_team;
+  if (record.source === 'rmt') return WEIGHTS.rmt;
   return WEIGHTS.sample_team;
 }

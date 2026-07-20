@@ -20,10 +20,10 @@
  * looks wrong, the fix is C/K/utility — never a special legality rule.
  */
 
-import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
-import { toId } from "../utils/ids.js";
-import { getItemAvailability } from "./itemAvailability.js";
-import { tunable } from "../teamBuilder/scoringConstants.js";
+import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
+import { toId } from '../utils/ids.js';
+import { getItemAvailability } from './itemAvailability.js';
+import { tunable } from '../teamBuilder/scoringConstants.js';
 
 const TEDIOUS_MULTIPLIER = 1.5;
 
@@ -42,16 +42,16 @@ const TEDIOUS_MULTIPLIER = 1.5;
  * @type {Array<{key: string, label: string, item: string}>}
  */
 export const EVOLUTION_STONE_FIELDS = Object.freeze([
-  { key: "evoAccessFireStone", label: "Fire Stone", item: "Fire Stone" },
-  { key: "evoAccessWaterStone", label: "Water Stone", item: "Water Stone" },
-  { key: "evoAccessThunderStone", label: "Thunder Stone", item: "Thunder Stone" },
-  { key: "evoAccessLeafStone", label: "Leaf Stone", item: "Leaf Stone" },
-  { key: "evoAccessMoonStone", label: "Moon Stone", item: "Moon Stone" },
-  { key: "evoAccessSunStone", label: "Sun Stone", item: "Sun Stone" },
-  { key: "evoAccessShinyStone", label: "Shiny Stone", item: "Shiny Stone" },
-  { key: "evoAccessDuskStone", label: "Dusk Stone", item: "Dusk Stone" },
-  { key: "evoAccessDawnStone", label: "Dawn Stone", item: "Dawn Stone" },
-  { key: "evoAccessIceStone", label: "Ice Stone", item: "Ice Stone" },
+  { key: 'evoAccessFireStone', label: 'Fire Stone', item: 'Fire Stone' },
+  { key: 'evoAccessWaterStone', label: 'Water Stone', item: 'Water Stone' },
+  { key: 'evoAccessThunderStone', label: 'Thunder Stone', item: 'Thunder Stone' },
+  { key: 'evoAccessLeafStone', label: 'Leaf Stone', item: 'Leaf Stone' },
+  { key: 'evoAccessMoonStone', label: 'Moon Stone', item: 'Moon Stone' },
+  { key: 'evoAccessSunStone', label: 'Sun Stone', item: 'Sun Stone' },
+  { key: 'evoAccessShinyStone', label: 'Shiny Stone', item: 'Shiny Stone' },
+  { key: 'evoAccessDuskStone', label: 'Dusk Stone', item: 'Dusk Stone' },
+  { key: 'evoAccessDawnStone', label: 'Dawn Stone', item: 'Dawn Stone' },
+  { key: 'evoAccessIceStone', label: 'Ice Stone', item: 'Ice Stone' },
 ]);
 
 /**
@@ -60,16 +60,16 @@ export const EVOLUTION_STONE_FIELDS = Object.freeze([
  * @type {Array<{key: string, label: string, item: (string|undefined)}>}
  */
 export const EVOLUTION_ACCESS_FIELDS = Object.freeze([
-  { key: "evoAccessFriendship", label: "Friendship / affection evolutions" },
+  { key: 'evoAccessFriendship', label: 'Friendship / affection evolutions' },
   ...EVOLUTION_STONE_FIELDS,
-  { key: "evoAccessOtherEvoItems", label: "Other evolution items (Metal Coat, Razor Claw, …)" },
-  { key: "evoAccessLinkStone", label: "Link Stone (trade evolutions)" },
-  { key: "evoAccessPartyCondition", label: "Party-condition evolutions (Mantyke needs a Remoraid)" },
-  { key: "evoAccessMagneticField", label: "Magnetic field area (Probopass, Magnezone, Vikavolt)" },
-  { key: "evoAccessMossyRock", label: "Moss Rock (Leafeon)" },
-  { key: "evoAccessIcyRock", label: "Ice Rock (Glaceon)" },
-  { key: "evoAccessOtherLocations", label: "Other special locations (Crabominable)" },
-  { key: "evoAccessApophyll", label: "Apophyll area (Alolan evolutions: Raichu-A, Exeggutor-A)" },
+  { key: 'evoAccessOtherEvoItems', label: 'Other evolution items (Metal Coat, Razor Claw, …)' },
+  { key: 'evoAccessLinkStone', label: 'Link Stone (trade evolutions)' },
+  { key: 'evoAccessPartyCondition', label: 'Party-condition evolutions (Mantyke needs a Remoraid)' },
+  { key: 'evoAccessMagneticField', label: 'Magnetic field area (Probopass, Magnezone, Vikavolt)' },
+  { key: 'evoAccessMossyRock', label: 'Moss Rock (Leafeon)' },
+  { key: 'evoAccessIcyRock', label: 'Ice Rock (Glaceon)' },
+  { key: 'evoAccessOtherLocations', label: 'Other special locations (Crabominable)' },
+  { key: 'evoAccessApophyll', label: 'Apophyll area (Alolan evolutions: Raichu-A, Exeggutor-A)' },
 ]);
 
 // Region-locked evolutions (dex evoRegion "Alola") need Reborn's Alola
@@ -77,7 +77,7 @@ export const EVOLUTION_ACCESS_FIELDS = Object.freeze([
 // Exception: Reborn removed Marowak-Alola's location requirement — Cubone
 // picks the form by time of day (Kanto by day, Alolan by night).
 function needsApophyll(species) {
-  return species?.evoRegion === "Alola" && species?.id !== "marowakalola";
+  return species?.evoRegion === 'Alola' && species?.id !== 'marowakalola';
 }
 
 function ownedItemCount(access, itemName) {
@@ -91,35 +91,35 @@ const STONE_KEY_BY_ITEM_ID = new Map(
 );
 const ITEM_GATE_KEYS = new Set([
   ...STONE_KEY_BY_ITEM_ID.values(),
-  "evoAccessOtherEvoItems",
+  'evoAccessOtherEvoItems',
 ]);
 
 function evoItemAccessKey(evoItem) {
-  return STONE_KEY_BY_ITEM_ID.get(toId(evoItem)) || "evoAccessOtherEvoItems";
+  return STONE_KEY_BY_ITEM_ID.get(toId(evoItem)) || 'evoAccessOtherEvoItems';
 }
 
 function requiredAccessKeys(evoType, condition, species) {
-  const regionKeys = needsApophyll(species) ? ["evoAccessApophyll"] : [];
-  if (evoType === "levelFriendship") return ["evoAccessFriendship", ...regionKeys];
-  if (evoType === "trade") {
+  const regionKeys = needsApophyll(species) ? ['evoAccessApophyll'] : [];
+  if (evoType === 'levelFriendship') return ['evoAccessFriendship', ...regionKeys];
+  if (evoType === 'trade') {
     // Trade-with-item (Metal Coat Scizor) needs the item too.
     return species.evoItem
-      ? ["evoAccessLinkStone", evoItemAccessKey(species.evoItem), ...regionKeys]
-      : ["evoAccessLinkStone", ...regionKeys];
+      ? ['evoAccessLinkStone', evoItemAccessKey(species.evoItem), ...regionKeys]
+      : ['evoAccessLinkStone', ...regionKeys];
   }
-  if (evoType === "useItem" || evoType === "levelHold") {
+  if (evoType === 'useItem' || evoType === 'levelHold') {
     return [evoItemAccessKey(species.evoItem), ...regionKeys];
   }
-  if (evoType === "") return regionKeys;
-  if (evoType === "levelExtra") {
-    if (/affection/i.test(condition)) return ["evoAccessFriendship", ...regionKeys];
-    if (/magnetic field/i.test(condition)) return ["evoAccessMagneticField"];
-    if (/moss rock/i.test(condition)) return ["evoAccessMossyRock"];
-    if (/ice rock/i.test(condition)) return ["evoAccessIcyRock"];
+  if (evoType === '') return regionKeys;
+  if (evoType === 'levelExtra') {
+    if (/affection/i.test(condition)) return ['evoAccessFriendship', ...regionKeys];
+    if (/magnetic field/i.test(condition)) return ['evoAccessMagneticField'];
+    if (/moss rock/i.test(condition)) return ['evoAccessMossyRock'];
+    if (/ice rock/i.test(condition)) return ['evoAccessIcyRock'];
     // "with a Remoraid in party" is NOT trivial — it needs a specific mon the
     // player may not own; gate it like the other special methods.
-    if (/party/i.test(condition)) return ["evoAccessPartyCondition"];
-    return ["evoAccessOtherLocations"];
+    if (/party/i.test(condition)) return ['evoAccessPartyCondition'];
+    return ['evoAccessOtherLocations'];
   }
   return [];
 }
@@ -138,20 +138,20 @@ function requiredAccessKeys(evoType, condition, species) {
 export function getEvolutionRequirement(species, access = null) {
   if (!species) return null;
   if (!species.prevoId) {
-    return { status: "legal", levelRequired: null, friction: 0, method: "base", reason: "base form" };
+    return { status: 'legal', levelRequired: null, friction: 0, method: 'base', reason: 'base form' };
   }
   if (species.isMega) {
     return {
-      status: "unknown",
+      status: 'unknown',
       levelRequired: null,
       friction: 0,
-      method: "mega",
-      reason: "mega forms are handled by the mega slot, not evolution",
+      method: 'mega',
+      reason: 'mega forms are handled by the mega slot, not evolution',
     };
   }
 
-  const evoType = species.evoType || "";
-  const condition = species.evoCondition || "";
+  const evoType = species.evoType || '';
+  const condition = species.evoCondition || '';
 
   // Access gate first: a method the player can't use yet is BLOCKED — a
   // concrete, user-stated fact that outranks the friction model. Surfaced,
@@ -170,7 +170,7 @@ export function getEvolutionRequirement(species, access = null) {
         if (itemGate && ownedItemCount(access, species.evoItem)) {
           return false;
         }
-        if (key === "evoAccessLinkStone" && ownedItemCount(access, "Link Stone")) {
+        if (key === 'evoAccessLinkStone' && ownedItemCount(access, 'Link Stone')) {
           return false;
         }
         return true;
@@ -181,78 +181,78 @@ export function getEvolutionRequirement(species, access = null) {
         EVOLUTION_ACCESS_FIELDS.find((field) => field.key === denied)?.label ||
         denied;
       return {
-        status: "blocked",
+        status: 'blocked',
         levelRequired: null,
         friction: 0,
-        method: evoType || "level",
+        method: evoType || 'level',
         reason: `${label} not yet accessible (Reborn Progression setting)`,
       };
     }
   }
 
-  if (evoType === "") {
+  if (evoType === '') {
     // Plain level evolution; a trivial rider (day/night, gender) adds minor
     // friction but doesn't gate legality.
     return {
-      status: "legal",
+      status: 'legal',
       levelRequired: Number.isFinite(species.evoLevel) ? species.evoLevel : null,
-      friction: condition ? tunable("TIME_FRICTION") : 0,
-      method: "level",
+      friction: condition ? tunable('TIME_FRICTION') : 0,
+      method: 'level',
       reason: condition
         ? `level ${species.evoLevel} (${condition})`
         : `level ${species.evoLevel}`,
     };
   }
 
-  if (evoType === "levelFriendship") {
+  if (evoType === 'levelFriendship') {
     return {
-      status: "legal",
+      status: 'legal',
       levelRequired: null,
-      friction: tunable("FRIENDSHIP_FRICTION"),
-      method: "friendship",
-      reason: condition ? `friendship (${condition})` : "friendship grind",
+      friction: tunable('FRIENDSHIP_FRICTION'),
+      method: 'friendship',
+      reason: condition ? `friendship (${condition})` : 'friendship grind',
     };
   }
 
-  if (evoType === "levelMove") {
+  if (evoType === 'levelMove') {
     // Legal once the pre-evo can have LEARNED the required move on the natural
     // path — gated by the recorded learn level. No recorded level ⇒ unknown.
     if (!Number.isFinite(species.evoMoveLevel)) {
       return {
-        status: "unknown",
+        status: 'unknown',
         levelRequired: null,
         friction: 0,
-        method: "move",
-        reason: `requires knowing ${species.evoMove || "a move"} — learn level unknown`,
+        method: 'move',
+        reason: `requires knowing ${species.evoMove || 'a move'} — learn level unknown`,
       };
     }
     return {
-      status: "legal",
+      status: 'legal',
       levelRequired: species.evoMoveLevel,
-      friction: tunable("TIME_FRICTION"),
-      method: "move",
+      friction: tunable('TIME_FRICTION'),
+      method: 'move',
       reason: `level-up knowing ${species.evoMove} (learned at ${species.evoMoveLevel})`,
     };
   }
 
-  if (evoType === "levelHold" || evoType === "useItem" || evoType === "trade") {
+  if (evoType === 'levelHold' || evoType === 'useItem' || evoType === 'trade') {
     const parts = [];
     let friction = 0;
     // Reborn replaces trades with the Link Stone — itself a farmable item.
-    if (evoType === "trade") {
-      const link = getItemAvailability("Link Stone");
-      parts.push({ item: "Link Stone", ...link });
+    if (evoType === 'trade') {
+      const link = getItemAvailability('Link Stone');
+      parts.push({ item: 'Link Stone', ...link });
     }
     if (species.evoItem) {
       parts.push({ item: species.evoItem, ...getItemAvailability(species.evoItem) });
     }
-    if (evoType === "useItem" && !species.evoItem) {
+    if (evoType === 'useItem' && !species.evoItem) {
       return {
-        status: "unknown",
+        status: 'unknown',
         levelRequired: null,
         friction: 0,
-        method: "item",
-        reason: "item evolution with no recorded item",
+        method: 'item',
+        reason: 'item evolution with no recorded item',
       };
     }
     // Owned items are settled facts — mark them before the availability check
@@ -261,14 +261,14 @@ export function getEvolutionRequirement(species, access = null) {
       if (ownedItemCount(access, part.item)) part.owned = true;
     }
     const unknown = parts.find(
-      (part) => part.status === "unknown" && !part.owned,
+      (part) => part.status === 'unknown' && !part.owned,
     );
     if (unknown) {
       return {
-        status: "unknown",
+        status: 'unknown',
         levelRequired: null,
         friction: 0,
-        method: evoType === "trade" ? "trade" : "item",
+        method: evoType === 'trade' ? 'trade' : 'item',
         reason: `${unknown.item} availability unknown (${unknown.source})`,
       };
     }
@@ -277,11 +277,11 @@ export function getEvolutionRequirement(species, access = null) {
       // of getting it, and it's already in the bag.
       if (part.owned) continue;
       const base =
-        evoType === "trade" && part.item === "Link Stone"
-          ? tunable("TRADE_FRICTION")
-          : tunable("ITEM_FRICTION");
+        evoType === 'trade' && part.item === 'Link Stone'
+          ? tunable('TRADE_FRICTION')
+          : tunable('ITEM_FRICTION');
       friction +=
-        part.status === "farmable-tedious"
+        part.status === 'farmable-tedious'
           ? Math.round(base * TEDIOUS_MULTIPLIER)
           : base;
     }
@@ -291,35 +291,35 @@ export function getEvolutionRequirement(species, access = null) {
           ? `${part.item} (owned)`
           : `${part.item} (${part.status}: ${part.source})`,
       )
-      .join(" + ");
-    const riders = [condition, needsApophyll(species) ? "in Apophyll" : ""]
+      .join(' + ');
+    const riders = [condition, needsApophyll(species) ? 'in Apophyll' : '']
       .filter(Boolean)
-      .join(", ");
+      .join(', ');
     return {
-      status: "legal",
+      status: 'legal',
       levelRequired: null,
       friction,
-      method: evoType === "trade" ? "trade" : "item",
+      method: evoType === 'trade' ? 'trade' : 'item',
       reason: riders ? `${how}, ${riders}` : how,
     };
   }
 
-  if (evoType === "levelExtra") {
+  if (evoType === 'levelExtra') {
     if (/affection/i.test(condition)) {
       return {
-        status: "legal",
+        status: 'legal',
         levelRequired: null,
-        friction: tunable("FRIENDSHIP_FRICTION"),
-        method: "affection",
+        friction: tunable('FRIENDSHIP_FRICTION'),
+        method: 'affection',
         reason: condition,
       };
     }
     if (/party/i.test(condition)) {
       return {
-        status: "legal",
+        status: 'legal',
         levelRequired: null,
-        friction: tunable("TIME_FRICTION"),
-        method: "condition",
+        friction: tunable('TIME_FRICTION'),
+        method: 'condition',
         reason: condition,
       };
     }
@@ -327,16 +327,16 @@ export function getEvolutionRequirement(species, access = null) {
     // Reborn has all of these locations; they open up over the midgame. Legal
     // with item-level friction; the condition is surfaced in the proof.
     return {
-      status: "legal",
+      status: 'legal',
       levelRequired: null,
-      friction: tunable("ITEM_FRICTION"),
-      method: "location",
-      reason: `${condition || "special location"} (Reborn location, midgame)`,
+      friction: tunable('ITEM_FRICTION'),
+      method: 'location',
+      reason: `${condition || 'special location'} (Reborn location, midgame)`,
     };
   }
 
   return {
-    status: "unknown",
+    status: 'unknown',
     levelRequired: null,
     friction: 0,
     method: evoType,
@@ -348,16 +348,16 @@ export function getEvolutionRequirement(species, access = null) {
 // and Burmy's cloak-by-location). Reviewed by hand; display-only.
 const FORM_EVOLUTION_NOTES = Object.freeze({
   // Reborn-specific: Cubone picks Marowak's form by time of day.
-  marowak: "during the day",
-  wormadam: "Female, in grass",
-  wormadamsandy: "Female, in caves",
-  wormadamtrash: "Female, in buildings",
-  mothim: "Male",
-  vespiquen: "Female",
-  gallade: "Male",
-  froslass: "Female",
-  salazzle: "Female",
-  shedinja: "spare party slot and a Poké Ball",
+  marowak: 'during the day',
+  wormadam: 'Female, in grass',
+  wormadamsandy: 'Female, in caves',
+  wormadamtrash: 'Female, in buildings',
+  mothim: 'Male',
+  vespiquen: 'Female',
+  gallade: 'Male',
+  froslass: 'Female',
+  salazzle: 'Female',
+  shedinja: 'spare party slot and a Poké Ball',
 });
 
 // One evolution step INTO `species`, compressed for display: `level` when it's
@@ -366,37 +366,37 @@ const FORM_EVOLUTION_NOTES = Object.freeze({
 // "Link Stone + Metal Coat", "near a Moss Rock", "Female, in buildings").
 function shortStepRequirement(species) {
   const note = FORM_EVOLUTION_NOTES[species.id];
-  const condition = species.evoCondition || "";
-  const evoType = species.evoType || "";
-  const region = needsApophyll(species) ? "in Apophyll" : "";
+  const condition = species.evoCondition || '';
+  const evoType = species.evoType || '';
+  const region = needsApophyll(species) ? 'in Apophyll' : '';
   const extras = (base) =>
-    [base, note || condition || "", region].filter(Boolean).join(", ");
+    [base, note || condition || '', region].filter(Boolean).join(', ');
 
-  if (evoType === "") {
+  if (evoType === '') {
     return {
       level: Number.isFinite(species.evoLevel) ? species.evoLevel : null,
-      text: extras("") || null,
+      text: extras('') || null,
     };
   }
-  if (evoType === "levelFriendship") return { level: null, text: extras("friendship") };
-  if (evoType === "levelMove") {
-    return { level: null, text: extras(`knowing ${species.evoMove || "a move"}`) };
+  if (evoType === 'levelFriendship') return { level: null, text: extras('friendship') };
+  if (evoType === 'levelMove') {
+    return { level: null, text: extras(`knowing ${species.evoMove || 'a move'}`) };
   }
-  if (evoType === "useItem") {
-    return { level: null, text: extras(species.evoItem || "an item") };
+  if (evoType === 'useItem') {
+    return { level: null, text: extras(species.evoItem || 'an item') };
   }
-  if (evoType === "levelHold") {
-    return { level: null, text: extras(`hold ${species.evoItem || "an item"}`) };
+  if (evoType === 'levelHold') {
+    return { level: null, text: extras(`hold ${species.evoItem || 'an item'}`) };
   }
-  if (evoType === "trade") {
+  if (evoType === 'trade') {
     // Reborn replaces trades with the Link Stone.
     return {
       level: null,
-      text: extras(`Link Stone${species.evoItem ? ` + ${species.evoItem}` : ""}`),
+      text: extras(`Link Stone${species.evoItem ? ` + ${species.evoItem}` : ''}`),
     };
   }
   // levelExtra and anything else: the recorded condition IS the requirement.
-  return { level: null, text: extras("") || "special condition" };
+  return { level: null, text: extras('') || 'special condition' };
 }
 
 /**
@@ -411,18 +411,18 @@ function shortStepRequirement(species) {
  * @return {string}
  */
 export function describeEvolutionPath(fromId, toId) {
-  if (!fromId || !toId || fromId === toId) return "";
+  if (!fromId || !toId || fromId === toId) return '';
   const chain = [];
   let id = toId;
   const seen = new Set();
   while (id && id !== fromId && !seen.has(id)) {
     seen.add(id);
     const species = GEN7_PROGRESSION_SPECIES[id];
-    if (!species?.prevoId) return "";
+    if (!species?.prevoId) return '';
     chain.unshift(species);
     id = species.prevoId;
   }
-  if (id !== fromId || !chain.length) return "";
+  if (id !== fromId || !chain.length) return '';
 
   let steps = chain.map(shortStepRequirement);
   // A leading run of unconditioned level-ups collapses to its last level:
@@ -437,7 +437,7 @@ export function describeEvolutionPath(fromId, toId) {
   ) {
     steps = steps.slice(1);
   }
-  let attachedLevel = "";
+  let attachedLevel = '';
   const tokens = [];
   steps.forEach((step, index) => {
     if (index === 0 && step.level != null) {
@@ -447,14 +447,14 @@ export function describeEvolutionPath(fromId, toId) {
     }
     const text =
       step.level != null
-        ? [`@${step.level}`, step.text].filter(Boolean).join(", ")
+        ? [`@${step.level}`, step.text].filter(Boolean).join(', ')
         : step.text;
     if (!text) return;
     // A token from a LATER step reads as a sequence: "@21 (then Leaf Stone)".
     tokens.push(index > 0 && (attachedLevel || tokens.length) ? `then ${text}` : text);
   });
 
-  return `${attachedLevel}${tokens.length ? ` (${tokens.join(", ")})` : ""}`;
+  return `${attachedLevel}${tokens.length ? ` (${tokens.join(', ')})` : ''}`;
 }
 
 /**

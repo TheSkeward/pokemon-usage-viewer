@@ -11,18 +11,18 @@
  * game id.
  */
 export const REBORN_GAME = Object.freeze({
-  id: "reborn",
-  label: "Pokémon Reborn",
+  id: 'reborn',
+  label: 'Pokémon Reborn',
   // Dex generation the generated species/move modules are built from. The
   // engine still imports gen7 generated modules directly; this field is only
   // the declaration.
   dexGen: 7,
   data: Object.freeze({
-    legalMovesDir: "reborn-legal-moves",
-    itemAvailability: "reborn-item-availability.extracted.json",
+    legalMovesDir: 'reborn-legal-moves',
+    itemAvailability: 'reborn-item-availability.extracted.json',
   }),
   storage: Object.freeze({
-    progression: "pokemon-usage-viewer:reborn-progression:v1",
-    pool: "pokemon-usage-viewer:owned-pool:v1",
+    progression: 'pokemon-usage-viewer:reborn-progression:v1',
+    pool: 'pokemon-usage-viewer:owned-pool:v1',
   }),
 });

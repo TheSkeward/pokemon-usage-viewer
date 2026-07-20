@@ -1,5 +1,5 @@
-import test from "node:test";
-import assert from "node:assert/strict";
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
 // In-memory localStorage so record/load round-trips like a real browser.
 const store = new Map();
@@ -19,7 +19,7 @@ const {
   poolBucket,
   buildBucket,
   estimateRunBudget,
-} = await import("../src/teamBuilder/telemetry.js");
+} = await import('../src/teamBuilder/telemetry.js');
 
 
 
@@ -27,21 +27,21 @@ const {
 
 
 
-test("performance report is redacted and self-describing", () => {
+test('performance report is redacted and self-describing', () => {
   clearTelemetry();
   recordOptimizerSample({
-    cache: "warm",
+    cache: 'warm',
     resolveMs: 300,
     searchMs: 40,
     poolSize: 20,
     builds: 55,
-    dataSignature: "sig",
+    dataSignature: 'sig',
   });
   const report = buildPerformanceReport();
-  assert.equal(report.report, "team-optimizer-performance");
-  assert.ok(report.env.includes("sig"));
+  assert.equal(report.report, 'team-optimizer-performance');
+  assert.ok(report.env.includes('sig'));
   assert.equal(report.summary.runs, 1);
-  assert.equal(report.lastRun.cache, "warm");
+  assert.equal(report.lastRun.cache, 'warm');
   assert.equal(report.lastRun.poolSize, 20);
   // Nothing that could carry pool/team content: every key in the tree is a
   // known metric/metadata key — no query text, mon names, or move lists.

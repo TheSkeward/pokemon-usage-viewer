@@ -81,7 +81,7 @@ class MarshalReader {
   }
 
   string() {
-    return this.bytes(this.long()).toString("latin1");
+    return this.bytes(this.long()).toString('latin1');
   }
 
   registerObject(obj) {
@@ -92,28 +92,28 @@ class MarshalReader {
   readValue() {
     const type = String.fromCharCode(this.byte());
     switch (type) {
-      case "0":
+      case '0':
         return null;
-      case "T":
+      case 'T':
         return true;
-      case "F":
+      case 'F':
         return false;
-      case "i":
+      case 'i':
         return this.long();
-      case ":": {
+      case ':': {
         const sym = new RubySymbol(this.string());
         this.symbols.push(sym);
         return sym;
       }
-      case ";":
+      case ';':
         return this.symbols[this.long()];
-      case "@":
+      case '@':
         return this.objects[this.long()];
       case '"': {
         const obj = { rubyString: this.string() };
         return this.registerObject(obj);
       }
-      case "I": {
+      case 'I': {
         // Object with instance vars (usually a String carrying @encoding).
         const inner = this.readValue();
         const ivarCount = this.long();
@@ -123,13 +123,13 @@ class MarshalReader {
         }
         return inner;
       }
-      case "[": {
+      case '[': {
         const arr = this.registerObject([]);
         const count = this.long();
         for (let i = 0; i < count; i++) arr.push(this.readValue());
         return arr;
       }
-      case "{": {
+      case '{': {
         const map = this.registerObject(new Map());
         const count = this.long();
         for (let i = 0; i < count; i++) {
@@ -138,7 +138,7 @@ class MarshalReader {
         }
         return map;
       }
-      case "o": {
+      case 'o': {
         const className = this.readValue().name;
         const obj = this.registerObject(new RubyObject(className));
         const count = this.long();
@@ -148,28 +148,28 @@ class MarshalReader {
         }
         return obj;
       }
-      case "C": {
+      case 'C': {
         // User subclass of a builtin (e.g. MonDataHash < Hash): class name, then
         // the wrapped builtin object.
         this.readValue(); // class-name symbol
         return this.readValue();
       }
-      case "U": {
+      case 'U': {
         // marshal_dump: class symbol, then the dumped object.
         this.readValue();
         return this.readValue();
       }
-      case "u": {
+      case 'u': {
         // _dump userdef: class symbol, then a byte string. Keep raw.
         const className = this.readValue().name;
         const raw = this.bytes(this.long());
         return this.registerObject({ rubyUserdef: className, raw });
       }
-      case "f": {
+      case 'f': {
         const obj = { rubyFloat: Number(this.string()) };
         return this.registerObject(obj);
       }
-      case "e": {
+      case 'e': {
         this.readValue(); // extended module symbol
         return this.readValue();
       }

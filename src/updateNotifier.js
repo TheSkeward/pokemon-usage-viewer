@@ -12,13 +12,13 @@
 // vite `define` replaces __BUILD_ID__ with a string literal at build time; the
 // typeof guard keeps this safe if it's ever left undefined (e.g. an odd dev run).
 const CURRENT_BUILD_ID =
-  typeof __BUILD_ID__ !== "undefined" ? __BUILD_ID__ : null;
+  typeof __BUILD_ID__ !== 'undefined' ? __BUILD_ID__ : null;
 
 const POLL_INTERVAL_MS = 5 * 60 * 1000;
-const VERSION_URL = `${import.meta.env.BASE_URL || "/"}version.json`;
+const VERSION_URL = `${import.meta.env.BASE_URL || '/'}version.json`;
 
-import { dataUrl } from "./utils/dataUrl.js";
-import { getDataSignature } from "./manifest.js";
+import { dataUrl } from './utils/dataUrl.js';
+import { getDataSignature } from './manifest.js';
 
 /** Starts the new-build / new-data poll. */
 export function startUpdateNotifier() {
@@ -40,7 +40,7 @@ export function startUpdateNotifier() {
 
   const check = async () => {
     try {
-      const response = await fetch(VERSION_URL, { cache: "no-store" });
+      const response = await fetch(VERSION_URL, { cache: 'no-store' });
       if (!response.ok) return;
       const { buildId } = await response.json();
       if (buildId && buildId !== CURRENT_BUILD_ID) {
@@ -50,15 +50,15 @@ export function startUpdateNotifier() {
         }
         return;
       }
-      const deployed = await fetch(dataUrl("manifest.json"), {
-        cache: "no-store",
+      const deployed = await fetch(dataUrl('manifest.json'), {
+        cache: 'no-store',
       });
       if (!deployed.ok) return;
       const deployedSignature = (await deployed.json())?.dataSignature;
       const running = await loadedSignature;
       if (
         deployedSignature &&
-        running !== "unversioned" &&
+        running !== 'unversioned' &&
         deployedSignature !== running &&
         notifiedKey !== `data:${deployedSignature}`
       ) {
@@ -73,8 +73,8 @@ export function startUpdateNotifier() {
   const timer = setInterval(check, POLL_INTERVAL_MS);
   // Re-check when the user returns to the tab: deploys often land while it's
   // backgrounded, and this catches them without waiting out the interval.
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") check();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') check();
   });
   // A first check shortly after load, so a tab opened just before a deploy still
   // learns about it without a full interval's wait.
@@ -82,62 +82,62 @@ export function startUpdateNotifier() {
 }
 
 function showUpdateBanner() {
-  if (document.getElementById("update-banner")) return;
+  if (document.getElementById('update-banner')) return;
 
-  const banner = document.createElement("div");
-  banner.id = "update-banner";
-  banner.setAttribute("role", "status");
+  const banner = document.createElement('div');
+  banner.id = 'update-banner';
+  banner.setAttribute('role', 'status');
   banner.style.cssText = [
-    "position:fixed",
-    "right:16px",
-    "bottom:16px",
-    "z-index:9999",
-    "max-width:320px",
-    "display:flex",
-    "align-items:center",
-    "gap:12px",
-    "padding:12px 14px",
-    "border-radius:10px",
-    "background:#1f2937",
-    "color:#f9fafb",
-    "box-shadow:0 6px 24px rgba(0,0,0,0.28)",
-    "font:14px/1.35 system-ui, sans-serif",
-  ].join(";");
+    'position:fixed',
+    'right:16px',
+    'bottom:16px',
+    'z-index:9999',
+    'max-width:320px',
+    'display:flex',
+    'align-items:center',
+    'gap:12px',
+    'padding:12px 14px',
+    'border-radius:10px',
+    'background:#1f2937',
+    'color:#f9fafb',
+    'box-shadow:0 6px 24px rgba(0,0,0,0.28)',
+    'font:14px/1.35 system-ui, sans-serif',
+  ].join(';');
 
-  const text = document.createElement("span");
-  text.textContent = "A new version is available.";
-  text.style.flex = "1";
+  const text = document.createElement('span');
+  text.textContent = 'A new version is available.';
+  text.style.flex = '1';
 
-  const reload = document.createElement("button");
-  reload.type = "button";
-  reload.textContent = "Reload";
+  const reload = document.createElement('button');
+  reload.type = 'button';
+  reload.textContent = 'Reload';
   reload.style.cssText = [
-    "flex:none",
-    "padding:6px 12px",
-    "border:0",
-    "border-radius:6px",
-    "background:#3b82f6",
-    "color:#fff",
-    "font:inherit",
-    "font-weight:600",
-    "cursor:pointer",
-  ].join(";");
-  reload.addEventListener("click", () => window.location.reload());
+    'flex:none',
+    'padding:6px 12px',
+    'border:0',
+    'border-radius:6px',
+    'background:#3b82f6',
+    'color:#fff',
+    'font:inherit',
+    'font-weight:600',
+    'cursor:pointer',
+  ].join(';');
+  reload.addEventListener('click', () => window.location.reload());
 
-  const dismiss = document.createElement("button");
-  dismiss.type = "button";
-  dismiss.textContent = "×";
-  dismiss.setAttribute("aria-label", "Dismiss");
+  const dismiss = document.createElement('button');
+  dismiss.type = 'button';
+  dismiss.textContent = '×';
+  dismiss.setAttribute('aria-label', 'Dismiss');
   dismiss.style.cssText = [
-    "flex:none",
-    "padding:0 4px",
-    "border:0",
-    "background:transparent",
-    "color:#9ca3af",
-    "font:20px/1 system-ui, sans-serif",
-    "cursor:pointer",
-  ].join(";");
-  dismiss.addEventListener("click", () => banner.remove());
+    'flex:none',
+    'padding:0 4px',
+    'border:0',
+    'background:transparent',
+    'color:#9ca3af',
+    'font:20px/1 system-ui, sans-serif',
+    'cursor:pointer',
+  ].join(';');
+  dismiss.addEventListener('click', () => banner.remove());
 
   banner.append(text, reload, dismiss);
   document.body.appendChild(banner);

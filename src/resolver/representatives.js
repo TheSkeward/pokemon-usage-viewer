@@ -2,8 +2,8 @@ import {
   getLineRepresentativeCandidates,
   resolveBestAvailableLightBundle,
   resolveQueryEntries,
-} from "../data";
-import { toId as normalizeName } from "../utils/ids.js";
+} from '../data';
+import { toId as normalizeName } from '../utils/ids.js';
 
 /**
  * Resolves each query token to result rows: normally one row carrying the
@@ -32,7 +32,7 @@ export async function computeResolverRepresentativeResults({
 
   const rawResults = await Promise.all(
     groups.map(async (group) => {
-      if (group.mode === "literal") {
+      if (group.mode === 'literal') {
         return resolveLiteralSearchGroup({
           availability,
           family,
@@ -149,11 +149,11 @@ async function resolveLiteralSearchGroup({
       literalSearchOnly: !shouldResolveData,
       bundle: shouldResolveData
         ? await resolveBestAvailableLightBundle({
-            availability,
-            family,
-            selection,
-            pokemonId: entry.id,
-          })
+          availability,
+          family,
+          selection,
+          pokemonId: entry.id,
+        })
         : { usage: null, leads: null },
     })),
   );
@@ -180,18 +180,18 @@ function groupResolverEntries(entries, pokemonIndex) {
     }
 
     const hasBroadMatch = tokenEntries.some((entry) => entry.broadMatch);
-    const token = normalizeName(tokenEntries[0]?.token || "");
+    const token = normalizeName(tokenEntries[0]?.token || '');
     const formSpecificPrefix =
       tokenEntries.length > 1 &&
       tokenLooksLikeSpecificFormPrefix(token) &&
       tokenEntries.every((entry) => isSpecificFormId(entry.id));
 
     if (hasBroadMatch || entriesByLine.size > 1 || formSpecificPrefix) {
-      groups.push({ mode: "literal", entries: tokenEntries });
+      groups.push({ mode: 'literal', entries: tokenEntries });
       continue;
     }
 
-    groups.push({ mode: "representative", entries: tokenEntries });
+    groups.push({ mode: 'representative', entries: tokenEntries });
   }
 
   return groups;
@@ -199,11 +199,11 @@ function groupResolverEntries(entries, pokemonIndex) {
 
 function tokenLooksLikeSpecificFormPrefix(token) {
   return (
-    token.includes("mega") ||
-    token.endsWith("m") ||
-    token.includes("alola") ||
-    token.includes("galar") ||
-    token.includes("hisui")
+    token.includes('mega') ||
+    token.endsWith('m') ||
+    token.includes('alola') ||
+    token.includes('galar') ||
+    token.includes('hisui')
   );
 }
 
@@ -214,7 +214,7 @@ function getRepresentativeLineKey(pokemonId, pokemonIndex) {
   return candidates
     .map((candidate) => candidate.id)
     .sort()
-    .join("|");
+    .join('|');
 }
 
 function buildRepresentativeCandidatePool(group, pokemonIndex) {
@@ -245,8 +245,8 @@ function buildRepresentativeCandidatePool(group, pokemonIndex) {
 
 function getForcedExactRepresentative(group, candidates) {
   for (const entry of group) {
-    const tokenId = normalizeName(entry.token || "");
-    const exactId = normalizeName(entry.name || "");
+    const tokenId = normalizeName(entry.token || '');
+    const exactId = normalizeName(entry.name || '');
 
     if (tokenId === exactId && isSpecificFormId(entry.id)) {
       return candidates.find((candidate) => candidate.id === entry.id) || null;
@@ -258,17 +258,17 @@ function getForcedExactRepresentative(group, candidates) {
 
 function isSpecificFormId(pokemonId) {
   return (
-    pokemonId.includes("mega") ||
-    pokemonId.includes("alola") ||
-    pokemonId.includes("galar") ||
-    pokemonId.includes("hisui")
+    pokemonId.includes('mega') ||
+    pokemonId.includes('alola') ||
+    pokemonId.includes('galar') ||
+    pokemonId.includes('hisui')
   );
 }
 
 function getDisplayInputForGroup(group) {
   const exactNonForm = group.find(
     (entry) =>
-      normalizeName(entry.token || "") === normalizeName(entry.name || "") &&
+      normalizeName(entry.token || '') === normalizeName(entry.name || '') &&
       !isSpecificFormId(entry.id),
   );
   if (exactNonForm) return exactNonForm;

@@ -11,19 +11,19 @@
  * threads per run, and already-seen threads skip fast, so successive
  * scheduled runs walk ever deeper into the listings.
  */
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { parseShowdownTeam } from "./teamscrape/parseShowdownTeam.mjs";
-import { normalizeSampleTeam } from "./scrape-sample-teams.mjs";
-import { readArchiveIds } from "./scrape-replay-teams.mjs";
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { parseShowdownTeam } from './teamscrape/parseShowdownTeam.mjs';
+import { normalizeSampleTeam } from './scrape-sample-teams.mjs';
+import { readArchiveIds } from './scrape-replay-teams.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const ARCHIVE_DIR = path.join(scriptDir, "teamscrape", "archive");
-const SOURCES_PATH = path.join(scriptDir, "teamscrape", "sources.json");
+const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
+const SOURCES_PATH = path.join(scriptDir, 'teamscrape', 'sources.json');
 
 const USER_AGENT =
-  "pokemon-usage-viewer team harvester (github.com/TheSkeward/pokemon-usage-viewer)";
+  'pokemon-usage-viewer team harvester (github.com/TheSkeward/pokemon-usage-viewer)';
 const REQUEST_GAP_MS = 900;
 const MAX_LISTING_PAGES = 30;
 const DEFAULT_MAX_NEW_THREADS = 40;
@@ -33,7 +33,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function fetchText(url) {
   await sleep(REQUEST_GAP_MS);
-  const response = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+  const response = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
   if (!response.ok) throw new Error(`${response.status} ${url}`);
   return response.text();
 }
@@ -41,16 +41,16 @@ async function fetchText(url) {
 /** @return {string} Plain text: tags stripped, common entities decoded. */
 export function htmlToText(html) {
   return String(html)
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|li|blockquote)>/gi, "\n")
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|li|blockquote)>/gi, '\n')
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#0?39;/g, "'")
-    .replace(/&nbsp;/g, " ");
+    .replace(/&nbsp;/g, ' ');
 }
 
 /**
@@ -82,7 +82,7 @@ export function extractFirstPostText(html) {
   const match = String(html).match(
     /<article[^>]*class="[^"]*message-body[^"]*"[^>]*>([\s\S]*?)<\/article>|<div[^>]*class="[^"]*bbWrapper[^"]*"[^>]*>([\s\S]*?)<\/div>/,
   );
-  return match ? htmlToText(match[1] || match[2] || "") : "";
+  return match ? htmlToText(match[1] || match[2] || '') : '';
 }
 
 async function harvestThread({ row, formatId, seen, file }) {
@@ -97,7 +97,7 @@ async function harvestThread({ row, formatId, seen, file }) {
       thread: row.url,
       sets,
     });
-    record.source = "rmt";
+    record.source = 'rmt';
     fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
     seen.add(record.id);
     return 1;
@@ -121,7 +121,7 @@ async function harvestThread({ row, formatId, seen, file }) {
       thread: row.url,
       sets: paste.sets,
     });
-    record.source = "rmt";
+    record.source = 'rmt';
     fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
     seen.add(pasteId);
     appended += 1;
@@ -130,13 +130,13 @@ async function harvestThread({ row, formatId, seen, file }) {
 }
 
 async function main() {
-  const { rmt } = JSON.parse(fs.readFileSync(SOURCES_PATH, "utf8"));
+  const { rmt } = JSON.parse(fs.readFileSync(SOURCES_PATH, 'utf8'));
   if (!rmt?.listings?.length) {
-    console.log("rmt: no listings configured");
+    console.log('rmt: no listings configured');
     return;
   }
   const maxNew =
-    Number(process.argv.find((a) => a.startsWith("--max-new="))?.split("=")[1]) ||
+    Number(process.argv.find((a) => a.startsWith('--max-new='))?.split('=')[1]) ||
     DEFAULT_MAX_NEW_THREADS;
   fs.mkdirSync(ARCHIVE_DIR, { recursive: true });
   const files = new Map(); // formatId → {file, seen}
@@ -149,7 +149,7 @@ async function main() {
   };
 
   let fresh = 0;
-  let unmappedPrefixes = new Map();
+  const unmappedPrefixes = new Map();
   for (const listing of rmt.listings) {
     try {
       for (let page = 1; page <= MAX_LISTING_PAGES && fresh < maxNew; page += 1) {
@@ -175,7 +175,7 @@ async function main() {
               const marker = `thread-${row.threadId}`;
               fs.appendFileSync(
                 file,
-                `${JSON.stringify({ id: marker, format: formatId, source: "rmt", sets: [] })}\n`,
+                `${JSON.stringify({ id: marker, format: formatId, source: 'rmt', sets: [] })}\n`,
               );
               seen.add(marker);
             }
@@ -193,7 +193,7 @@ async function main() {
   }
   if (unmappedPrefixes.size) {
     console.log(
-      `rmt: unmapped prefixes (add to sources.json rmt.prefixMap to harvest): ${[...unmappedPrefixes.entries()].map(([p, n]) => `"${p}"×${n}`).join(", ")}`,
+      `rmt: unmapped prefixes (add to sources.json rmt.prefixMap to harvest): ${[...unmappedPrefixes.entries()].map(([p, n]) => `"${p}"×${n}`).join(', ')}`,
     );
   }
   console.log(`rmt: +${fresh} new teams this run`);

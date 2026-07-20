@@ -12,12 +12,12 @@
  * line.
  */
 
-import fs from "node:fs";
-import path from "node:path";
-import { Dex } from "@pkmn/dex";
+import fs from 'node:fs';
+import path from 'node:path';
+import { Dex } from '@pkmn/dex';
 
-const OUT_PATH = path.resolve("src", "generated", "gen7BaseStats.generated.js");
-const STATS = ["atk", "def", "spa", "spd", "spe"];
+const OUT_PATH = path.resolve('src', 'generated', 'gen7BaseStats.generated.js');
+const STATS = ['atk', 'def', 'spa', 'spd', 'spe'];
 
 function main() {
   const dex = Dex.forGen(7);

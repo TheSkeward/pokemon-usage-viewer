@@ -1,10 +1,10 @@
-import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
-import { toId } from "../utils/ids.js";
+import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
+import { toId } from '../utils/ids.js';
 import {
   getEvolutionRequirement,
   evolutionChainProof,
-} from "./evolutionRequirements.js";
-import { normalizeLevelCap } from "./progression.js";
+} from './evolutionRequirements.js';
+import { normalizeLevelCap } from './progression.js';
 
 /**
  * The form a picked mon actually holds under the given progression state: the
@@ -47,7 +47,7 @@ export function getCurrentRebornSpeciesForChoice(choice, progression = {}) {
     differsFromRepresentative: current.id !== representativeId,
     representativeIsFuture,
     representativeId,
-    representativeName: choice?.name || GEN7_PROGRESSION_SPECIES[representativeId]?.name || "",
+    representativeName: choice?.name || GEN7_PROGRESSION_SPECIES[representativeId]?.name || '',
     // K for having reached this form, with the per-step proof, plus any
     // evolutions that were NOT taken because their requirements are unknown —
     // surfaced so the recommendation can say "Raichu unavailable: Thunder Stone
@@ -86,7 +86,7 @@ export function getCurrentRebornSpecies(pokemonId, progression = {}) {
   const current = getBestLevelReachableSpecies({
     inputId,
     levelCap: normalizeLevelCap(progression.levelCap),
-    representativeId: "",
+    representativeId: '',
     access: progression,
   });
 
@@ -144,7 +144,7 @@ function collectReachableSpecies(inputId, levelCap, access = null) {
       const evo = GEN7_PROGRESSION_SPECIES[evoId];
       if (!evo || evo.isMega) continue;
       const requirement = getEvolutionRequirement(evo, access);
-      if (requirement.status !== "legal") {
+      if (requirement.status !== 'legal') {
         blocked.push({ from: current.id, to: evo.id, reason: requirement.reason });
         continue;
       }

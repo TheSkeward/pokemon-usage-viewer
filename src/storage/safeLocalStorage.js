@@ -1,14 +1,14 @@
-const CACHE_KEY_PREFIXES = ["resolverMovesets:"];
+const CACHE_KEY_PREFIXES = ['resolverMovesets:'];
 
 /**
  * @return {string} The stored value, or fallback when the key is absent or
  *     storage is unavailable.
  */
-export function readLocalStorage(key, fallback = "") {
+export function readLocalStorage(key, fallback = '') {
   try {
     return localStorage.getItem(key) ?? fallback;
   } catch (error) {
-    console.warn("Failed to read localStorage", { key, error });
+    console.warn('Failed to read localStorage', { key, error });
     return fallback;
   }
 }
@@ -23,7 +23,7 @@ export function writeLocalStorage(key, value) {
     return true;
   } catch (firstError) {
     console.warn(
-      "Failed to write localStorage; clearing large caches and retrying",
+      'Failed to write localStorage; clearing large caches and retrying',
       {
         key,
         error: firstError,
@@ -36,7 +36,7 @@ export function writeLocalStorage(key, value) {
       localStorage.setItem(key, value);
       return true;
     } catch (secondError) {
-      console.warn("Failed to write localStorage after cache cleanup", {
+      console.warn('Failed to write localStorage after cache cleanup', {
         key,
         error: secondError,
       });
@@ -51,7 +51,7 @@ export function removeLocalStorage(key) {
     localStorage.removeItem(key);
     return true;
   } catch (error) {
-    console.warn("Failed to remove localStorage item", { key, error });
+    console.warn('Failed to remove localStorage item', { key, error });
     return false;
   }
 }
@@ -65,6 +65,6 @@ export function clearLargeLocalStorageCaches() {
       }
     }
   } catch (error) {
-    console.warn("Failed to clear large localStorage caches", error);
+    console.warn('Failed to clear large localStorage caches', error);
   }
 }

@@ -1,33 +1,33 @@
-import { getLineRepresentativeCandidates } from "../data";
-import { getActiveGame } from "../games/registry.js";
+import { getLineRepresentativeCandidates } from '../data';
+import { getActiveGame } from '../games/registry.js';
 import {
   applyBreedingContextToProgression,
   buildRebornBreedingContext,
   canHatchLine,
-} from "../reborn/breeding.js";
-import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
+} from '../reborn/breeding.js';
+import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
 import {
   getCurrentRebornSpeciesForChoice,
   isStrictPreEvolutionOf,
-} from "../reborn/currentSpecies.js";
+} from '../reborn/currentSpecies.js';
 import {
   getAvailableRebornMoves,
   loadRebornLegalMoveData,
-} from "../reborn/legalMoves";
-import { buildCandidateLegalityProfile } from "../reborn/teamAnalysis";
-import { loadTopSet } from "../reborn/topSpread.js";
-import { computeSetReadiness } from "../reborn/setReadiness.js";
-import { buildInputGroups } from "./inputGroups";
-import { parseAbilityAnnotations } from "./poolParsing";
-import { normalizeName } from "./nameUtils";
+} from '../reborn/legalMoves';
+import { buildCandidateLegalityProfile } from '../reborn/teamAnalysis';
+import { loadTopSet } from '../reborn/topSpread.js';
+import { computeSetReadiness } from '../reborn/setReadiness.js';
+import { buildInputGroups } from './inputGroups';
+import { parseAbilityAnnotations } from './poolParsing';
+import { normalizeName } from './nameUtils';
 import {
   tunable,
   scoringOverridesSignature,
-} from "./scoringConstants.js";
+} from './scoringConstants.js';
 import {
   hasReliableTempoRamp,
   utilityTagVector,
-} from "./currentFormValue.js";
+} from './currentFormValue.js';
 import {
   MIN_MEANINGFUL_USAGE_PERCENT,
   compareScoredCandidates,
@@ -35,12 +35,12 @@ import {
   getUsageRanking,
   hasCompetitivePriorEvidence,
   scoreCandidate,
-} from "./candidateScoring";
-import { resolveRepresentativeLightBundle } from "./representativeBundle";
-import { choosePoolTeam } from "./teamSelection";
-import { attachTeammateLift } from "./teammateSynergy.js";
-import { loadPersistedResults, persistResult } from "./resultCacheStore.js";
-import { getDataSignature } from "../manifest.js";
+} from './candidateScoring';
+import { resolveRepresentativeLightBundle } from './representativeBundle';
+import { choosePoolTeam } from './teamSelection';
+import { attachTeammateLift } from './teammateSynergy.js';
+import { loadPersistedResults, persistResult } from './resultCacheStore.js';
+import { getDataSignature } from '../manifest.js';
 
 // --- Incremental caches ----------------------------------------------------
 // In a playthrough you mostly grow the pool one mon at a time at a fixed game
@@ -206,7 +206,7 @@ const MAX_RESULT_CACHE = 400;
 // raw learn level, changing egg-source instructions and interim guides.
 // v44: equal-hop breeding routes return to preferring the lowest acquisition
 // level, even when the learner remains unevolved longer.
-const RESULT_CACHE_VERSION = "44";
+const RESULT_CACHE_VERSION = '44';
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
@@ -251,14 +251,14 @@ export async function optimizeTeamFromPool({
   // optimize, and it neither reads nor seeds the incremental search cache.
   // Fast results DO memoize and persist (under their tagged keys): the
   // investment plan depends on their cross-session warmth.
-  searchMode = "full",
+  searchMode = 'full',
 }) {
-  const fastMode = searchMode === "fast";
+  const fastMode = searchMode === 'fast';
   const setupStart = Date.now();
   const groups = buildInputGroups(query, pokemonIndex);
   const total = groups.length;
   let completed = 0;
-  onProgress?.({ phase: "resolve", completed, total });
+  onProgress?.({ phase: 'resolve', completed, total });
 
   await ensureHydrated();
 
@@ -278,16 +278,16 @@ export async function optimizeTeamFromPool({
     breedingContext?.byPokemonId &&
     Object.keys(breedingContext.byPokemonId).length
       ? stableStringify(breedingContext.byPokemonId)
-      : "none";
+      : 'none';
   // Ability annotations ("Froakie (Torrent)") change a line's builds, so they
   // are part of the score context too.
   const abilityAnnotations = parseAbilityAnnotations(query, pokemonIndex);
   const abilitySig = abilityAnnotations.size
     ? [...abilityAnnotations.entries()]
-        .sort()
-        .map(([name, ability]) => `${name}=${ability}`)
-        .join(",")
-    : "none";
+      .sort()
+      .map(([name, ability]) => `${name}=${ability}`)
+      .join(',')
+    : 'none';
   // Scoring overrides (confidence sweep / tests) and the DATA signature are part
   // of the score context: a sweep run must never hit — or seed — the production
   // ("base") caches, and a data refresh must retire every cached verdict.
@@ -301,7 +301,7 @@ export async function optimizeTeamFromPool({
   // (line cache, result cache, persisted results) is per-game, so switching
   // games can never serve one game's verdicts to another.
   const contextSig = `${getActiveGame().id}|${family}|${selection}|${progressionSig}|${breedingSig}|${abilitySig}|${scoringOverridesSignature()}|${dataSignature}${
-    fastMode ? "|search:fast2" : ""
+    fastMode ? '|search:fast2' : ''
   }`;
 
   // Layer 3: the result is a pure function of the score context and the set of
@@ -311,10 +311,10 @@ export async function optimizeTeamFromPool({
   const poolKey = `${contextSig}|${groups
     .map((group) => group.input?.id ?? group.token)
     .sort()
-    .join(",")}`;
+    .join(',')}`;
   const memoized = resultCache.get(poolKey);
   if (memoized) {
-    onProgress?.({ phase: "resolve", completed: total, total });
+    onProgress?.({ phase: 'resolve', completed: total, total });
     // A fast-mode hit must not touch the incremental cache: its results are
     // shortlist-grade (searchExact false), so seeding would NULL the exact
     // Layer-2 state the user's next pool edit needs.
@@ -323,7 +323,7 @@ export async function optimizeTeamFromPool({
     // sample — optimizer, item loading, render, post-analysis — so this only
     // DESCRIBES the run; it never records). Overwritten fresh on every hit.
     memoized.telemetryMeta = {
-      cache: "result",
+      cache: 'result',
       poolSize: total,
       builds: countKeptBuilds(memoized.lines),
       dataSignature,
@@ -356,7 +356,7 @@ export async function optimizeTeamFromPool({
           hitLineKeys,
         }).then((line) => {
           completed += 1;
-          onProgress?.({ phase: "resolve", completed, total });
+          onProgress?.({ phase: 'resolve', completed, total });
           return line;
         }),
       ),
@@ -376,18 +376,18 @@ export async function optimizeTeamFromPool({
     searchCache.searchKey === searchKey &&
     [...searchCache.teamLineKeys].every((key) => hitLineKeys.has(key))
       ? {
-          previousBest: { team: searchCache.team, megaUsed: searchCache.megaUsed },
-          baseLineKeys: searchCache.baseLineKeys,
-          teamLineKeys: searchCache.teamLineKeys,
-        }
+        previousBest: { team: searchCache.team, megaUsed: searchCache.megaUsed },
+        baseLineKeys: searchCache.baseLineKeys,
+        teamLineKeys: searchCache.teamLineKeys,
+      }
       : null;
 
   const searchStart = Date.now();
   // Teammate-lift attachment fetches per-line index files, so on a cold load
   // it is a visible slice of the "search" phase — captioned as its own stage.
-  onProgress?.({ phase: "search", stage: "synergy" });
+  onProgress?.({ phase: 'search', stage: 'synergy' });
   await attachTeammateLift(lines, family);
-  onProgress?.({ phase: "search" });
+  onProgress?.({ phase: 'search' });
   const result = await choosePoolTeam(lines, progression.opponentTypeBias, {
     exhaustive: exhaustive && !fastMode,
     incremental,
@@ -401,12 +401,12 @@ export async function optimizeTeamFromPool({
     // scores — the part the investment plan actually consumes — stay exact.
     hint: fastMode,
     onSearchProgress: (scanned, totalCombos) =>
-      onProgress?.({ phase: "search", completed: scanned, total: totalCombos }),
+      onProgress?.({ phase: 'search', completed: scanned, total: totalCombos }),
     // Post-scan tail stages (swap-polish audit rounds, build realization,
     // bench ranking) get their own captions — on a fast machine the worker
     // scan is sub-second and the VISIBLE search time is this tail.
     onSearchStage: (stage, detail) =>
-      onProgress?.({ phase: "search", stage, detail }),
+      onProgress?.({ phase: 'search', stage, detail }),
   });
   result.timings = {
     resolveMs: searchStart - resolveStart,
@@ -416,7 +416,7 @@ export async function optimizeTeamFromPool({
   // incremental (grown) search. Cold = every line resolved fresh AND a full
   // search.
   result.telemetryMeta = {
-    cache: hitLineKeys.size > 0 || incremental ? "warm" : "cold",
+    cache: hitLineKeys.size > 0 || incremental ? 'warm' : 'cold',
     poolSize: lines.length,
     builds: countKeptBuilds(lines),
     dataSignature,
@@ -559,13 +559,13 @@ function lineIsDegraded(line) {
 // array elements (which here are set-like — owned items, TM ids, bias) too.
 function stableStringify(value) {
   if (Array.isArray(value)) {
-    return `[${value.map(stableStringify).sort().join(",")}]`;
+    return `[${value.map(stableStringify).sort().join(',')}]`;
   }
-  if (value && typeof value === "object") {
+  if (value && typeof value === 'object') {
     return `{${Object.keys(value)
       .sort()
       .map((key) => `${key}:${stableStringify(value[key])}`)
-      .join(",")}}`;
+      .join(',')}}`;
   }
   return JSON.stringify(value);
 }
@@ -648,7 +648,7 @@ async function resolvePoolLine({
         });
         return { candidate, bundle, builds };
       } catch (error) {
-        console.warn("Failed to prepare team-builder candidate", {
+        console.warn('Failed to prepare team-builder candidate', {
           candidate,
           error,
           input,
@@ -716,96 +716,96 @@ async function resolvePoolLine({
       };
     }
     try {
-        const scoreOf = (legalityProfile) =>
-          scoreCandidate({
-            availability,
-            bundle,
-            candidate,
-            family,
-            legalityProfile,
-            levelCap,
-            opponentTypeBias: progression.opponentTypeBias,
-            lineRamp,
-            linePriorPresent,
-          });
-
-        const scoredBuilds = builds.variants
-          .map((variant) => ({
-            input,
-            candidate,
-            bundle,
-            buildKey: variant.key,
-            buildLabel: variant.label,
-            legalityProfile: variant.profile,
-            ...scoreOf(variant.profile),
-          }))
-          .filter((row) => Number.isFinite(row.score));
-        if (!scoredBuilds.length) {
-          // No usage bundle for this form (e.g. a mega with no ladder data):
-          // an unscoreable candidate, filtered by the ranked cut — not an error.
-          return {
-            input,
-            candidate,
-            bundle,
-            score: -Infinity,
-            teamScore: -Infinity,
-            meaningfulUsage: false,
-            usagePercent: 0,
-            rawCount: 0,
-            leadPercent: 0,
-            legalityProfile: builds.variants[0]?.profile || null,
-          };
-        }
-
-        // Ability sensitivity: how much V rests on the ability ASSUMPTION
-        // (primary vs secondary on the same set). Zero when the user pinned the
-        // ability. Stored on every build so the sweep's "assume the secondary
-        // ability" axis and the explanation layer can both use it.
-        if (builds.sensitivityProbe) {
-          const probe = scoreOf(builds.sensitivityProbe);
-          const defaultRow =
-            scoredBuilds.find((row) => row.buildKey === "default") ||
-            scoredBuilds[0];
-          const sensitivity = Number.isFinite(probe.score)
-            ? Math.max(0, Math.round(defaultRow.score - probe.score))
-            : 0;
-          for (const row of scoredBuilds) {
-            row.abilitySensitivity = sensitivity;
-            row.legalityProfile.abilitySensitivity = sensitivity;
-          }
-        }
-
-        const kept = pruneDominatedBuilds(scoredBuilds);
-        kept.sort(compareScoredCandidates);
-        const best = kept[0];
-        // Choice-shaped builds for the post-selection realization pass, built
-        // BEFORE tagging `best` so there is no self-nesting.
-        const buildChoices = kept.map((row) =>
-          makeChoice(input, row, row.buildLabel || "Build"),
-        );
-        best.buildChoices = buildChoices;
-        best.optimisticCoverageVector = optimisticCoverageVector(kept);
-        return best;
-      } catch (error) {
-        console.warn("Failed to score team-builder candidate", {
+      const scoreOf = (legalityProfile) =>
+        scoreCandidate({
+          availability,
+          bundle,
           candidate,
-          error,
-          input,
+          family,
+          legalityProfile,
+          levelCap,
+          opponentTypeBias: progression.opponentTypeBias,
+          lineRamp,
+          linePriorPresent,
         });
 
+      const scoredBuilds = builds.variants
+        .map((variant) => ({
+          input,
+          candidate,
+          bundle,
+          buildKey: variant.key,
+          buildLabel: variant.label,
+          legalityProfile: variant.profile,
+          ...scoreOf(variant.profile),
+        }))
+        .filter((row) => Number.isFinite(row.score));
+      if (!scoredBuilds.length) {
+        // No usage bundle for this form (e.g. a mega with no ladder data):
+        // an unscoreable candidate, filtered by the ranked cut — not an error.
         return {
           input,
           candidate,
-          bundle: { usage: null, leads: null },
+          bundle,
           score: -Infinity,
+          teamScore: -Infinity,
           meaningfulUsage: false,
           usagePercent: 0,
           rawCount: 0,
           leadPercent: 0,
-          legalityProfile: null,
-          error,
+          legalityProfile: builds.variants[0]?.profile || null,
         };
       }
+
+      // Ability sensitivity: how much V rests on the ability ASSUMPTION
+      // (primary vs secondary on the same set). Zero when the user pinned the
+      // ability. Stored on every build so the sweep's "assume the secondary
+      // ability" axis and the explanation layer can both use it.
+      if (builds.sensitivityProbe) {
+        const probe = scoreOf(builds.sensitivityProbe);
+        const defaultRow =
+          scoredBuilds.find((row) => row.buildKey === 'default') ||
+            scoredBuilds[0];
+        const sensitivity = Number.isFinite(probe.score)
+          ? Math.max(0, Math.round(defaultRow.score - probe.score))
+          : 0;
+        for (const row of scoredBuilds) {
+          row.abilitySensitivity = sensitivity;
+          row.legalityProfile.abilitySensitivity = sensitivity;
+        }
+      }
+
+      const kept = pruneDominatedBuilds(scoredBuilds);
+      kept.sort(compareScoredCandidates);
+      const best = kept[0];
+      // Choice-shaped builds for the post-selection realization pass, built
+      // BEFORE tagging `best` so there is no self-nesting.
+      const buildChoices = kept.map((row) =>
+        makeChoice(input, row, row.buildLabel || 'Build'),
+      );
+      best.buildChoices = buildChoices;
+      best.optimisticCoverageVector = optimisticCoverageVector(kept);
+      return best;
+    } catch (error) {
+      console.warn('Failed to score team-builder candidate', {
+        candidate,
+        error,
+        input,
+      });
+
+      return {
+        input,
+        candidate,
+        bundle: { usage: null, leads: null },
+        score: -Infinity,
+        meaningfulUsage: false,
+        usagePercent: 0,
+        rawCount: 0,
+        leadPercent: 0,
+        legalityProfile: null,
+        error,
+      };
+    }
   });
 
   const ranked = scored
@@ -837,14 +837,14 @@ async function resolvePoolLine({
     best: makeChoice(
       input,
       best,
-      best.candidate.isMega ? "Best overall; uses Mega slot" : "Best overall",
+      best.candidate.isMega ? 'Best overall; uses Mega slot' : 'Best overall',
     ),
     bestNonMega: bestNonMega
       ? makeChoice(
-          input,
-          bestNonMega,
-          best.candidate.isMega ? "Best non-Mega fallback" : "Best non-Mega",
-        )
+        input,
+        bestNonMega,
+        best.candidate.isMega ? 'Best non-Mega fallback' : 'Best non-Mega',
+      )
       : null,
     choiceOptions: buildChoiceOptions(input, ranked, best, bestNonMega),
     candidates: ranked,
@@ -917,14 +917,14 @@ function pruneDominatedBuilds(rows) {
       if (dominates(b, a)) return a < b;
       return true;
     });
-    if (!dominated || rows[b].buildKey === "default") kept.push(rows[b]);
+    if (!dominated || rows[b].buildKey === 'default') kept.push(rows[b]);
   }
   // Deterministic, value-free ordering.
   const coverageMass = (row) =>
     (row.legalityProfile?.coverageVector || []).reduce((sum, v) => sum + v, 0);
   kept.sort(
     (a, b) =>
-      Number(b.buildKey === "default") - Number(a.buildKey === "default") ||
+      Number(b.buildKey === 'default') - Number(a.buildKey === 'default') ||
       coverageMass(b) - coverageMass(a) ||
       (a.legalityProfile?.frictionCost || 0) -
         (b.legalityProfile?.frictionCost || 0),
@@ -977,17 +977,17 @@ function buildChoiceOptions(input, ranked, best, bestNonMega) {
 function getChoiceOptionNote(result, best, bestNonMega) {
   if (result.candidate.id === best.candidate.id) {
     return best.candidate.isMega
-      ? "Best overall; uses Mega slot"
-      : "Best overall";
+      ? 'Best overall; uses Mega slot'
+      : 'Best overall';
   }
 
   if (bestNonMega && result.candidate.id === bestNonMega.candidate.id) {
-    return best.candidate.isMega ? "Best non-Mega fallback" : "Best non-Mega";
+    return best.candidate.isMega ? 'Best non-Mega fallback' : 'Best non-Mega';
   }
 
   return result.candidate.isMega
-    ? "Team-fit option; uses Mega slot"
-    : "Team-fit option";
+    ? 'Team-fit option; uses Mega slot'
+    : 'Team-fit option';
 }
 
 function makeChoice(input, result, note) {
@@ -997,14 +997,14 @@ function makeChoice(input, result, note) {
   // gate when real usage exists but is not counted yet, and keeps genuine
   // warnings (no STAB, damage-defining ability assumption).
   const parts = [];
-  if (note && note !== "Standard set") parts.push(note);
+  if (note && note !== 'Standard set') parts.push(note);
   if (
     !result.meaningfulUsage &&
     (result.usagePercent || 0) >= MIN_MEANINGFUL_USAGE_PERCENT
   ) {
     parts.push(`usage ${result.usagePercent.toFixed(1)}% not counted yet: set not ready`);
   }
-  const usageNote = parts.join("; ");
+  const usageNote = parts.join('; ');
   const legalityNote = formatLegalityNote(result.legalityProfile);
 
   return {
@@ -1027,7 +1027,7 @@ function makeChoice(input, result, note) {
     usagePercent: result.usagePercent,
     tierRank: result.tierRank,
     usageWeight: result.usageWeight ?? 0,
-    buildKey: result.buildKey || "default",
+    buildKey: result.buildKey || 'default',
     buildLabel: result.buildLabel || null,
     abilitySensitivity: result.abilitySensitivity || 0,
     ...(result.buildChoices ? { buildAlternatives: result.buildChoices } : {}),
@@ -1035,7 +1035,7 @@ function makeChoice(input, result, note) {
       ? { optimisticCoverageVector: result.optimisticCoverageVector }
       : {}),
     bundle: result.bundle,
-    note: [usageNote, legalityNote].filter(Boolean).join("; "),
+    note: [usageNote, legalityNote].filter(Boolean).join('; '),
   };
 }
 
@@ -1044,15 +1044,15 @@ function makeChoice(input, result, note) {
 // the same page. What stays is what the set card CANNOT show: that no legal
 // STAB exists at all, and that the score leans on a damage-defining ability.
 function formatLegalityNote(profile) {
-  if (!profile) return "";
+  if (!profile) return '';
 
   const notes = [];
-  if (!profile.bestStabMove?.name) notes.push("no current legal STAB");
-  const ability = String(profile.assumedAbility || "").toLowerCase();
-  if (ability === "protean" || ability === "adaptability") {
+  if (!profile.bestStabMove?.name) notes.push('no current legal STAB');
+  const ability = String(profile.assumedAbility || '').toLowerCase();
+  if (ability === 'protean' || ability === 'adaptability') {
     notes.push(`scored assuming ${profile.assumedAbility}`);
   }
-  return notes.join("; ");
+  return notes.join('; ');
 }
 
 // Generates the candidate's BUILD VARIANTS: a build is a concrete (form,
@@ -1133,7 +1133,7 @@ async function resolveCandidateBuilds({
     representativeId: candidate.id,
     representativeName: currentSpecies?.differsFromRepresentative
       ? currentSpecies.representativeName
-      : "",
+      : '',
     types: legalMoveData?.types || [],
   };
   const moves = getAvailableRebornMoves(legalMoveData, memberProgression);
@@ -1152,17 +1152,17 @@ async function resolveCandidateBuilds({
   });
   const caughtTopSet = candidate.isMega
     ? await loadTopSet({
-        family,
-        pokemonId: megaBaseId,
-        selection,
-      })
+      family,
+      pokemonId: megaBaseId,
+      selection,
+    })
     : topSet;
   const abilitySource = caughtTopSet || topSet;
   const abilityChoices = abilitySource?.abilities || [];
   const matchedOverride = abilityOverride
     ? abilityChoices.find(
-        (entry) => entry.name.toLowerCase() === abilityOverride.toLowerCase(),
-      )?.name || null
+      (entry) => entry.name.toLowerCase() === abilityOverride.toLowerCase(),
+    )?.name || null
     : null;
   const caughtAssumedAbility =
     matchedOverride || abilitySource?.ability || topSet?.ability || null;
@@ -1174,16 +1174,16 @@ async function resolveCandidateBuilds({
   const secondaryAbility =
     !abilityKnown && abilityChoices.length > 1
       ? abilityChoices.find(
-          (entry) => entry.name !== caughtAssumedAbility,
-        )?.name || null
+        (entry) => entry.name !== caughtAssumedAbility,
+      )?.name || null
       : null;
 
   const evolution = currentSpecies
     ? {
-        friction: currentSpecies.evolutionFriction || 0,
-        steps: currentSpecies.evolutionSteps || [],
-        blocked: currentSpecies.blockedEvolutions || [],
-      }
+      friction: currentSpecies.evolutionFriction || 0,
+      steps: currentSpecies.evolutionSteps || [],
+      blocked: currentSpecies.blockedEvolutions || [],
+    }
     : { friction: 0, steps: [], blocked: [] };
 
   // Canonical-set readiness (Phase 1) — a property of the LINE, shared by
@@ -1243,10 +1243,10 @@ async function resolveCandidateBuilds({
 
   const variants = [
     {
-      key: "default",
-      label: "Standard set",
+      key: 'default',
+      label: 'Standard set',
       profile: makeProfile({
-        movePreference: "default",
+        movePreference: 'default',
         buildMoves: naturalMoves,
         ability: assumedAbility,
         preMegaAbility,
@@ -1258,20 +1258,20 @@ async function resolveCandidateBuilds({
   if (!fastMode) {
     variants.push(
       {
-        key: "coverage",
-        label: "Coverage set",
+        key: 'coverage',
+        label: 'Coverage set',
         profile: makeProfile({
-          movePreference: "coverage",
+          movePreference: 'coverage',
           buildMoves: naturalMoves,
           ability: assumedAbility,
           preMegaAbility,
         }),
       },
       {
-        key: "utility",
-        label: "Utility set",
+        key: 'utility',
+        label: 'Utility set',
         profile: makeProfile({
-          movePreference: "utility",
+          movePreference: 'utility',
           buildMoves: naturalMoves,
           ability: assumedAbility,
           preMegaAbility,
@@ -1281,7 +1281,7 @@ async function resolveCandidateBuilds({
 
     if (delayedMoves.length) {
       const delayedProfile = makeProfile({
-        movePreference: "default",
+        movePreference: 'default',
         buildMoves: [...naturalMoves, ...delayedMoves],
         ability: assumedAbility,
         preMegaAbility,
@@ -1292,15 +1292,15 @@ async function resolveCandidateBuilds({
         delayedIds.has(move.id),
       );
       if (usedDelayed.length) {
-        delayedProfile.frictionCost += tunable("DELAYED_EVO_FRICTION");
-        delayedProfile.legalityProof.buildFriction = tunable("DELAYED_EVO_FRICTION");
+        delayedProfile.frictionCost += tunable('DELAYED_EVO_FRICTION');
+        delayedProfile.legalityProof.buildFriction = tunable('DELAYED_EVO_FRICTION');
         delayedProfile.legalityProof.delayedMoves = usedDelayed.map((move) => ({
           name: move.name,
-          source: move.availableSources?.[0]?.label || "delayed evolution",
+          source: move.availableSources?.[0]?.label || 'delayed evolution',
         }));
         variants.push({
-          key: "delayed",
-          label: `Delayed-evolution set (${usedDelayed.map((m) => m.name).join(", ")})`,
+          key: 'delayed',
+          label: `Delayed-evolution set (${usedDelayed.map((m) => m.name).join(', ')})`,
           profile: delayedProfile,
         });
       }
@@ -1310,12 +1310,12 @@ async function resolveCandidateBuilds({
   const sensitivityProbe =
     !fastMode && secondaryAbility
       ? makeProfile({
-          movePreference: "default",
-          buildMoves: naturalMoves,
-          ability: megaReady ? assumedAbility : secondaryAbility,
-          preMegaAbility: megaReady ? secondaryAbility : null,
-          usageAnchored: true,
-        })
+        movePreference: 'default',
+        buildMoves: naturalMoves,
+        ability: megaReady ? assumedAbility : secondaryAbility,
+        preMegaAbility: megaReady ? secondaryAbility : null,
+        usageAnchored: true,
+      })
       : null;
 
   return { variants, sensitivityProbe, assumedAbility, abilityKnown, secondaryAbility };
@@ -1327,5 +1327,5 @@ function getLineKey(candidates, fallbackId) {
   return candidates
     .map((candidate) => candidate.id)
     .sort()
-    .join("|");
+    .join('|');
 }

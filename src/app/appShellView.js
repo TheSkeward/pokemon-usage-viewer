@@ -1,4 +1,4 @@
-import { escapeHtml } from "../utils/html.js";
+import { escapeHtml } from '../utils/html.js';
 
 /**
  * Replaces `app` contents with the shell chrome; pages mount into the empty
@@ -14,14 +14,14 @@ export function renderAppShell(app, state) {
       </header>
 
       <nav class="view-tabs">
-        <button class="view-tab ${state.family === "singles" ? "active" : ""}" data-app-family="singles">Singles</button>
-        <button class="view-tab ${state.family === "doubles" ? "active" : ""}" data-app-family="doubles">Doubles</button>
+        <button class="view-tab ${state.family === 'singles' ? 'active' : ''}" data-app-family="singles">Singles</button>
+        <button class="view-tab ${state.family === 'doubles' ? 'active' : ''}" data-app-family="doubles">Doubles</button>
       </nav>
 
       <nav class="view-tabs secondary-tabs">
-        <button class="view-tab ${state.view === "resolver" ? "active" : ""}" data-app-view="resolver">Set Lookup</button>
-        <button class="view-tab ${state.view === "pool" ? "active" : ""}" data-app-view="pool">Team Builder</button>
-        <button class="view-tab ${state.view === "browser" ? "active" : ""}" data-app-view="browser">Usage Data</button>
+        <button class="view-tab ${state.view === 'resolver' ? 'active' : ''}" data-app-view="resolver">Set Lookup</button>
+        <button class="view-tab ${state.view === 'pool' ? 'active' : ''}" data-app-view="pool">Team Builder</button>
+        <button class="view-tab ${state.view === 'browser' ? 'active' : ''}" data-app-view="browser">Usage Data</button>
       </nav>
 
       <section id="page-root" class="page-stack"></section>

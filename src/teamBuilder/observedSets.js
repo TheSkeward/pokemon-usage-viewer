@@ -5,8 +5,8 @@
  * teammateSynergy: index.json gates per-mon fetches so mons with no observed
  * sets never 404.
  */
-import { dataUrl } from "../utils/dataUrl.js";
-import { fetchJsonCached } from "../utils/fetchJsonCached.js";
+import { dataUrl } from '../utils/dataUrl.js';
+import { fetchJsonCached } from '../utils/fetchJsonCached.js';
 
 const availableIdsCache = new Map();
 

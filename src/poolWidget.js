@@ -1,29 +1,29 @@
-import { escapeHtml } from "./utils/html.js";
-import { loadAvailability, loadFormatsIndex, loadPokemonIndex } from "./data";
+import { escapeHtml } from './utils/html.js';
+import { loadAvailability, loadFormatsIndex, loadPokemonIndex } from './data';
 import {
   getSortedTeam,
   renderGamestateStrip,
   renderTeamBuilderPage,
-} from "./teamBuilder/teamBuilderView";
-import { createTeamBuilderSetDetailsLoader } from "./teamBuilder/setDetailsLoader";
-import { getPoolStats, normalizePoolText } from "./teamBuilder/poolParsing";
+} from './teamBuilder/teamBuilderView';
+import { createTeamBuilderSetDetailsLoader } from './teamBuilder/setDetailsLoader';
+import { getPoolStats, normalizePoolText } from './teamBuilder/poolParsing';
 import {
   optimizeTeamFromPool,
   persistPostAnalysis,
-} from "./teamBuilder/teamOptimizer";
-import { computeTeamConfidence } from "./teamBuilder/confidence.js";
-import { computeInvestmentPlan } from "./teamBuilder/investment.js";
-import { setScoringOverrides } from "./teamBuilder/scoringConstants.js";
+} from './teamBuilder/teamOptimizer';
+import { computeTeamConfidence } from './teamBuilder/confidence.js';
+import { computeInvestmentPlan } from './teamBuilder/investment.js';
+import { setScoringOverrides } from './teamBuilder/scoringConstants.js';
 import {
   buildPerformanceReport,
   estimateRunBudget,
   recordOptimizerSample,
-} from "./teamBuilder/telemetry.js";
-import { loadManifest } from "./manifest.js";
-import { getActiveGame } from "./games/registry.js";
-import { renderRebornLegalMovesPanel } from "./reborn/legalMovesView";
-import { renderRebornTeamAnalysisPanel } from "./reborn/teamAnalysisView";
-import { getCurrentRebornSpeciesForChoice } from "./reborn/currentSpecies.js";
+} from './teamBuilder/telemetry.js';
+import { loadManifest } from './manifest.js';
+import { getActiveGame } from './games/registry.js';
+import { renderRebornLegalMovesPanel } from './reborn/legalMovesView';
+import { renderRebornTeamAnalysisPanel } from './reborn/teamAnalysisView';
+import { getCurrentRebornSpeciesForChoice } from './reborn/currentSpecies.js';
 import {
   addRebornOwnedItems,
   applyRebornCheckpoint,
@@ -36,39 +36,39 @@ import {
   setRebornProgressionOptions,
   updateRebornProgressionField,
   updateRebornProgressionOption,
-} from "./reborn/progression";
-import { getRebornCheckpoint } from "./reborn/badgeTimeline.js";
-import { toId } from "./utils/ids.js";
-import { bindPersistentDetails } from "./utils/detailsState.js";
-import { GEN7_HELD_ITEMS_BY_ID } from "./generated/gen7HeldItems.generated.js";
+} from './reborn/progression';
+import { getRebornCheckpoint } from './reborn/badgeTimeline.js';
+import { toId } from './utils/ids.js';
+import { bindPersistentDetails } from './utils/detailsState.js';
+import { GEN7_HELD_ITEMS_BY_ID } from './generated/gen7HeldItems.generated.js';
 import {
   REBORN_EXTRA_INVENTORY_ITEMS,
   getEvolutionItemIds,
   getPurchasableShopItems,
-} from "./reborn/itemAvailability.js";
-import { HIDDEN_INVENTORY_ITEM_IDS } from "./reborn/rebornSeeds";
-import { buildPoolAvailabilityText } from "./teamBuilder/availabilityExport";
+} from './reborn/itemAvailability.js';
+import { HIDDEN_INVENTORY_ITEM_IDS } from './reborn/rebornSeeds';
+import { buildPoolAvailabilityText } from './teamBuilder/availabilityExport';
 import {
   assignTeamItems,
   loadTeamItemUsage,
-} from "./teamBuilder/itemRecommendations";
-import { getTeamItemContext } from "./reborn/teamAnalysis";
+} from './teamBuilder/itemRecommendations';
+import { getTeamItemContext } from './reborn/teamAnalysis';
 import {
   buildGamestateExport,
   gamestateFileName,
   parseGamestateImport,
-} from "./teamBuilder/gamestateBackup.js";
+} from './teamBuilder/gamestateBackup.js';
 import {
   readLocalStorage,
   removeLocalStorage,
   writeLocalStorage,
-} from "./storage/safeLocalStorage";
+} from './storage/safeLocalStorage';
 
 // Per-game: each game's owned pool is its own saved state (the descriptor
 // pins Reborn's pre-registry literal so existing saves survive).
 const poolStorageKey = () => getActiveGame().storage.pool;
-const TEAM_SORT_STORAGE_KEY = "pokemon-usage-viewer:pool-team-sort:v1";
-const TEAM_SORT_DIR_STORAGE_KEY = "pokemon-usage-viewer:pool-team-sort-dir:v1";
+const TEAM_SORT_STORAGE_KEY = 'pokemon-usage-viewer:pool-team-sort:v1';
+const TEAM_SORT_DIR_STORAGE_KEY = 'pokemon-usage-viewer:pool-team-sort-dir:v1';
 const POST_ANALYSIS_MAX_POOL_SIZE = 80;
 const POST_ANALYSIS_MAX_BUILDS = 200;
 
@@ -80,28 +80,28 @@ const POST_ANALYSIS_MAX_BUILDS = 200;
 export function mountPoolOptimizer(container, options = {}) {
   const app = container;
   const embedded = Boolean(options.embedded);
-  const initialFamily = options.family || getParam("family") || "singles";
+  const initialFamily = options.family || getParam('family') || 'singles';
 
   let availability = null;
   let formatsIndex = [];
   let pokemonIndex = [];
 
-  const initialQuery = getParam("poolQuery") || loadSavedPool();
+  const initialQuery = getParam('poolQuery') || loadSavedPool();
 
   const state = {
     family: initialFamily,
-    selection: getParam("selection") || "all",
+    selection: getParam('selection') || 'all',
     query: initialQuery,
     progression: loadSavedRebornProgression(),
     // Default sort is the score the seats were actually chosen by — Lead % is
     // a ladder stat, informative but not the seating order.
-    teamSort: getParam("teamSort") || loadSavedTeamSort() || "score",
-    teamSortDir: getParam("teamSortDir") || loadSavedTeamSortDir() || "desc",
+    teamSort: getParam('teamSort') || loadSavedTeamSort() || 'score',
+    teamSortDir: getParam('teamSortDir') || loadSavedTeamSortDir() || 'desc',
     result: null,
-    resultProgressionKey: "",
+    resultProgressionKey: '',
     loading: false,
-    statusMessage: "",
-    availabilityText: "",
+    statusMessage: '',
+    availabilityText: '',
     teamItemUsage: null,
     teamItemContext: null,
     itemRecommendations: {},
@@ -172,7 +172,7 @@ export function mountPoolOptimizer(container, options = {}) {
     if (runToken !== optimizeRunToken) return;
 
     state.loading = true;
-    state.statusMessage = "Optimizing pool...";
+    state.statusMessage = 'Optimizing pool...';
     state.confidence = null;
     state.investment = null;
     state.analysisPending = false;
@@ -225,7 +225,7 @@ export function mountPoolOptimizer(container, options = {}) {
       // Resolve each member's recommended-move types + real top-set ability once,
       // so gem item recommendations can be gated (type must match a recommended
       // move; Unburden boost only when Unburden is actually the set's ability).
-      updateOptimizeProgress({ phase: "items" });
+      updateOptimizeProgress({ phase: 'items' });
       const itemsStart = Date.now();
       const teamItemContext = await getTeamItemContext(
         state.result.team,
@@ -256,18 +256,18 @@ export function mountPoolOptimizer(container, options = {}) {
       const polishSwapCount = state.result.searchPolish?.swaps?.length || 0;
       const approxNote = [
         state.result.searchExact
-          ? ""
-          : " Pool too large for an exact search — used a fast approximate one.",
+          ? ''
+          : ' Pool too large for an exact search — used a fast approximate one.',
         // A repair by the swap audit means the shortlist heuristics missed a
         // seat; the healthy case (audit ran, nothing found) is reported in
         // the provenance footer instead.
         polishSwapCount
-          ? ` The full-pool swap audit then improved it (${polishSwapCount} swap${polishSwapCount === 1 ? "" : "s"}).`
-          : "",
+          ? ` The full-pool swap audit then improved it (${polishSwapCount} swap${polishSwapCount === 1 ? '' : 's'}).`
+          : '',
         state.result.degraded
-          ? " Some data failed to load, so parts of the pool were skipped — optimize again to retry."
-          : "",
-      ].join("");
+          ? ' Some data failed to load, so parts of the pool were skipped — optimize again to retry.'
+          : '',
+      ].join('');
       state.statusMessage = saved
         ? `${getOptimizationSummary(state.result)}${approxNote}`
         : `${getOptimizationSummary(state.result)}${approxNote} Pool could not be saved locally; browser storage is full.`;
@@ -290,7 +290,7 @@ export function mountPoolOptimizer(container, options = {}) {
       });
     } catch (error) {
       if (runToken !== optimizeRunToken) return;
-      console.error("Team Builder optimization failed", error);
+      console.error('Team Builder optimization failed', error);
 
       stopOptimizeProgress();
       state.loading = false;
@@ -430,7 +430,7 @@ export function mountPoolOptimizer(container, options = {}) {
         persistPostAnalysis(forResult, { confidence, investment });
       }
     } catch (error) {
-      console.warn("Post-analysis failed", error);
+      console.warn('Post-analysis failed', error);
     } finally {
       setScoringOverrides(null);
       if (state.result === forResult) {
@@ -463,9 +463,9 @@ export function mountPoolOptimizer(container, options = {}) {
                 : null,
               polishGain: forResult.searchPolish
                 ? forResult.searchPolish.swaps.reduce(
-                    (sum, swap) => sum + (swap.gain || 0),
-                    0,
-                  )
+                  (sum, swap) => sum + (swap.gain || 0),
+                  0,
+                )
                 : null,
             });
           } catch {
@@ -543,7 +543,7 @@ export function mountPoolOptimizer(container, options = {}) {
       app,
       baseUrl: baseUrl(),
       embedded,
-      familyLabel: state.family === "doubles" ? "Doubles" : "Singles",
+      familyLabel: state.family === 'doubles' ? 'Doubles' : 'Singles',
       formatsIndex,
       pokemonIndex,
       poolStats: getPoolStats(state.query, pokemonIndex),
@@ -566,8 +566,8 @@ export function mountPoolOptimizer(container, options = {}) {
     // DOM in place without a full re-render.
     if (!app.__gamestateChipsDelegated) {
       app.__gamestateChipsDelegated = true;
-      app.addEventListener("click", (event) => {
-        const chipButton = event.target.closest("[data-open-progression]");
+      app.addEventListener('click', (event) => {
+        const chipButton = event.target.closest('[data-open-progression]');
         if (!chipButton || !app.contains(chipButton)) return;
         const targetId = chipButton.dataset.openProgression;
         const wrapper = app.querySelector(
@@ -581,51 +581,51 @@ export function mountPoolOptimizer(container, options = {}) {
         }
         if (target) target.open = true;
         (target || wrapper)?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
+          behavior: 'smooth',
+          block: 'start',
         });
       });
     }
 
     // "moves ↓" on a team row: jump to that pick's set card in Team Analysis
     // (the row's own click keeps opening the inline usage-set details).
-    app.querySelectorAll("[data-jump-set-card]").forEach((jumpButton) => {
-      jumpButton.addEventListener("click", (event) => {
+    app.querySelectorAll('[data-jump-set-card]').forEach((jumpButton) => {
+      jumpButton.addEventListener('click', (event) => {
         event.stopPropagation();
         const card =
           app.querySelector(
             `[data-set-card="${jumpButton.dataset.jumpSetCard}"]`,
-          ) || app.querySelector("#reborn-team-analysis-root");
-        card?.scrollIntoView({ behavior: "smooth", block: "center" });
+          ) || app.querySelector('#reborn-team-analysis-root');
+        card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
     });
 
     app
-      .querySelector("#family-input")
-      ?.addEventListener("change", async (event) => {
+      .querySelector('#family-input')
+      ?.addEventListener('change', async (event) => {
         state.family = event.target.value;
         setDetails.cancel();
         await computeAndRender();
       });
 
     app
-      .querySelector("#selection-input")
-      ?.addEventListener("change", async (event) => {
+      .querySelector('#selection-input')
+      ?.addEventListener('change', async (event) => {
         state.selection = event.target.value;
         setDetails.cancel();
         await computeAndRender();
       });
 
-    app.querySelectorAll("[data-team-sort]").forEach((button) => {
-      button.addEventListener("click", () => {
+    app.querySelectorAll('[data-team-sort]').forEach((button) => {
+      button.addEventListener('click', () => {
         const nextSort = button.dataset.teamSort;
 
         if (state.teamSort === nextSort) {
-          state.teamSortDir = state.teamSortDir === "asc" ? "desc" : "asc";
+          state.teamSortDir = state.teamSortDir === 'asc' ? 'desc' : 'asc';
         } else {
           state.teamSort = nextSort;
           state.teamSortDir =
-            nextSort === "name" || nextSort === "input" ? "asc" : "desc";
+            nextSort === 'name' || nextSort === 'input' ? 'asc' : 'desc';
         }
 
         saveTeamSort(state.teamSort);
@@ -635,24 +635,24 @@ export function mountPoolOptimizer(container, options = {}) {
       });
     });
 
-    app.querySelectorAll("[data-pool-set-id]").forEach((row) => {
-      row.addEventListener("click", () => {
+    app.querySelectorAll('[data-pool-set-id]').forEach((row) => {
+      row.addEventListener('click', () => {
         setDetails.select(row.dataset.poolSetId);
       });
     });
 
-    app.querySelectorAll("[data-progression-field]").forEach((control) => {
-      const eventName = control.type === "checkbox" ? "change" : "input";
+    app.querySelectorAll('[data-progression-field]').forEach((control) => {
+      const eventName = control.type === 'checkbox' ? 'change' : 'input';
 
       control.addEventListener(eventName, () => {
         state.progression = updateRebornProgressionField(
           state.progression,
           control.dataset.progressionField,
-          control.type === "checkbox" ? control.checked : control.value,
+          control.type === 'checkbox' ? control.checked : control.value,
         );
 
         if (
-          control.dataset.progressionField === "levelCap" &&
+          control.dataset.progressionField === 'levelCap' &&
           control.value !== state.progression.levelCap
         ) {
           control.value = state.progression.levelCap;
@@ -664,7 +664,7 @@ export function mountPoolOptimizer(container, options = {}) {
         updateProgressionStatusMessage(
           saved
             ? getProgressionSavedMessage(stale)
-            : "Progression could not be saved locally; browser storage is full.",
+            : 'Progression could not be saved locally; browser storage is full.',
         );
 
         refreshSelectedLegalMovesPanel();
@@ -675,8 +675,8 @@ export function mountPoolOptimizer(container, options = {}) {
       });
     });
 
-    app.querySelector("[data-progression-checkpoint]")?.addEventListener(
-      "change",
+    app.querySelector('[data-progression-checkpoint]')?.addEventListener(
+      'change',
       (event) => {
         state.progression = applyRebornCheckpoint(
           state.progression,
@@ -689,7 +689,7 @@ export function mountPoolOptimizer(container, options = {}) {
         updateProgressionStatusMessage(
           saved
             ? getProgressionSavedMessage(stale)
-            : "Progression could not be saved locally; browser storage is full.",
+            : 'Progression could not be saved locally; browser storage is full.',
         );
 
         // Full re-render: the derived cap note, the "obtainable now" option
@@ -699,8 +699,8 @@ export function mountPoolOptimizer(container, options = {}) {
       },
     );
 
-    app.querySelectorAll("[data-progression-option-list]").forEach((control) => {
-      control.addEventListener("change", () => {
+    app.querySelectorAll('[data-progression-option-list]').forEach((control) => {
+      control.addEventListener('change', () => {
         const field = control.dataset.progressionOptionList;
         state.progression = updateRebornProgressionOption(
           state.progression,
@@ -715,7 +715,7 @@ export function mountPoolOptimizer(container, options = {}) {
         updateProgressionStatusMessage(
           saved
             ? getProgressionSavedMessage(stale)
-            : "Progression could not be saved locally; browser storage is full.",
+            : 'Progression could not be saved locally; browser storage is full.',
         );
 
         // DELIBERATELY no render(): the clicked checkbox is already visually
@@ -737,11 +737,11 @@ export function mountPoolOptimizer(container, options = {}) {
       });
     });
 
-    app.querySelectorAll("[data-progression-subgroup-all]").forEach((button) => {
-      button.addEventListener("click", () => {
+    app.querySelectorAll('[data-progression-subgroup-all]').forEach((button) => {
+      button.addEventListener('click', () => {
         const field = button.dataset.progressionSubgroupAll;
-        const ids = String(button.dataset.progressionOptionIds || "")
-          .split(",")
+        const ids = String(button.dataset.progressionOptionIds || '')
+          .split(',')
           .filter(Boolean);
         if (!ids.length) return;
         // UNION with the existing selection (unlike the group-level "Select
@@ -756,22 +756,22 @@ export function mountPoolOptimizer(container, options = {}) {
         updateProgressionStatusMessage(
           saved
             ? getProgressionSavedMessage(stale)
-            : "Progression could not be saved locally; browser storage is full.",
+            : 'Progression could not be saved locally; browser storage is full.',
         );
         render();
         scheduleAutoReoptimize(stale, BATCH_EDIT_REOPTIMIZE_DELAY_MS);
       });
     });
 
-    app.querySelectorAll("[data-progression-option-bulk]").forEach((button) => {
-      button.addEventListener("click", () => {
+    app.querySelectorAll('[data-progression-option-bulk]').forEach((button) => {
+      button.addEventListener('click', () => {
         const field = button.dataset.progressionOptionBulk;
         const action = button.dataset.progressionOptionAction;
         const optionIds =
-          action === "select"
-            ? String(button.dataset.progressionOptionIds || "")
-                .split(",")
-                .filter(Boolean)
+          action === 'select'
+            ? String(button.dataset.progressionOptionIds || '')
+              .split(',')
+              .filter(Boolean)
             : [];
 
         state.progression = setRebornProgressionOptions(
@@ -786,7 +786,7 @@ export function mountPoolOptimizer(container, options = {}) {
         updateProgressionStatusMessage(
           saved
             ? getProgressionSavedMessage(stale)
-            : "Progression could not be saved locally; browser storage is full.",
+            : 'Progression could not be saved locally; browser storage is full.',
         );
 
         render();
@@ -799,29 +799,29 @@ export function mountPoolOptimizer(container, options = {}) {
     // renewable shop stock), never LOWERING an existing stack, and focus
     // returns to the search box so shop hauls chain type-Enter-type-Enter.
     const addOwnedItemFromSearch = () => {
-      const input = app.querySelector("[data-item-add-input]");
-      const itemId = toId(input?.value || "");
+      const input = app.querySelector('[data-item-add-input]');
+      const itemId = toId(input?.value || '');
       const knownExtra = REBORN_EXTRA_INVENTORY_ITEMS.some(
         (item) => item.id === itemId,
       );
 
       if (!itemId || (!GEN7_HELD_ITEMS_BY_ID[itemId] && !knownExtra)) {
         updateProgressionStatusMessage(
-          "Item not recognized; pick one from the suggestions.",
+          'Item not recognized; pick one from the suggestions.',
         );
         return;
       }
 
       if (HIDDEN_INVENTORY_ITEM_IDS.has(itemId)) {
         updateProgressionStatusMessage(
-          "That terrain seed is replaced in Reborn — use the matching field seed instead.",
+          'That terrain seed is replaced in Reborn — use the matching field seed instead.',
         );
         return;
       }
 
       const picked =
         Number.parseInt(
-          app.querySelector("[data-item-add-count]")?.value,
+          app.querySelector('[data-item-add-count]')?.value,
           10,
         ) || MAX_TRACKED_ITEM_COUNT;
       const current = state.progression.ownedItems?.[itemId] || 0;
@@ -836,19 +836,19 @@ export function mountPoolOptimizer(container, options = {}) {
     };
 
     app
-      .querySelector("[data-item-add-button]")
-      ?.addEventListener("click", addOwnedItemFromSearch);
+      .querySelector('[data-item-add-button]')
+      ?.addEventListener('click', addOwnedItemFromSearch);
     app
-      .querySelector("[data-item-add-input]")
-      ?.addEventListener("keydown", (event) => {
-        if (event.key !== "Enter") return;
+      .querySelector('[data-item-add-input]')
+      ?.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter') return;
         event.preventDefault();
         addOwnedItemFromSearch();
       });
 
     app
-      .querySelector("[data-shop-sync-button]")
-      ?.addEventListener("click", () => {
+      .querySelector('[data-shop-sync-button]')
+      ?.addEventListener('click', () => {
         const badges =
           getRebornCheckpoint(state.progression.checkpoint)?.badges ?? null;
         const purchasable = getPurchasableShopItems(
@@ -863,118 +863,118 @@ export function mountPoolOptimizer(container, options = {}) {
           ),
         );
         finishOwnedItemsEdit(
-          `Added ${purchasable.length} purchasable item${purchasable.length === 1 ? "" : "s"} at 6+.`,
+          `Added ${purchasable.length} purchasable item${purchasable.length === 1 ? '' : 's'} at 6+.`,
         );
       });
 
-    app.querySelectorAll("[data-owned-item-count]").forEach((control) => {
-      control.addEventListener("change", () => {
+    app.querySelectorAll('[data-owned-item-count]').forEach((control) => {
+      control.addEventListener('change', () => {
         applyOwnedItemChange(control.dataset.itemId, control.value);
       });
     });
 
-    app.querySelectorAll("[data-bias-type]").forEach((control) => {
+    app.querySelectorAll('[data-bias-type]').forEach((control) => {
       // Update the value readout live while dragging without re-rendering (which
       // would drop slider focus), then commit on release.
-      control.addEventListener("input", () => {
+      control.addEventListener('input', () => {
         const valueEl = app.querySelector(
           `[data-bias-value="${control.dataset.biasType}"]`,
         );
         if (valueEl) valueEl.textContent = control.value;
       });
-      control.addEventListener("change", () => {
+      control.addEventListener('change', () => {
         applyOpponentBiasChange(control.dataset.biasType, control.value);
       });
     });
 
-    app.querySelectorAll("[data-owned-item-remove]").forEach((button) => {
-      button.addEventListener("click", () => {
+    app.querySelectorAll('[data-owned-item-remove]').forEach((button) => {
+      button.addEventListener('click', () => {
         applyOwnedItemChange(button.dataset.itemId, 0);
       });
     });
 
     app
-      .querySelector("#generate-availability-button")
-      ?.addEventListener("click", () => {
+      .querySelector('#generate-availability-button')
+      ?.addEventListener('click', () => {
         void generateAvailabilityList();
       });
 
     app
-      .querySelector("#copy-availability-button")
-      ?.addEventListener("click", async () => {
+      .querySelector('#copy-availability-button')
+      ?.addEventListener('click', async () => {
         try {
-          await navigator.clipboard.writeText(state.availabilityText || "");
-          updatePoolStatusMessage("Availability list copied to clipboard");
+          await navigator.clipboard.writeText(state.availabilityText || '');
+          updatePoolStatusMessage('Availability list copied to clipboard');
         } catch {
-          updatePoolStatusMessage("Clipboard copy failed");
+          updatePoolStatusMessage('Clipboard copy failed');
         }
       });
 
     app
-      .querySelector("#close-availability-button")
-      ?.addEventListener("click", () => {
-        state.availabilityText = "";
+      .querySelector('#close-availability-button')
+      ?.addEventListener('click', () => {
+        state.availabilityText = '';
         render();
       });
 
     app
-      .querySelector("#pool-query-input")
-      ?.addEventListener("input", (event) => {
+      .querySelector('#pool-query-input')
+      ?.addEventListener('input', (event) => {
         state.query = event.target.value;
 
         const saved = savePool(state.query);
 
         state.result = null;
-        state.resultProgressionKey = "";
-        state.availabilityText = "";
+        state.resultProgressionKey = '';
+        state.availabilityText = '';
         state.teamItemUsage = null;
         state.teamItemContext = null;
         state.itemRecommendations = {};
         setDetails.cancel();
 
         state.statusMessage = saved
-          ? "Saved locally"
-          : "Not saved locally; browser storage is full.";
+          ? 'Saved locally'
+          : 'Not saved locally; browser storage is full.';
 
         writeUrl();
         updatePoolStatusMessage(state.statusMessage);
       });
 
     app
-      .querySelector("#optimize-button")
-      ?.addEventListener("click", async () => {
+      .querySelector('#optimize-button')
+      ?.addEventListener('click', async () => {
         await computeAndRender();
       });
 
     app
-      .querySelector("#compute-post-analysis-button")
-      ?.addEventListener("click", () => {
+      .querySelector('#compute-post-analysis-button')
+      ?.addEventListener('click', () => {
         if (!state.result || state.analysisPending) return;
         activeAnalysis = runPostAnalysis(state.result, null);
       });
 
     app
-      .querySelector("#copy-pool-button")
-      ?.addEventListener("click", async () => {
+      .querySelector('#copy-pool-button')
+      ?.addEventListener('click', async () => {
         await copyPool();
       });
 
     app
-      .querySelector("#copy-perf-report-button")
-      ?.addEventListener("click", async () => {
+      .querySelector('#copy-perf-report-button')
+      ?.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(
             JSON.stringify(buildPerformanceReport(), null, 2),
           );
-          updatePoolStatusMessage("Performance report copied to clipboard");
+          updatePoolStatusMessage('Performance report copied to clipboard');
         } catch {
-          updatePoolStatusMessage("Clipboard copy failed");
+          updatePoolStatusMessage('Clipboard copy failed');
         }
       });
 
     app
-      .querySelector("#export-gamestate-button")
-      ?.addEventListener("click", () => {
+      .querySelector('#export-gamestate-button')
+      ?.addEventListener('click', () => {
         const blob = new Blob(
           [
             buildGamestateExport({
@@ -982,10 +982,10 @@ export function mountPoolOptimizer(container, options = {}) {
               progression: state.progression,
             }),
           ],
-          { type: "application/json" },
+          { type: 'application/json' },
         );
         const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
+        const link = document.createElement('a');
         link.href = url;
         link.download = gamestateFileName();
         link.click();
@@ -994,16 +994,16 @@ export function mountPoolOptimizer(container, options = {}) {
       });
 
     app
-      .querySelector("#import-gamestate-button")
-      ?.addEventListener("click", () => {
-        app.querySelector("#import-gamestate-input")?.click();
+      .querySelector('#import-gamestate-button')
+      ?.addEventListener('click', () => {
+        app.querySelector('#import-gamestate-input')?.click();
       });
 
     app
-      .querySelector("#import-gamestate-input")
-      ?.addEventListener("change", async (event) => {
+      .querySelector('#import-gamestate-input')
+      ?.addEventListener('change', async (event) => {
         const file = event.target.files?.[0];
-        event.target.value = "";
+        event.target.value = '';
         if (!file) return;
         let imported;
         try {
@@ -1015,7 +1015,7 @@ export function mountPoolOptimizer(container, options = {}) {
         if (
           state.query.trim() &&
           !window.confirm(
-            "Replace the current pool and progression with the imported gamestate?",
+            'Replace the current pool and progression with the imported gamestate?',
           )
         ) {
           return;
@@ -1030,20 +1030,20 @@ export function mountPoolOptimizer(container, options = {}) {
         state.result = null;
         recomputeItemRecommendations();
         render();
-        updatePoolStatusMessage("Gamestate imported. Optimizing…");
+        updatePoolStatusMessage('Gamestate imported. Optimizing…');
         void computeAndRender({ exhaustive: false, background: true });
       });
 
-    app.querySelector("#clear-pool-button")?.addEventListener("click", () => {
+    app.querySelector('#clear-pool-button')?.addEventListener('click', () => {
       const confirmed = window.confirm(
-        "Clear the saved owned Pokémon pool from this browser?",
+        'Clear the saved owned Pokémon pool from this browser?',
       );
       if (!confirmed) return;
 
-      state.query = "";
+      state.query = '';
       state.result = null;
-      state.resultProgressionKey = "";
-      state.statusMessage = "Saved pool cleared";
+      state.resultProgressionKey = '';
+      state.statusMessage = 'Saved pool cleared';
 
       setDetails.cancel();
       removeLocalStorage(poolStorageKey());
@@ -1052,10 +1052,10 @@ export function mountPoolOptimizer(container, options = {}) {
     });
 
     app
-      .querySelector("#clear-progression-button")
-      ?.addEventListener("click", () => {
+      .querySelector('#clear-progression-button')
+      ?.addEventListener('click', () => {
         const confirmed = window.confirm(
-          "Clear saved Reborn progression from this browser?",
+          'Clear saved Reborn progression from this browser?',
         );
         if (!confirmed) return;
 
@@ -1069,16 +1069,16 @@ export function mountPoolOptimizer(container, options = {}) {
     const text = state.query.trim();
 
     if (!text) {
-      state.statusMessage = "Nothing to copy";
+      state.statusMessage = 'Nothing to copy';
       render();
       return;
     }
 
     try {
       await navigator.clipboard.writeText(text);
-      state.statusMessage = "Copied pool to clipboard";
+      state.statusMessage = 'Copied pool to clipboard';
     } catch {
-      state.statusMessage = "Clipboard copy failed";
+      state.statusMessage = 'Clipboard copy failed';
     }
 
     render();
@@ -1100,32 +1100,32 @@ export function mountPoolOptimizer(container, options = {}) {
   function finishOwnedItemsEdit(message, { refocusAdd, flashItemId } = {}) {
     const saved = saveRebornProgression(state.progression);
     state.statusMessage = saved
-      ? "Saved locally"
-      : "Held items could not be saved locally; browser storage is full.";
+      ? 'Saved locally'
+      : 'Held items could not be saved locally; browser storage is full.';
 
     recomputeItemRecommendations();
     const stale = markResultProgressionStale();
     render();
     if (message || stale) {
       updateProgressionStatusMessage(
-        [message, stale ? "Re-optimizing after edits settle…" : null]
+        [message, stale ? 'Re-optimizing after edits settle…' : null]
           .filter(Boolean)
-          .join(" "),
+          .join(' '),
       );
     }
     // The render replaced the DOM: restore the search box focus so adds can
     // chain, and flash/scroll the touched row so it's findable in the
     // alphabetical list without scanning.
     if (refocusAdd) {
-      app.querySelector("[data-item-add-input]")?.focus();
+      app.querySelector('[data-item-add-input]')?.focus();
     }
     if (flashItemId) {
       const row = app
         .querySelector(`[data-owned-item-count][data-item-id="${flashItemId}"]`)
-        ?.closest(".item-inventory-row");
+        ?.closest('.item-inventory-row');
       if (row) {
-        row.classList.add("item-row-flash");
-        row.scrollIntoView({ block: "nearest" });
+        row.classList.add('item-row-flash');
+        row.scrollIntoView({ block: 'nearest' });
       }
     }
     scheduleAutoReoptimize(stale, BATCH_EDIT_REOPTIMIZE_DELAY_MS);
@@ -1144,7 +1144,7 @@ export function mountPoolOptimizer(container, options = {}) {
     updateProgressionStatusMessage(
       saved
         ? getProgressionSavedMessage(stale)
-        : "Progression could not be saved locally; browser storage is full.",
+        : 'Progression could not be saved locally; browser storage is full.',
     );
 
     // Bias only affects optimization, so flag the current team stale; no
@@ -1159,7 +1159,7 @@ export function mountPoolOptimizer(container, options = {}) {
   // rebuilding just its chips in place. Chip clicks stay live because their
   // handler is delegated to the widget root.
   function refreshGamestateStrip() {
-    const strip = app.querySelector(".gamestate-strip");
+    const strip = app.querySelector('.gamestate-strip');
     if (strip) strip.outerHTML = renderGamestateStrip(state.progression);
   }
 
@@ -1180,12 +1180,12 @@ export function mountPoolOptimizer(container, options = {}) {
   async function generateAvailabilityList() {
     if (!state.result?.lines?.length) {
       state.statusMessage =
-        "Optimize the team first so your pool is resolved, then generate the list.";
+        'Optimize the team first so your pool is resolved, then generate the list.';
       render();
       return;
     }
 
-    updatePoolStatusMessage("Generating availability list…");
+    updatePoolStatusMessage('Generating availability list…');
 
     try {
       const text = await buildPoolAvailabilityText({
@@ -1204,8 +1204,8 @@ export function mountPoolOptimizer(container, options = {}) {
       }
 
       state.statusMessage = copied
-        ? "Availability list copied to clipboard"
-        : "Availability list ready below";
+        ? 'Availability list copied to clipboard'
+        : 'Availability list ready below';
 
       render();
     } catch (error) {
@@ -1230,7 +1230,7 @@ export function mountPoolOptimizer(container, options = {}) {
     stopOptimizeProgress();
     optimizeProgress = {
       start: Date.now(),
-      phase: "resolve",
+      phase: 'resolve',
       phaseStart: Date.now(),
       completed: 0,
       total: poolSize || 0,
@@ -1247,7 +1247,7 @@ export function mountPoolOptimizer(container, options = {}) {
 
   function paintOptimizeProgress() {
     const model = optimizeProgress;
-    const bar = app.querySelector("[data-optimize-progress-bar]");
+    const bar = app.querySelector('[data-optimize-progress-bar]');
     if (!model || !bar) return;
 
     const now = Date.now();
@@ -1255,11 +1255,11 @@ export function mountPoolOptimizer(container, options = {}) {
     const phaseElapsed = now - model.phaseStart;
     const budget = model.budget;
     let remaining;
-    if (model.phase === "resolve") {
+    if (model.phase === 'resolve') {
       const fraction = model.total ? model.completed / model.total : 0;
       remaining =
         budget.resolveMs * (1 - fraction) + budget.searchMs + budget.tailMs;
-    } else if (model.phase === "search") {
+    } else if (model.phase === 'search') {
       const f = model.searchFraction || 0;
       if (f > 0.02) {
         // Real worker progress: project remaining time from the measured
@@ -1287,10 +1287,10 @@ export function mountPoolOptimizer(container, options = {}) {
     // Running far past the search budget: pulse to say "still working" —
     // the estimate was wrong, not the run dead.
     const late =
-      model.phase === "search" && phaseElapsed > 2 * budget.searchMs;
+      model.phase === 'search' && phaseElapsed > 2 * budget.searchMs;
     bar.style.animation = late
-      ? "pool-progress-pulse 1.2s ease-in-out infinite"
-      : "";
+      ? 'pool-progress-pulse 1.2s ease-in-out infinite'
+      : '';
   }
 
   function formatComboCount(value) {
@@ -1299,27 +1299,27 @@ export function mountPoolOptimizer(container, options = {}) {
     return String(value);
   }
 
-  function updateOptimizeProgress({ phase = "resolve", completed, total, stage, detail }) {
-    const label = app.querySelector("[data-optimize-progress-label]");
+  function updateOptimizeProgress({ phase = 'resolve', completed, total, stage, detail }) {
+    const label = app.querySelector('[data-optimize-progress-label]');
     if (label) {
       label.textContent =
-        phase === "search"
-          ? stage === "synergy"
-            ? "Search prep — loading teammate synergy..."
-            : stage === "polish"
+        phase === 'search'
+          ? stage === 'synergy'
+            ? 'Search prep — loading teammate synergy...'
+            : stage === 'polish'
               ? `Search done — auditing shortlist swaps (round ${detail?.round || 1})...`
-              : stage === "realize"
-                ? "Search done — realizing best builds..."
-                : stage === "bench"
-                  ? "Search done — ranking bench swaps..."
+              : stage === 'realize'
+                ? 'Search done — realizing best builds...'
+                : stage === 'bench'
+                  ? 'Search done — ranking bench swaps...'
                   : total
-                  ? `Searching team combinations — ${Math.min(99, Math.floor((100 * (completed || 0)) / total))}% of ${formatComboCount(total)}...`
-                  : "Searching team combinations..."
-          : phase === "items"
-            ? "Loading item usage for the team..."
+                    ? `Searching team combinations — ${Math.min(99, Math.floor((100 * (completed || 0)) / total))}% of ${formatComboCount(total)}...`
+                    : 'Searching team combinations...'
+          : phase === 'items'
+            ? 'Loading item usage for the team...'
             : total
               ? `Scoring ${completed}/${total} Pokémon...`
-              : "Optimizing pool...";
+              : 'Optimizing pool...';
     }
     if (optimizeProgress) {
       if (phase !== optimizeProgress.phase) {
@@ -1327,11 +1327,11 @@ export function mountPoolOptimizer(container, options = {}) {
         optimizeProgress.phaseStart = Date.now();
         optimizeProgress.searchFraction = 0;
       }
-      if (phase === "resolve") {
+      if (phase === 'resolve') {
         optimizeProgress.completed = completed || 0;
         if (total) optimizeProgress.total = total;
       }
-      if (phase === "search" && total) {
+      if (phase === 'search' && total) {
         optimizeProgress.searchFraction = Math.min(
           1,
           (completed || 0) / total,
@@ -1342,17 +1342,17 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 
   function updatePoolStatusMessage(message) {
-    const statusNode = app.querySelector("[data-pool-status]");
-    if (statusNode) statusNode.textContent = message || "";
+    const statusNode = app.querySelector('[data-pool-status]');
+    if (statusNode) statusNode.textContent = message || '';
   }
 
   function updateProgressionStatusMessage(message) {
-    const statusNode = app.querySelector("[data-progression-status]");
-    if (statusNode) statusNode.textContent = message || "";
+    const statusNode = app.querySelector('[data-progression-status]');
+    if (statusNode) statusNode.textContent = message || '';
   }
 
   function refreshSelectedLegalMovesPanel() {
-    const legalMovesRoot = app.querySelector("[data-reborn-legal-moves-root]");
+    const legalMovesRoot = app.querySelector('[data-reborn-legal-moves-root]');
     const selected = getSelectedTeamChoice();
 
     if (!legalMovesRoot || !selected) return;
@@ -1369,7 +1369,7 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 
   function refreshTeamAnalysisPanel() {
-    renderRebornTeamAnalysisPanel(app.querySelector("#reborn-team-analysis-root"), {
+    renderRebornTeamAnalysisPanel(app.querySelector('#reborn-team-analysis-root'), {
       family: state.family,
       itemAssignments: state.itemRecommendations,
       pokemonIndex,
@@ -1388,26 +1388,26 @@ export function mountPoolOptimizer(container, options = {}) {
   function refreshOptimizedTeamProgressionState(stale) {
     state.resultProgressionStale = stale;
 
-    const warning = app.querySelector("[data-progression-stale-warning]");
+    const warning = app.querySelector('[data-progression-stale-warning]');
     if (warning) warning.hidden = !stale;
 
-    app.querySelectorAll("[data-team-note]").forEach((noteNode) => {
-      const row = getTeamChoiceForRow(noteNode.closest("[data-team-pokemon-id]"));
+    app.querySelectorAll('[data-team-note]').forEach((noteNode) => {
+      const row = getTeamChoiceForRow(noteNode.closest('[data-team-pokemon-id]'));
       noteNode.textContent = stale
-        ? "Progression changed; re-optimize for current scores and legal move notes."
-        : row?.note || "";
+        ? 'Progression changed; re-optimize for current scores and legal move notes.'
+        : row?.note || '';
     });
 
-    app.querySelectorAll("[data-team-pokemon-id]").forEach((rowNode) => {
+    app.querySelectorAll('[data-team-pokemon-id]').forEach((rowNode) => {
       const row = getTeamChoiceForRow(rowNode);
-      const noteNode = rowNode.querySelector("[data-current-species-note]");
+      const noteNode = rowNode.querySelector('[data-current-species-note]');
       if (!row || !noteNode) return;
 
       const currentSpecies = getCurrentRebornSpeciesForChoice(row, state.progression);
       const showCurrent = Boolean(currentSpecies?.differsFromRepresentative);
 
       noteNode.hidden = !showCurrent;
-      noteNode.textContent = showCurrent ? `Current: ${currentSpecies.name}` : "";
+      noteNode.textContent = showCurrent ? `Current: ${currentSpecies.name}` : '';
     });
   }
 
@@ -1444,7 +1444,7 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 
   function getOptimizationSummary(result) {
-    if (!result) return "";
+    if (!result) return '';
 
     return `Optimized ${result.team.length} picks from ${result.linesConsidered} resolved inputs.`;
   }
@@ -1459,8 +1459,8 @@ export function mountPoolOptimizer(container, options = {}) {
 
   function getProgressionSavedMessage(stale) {
     return stale
-      ? "Progression saved locally. Re-optimizing after edits settle…"
-      : "Progression saved locally";
+      ? 'Progression saved locally. Re-optimizing after edits settle…'
+      : 'Progression saved locally';
   }
 
   // In-place DOM patching for checkbox toggles (no re-render — see the change
@@ -1473,10 +1473,10 @@ export function mountPoolOptimizer(container, options = {}) {
       .forEach((box) => {
         if (box.value !== value) return;
         box.checked = checked;
-        const label = box.closest(".progression-option");
+        const label = box.closest('.progression-option');
         if (!label) return;
         label.classList.toggle(
-          "option-obtainable",
+          'option-obtainable',
           Boolean(label.dataset.optionBadgeOk) && !checked,
         );
       });
@@ -1488,7 +1488,7 @@ export function mountPoolOptimizer(container, options = {}) {
     const group = app.querySelector(
       `[data-progression-group="${CSS.escape(field)}"]`,
     );
-    const counter = group?.querySelector("[data-progression-group-count]");
+    const counter = group?.querySelector('[data-progression-group-count]');
     if (!counter) return;
 
     const seen = new Set();
@@ -1499,13 +1499,13 @@ export function mountPoolOptimizer(container, options = {}) {
       .forEach((box) => {
         seen.add(box.value);
         if (box.checked) checked.add(box.value);
-        else if (box.closest(".progression-option")?.dataset.optionBadgeOk) {
+        else if (box.closest('.progression-option')?.dataset.optionBadgeOk) {
           obtainable.add(box.value);
         }
       });
     const total = Number.parseInt(counter.dataset.optionTotal, 10) || seen.size;
     counter.textContent = `${checked.size}/${total} selected${
-      obtainable.size ? ` · ${obtainable.size} obtainable now` : ""
+      obtainable.size ? ` · ${obtainable.size} obtainable now` : ''
     }`;
   }
 
@@ -1513,14 +1513,14 @@ export function mountPoolOptimizer(container, options = {}) {
     if (embedded) return;
 
     const params = new URLSearchParams();
-    params.set("family", state.family);
-    params.set("selection", state.selection);
-    params.set("teamSort", state.teamSort);
-    params.set("teamSortDir", state.teamSortDir);
+    params.set('family', state.family);
+    params.set('selection', state.selection);
+    params.set('teamSort', state.teamSort);
+    params.set('teamSortDir', state.teamSortDir);
 
     window.history.replaceState(
       null,
-      "",
+      '',
       `${window.location.pathname}?${params.toString()}`,
     );
   }
@@ -1533,7 +1533,7 @@ export function savePool(value) {
 
 /** @return {string} The saved pool text, or '' when none. */
 export function loadSavedPool() {
-  return readLocalStorage(poolStorageKey(), "");
+  return readLocalStorage(poolStorageKey(), '');
 }
 
 function saveTeamSort(value) {
@@ -1541,7 +1541,7 @@ function saveTeamSort(value) {
 }
 
 function loadSavedTeamSort() {
-  return readLocalStorage(TEAM_SORT_STORAGE_KEY, "");
+  return readLocalStorage(TEAM_SORT_STORAGE_KEY, '');
 }
 
 function saveTeamSortDir(value) {
@@ -1549,7 +1549,7 @@ function saveTeamSortDir(value) {
 }
 
 function loadSavedTeamSortDir() {
-  return readLocalStorage(TEAM_SORT_DIR_STORAGE_KEY, "");
+  return readLocalStorage(TEAM_SORT_DIR_STORAGE_KEY, '');
 }
 
 function getParam(name) {
@@ -1557,7 +1557,7 @@ function getParam(name) {
 }
 
 function baseUrl() {
-  return import.meta.env.BASE_URL || "/";
+  return import.meta.env.BASE_URL || '/';
 }
 
 function waitForPaint() {
@@ -1592,12 +1592,12 @@ function getProgressionKey(progression) {
 }
 
 function stableKeyStringify(value) {
-  if (Array.isArray(value)) return `[${value.map(stableKeyStringify).join(",")}]`;
-  if (value && typeof value === "object") {
+  if (Array.isArray(value)) return `[${value.map(stableKeyStringify).join(',')}]`;
+  if (value && typeof value === 'object') {
     return `{${Object.keys(value)
       .sort()
       .map((key) => `${JSON.stringify(key)}:${stableKeyStringify(value[key])}`)
-      .join(",")}}`;
+      .join(',')}}`;
   }
   return JSON.stringify(value);
 }

@@ -43,13 +43,13 @@
 import {
   GEN7_BASE_STATS,
   GEN7_BASE_STAT_TOTALS,
-} from "../generated/gen7BaseStats.generated.js";
-import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
+} from '../generated/gen7BaseStats.generated.js';
+import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
 import {
   getTypeMultiplier,
   REBORN_ANALYSIS_TYPES,
-} from "../reborn/typeChart.js";
-import { SCORING_DEFAULTS, tunable } from "./scoringConstants.js";
+} from '../reborn/typeChart.js';
+import { SCORING_DEFAULTS, tunable } from './scoringConstants.js';
 
 /**
  * Not sweepable — it defines the scale the other judgements are expressed in.
@@ -149,7 +149,7 @@ function capRefs(levelCap) {
   return refs;
 }
 function stagePercentile(value, globalRef, capRef) {
-  const blend = tunable("REACHABLE_BLEND");
+  const blend = tunable('REACHABLE_BLEND');
   return (
     (1 - blend) * percentile(value, globalRef) +
     blend * percentile(value, capRef)
@@ -211,7 +211,7 @@ const clamp01 = (x) => Math.max(0, Math.min(1, x));
  */
 export function softCeiling(x) {
   if (x <= 0) return 0;
-  const knee = tunable("ROLE_CEILING_KNEE");
+  const knee = tunable('ROLE_CEILING_KNEE');
   if (x <= knee) return x;
   const band = 1 - knee;
   return knee + band * (1 - Math.exp(-(x - knee) / band));
@@ -257,35 +257,35 @@ const ROLE_WEIGHTS = {
 // and both survive) instead of collapsing to a weighted scalar that a future
 // sweep axis could reorder.
 const UTILITY_TAGS = Object.freeze([
-  "recovery",
-  "hazard_set",
-  "hazard_remove",
-  "speed_control",
-  "setup",
-  "pivot",
-  "phazing",
-  "screen",
-  "disruption",
-  "status",
+  'recovery',
+  'hazard_set',
+  'hazard_remove',
+  'speed_control',
+  'setup',
+  'pivot',
+  'phazing',
+  'screen',
+  'disruption',
+  'status',
   // Maximum protection axes delivered by ONE screen action. Kept separate
   // from the ordinary screen count so Reflect + Light Screen cannot dominate
   // away an Aurora Veil build merely by unioning two turns of work.
-  "screen_compression",
-  "priority",
+  'screen_compression',
+  'priority',
 ]);
 
 function normalizedAbility(ability) {
-  return String(ability || "")
+  return String(ability || '')
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
+    .replace(/[^a-z0-9]+/g, '');
 }
 
 const RELIABLE_TEMPO_RAMP_MOVES = new Set([
-  "banefulbunker",
-  "detect",
-  "kingsshield",
-  "protect",
-  "spikyshield",
+  'banefulbunker',
+  'detect',
+  'kingsshield',
+  'protect',
+  'spikyshield',
 ]);
 
 /**
@@ -297,7 +297,7 @@ const RELIABLE_TEMPO_RAMP_MOVES = new Set([
  */
 export function hasSpeedBoostTempo(profile) {
   return [profile?.preMegaAbility, profile?.assumedAbility].some(
-    (ability) => normalizedAbility(ability) === "speedboost",
+    (ability) => normalizedAbility(ability) === 'speedboost',
   );
 }
 
@@ -323,14 +323,14 @@ export function hasReliableTempoRamp(profile) {
  * @return {boolean}
  */
 export function isPriorityUtilityMove(move, assumedAbility = null) {
-  if (move?.category !== "Status") return false;
+  if (move?.category !== 'Status') return false;
   const hasUtilityRole = (move.roles || []).some(
-    (role) => role !== "priority" && (ROLE_WEIGHTS[role] || 0) > 0,
+    (role) => role !== 'priority' && (ROLE_WEIGHTS[role] || 0) > 0,
   );
   if (!hasUtilityRole) return false;
   const intrinsicPriority = move.priority || 0;
   const pranksterMakesPositive =
-    normalizedAbility(assumedAbility) === "prankster" && intrinsicPriority >= 0;
+    normalizedAbility(assumedAbility) === 'prankster' && intrinsicPriority >= 0;
   return intrinsicPriority > 0 || pranksterMakesPositive;
 }
 
@@ -338,8 +338,8 @@ function weatherIsAvailable(weather, recommendedMoves, assumedAbility) {
   if (!weather) return true;
   const weatherId = normalizedAbility(weather);
   if (
-    weatherId === "hail" &&
-    normalizedAbility(assumedAbility) === "snowwarning"
+    weatherId === 'hail' &&
+    normalizedAbility(assumedAbility) === 'snowwarning'
   ) {
     return true;
   }
@@ -370,7 +370,7 @@ export function singleActionScreenSupport(
   for (const move of recommendedMoves || []) {
     const axes = new Set(
       (move?.screenAxes || []).filter(
-        (axis) => axis === "physical" || axis === "special",
+        (axis) => axis === 'physical' || axis === 'special',
       ),
     );
     if (!axes.size) continue;
@@ -412,12 +412,12 @@ export function utilityTagVector(recommendedMoves, assumedAbility = null) {
     }
     if (
       isPriorityUtilityMove(move, assumedAbility) &&
-      !(move.roles || []).includes("priority")
+      !(move.roles || []).includes('priority')
     ) {
-      vector[UTILITY_TAGS.indexOf("priority")] += hitRate;
+      vector[UTILITY_TAGS.indexOf('priority')] += hitRate;
     }
   }
-  vector[UTILITY_TAGS.indexOf("screen_compression")] =
+  vector[UTILITY_TAGS.indexOf('screen_compression')] =
     singleActionScreenSupport(recommendedMoves, assumedAbility, 0)
       .protection_q;
   return vector;
@@ -425,10 +425,10 @@ export function utilityTagVector(recommendedMoves, assumedAbility = null) {
 
 /** The moves whose area-altering effect a duration-extender item prolongs. */
 export const FIELD_SETTING_MOVE_IDS = new Set([
-  "electricterrain",
-  "grassyterrain",
-  "mistyterrain",
-  "psychicterrain",
+  'electricterrain',
+  'grassyterrain',
+  'mistyterrain',
+  'psychicterrain',
 ]);
 
 /**
@@ -445,7 +445,7 @@ export function utilityValue(recommendedMoves, fieldExtenderOwned = false) {
     if (best > 0) {
       let value = best * ((move.accuracy ?? 100) / 100);
       if (fieldExtenderOwned && FIELD_SETTING_MOVE_IDS.has(move.id)) {
-        value *= 1 + tunable("FIELD_EXTENDER_UTILITY_BONUS");
+        value *= 1 + tunable('FIELD_EXTENDER_UTILITY_BONUS');
       }
       total += value;
     }
@@ -462,7 +462,7 @@ export function priorityUtilityValue(recommendedMoves, assumedAbility = null) {
     if (!isPriorityUtilityMove(move, assumedAbility)) continue;
     let bestRole = 0;
     for (const role of move.roles || []) {
-      if (role === "priority") continue;
+      if (role === 'priority') continue;
       bestRole = Math.max(bestRole, ROLE_WEIGHTS[role] || 0);
     }
     // Priority is an additional property of delivering the support job, not
@@ -483,7 +483,7 @@ export function currentFormFeatures(profile, levelCap) {
 
   const ref = stageReferenceDamage(levelCap);
   // Soft saturation (never a hard 1.0): a hit at the reference reads ~0.7.
-  const softRate = tunable("DAMAGE_SOFT_RATE");
+  const softRate = tunable('DAMAGE_SOFT_RATE');
   const soft = (d) => 1 - Math.exp(-softRate * (d / ref));
 
   // The nonPassive gate ("can this mon threaten anything at all") uses the
@@ -507,7 +507,7 @@ export function currentFormFeatures(profile, levelCap) {
   // also where Protean earns individual credit (its coverage moves are
   // STAB-boosted, so its portfolio rises).
   const attackQ = (profile?.recommendedMoves || [])
-    .filter((m) => m.category !== "Status" && (m.estimatedDamage || 0) > 0)
+    .filter((m) => m.category !== 'Status' && (m.estimatedDamage || 0) > 0)
     .map((m) => soft(m.estimatedDamage))
     .sort((a, b) => b - a);
   const buildPeak = attackQ[0] || 0;
@@ -515,7 +515,7 @@ export function currentFormFeatures(profile, levelCap) {
     attackQ.length > 1
       ? 1 - attackQ.slice(1).reduce((p, d) => p * (1 - d), 1)
       : 0;
-  const w = tunable("PORTFOLIO_WEIGHT");
+  const w = tunable('PORTFOLIO_WEIGHT');
   const damage_q = buildPeak * (1 - w * (1 - breadth));
 
   const cr = capRefs(levelCap);
@@ -538,7 +538,7 @@ export function currentFormFeatures(profile, levelCap) {
   const bulk_q = geomean([physical_bulk_q, special_bulk_q]);
   const typeSpan = Math.max(
     0.1,
-    tunable("TYPE_RESILIENCE_FULL_SURPLUS"),
+    tunable('TYPE_RESILIENCE_FULL_SURPLUS'),
   );
   const type_resilience_q = clamp01(
     0.5 +
@@ -550,7 +550,7 @@ export function currentFormFeatures(profile, levelCap) {
   // point; this deliberately does not replace either side-specific stat.
   const effective_bulk_q = clamp01(
     bulk_q +
-      tunable("BALANCED_BULK_TYPE_WEIGHT") *
+      tunable('BALANCED_BULK_TYPE_WEIGHT') *
         (type_resilience_q - 0.5),
   );
   // Moving first and surviving a reply are alternate ways for an attacker to
@@ -559,7 +559,7 @@ export function currentFormFeatures(profile, levelCap) {
   // Only the overlap between "may move second" and "cannot take the hit" is
   // discounted, and even the worst overlap is bounded by the tunable weight.
   const fast_attacker_penalty_q =
-    tunable("FAST_ATTACKER_FRAILTY_WEIGHT") *
+    tunable('FAST_ATTACKER_FRAILTY_WEIGHT') *
     (1 - speed_q) *
     (1 - effective_bulk_q);
 
@@ -570,7 +570,7 @@ export function currentFormFeatures(profile, levelCap) {
     utilityValue(
       profile?.recommendedMoves,
       Boolean(profile?.fieldExtenderOwned),
-    ) / tunable("UTILITY_SATURATION"),
+    ) / tunable('UTILITY_SATURATION'),
   );
   // Acting first is its own route to delivering support: it does not need the
   // user's base Speed or bulk to stand in as a proxy for whether the move gets
@@ -580,7 +580,7 @@ export function currentFormFeatures(profile, levelCap) {
     priorityUtilityValue(
       profile?.recommendedMoves,
       profile?.assumedAbility,
-    ) / tunable("UTILITY_SATURATION"),
+    ) / tunable('UTILITY_SATURATION'),
   );
   const screenSupport = singleActionScreenSupport(
     profile?.recommendedMoves,
@@ -617,7 +617,7 @@ export function currentFormFeatures(profile, levelCap) {
  */
 export function currentFormValue(profile, levelCap) {
   if (!profile) {
-    return { value: 0, bestRole: "none", features: {}, roles: {} };
+    return { value: 0, bestRole: 'none', features: {}, roles: {} };
   }
   const f = currentFormFeatures(profile, levelCap);
 
@@ -625,7 +625,7 @@ export function currentFormValue(profile, levelCap) {
   // gets walled for free. Gate the utility roles by PEAK damage (can it hurt
   // anything at all), not the portfolio-blended figure.
   const nonPassive = clamp01(
-    (f.peak_damage_q ?? f.damage_q) / tunable("NON_PASSIVE_FLOOR"),
+    (f.peak_damage_q ?? f.damage_q) / tunable('NON_PASSIVE_FLOOR'),
   );
 
   // reliability_q is deliberately NOT a role axis: with the available move data it
@@ -633,8 +633,8 @@ export function currentFormValue(profile, levelCap) {
   // it only inflates every score, and accuracy — the part that would discriminate
   // — is already folded into damage_q by the damage estimate. Kept in features for
   // display, unused here.
-  const utilityWeight = tunable("UTILITY_ROLE_WEIGHT");
-  const priorityUtilityWeight = tunable("PRIORITY_UTILITY_ROLE_WEIGHT");
+  const utilityWeight = tunable('UTILITY_ROLE_WEIGHT');
+  const priorityUtilityWeight = tunable('PRIORITY_UTILITY_ROLE_WEIGHT');
   const specialistBulk = Math.max(
     f.physical_bulk_q,
     f.special_bulk_q,
@@ -661,7 +661,7 @@ export function currentFormValue(profile, levelCap) {
     // reliable enough to approach, but never exceed, the common C ceiling.
     tempo_attacker: softCeiling(
       geomean([f.damage_q, f.tempo_speed_q]) +
-        tunable("TEMPO_RELIABILITY_BONUS") * f.tempo_reliability_q,
+        tunable('TEMPO_RELIABILITY_BONUS') * f.tempo_reliability_q,
     ),
     bulky_utility:
       utilityWeight *
@@ -675,7 +675,7 @@ export function currentFormValue(profile, levelCap) {
     screen_support: nonPassive * f.screen_support_q,
   };
 
-  let bestRole = "fast_attacker";
+  let bestRole = 'fast_attacker';
   let best = 0;
   for (const [role, score] of Object.entries(roles)) {
     if (score > best) {

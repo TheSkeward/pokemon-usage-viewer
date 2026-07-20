@@ -6,14 +6,14 @@
  * under-rates gems here.
  */
 
-import fs from "node:fs";
-import path from "node:path";
-import { Dex } from "@pkmn/dex";
+import fs from 'node:fs';
+import path from 'node:path';
+import { Dex } from '@pkmn/dex';
 
 const OUT_PATH = path.resolve(
-  "src",
-  "generated",
-  "gen7UnburdenSpecies.generated.js",
+  'src',
+  'generated',
+  'gen7UnburdenSpecies.generated.js',
 );
 
 function main() {
@@ -27,7 +27,7 @@ function main() {
         species.gen >= 1 &&
         species.gen <= 7 &&
         !species.isNonstandard &&
-        Object.values(species.abilities || {}).includes("Unburden"),
+        Object.values(species.abilities || {}).includes('Unburden'),
     )
     .map((species) => species.id)
     .sort();
@@ -43,7 +43,7 @@ export const GEN7_UNBURDEN_SPECIES = ${JSON.stringify(map, null, 2)};
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
   fs.writeFileSync(OUT_PATH, body);
   console.log(`Wrote ${ids.length} Unburden species to ${OUT_PATH}`);
-  console.log(ids.join(", "));
+  console.log(ids.join(', '));
 }
 
 main();

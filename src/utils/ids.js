@@ -6,9 +6,9 @@
  * @return {string}
  */
 export function toId(value) {
-  return String(value || "")
+  return String(value || '')
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
+    .replace(/[^a-z0-9]+/g, '');
 }
 
 /**
@@ -19,5 +19,5 @@ export function toId(value) {
  */
 export function moveId(value) {
   const id = toId(value);
-  return id.startsWith("hiddenpower") ? "hiddenpower" : id;
+  return id.startsWith('hiddenpower') ? 'hiddenpower' : id;
 }

@@ -1,10 +1,10 @@
-import { getCurrentRebornSpeciesForChoice } from "../reborn/currentSpecies.js";
+import { getCurrentRebornSpeciesForChoice } from '../reborn/currentSpecies.js';
 import {
   getAvailableRebornMoves,
   loadRebornLegalMoveData,
-} from "../reborn/legalMoves";
-import { MAX_TRACKED_ITEM_COUNT } from "../reborn/progression";
-import { GEN7_HELD_ITEMS_BY_ID } from "../generated/gen7HeldItems.generated.js";
+} from '../reborn/legalMoves';
+import { MAX_TRACKED_ITEM_COUNT } from '../reborn/progression';
+import { GEN7_HELD_ITEMS_BY_ID } from '../generated/gen7HeldItems.generated.js';
 
 /**
  * Builds the plain-text "here are my available Pokémon and items" list from
@@ -39,16 +39,16 @@ export async function buildPoolAvailabilityText({ lines, progression }) {
   dedupedEntries.sort((a, b) => a.name.localeCompare(b.name));
 
   const monLines = dedupedEntries.map((entry) => {
-    const moves = entry.moves.length ? entry.moves.join(", ") : "(none available yet)";
+    const moves = entry.moves.length ? entry.moves.join(', ') : '(none available yet)';
     return `${entry.name} - available move pool: ${moves}`;
   });
 
-  const sections = ["Here are my available Pokémon.", ...monLines];
+  const sections = ['Here are my available Pokémon.', ...monLines];
 
   const itemsLine = describeOwnedItems(progression.ownedItems);
-  sections.push("", `Here are my available held items: ${itemsLine}`);
+  sections.push('', `Here are my available held items: ${itemsLine}`);
 
-  return sections.join("\n");
+  return sections.join('\n');
 }
 
 async function describeLine(line, progression) {
@@ -84,7 +84,7 @@ function describeOwnedItems(ownedItems = {}) {
     .filter((entry) => entry.count > 0)
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  if (!owned.length) return "(none tracked yet)";
+  if (!owned.length) return '(none tracked yet)';
 
   return owned
     .map((entry) => {
@@ -95,5 +95,5 @@ function describeOwnedItems(ownedItems = {}) {
           : `${entry.count}`;
       return `${entry.name} x${quantity}`;
     })
-    .join(", ");
+    .join(', ');
 }

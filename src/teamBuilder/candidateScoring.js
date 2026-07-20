@@ -1,19 +1,19 @@
-import { getTypeMultiplier } from "../reborn/typeChart.js";
-import { evolutionChainProof } from "../reborn/evolutionRequirements.js";
-import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
+import { getTypeMultiplier } from '../reborn/typeChart.js';
+import { evolutionChainProof } from '../reborn/evolutionRequirements.js';
+import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
 import {
   currentFormValue,
   formReadinessRatio,
   CURRENT_VALUE_SCALE,
-} from "./currentFormValue.js";
-import { tunable } from "./scoringConstants.js";
+} from './currentFormValue.js';
+import { tunable } from './scoringConstants.js';
 
 /**
  * Snapshotted at module load — not a confidence-sweep axis, so late
  * overrides don't need to reach it.
  */
 export const MIN_MEANINGFUL_USAGE_PERCENT = tunable(
-  "MIN_MEANINGFUL_USAGE_PERCENT",
+  'MIN_MEANINGFUL_USAGE_PERCENT',
 );
 
 // ---------------------------------------------------------------------------
@@ -106,7 +106,7 @@ export function scoreCandidate({
   // O — how much the fielded form resembles the ceiling form.
   const online = getReadinessGate(legalityProfile, current.features);
 
-  const alpha = tunable("USAGE_INFLUENCE");
+  const alpha = tunable('USAGE_INFLUENCE');
   const headroom = Math.max(0, ceiling - currentValue);
 
   // w ramps with how far the canonical competitive set is toward complete.
@@ -121,13 +121,13 @@ export function scoreCandidate({
 
   // F — display-only near-future value; NOT added to V. The investment view
   // (Phase 9) owns "worth training toward"; selection judges the present.
-  const onlineFloor = tunable("ONLINE_MIDEVO");
+  const onlineFloor = tunable('ONLINE_MIDEVO');
   const futureValue =
     online >= onlineFloor && online < ONLINE_FINAL
       ? Math.min(
-          tunable("FUTURE_CAP"),
-          tunable("FUTURE_WEIGHT") * (1 - online) * headroom,
-        )
+        tunable('FUTURE_CAP'),
+        tunable('FUTURE_WEIGHT') * (1 - online) * headroom,
+      )
       : 0;
 
   // Bias reflects the form you actually field, so it's added to the honest value.
@@ -142,14 +142,14 @@ export function scoreCandidate({
       evolutionChainProof(
         legalityProfile?.fieldedId || legalityProfile?.currentId,
       ).friction) *
-    tunable("FRICTION_SCALE");
+    tunable('FRICTION_SCALE');
 
   // If the caught mon's ability is unknown and the sweep asks "what if it has the
   // secondary ability?", subtract the build's measured sensitivity (V under
   // primary minus V under secondary, including damage and priority utility;
   // 0 when ability is known or the build is ability-insensitive).
   const abilityPenalty =
-    tunable("ABILITY_ASSUMPTION") === "secondary"
+    tunable('ABILITY_ASSUMPTION') === 'secondary'
       ? Math.max(0, legalityProfile?.abilitySensitivity || 0)
       : 0;
 
@@ -158,13 +158,13 @@ export function scoreCandidate({
     linePriorPresent != null
       ? linePriorPresent
       : hasCompetitivePriorEvidence(
-          bundle,
-          formatOrder,
-          cutoffPriority,
-        );
+        bundle,
+        formatOrder,
+        cutoffPriority,
+      );
   const wUp = Math.max(alpha * online, ramp);
   const wDown = priorPresent
-    ? Math.min(ramp, tunable("PRIOR_DRAG_CAP"))
+    ? Math.min(ramp, tunable('PRIOR_DRAG_CAP'))
     : ramp;
   const usageWeight = ramp;
   const value =
@@ -176,7 +176,7 @@ export function scoreCandidate({
 
   const meaningfulUsage =
     (usagePercent >= MIN_MEANINGFUL_USAGE_PERCENT && online >= onlineFloor) ||
-    biasScore >= tunable("BIAS_MEANINGFUL_THRESHOLD");
+    biasScore >= tunable('BIAS_MEANINGFUL_THRESHOLD');
 
   return {
     score: value,
@@ -248,7 +248,7 @@ export function computeUsageRamp(legalityProfile, levelCap) {
   const schedule =
     lStar == null
       ? 1
-      : Math.min(1, Math.pow(cap / lStar, tunable("USAGE_RAMP_EXPONENT")));
+      : Math.min(1, Math.pow(cap / lStar, tunable('USAGE_RAMP_EXPONENT')));
   const totalMoves = readiness.moves?.length || 0;
   const rNow = totalMoves ? (readiness.readyMoveCount || 0) / totalMoves : 0;
   return Math.min(schedule, rNow);
@@ -269,14 +269,14 @@ export function computeUsageRamp(legalityProfile, levelCap) {
 export function usageRankScore(rank, currentValue = 0) {
   const totalTiers = Math.max(1, rank.totalTiers || 1);
   const tierIndex = Math.max(0, totalTiers - rank.tierRank);
-  const quantum = tunable("USAGE_QUANTUM");
+  const quantum = tunable('USAGE_QUANTUM');
   const usageQuantized =
     Math.floor(Math.max(0, rank.value || 0) / quantum) * quantum;
-  const step = tunable("TIER_STEP");
+  const step = tunable('TIER_STEP');
   const raw =
     step * tierIndex +
     usageQuantized +
-    tunable("EPSILON_C") * Math.max(0, currentValue);
+    tunable('EPSILON_C') * Math.max(0, currentValue);
   const rawMax = step * (totalTiers + 1);
   return CURRENT_VALUE_SCALE * (raw / rawMax);
 }
@@ -290,9 +290,9 @@ function usageCeiling(rank) {
   const usageNorm = Math.min(
     1,
     Math.log1p(Math.max(0, rank.value)) /
-      Math.log1p(tunable("USAGE_REF_PERCENT")),
+      Math.log1p(tunable('USAGE_REF_PERCENT')),
   );
-  const tierWeight = tunable("USAGE_TIER_WEIGHT");
+  const tierWeight = tunable('USAGE_TIER_WEIGHT');
   const combined = tierWeight * tierNorm + (1 - tierWeight) * usageNorm;
   return CURRENT_VALUE_SCALE * Math.max(0, Math.min(1, combined));
 }
@@ -357,14 +357,14 @@ export function hasCompetitivePriorEvidence(
   if (
     !trace ||
     Math.max(0, trace.value || 0) <
-      tunable("SHALLOW_TRACE_PRIOR_MIN_PERCENT")
+      tunable('SHALLOW_TRACE_PRIOR_MIN_PERCENT')
   ) {
     return false;
   }
   const formatIndex = formatOrder.indexOf(trace.formatId);
   return (
     formatIndex >= 0 &&
-    formatIndex < tunable("SHALLOW_TRACE_PRIOR_FORMAT_DEPTH")
+    formatIndex < tunable('SHALLOW_TRACE_PRIOR_FORMAT_DEPTH')
   );
 }
 
@@ -383,15 +383,15 @@ function scoreOpponentTypeBias(opponentTypeBias, profile) {
     if (!level) continue;
 
     const defense = getTypeMultiplier(type, currentTypes);
-    if (defense === 0) score += level * tunable("BIAS_IMMUNE_PER_LEVEL");
-    else if (defense < 1) score += level * tunable("BIAS_RESIST_PER_LEVEL");
+    if (defense === 0) score += level * tunable('BIAS_IMMUNE_PER_LEVEL');
+    else if (defense < 1) score += level * tunable('BIAS_RESIST_PER_LEVEL');
     else if (defense > 1)
-      score -= level * tunable("BIAS_WEAK_PENALTY_PER_LEVEL");
+      score -= level * tunable('BIAS_WEAK_PENALTY_PER_LEVEL');
 
     const hitsSuperEffectively = attackTypes.some(
       (attackType) => getTypeMultiplier(attackType, [type]) > 1,
     );
-    if (hitsSuperEffectively) score += level * tunable("BIAS_OFFENSE_PER_LEVEL");
+    if (hitsSuperEffectively) score += level * tunable('BIAS_OFFENSE_PER_LEVEL');
   }
 
   return score;
@@ -418,21 +418,21 @@ function getReadinessGate(profile, features) {
   if ((profile?.legalMoveCount || 0) === 0) return ONLINE_DEAD;
 
   const ladder = [
-    tunable("ONLINE_BABY"),
-    tunable("ONLINE_MIDEVO"),
-    tunable("ONLINE_NEAR"),
+    tunable('ONLINE_BABY'),
+    tunable('ONLINE_MIDEVO'),
+    tunable('ONLINE_NEAR'),
   ];
   let step;
   if (
-    (features?.damage_q ?? 0) < tunable("ACT_FLOOR") ||
+    (features?.damage_q ?? 0) < tunable('ACT_FLOOR') ||
     (profile?.legalDamagingMoveCount || 0) === 0
   ) {
     step = 0; // baby: can't act at this stage
   } else {
     const readiness = formReadinessRatio(currentId, representativeId);
-    step = readiness >= tunable("NEAR_FINAL_RATIO") ? 2 : 1;
+    step = readiness >= tunable('NEAR_FINAL_RATIO') ? 2 : 1;
   }
-  const jitter = tunable("ONLINE_JITTER") | 0;
+  const jitter = tunable('ONLINE_JITTER') | 0;
   step = Math.max(0, Math.min(ladder.length - 1, step + jitter));
   return ladder[step];
 }

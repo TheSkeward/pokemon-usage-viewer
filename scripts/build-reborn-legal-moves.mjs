@@ -12,21 +12,21 @@
  * from Reborn.
  */
 
-import fs from "node:fs/promises";
-import { readFileSync } from "node:fs";
-import path from "node:path";
-import { Dex } from "@pkmn/dex";
+import fs from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { Dex } from '@pkmn/dex';
 import {
   REBORN_TM_OPTIONS,
   REBORN_TMX_OPTIONS,
   REBORN_TUTOR_OPTIONS,
-} from "../src/reborn/progressionOptions.js";
+} from '../src/reborn/progressionOptions.js';
 
 const projectRoot = process.cwd();
-const dataDir = path.join(projectRoot, "site-data", "data");
-const outputDir = path.join(dataDir, "reborn-legal-moves", "all");
+const dataDir = path.join(projectRoot, 'site-data', 'data');
+const outputDir = path.join(dataDir, 'reborn-legal-moves', 'all');
 const dex = Dex.forGen(7);
-const toId = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, "");
+const toId = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
 
 const rebornTmMoveIds = new Set(REBORN_TM_OPTIONS.map((o) => toId(o.move)));
 const rebornTmxMoveIds = new Set(REBORN_TMX_OPTIONS.map((o) => toId(o.move)));
@@ -38,36 +38,36 @@ const rebornTutorMoveIds = new Set(REBORN_TUTOR_OPTIONS.map((o) => toId(o.move))
 // the exceptions that must NOT receive them: their machine list is empty or,
 // like Wobbuffet's Safeguard, entirely explicit in the per-species data.
 const NO_UNIVERSAL_TM_SPECIES = new Set([
-  "caterpie", "metapod", "weedle", "kakuna", "magikarp", "ditto", "unown",
-  "wobbuffet", "wurmple", "silcoon", "cascoon", "wynaut", "smeargle",
-  "beldum", "kricketot", "combee", "tynamo",
+  'caterpie', 'metapod', 'weedle', 'kakuna', 'magikarp', 'ditto', 'unown',
+  'wobbuffet', 'wurmple', 'silcoon', 'cascoon', 'wynaut', 'smeargle',
+  'beldum', 'kricketot', 'combee', 'tynamo',
 ]);
 
 const UNIVERSAL_TM_MOVES = new Set(
   [
-    "toxic", "hiddenpower", "facade", "attract", "substitute", "frustration",
-    "protect", "round", "confide", "sleeptalk", "swagger", "return",
-    "doubleteam", "rest", "secretpower",
+    'toxic', 'hiddenpower', 'facade', 'attract', 'substitute', 'frustration',
+    'protect', 'round', 'confide', 'sleeptalk', 'swagger', 'return',
+    'doubleteam', 'rest', 'secretpower',
   ].filter((id) => rebornTmMoveIds.has(id)),
 );
 
 // Mew learns every TM and tutor move by a code rule (its compatible list is
 // empty in the data).
-const LEARNS_ALL_MACHINES = new Set(["mew"]);
+const LEARNS_ALL_MACHINES = new Set(['mew']);
 
 // Sketch copies any move ever used in battle, so Smeargle's practical legal
 // pool is the entire Reborn move universe, at any level. Gen 7 exceptions:
 // Chatter and Struggle cannot be sketched.
-const UNSKETCHABLE_MOVES = new Set(["chatter", "struggle"]);
+const UNSKETCHABLE_MOVES = new Set(['chatter', 'struggle']);
 
 const { learnsets } = JSON.parse(
   readFileSync(
-    path.join(projectRoot, "scripts", "reborn", "reborn-learnsets.generated.json"),
-    "utf8",
+    path.join(projectRoot, 'scripts', 'reborn', 'reborn-learnsets.generated.json'),
+    'utf8',
   ),
 );
 const pokemonIndex = JSON.parse(
-  readFileSync(path.join(dataDir, "pokemon-index.json"), "utf8"),
+  readFileSync(path.join(dataDir, 'pokemon-index.json'), 'utf8'),
 );
 
 // The sketchable universe: every move that exists anywhere in Reborn's data
@@ -189,7 +189,7 @@ for (const pokemon of pokemonIndex) {
   // be dropped instead of emitted as preEvolutionLevelUp.
   for (const moveId of preEvoLevelUp.keys()) get(moveId);
 
-  if (pokemon.id === "smeargle") {
+  if (pokemon.id === 'smeargle') {
     for (const moveId of SKETCH_UNIVERSE) get(moveId).sketch = true;
   }
 
@@ -212,7 +212,7 @@ for (const pokemon of pokemonIndex) {
       learnsetPokemonId: pokemon.id,
       learnsetPokemonName: pokemon.name,
       moves,
-    }) + "\n",
+    }) + '\n',
   );
   written += 1;
 }

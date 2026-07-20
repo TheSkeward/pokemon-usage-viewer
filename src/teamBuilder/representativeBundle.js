@@ -1,7 +1,7 @@
 import {
   loadSourceData,
   resolveBestAvailableLightBundle as resolveIndexedBestAvailableLightBundle,
-} from "../data";
+} from '../data';
 
 const LEAD_SMOOTHING_K = 200;
 
@@ -17,7 +17,7 @@ export async function resolveRepresentativeLightBundle({
   pokemonId,
   selection,
 }) {
-  if (selection === "all") {
+  if (selection === 'all') {
     // The resolver index and its parallelized best-available scan already cover
     // every month/format/cutoff for "all", so they're authoritative: a null
     // usage here means the mon is genuinely absent everywhere. Returning that
@@ -38,7 +38,7 @@ export async function resolveRepresentativeLightBundle({
     availability,
     family,
     selection,
-    "usage",
+    'usage',
   )) {
     const usage = await aggregateUsageCandidate(candidate, pokemonId);
     if (!usage) continue;
@@ -88,7 +88,7 @@ function getCandidateMonths(
   dataKind,
   cutoff,
 ) {
-  if (selection === "all") {
+  if (selection === 'all') {
     return Object.keys(availability?.months || {})
       .sort()
       .filter((month) =>
@@ -114,7 +114,7 @@ async function aggregateUsageCandidate(candidate, pokemonId) {
       month,
       candidate.formatId,
       candidate.cutoff,
-      "usage",
+      'usage',
     );
     const entry = source?.pokemon?.[pokemonId];
     if (!entry) continue;
@@ -130,7 +130,7 @@ async function aggregateUsageCandidate(candidate, pokemonId) {
   return {
     selection: candidate.selection,
     family: candidate.family,
-    month: candidate.selection === "all" ? null : candidate.months[0],
+    month: candidate.selection === 'all' ? null : candidate.months[0],
     formatId: candidate.formatId,
     cutoff: candidate.cutoff,
     monthsAvailable: candidate.months.length,
@@ -158,13 +158,13 @@ async function aggregateLeadsCandidate(candidate, pokemonId) {
       month,
       candidate.formatId,
       candidate.cutoff,
-      "usage",
+      'usage',
     );
     const leadsSource = await loadSourceData(
       month,
       candidate.formatId,
       candidate.cutoff,
-      "leads",
+      'leads',
     );
 
     if (!usageSource || !leadsSource) continue;
@@ -200,7 +200,7 @@ async function aggregateLeadsCandidate(candidate, pokemonId) {
   return {
     selection: candidate.selection,
     family: candidate.family,
-    month: candidate.selection === "all" ? null : candidate.months[0],
+    month: candidate.selection === 'all' ? null : candidate.months[0],
     formatId: candidate.formatId,
     cutoff: candidate.cutoff,
     monthsAvailable: candidate.months.length,

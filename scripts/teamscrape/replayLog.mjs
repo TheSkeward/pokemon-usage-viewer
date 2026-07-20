@@ -5,13 +5,13 @@
  * forced switches). Only base composition is extracted — moves/items stay
  * unread because replay reveals are too partial to qualify as observed sets.
  */
-import { toId } from "../../src/utils/ids.js";
-import { GEN7_PROGRESSION_SPECIES } from "../../src/generated/gen7ProgressionSpecies.generated.js";
+import { toId } from '../../src/utils/ids.js';
+import { GEN7_PROGRESSION_SPECIES } from '../../src/generated/gen7ProgressionSpecies.generated.js';
 
 // "|switch|p1a: Nickname|Skuntank, L78, F|100/100" → details field holds the
 // species before the first comma. `|poke|p1|Skuntank, F|item` likewise.
 function speciesFromDetails(details) {
-  return toId(String(details || "").split(",")[0]);
+  return toId(String(details || '').split(',')[0]);
 }
 
 /**
@@ -20,14 +20,14 @@ function speciesFromDetails(details) {
  */
 export function parseReplayTeams(log) {
   const sides = { p1: new Set(), p2: new Set() };
-  for (const line of String(log || "").split("\n")) {
-    if (!line.startsWith("|")) continue;
-    const parts = line.split("|");
+  for (const line of String(log || '').split('\n')) {
+    if (!line.startsWith('|')) continue;
+    const parts = line.split('|');
     const kind = parts[1];
-    if (kind === "poke") {
+    if (kind === 'poke') {
       const side = parts[2];
       if (sides[side]) sides[side].add(speciesFromDetails(parts[3]));
-    } else if (kind === "switch" || kind === "drag") {
+    } else if (kind === 'switch' || kind === 'drag') {
       const side = parts[2]?.slice(0, 2);
       if (sides[side]) sides[side].add(speciesFromDetails(parts[3]));
     }
@@ -44,12 +44,12 @@ export function parseReplayTeams(log) {
 // names — matched as name tokens, never as id suffixes, so a species whose
 // real name merely ends in one (Yanmega) can't false-positive.
 const BATTLE_FORME_TOKENS = new Set([
-  "primal",
-  "ultra",
-  "totem",
-  "busted",
-  "school",
-  "complete",
+  'primal',
+  'ultra',
+  'totem',
+  'busted',
+  'school',
+  'complete',
 ]);
 
 // Form id → team-sheet id for every battle form the species table knows,
@@ -62,14 +62,14 @@ for (const record of Object.values(GEN7_PROGRESSION_SPECIES)) {
     SHEET_ID_BY_FORM_ID.set(record.id, record.baseSpeciesId);
     continue;
   }
-  const parts = record.name.split("-");
+  const parts = record.name.split('-');
   if (parts.some((part) => BATTLE_FORME_TOKENS.has(part.toLowerCase()))) {
     SHEET_ID_BY_FORM_ID.set(
       record.id,
       toId(
         parts
           .filter((part) => !BATTLE_FORME_TOKENS.has(part.toLowerCase()))
-          .join(""),
+          .join(''),
       ),
     );
   }
@@ -90,6 +90,6 @@ export function toTeamSheetId(speciesId) {
   const id = toId(speciesId);
   const mapped = SHEET_ID_BY_FORM_ID.get(id);
   if (mapped) return mapped;
-  const stripped = id.replace(ABSENT_BATTLE_FORM_SUFFIXES, "");
+  const stripped = id.replace(ABSENT_BATTLE_FORM_SUFFIXES, '');
   return stripped || id;
 }

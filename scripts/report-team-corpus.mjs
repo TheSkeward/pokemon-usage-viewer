@@ -6,16 +6,16 @@
  * signal left in gen 7?), paste dedup rates (how much of RMT is unique?),
  * and the top cores by evidence weight per family.
  */
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { REAL_FORMATS } from "./config.mjs";
-import { readArchive } from "./build-observed-sets.mjs";
-import { collectCompositions, buildCoreIndex } from "./build-core-index.mjs";
-import { buildTeamIndex } from "./build-team-index.mjs";
-import { RATING_FLOORS, replayWeight, teamWeight } from "./teamscrape/weights.mjs";
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { REAL_FORMATS } from './config.mjs';
+import { readArchive } from './build-observed-sets.mjs';
+import { collectCompositions, buildCoreIndex } from './build-core-index.mjs';
+import { buildTeamIndex } from './build-team-index.mjs';
+import { RATING_FLOORS, replayWeight, teamWeight } from './teamscrape/weights.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const ARCHIVE_DIR = path.join(scriptDir, "teamscrape", "archive");
+const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
 
 // Band edges come from the weighting's own floors (weights.mjs), so the
 // report's bands always describe the bands the weights actually use.
@@ -25,7 +25,7 @@ const RATING_BANDS = [
   [`${strong}-${elite - 1}`, (r) => r != null && r >= strong && r < elite],
   [`${mid}-${strong - 1}`, (r) => r != null && r >= mid && r < strong],
   [`<${mid}`, (r) => r != null && r < mid],
-  ["unrated", (r) => r == null],
+  ['unrated', (r) => r == null],
 ];
 
 /**
@@ -54,9 +54,9 @@ export function summarizeCorpus({ replays, teams }) {
 
   for (const replay of replays) {
     const entry = forFormat(replay.format);
-    const source = replay.source === "tournament" ? "tournament-replay" : "ladder";
+    const source = replay.source === 'tournament' ? 'tournament-replay' : 'ladder';
     bump(entry, source, replayWeight(replay));
-    if (source === "ladder") {
+    if (source === 'ladder') {
       const band = RATING_BANDS.find(([, test]) => test(replay.rating));
       if (band) entry.ratings.set(band[0], entry.ratings.get(band[0]) + 1);
     }
@@ -64,7 +64,7 @@ export function summarizeCorpus({ replays, teams }) {
   // Teamless skip-markers (sets: []) are archive bookkeeping, not corpus.
   const realTeams = teams.filter((team) => (team.sets || []).length);
   for (const team of realTeams) {
-    bump(forFormat(team.format), team.source || "sample", teamWeight(team));
+    bump(forFormat(team.format), team.source || 'sample', teamWeight(team));
   }
 
   // Dedup rate: unique team-index entries vs raw paste records.
@@ -118,23 +118,23 @@ export function topCores({ replays, teams }, perFamily = 10) {
 const fmt = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(3));
 
 function main() {
-  const replays = readArchive(ARCHIVE_DIR, "replays-");
+  const replays = readArchive(ARCHIVE_DIR, 'replays-');
   const teams = [
-    ...readArchive(ARCHIVE_DIR, "samples-"),
-    ...readArchive(ARCHIVE_DIR, "rmt-"),
-    ...readArchive(ARCHIVE_DIR, "tournament-"),
+    ...readArchive(ARCHIVE_DIR, 'samples-'),
+    ...readArchive(ARCHIVE_DIR, 'rmt-'),
+    ...readArchive(ARCHIVE_DIR, 'tournament-'),
   ];
   if (!replays.length && !teams.length) {
-    console.log("team corpus: archives are empty — nothing harvested yet");
+    console.log('team corpus: archives are empty — nothing harvested yet');
     return;
   }
   const summary = summarizeCorpus({ replays, teams });
 
-  console.log("== Team corpus ==");
+  console.log('== Team corpus ==');
   console.log(
     `paste teams: ${summary.pasteRecords} records, ${summary.uniqueTeams} unique after dedup`,
   );
-  console.log("\nweight share by source (all formats):");
+  console.log('\nweight share by source (all formats):');
   const totalWeight = [...summary.totalWeightBySource.values()].reduce(
     (a, b) => a + b,
     0,
@@ -147,26 +147,26 @@ function main() {
     );
   }
 
-  console.log("\nper format:");
+  console.log('\nper format:');
   for (const { id } of REAL_FORMATS) {
     const entry = summary.formats.get(id);
     if (!entry) continue;
     const cells = [...entry.sources]
       .map(([source, cell]) => `${source} ${cell.records} (w ${fmt(cell.weight)})`)
-      .join(" · ");
+      .join(' · ');
     const bands = [...entry.ratings]
       .filter(([, count]) => count)
       .map(([band, count]) => `${band}: ${count}`)
-      .join(", ");
-    console.log(`  ${id.padEnd(18)} ${cells}${bands ? `\n${" ".repeat(21)}ladder ratings — ${bands}` : ""}`);
+      .join(', ');
+    console.log(`  ${id.padEnd(18)} ${cells}${bands ? `\n${' '.repeat(21)}ladder ratings — ${bands}` : ''}`);
   }
 
-  console.log("\ntop cores by evidence weight:");
+  console.log('\ntop cores by evidence weight:');
   for (const [family, pairs] of topCores({ replays, teams })) {
     console.log(`  [${family}]`);
     for (const { pair, lift, count } of pairs) {
       console.log(
-        `    ${pair.padEnd(34)} weight ${fmt(count).padStart(9)}  lift ${lift > 0 ? "+" : ""}${fmt(lift)}pp`,
+        `    ${pair.padEnd(34)} weight ${fmt(count).padStart(9)}  lift ${lift > 0 ? '+' : ''}${fmt(lift)}pp`,
       );
     }
   }

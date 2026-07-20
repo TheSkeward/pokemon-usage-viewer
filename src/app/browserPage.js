@@ -4,10 +4,10 @@ import {
   getResolvedFormatLabel,
   getRowsForSelection,
   getSelectionLabel,
-} from "../data";
-import { renderControls } from "../views/controlsView";
-import { renderMovesetPanel } from "../views/movesetView";
-import { renderTable } from "../views/tableView";
+} from '../data';
+import { renderControls } from '../views/controlsView';
+import { renderMovesetPanel } from '../views/movesetView';
+import { renderTable } from '../views/tableView';
 
 /**
  * Renders the Usage Data page (controls, usage table, moveset panel) into
@@ -45,23 +45,23 @@ export function renderBrowserPage(pageRoot, context) {
   `;
 
   renderControls(
-    document.querySelector("#controls-root"),
+    document.querySelector('#controls-root'),
     state,
     dataset,
     formatsIndex,
   );
 
-  renderTable(document.querySelector("#content-root"), rows, state, {
-    isAggregate: state.month === "all",
+  renderTable(document.querySelector('#content-root'), rows, state, {
+    isAggregate: state.month === 'all',
     resolvedFormatLabel,
     selectionLabel,
   });
 
-  renderMovesetPanel(document.querySelector("#details-root"), {
+  renderMovesetPanel(document.querySelector('#details-root'), {
     selectedPokemonName:
       browserSelectedRow?.name || browserMovesetEntry?.name || null,
     movesetEntry: browserMovesetEntry,
-    lookupLabel: browserMovesetContext?.label || "",
+    lookupLabel: browserMovesetContext?.label || '',
     aggregate: Boolean(browserMovesetContext?.aggregate),
     stitched: false,
     status: null,

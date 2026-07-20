@@ -1,4 +1,4 @@
-const FOCUSABLE_INPUT_IDS = new Set(["search-input", "resolver-query-input"]);
+const FOCUSABLE_INPUT_IDS = new Set(['search-input', 'resolver-query-input']);
 
 /**
  * Captures which tracked search input has focus so a full re-render can hand
@@ -34,8 +34,8 @@ export function restoreFocusState(focusState) {
   input.focus();
 
   if (
-    typeof focusState.selectionStart === "number" &&
-    typeof focusState.selectionEnd === "number"
+    typeof focusState.selectionStart === 'number' &&
+    typeof focusState.selectionEnd === 'number'
   ) {
     input.setSelectionRange(focusState.selectionStart, focusState.selectionEnd);
   }

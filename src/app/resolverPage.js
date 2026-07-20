@@ -1,9 +1,9 @@
-import { escapeHtml } from "../utils/html.js";
-import { getAvailabilitySelectionLabel } from "../data";
-import { describePrecomputedSetSource } from "../setDetails/precomputedSetDetails";
-import { renderMovesetPanel } from "../views/movesetView";
-import { renderResolverControls } from "../views/resolverControlsView";
-import { renderResolverResults } from "../views/resolverResultsView";
+import { escapeHtml } from '../utils/html.js';
+import { getAvailabilitySelectionLabel } from '../data';
+import { describePrecomputedSetSource } from '../setDetails/precomputedSetDetails';
+import { renderMovesetPanel } from '../views/movesetView';
+import { renderResolverControls } from '../views/resolverControlsView';
+import { renderResolverResults } from '../views/resolverResultsView';
 
 /**
  * Renders the Set Lookup page (controls, results table, set-detail panel)
@@ -41,13 +41,13 @@ export function renderResolverPage(pageRoot, context) {
   `;
 
   renderResolverControls(
-    document.querySelector("#resolver-controls-root"),
+    document.querySelector('#resolver-controls-root'),
     state,
     availability,
   );
 
   renderResolverResults(
-    document.querySelector("#resolver-results-root"),
+    document.querySelector('#resolver-results-root'),
     resolverResults,
     state,
     formatsIndex,
@@ -55,16 +55,16 @@ export function renderResolverPage(pageRoot, context) {
     resolverLoadingState,
   );
 
-  const detailsRoot = document.querySelector("#details-root");
+  const detailsRoot = document.querySelector('#details-root');
 
   renderMovesetPanel(detailsRoot, {
     selectedPokemonName: resolverSelected?.name || null,
     movesetEntry: resolverMovesetDetail,
     lookupLabel: resolverMovesetDetail
       ? describePrecomputedSetSource(resolverMovesetDetail)
-      : "",
+      : '',
     aggregate:
-      state.resolverMonth === "all" ||
+      state.resolverMonth === 'all' ||
       Boolean(resolverMovesetDetail?.selectionFallback),
     stitched: Boolean(resolverMovesetDetail?.stitched),
     status: setDetails.getStatus(),
@@ -72,7 +72,7 @@ export function renderResolverPage(pageRoot, context) {
 
   if (setDetails.getMessage() && resolverSelected) {
     detailsRoot.insertAdjacentHTML(
-      "afterbegin",
+      'afterbegin',
       `<section class="panel"><p class="muted">${escapeHtml(setDetails.getMessage())}</p></section>`,
     );
   }

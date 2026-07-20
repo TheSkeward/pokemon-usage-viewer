@@ -33,9 +33,12 @@
     "dev:bg": "nohup npm run dev > /tmp/pokemon-vite.log 2>&1 &",
     "dev:log": "tail -50 /tmp/pokemon-vite.log",
     "dev:stop": "pkill -f 'vite --port 5173' || true",
-    "e2e": "node scripts/run-e2e.mjs"
+    "e2e": "node scripts/run-e2e.mjs",
+    "lint": "eslint src scripts test"
   },
   "devDependencies": {
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "eslint": "^10.7.0",
     "vite": "^8.0.10"
   },
   "dependencies": {

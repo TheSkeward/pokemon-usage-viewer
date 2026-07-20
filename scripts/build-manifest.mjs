@@ -6,17 +6,17 @@
  * site-data/data/manifest.json. The optimizer folds the manifest signature
  * into its cache keys, so stale caches can never survive a data refresh.
  */
-import fs from "node:fs";
-import path from "node:path";
-import crypto from "node:crypto";
-import { SCORING_VERSION } from "../src/teamBuilder/scoringConstants.js";
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { SCORING_VERSION } from '../src/teamBuilder/scoringConstants.js';
 
 const projectRoot = process.cwd();
-const dataRoot = path.join(projectRoot, "site-data", "data");
-const generatedRoot = path.join(projectRoot, "src", "generated");
+const dataRoot = path.join(projectRoot, 'site-data', 'data');
+const generatedRoot = path.join(projectRoot, 'src', 'generated');
 
 function hashTree(root) {
-  const hash = crypto.createHash("sha256");
+  const hash = crypto.createHash('sha256');
   const walk = (dir) => {
     const entries = fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) =>
       a.name.localeCompare(b.name),
@@ -31,40 +31,40 @@ function hashTree(root) {
     }
   };
   walk(root);
-  return hash.digest("hex").slice(0, 16);
+  return hash.digest('hex').slice(0, 16);
 }
 
 function hashFile(file) {
   return crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(fs.readFileSync(file))
-    .digest("hex")
+    .digest('hex')
     .slice(0, 16);
 }
 
 const sources = {};
 for (const entry of fs.readdirSync(dataRoot, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
-  if (entry.name === "manifest.json") continue;
+  if (entry.name === 'manifest.json') continue;
   const full = path.join(dataRoot, entry.name);
   sources[entry.name] = entry.isDirectory() ? hashTree(full) : hashFile(full);
 }
 
 const generated = {};
 for (const name of fs.readdirSync(generatedRoot).sort()) {
-  generated[name.replace(/\.generated\.js$/, "")] = hashFile(
+  generated[name.replace(/\.generated\.js$/, '')] = hashFile(
     path.join(generatedRoot, name),
   );
 }
 
 const combined = crypto
-  .createHash("sha256")
+  .createHash('sha256')
   .update(JSON.stringify({ sources, generated, SCORING_VERSION }))
-  .digest("hex")
+  .digest('hex')
   .slice(0, 16);
 
 const manifest = {
   generatedAt: new Date().toISOString(),
-  rebornVersion: "19.5",
+  rebornVersion: '19.5',
   scoringVersion: SCORING_VERSION,
   dataSignature: combined,
   sources,
@@ -72,7 +72,7 @@ const manifest = {
 };
 
 fs.writeFileSync(
-  path.join(dataRoot, "manifest.json"),
+  path.join(dataRoot, 'manifest.json'),
   `${JSON.stringify(manifest, null, 2)}\n`,
 );
 console.log(

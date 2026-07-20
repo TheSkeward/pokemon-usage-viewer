@@ -27,102 +27,102 @@
  *   - Post-game raises the cap in ten silent steps of 5, to 150.
  */
 
-import { REBORN_ITEM_UNLOCK_BADGES } from "../generated/rebornItemTimeline.generated.js";
+import { REBORN_ITEM_UNLOCK_BADGES } from '../generated/rebornItemTimeline.generated.js';
 
 /** The timeline, in play order: 19 badge checkpoints then 10 post-game tiers. */
 export const REBORN_PROGRESSION_CHECKPOINTS = [
-  { id: "start", badges: 0, label: "No badges", detail: "Game start", levelCap: 20, unlocks: {} },
+  { id: 'start', badges: 0, label: 'No badges', detail: 'Game start', levelCap: 20, unlocks: {} },
   {
-    id: "badge-1", badges: 1, label: "Volt Badge (Julia)", levelCap: 25,
+    id: 'badge-1', badges: 1, label: 'Volt Badge (Julia)', levelCap: 25,
     unlocks: {
-      flags: ["daycareUnlocked"], // Onyx warehouse: freeing the real daycare couple
-      items: ["quickclaw"],
+      flags: ['daycareUnlocked'], // Onyx warehouse: freeing the real daycare couple
+      items: ['quickclaw'],
     },
   },
   {
-    id: "badge-2", badges: 2, label: "Canopy Badge (Florinia)", levelCap: 35,
+    id: 'badge-2', badges: 2, label: 'Canopy Badge (Florinia)', levelCap: 35,
     // Stone access is per-stone, timed by the item timeline.
-    unlocks: { items: ["focussash"] },
+    unlocks: { items: ['focussash'] },
   },
   {
-    id: "badge-3", badges: 3, label: "Cocoon Badge (Shelly)", levelCap: 40,
+    id: 'badge-3', badges: 3, label: 'Cocoon Badge (Shelly)', levelCap: 40,
     unlocks: {
       // Beryl vendor sells the first Link Stone; Shade's arena is the old
       // power plant, the magnetic-field evolution spot.
-      access: ["evoAccessLinkStone", "evoAccessMagneticField"],
+      access: ['evoAccessLinkStone', 'evoAccessMagneticField'],
     },
   },
   {
-    id: "badge-4", badges: 4, label: "Omen Badge (Shade)", levelCap: 45,
+    id: 'badge-4', badges: 4, label: 'Omen Badge (Shade)', levelCap: 45,
     unlocks: {
-      access: ["evoAccessApophyll"], // Apophyll Beach/Cave chapter
+      access: ['evoAccessApophyll'], // Apophyll Beach/Cave chapter
     },
   },
   {
-    id: "badge-5", badges: 5, label: "Blight Badge (Aya)", levelCap: 50,
+    id: 'badge-5', badges: 5, label: 'Blight Badge (Aya)', levelCap: 50,
     unlocks: {
-      access: ["evoAccessMossyRock"], // burning field chamber above the Railnet
-      flags: ["moveRelearnerUnlocked"], // House Key returned in Onyx Ward
-      items: ["weaknesspolicy"],
+      access: ['evoAccessMossyRock'], // burning field chamber above the Railnet
+      flags: ['moveRelearnerUnlocked'], // House Key returned in Onyx Ward
+      items: ['weaknesspolicy'],
     },
   },
-  { id: "badge-6", badges: 6, label: "Rime Badge (Serra)", levelCap: 55, unlocks: {} },
+  { id: 'badge-6', badges: 6, label: 'Rime Badge (Serra)', levelCap: 55, unlocks: {} },
   {
-    id: "badge-7", badges: 7, label: "Standard Badge (Noel)", levelCap: 60,
+    id: 'badge-7', badges: 7, label: 'Standard Badge (Noel)', levelCap: 60,
     unlocks: {
-      access: ["evoAccessIcyRock"], // Ametrine ice puzzle
-      items: ["metalcoat"],
+      access: ['evoAccessIcyRock'], // Ametrine ice puzzle
+      items: ['metalcoat'],
     },
   },
-  { id: "badge-8", badges: 8, label: "Millenium Badge (Radomus)", levelCap: 65, unlocks: {} },
+  { id: 'badge-8', badges: 8, label: 'Millenium Badge (Radomus)', levelCap: 65, unlocks: {} },
   {
-    id: "badge-9", badges: 9, label: "Eclipse Badge (Luna)", levelCap: 70,
+    id: 'badge-9', badges: 9, label: 'Eclipse Badge (Luna)', levelCap: 70,
     unlocks: {
-      flags: ["hiddenPowerTypeChangerUnlocked"], // Agate Circus NPC
-      items: ["eviolite"], // Agate Circus general goods
+      flags: ['hiddenPowerTypeChangerUnlocked'], // Agate Circus NPC
+      items: ['eviolite'], // Agate Circus general goods
     },
   },
   {
-    id: "badge-10", badges: 10, label: "Strike Badge (Samson)", levelCap: 70,
-    unlocks: { items: ["reapercloth"] },
+    id: 'badge-10', badges: 10, label: 'Strike Badge (Samson)', levelCap: 70,
+    unlocks: { items: ['reapercloth'] },
   },
   {
-    id: "badge-11", badges: 11, label: "Cinder Badge (Charlotte)", levelCap: 75,
-    unlocks: { items: ["magmarizer"] },
+    id: 'badge-11', badges: 11, label: 'Cinder Badge (Charlotte)', levelCap: 75,
+    unlocks: { items: ['magmarizer'] },
   },
   {
-    id: "badge-12", badges: 12, label: "Gravity Badge (Terra)", levelCap: 75,
-    unlocks: { items: ["razorfang"] },
+    id: 'badge-12', badges: 12, label: 'Gravity Badge (Terra)', levelCap: 75,
+    unlocks: { items: ['razorfang'] },
   },
   {
-    id: "badge-13", badges: 13, label: "Suspension Badge (Ciel)", levelCap: 80,
-    unlocks: { items: ["expertbelt", "leftovers"] },
+    id: 'badge-13', badges: 13, label: 'Suspension Badge (Ciel)', levelCap: 80,
+    unlocks: { items: ['expertbelt', 'leftovers'] },
   },
   {
-    id: "badge-14", badges: 14, label: "Amaranth Badge (Adrienn)", levelCap: 85,
-    unlocks: { items: ["choiceband", "choicespecs", "assaultvest"] },
+    id: 'badge-14', badges: 14, label: 'Amaranth Badge (Adrienn)', levelCap: 85,
+    unlocks: { items: ['choiceband', 'choicespecs', 'assaultvest'] },
   },
-  { id: "badge-15", badges: 15, label: "Alloy Badge (Titania)", levelCap: 90, unlocks: {} },
+  { id: 'badge-15', badges: 15, label: 'Alloy Badge (Titania)', levelCap: 90, unlocks: {} },
   {
-    id: "badge-16", badges: 16, label: "Torrent Badge (Amaria)", levelCap: 90,
-    unlocks: { items: ["lifeorb", "muscleband"] },
+    id: 'badge-16', badges: 16, label: 'Torrent Badge (Amaria)', levelCap: 90,
+    unlocks: { items: ['lifeorb', 'muscleband'] },
   },
-  { id: "badge-17", badges: 17, label: "Geode Badge (Hardy)", levelCap: 95, unlocks: {} },
+  { id: 'badge-17', badges: 17, label: 'Geode Badge (Hardy)', levelCap: 95, unlocks: {} },
   {
-    id: "badge-18", badges: 18, label: "Treasure Badge (Labyrinth)", levelCap: 100,
-    unlocks: { items: ["choicescarf"] },
+    id: 'badge-18', badges: 18, label: 'Treasure Badge (Labyrinth)', levelCap: 100,
+    unlocks: { items: ['choicescarf'] },
   },
   // Post-game: no badges, silent cap raises per quest arc.
-  { id: "post-1", badges: 18, postgame: 1, label: "Post: A Whole New World", levelCap: 105, unlocks: {} },
-  { id: "post-2", badges: 18, postgame: 2, label: "Post: Fetch, Doggy!", levelCap: 110, unlocks: {} },
-  { id: "post-3", badges: 18, postgame: 3, label: "Post: The Umbral Issue (early)", levelCap: 115, unlocks: {} },
-  { id: "post-4", badges: 18, postgame: 4, label: "Post: The Umbral Issue (late)", levelCap: 120, unlocks: {} },
-  { id: "post-5", badges: 18, postgame: 5, label: "Post: Wish Upon a Star", levelCap: 125, unlocks: {} },
-  { id: "post-6", badges: 18, postgame: 6, label: "Post: Lights Out", levelCap: 130, unlocks: {} },
-  { id: "post-7", badges: 18, postgame: 7, label: "Post: Up, Down, n' All Around (early)", levelCap: 135, unlocks: {} },
-  { id: "post-8", badges: 18, postgame: 8, label: "Post: Up, Down, n' All Around (late)", levelCap: 140, unlocks: {} },
-  { id: "post-9", badges: 18, postgame: 9, label: "Post: A Canvas of Cyclical Conflict", levelCap: 145, unlocks: {} },
-  { id: "post-10", badges: 18, postgame: 10, label: "Post: Pokemon Reborn, Reborn!", levelCap: 150, unlocks: {} },
+  { id: 'post-1', badges: 18, postgame: 1, label: 'Post: A Whole New World', levelCap: 105, unlocks: {} },
+  { id: 'post-2', badges: 18, postgame: 2, label: 'Post: Fetch, Doggy!', levelCap: 110, unlocks: {} },
+  { id: 'post-3', badges: 18, postgame: 3, label: 'Post: The Umbral Issue (early)', levelCap: 115, unlocks: {} },
+  { id: 'post-4', badges: 18, postgame: 4, label: 'Post: The Umbral Issue (late)', levelCap: 120, unlocks: {} },
+  { id: 'post-5', badges: 18, postgame: 5, label: 'Post: Wish Upon a Star', levelCap: 125, unlocks: {} },
+  { id: 'post-6', badges: 18, postgame: 6, label: 'Post: Lights Out', levelCap: 130, unlocks: {} },
+  { id: 'post-7', badges: 18, postgame: 7, label: "Post: Up, Down, n' All Around (early)", levelCap: 135, unlocks: {} },
+  { id: 'post-8', badges: 18, postgame: 8, label: "Post: Up, Down, n' All Around (late)", levelCap: 140, unlocks: {} },
+  { id: 'post-9', badges: 18, postgame: 9, label: 'Post: A Canvas of Cyclical Conflict', levelCap: 145, unlocks: {} },
+  { id: 'post-10', badges: 18, postgame: 10, label: 'Post: Pokemon Reborn, Reborn!', levelCap: 150, unlocks: {} },
 ];
 
 const BY_ID = new Map(
@@ -137,7 +137,7 @@ const BY_ID = new Map(
  * @return {?Object} Null for unknown ids.
  */
 export function getRebornCheckpoint(id) {
-  return BY_ID.get(String(id || ""))?.checkpoint || null;
+  return BY_ID.get(String(id || ''))?.checkpoint || null;
 }
 
 /**
@@ -145,7 +145,7 @@ export function getRebornCheckpoint(id) {
  * @return {number} Position in timeline order; -1 for unknown ids.
  */
 export function getRebornCheckpointOrdinal(id) {
-  const entry = BY_ID.get(String(id || ""));
+  const entry = BY_ID.get(String(id || ''));
   return entry ? entry.index : -1;
 }
 
@@ -209,7 +209,7 @@ export function getItemUnlockBadge(itemId) {
  * @return {string} "Post N" for post-game tiers, "N badges" otherwise; "" for null.
  */
 export function getRebornCheckpointShortLabel(checkpoint) {
-  if (!checkpoint) return "";
+  if (!checkpoint) return '';
   if (checkpoint.postgame) return `Post ${checkpoint.postgame}`;
-  return `${checkpoint.badges} badge${checkpoint.badges === 1 ? "" : "s"}`;
+  return `${checkpoint.badges} badge${checkpoint.badges === 1 ? '' : 's'}`;
 }

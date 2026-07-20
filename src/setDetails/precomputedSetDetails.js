@@ -1,8 +1,8 @@
-import { dataUrl } from "../utils/dataUrl.js";
-import { fetchJsonCached } from "../utils/fetchJsonCached.js";
-import { getActiveGame } from "../games/registry.js";
-import { getRebornMoveId } from "../reborn/legalMoves.js";
-import { hydrateLegalMove } from "../moveMeta.js";
+import { dataUrl } from '../utils/dataUrl.js';
+import { fetchJsonCached } from '../utils/fetchJsonCached.js';
+import { getActiveGame } from '../games/registry.js';
+import { getRebornMoveId } from '../reborn/legalMoves.js';
+import { hydrateLegalMove } from '../moveMeta.js';
 
 /**
  * Stateful loader for the selected Pokémon's precomputed set detail.
@@ -27,7 +27,7 @@ export function createPrecomputedSetDetailsLoader({
   let selectedPokemonId = null;
   let detail = null;
   let status = null;
-  let message = "";
+  let message = '';
 
   return {
     cancel,
@@ -53,12 +53,12 @@ export function createPrecomputedSetDetailsLoader({
     selectedPokemonId = pokemonId;
     detail = null;
     status = {
-      phase: "loading",
+      phase: 'loading',
       checked: 0,
       total: 1,
       contributed: 0,
     };
-    message = "Loading set details...";
+    message = 'Loading set details...';
 
     onUpdate();
     void loadPrecomputedSetDetail(pokemonId, requestGeneration);
@@ -69,7 +69,7 @@ export function createPrecomputedSetDetailsLoader({
     selectedPokemonId = null;
     detail = null;
     status = null;
-    message = "";
+    message = '';
   }
 
   async function loadPrecomputedSetDetail(pokemonId, requestGeneration) {
@@ -104,12 +104,12 @@ export function createPrecomputedSetDetailsLoader({
       if (!merged) {
         detail = null;
         status = {
-          phase: "empty",
+          phase: 'empty',
           checked: 1,
           total: 1,
           contributed: 0,
         };
-        message = "No precomputed set details found for this Pokémon.";
+        message = 'No precomputed set details found for this Pokémon.';
         onUpdate();
         return;
       }
@@ -117,7 +117,7 @@ export function createPrecomputedSetDetailsLoader({
       detail = merged;
 
       status = {
-        phase: "ready",
+        phase: 'ready',
         checked: 1,
         total: 1,
         contributed: detail?.sourcesUsed?.length || 1,
@@ -125,17 +125,17 @@ export function createPrecomputedSetDetailsLoader({
 
       message = result.usedFallback
         ? `Showing all-period set details; ${requestedSelection} has no precomputed set file.`
-        : "";
+        : '';
 
       onUpdate();
     } catch (error) {
       if (requestGeneration !== generation) return;
 
-      console.error("Set detail load failed", error);
+      console.error('Set detail load failed', error);
 
       detail = null;
       status = {
-        phase: "empty",
+        phase: 'empty',
         checked: 0,
         total: 1,
         contributed: 0,
@@ -160,11 +160,11 @@ export function describePrecomputedSetSource(source) {
   const tier =
     source?.primarySource?.sourceText ||
     source?.sourceText ||
-    (source?.selection === "all"
+    (source?.selection === 'all'
       ? `${source.formatId} @ ${source.cutoff} (all available)`
       : source?.formatId
         ? `${source.formatId} @ ${source.cutoff}`
-        : "");
+        : '');
 
   const base = source?.primarySource ? `canonical tier ${tier}` : tier;
 
@@ -178,7 +178,7 @@ export function describePrecomputedSetSource(source) {
 async function fetchSetDetailWithAllFallback({ family, pokemonId, selection }) {
   const primary = await fetchSetDetail({ family, pokemonId, selection });
 
-  if (primary || selection === "all") {
+  if (primary || selection === 'all') {
     return {
       detail: primary,
       usedFallback: false,
@@ -189,13 +189,13 @@ async function fetchSetDetailWithAllFallback({ family, pokemonId, selection }) {
   const fallback = await fetchSetDetail({
     family,
     pokemonId,
-    selection: "all",
+    selection: 'all',
   });
 
   return {
     detail: fallback,
     usedFallback: Boolean(fallback),
-    usedSelection: "all",
+    usedSelection: 'all',
   };
 }
 
@@ -224,7 +224,7 @@ function appendUnusedLegalMoves(detail, legalMoves, pokemonId) {
     {
       pokemonId,
       name: legalMoves.pokemonName,
-      sourceText: "Reborn legal moves (no competitive usage data)",
+      sourceText: 'Reborn legal moves (no competitive usage data)',
       moves: [],
       items: [],
       abilities: [],
@@ -241,7 +241,7 @@ function appendUnusedLegalMoves(detail, legalMoves, pokemonId) {
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((move) => ({
       name: move.name,
-      kind: "legal-unused",
+      kind: 'legal-unused',
       type: move.type,
       category: move.category,
       sourceText: describeLegalSources(move.sources),
@@ -254,12 +254,12 @@ function appendUnusedLegalMoves(detail, legalMoves, pokemonId) {
 
 function describeLegalSources(sources = {}) {
   const parts = [];
-  if (sources.levelUp?.length) parts.push("Level-up");
-  if (sources.preEvolutionLevelUp?.length) parts.push("Pre-evo level-up");
-  if (sources.tm) parts.push("TM");
-  if (sources.tmx) parts.push("TMX");
-  if (sources.tutor) parts.push("Tutor");
-  if (sources.egg) parts.push("Egg");
+  if (sources.levelUp?.length) parts.push('Level-up');
+  if (sources.preEvolutionLevelUp?.length) parts.push('Pre-evo level-up');
+  if (sources.tm) parts.push('TM');
+  if (sources.tmx) parts.push('TMX');
+  if (sources.tutor) parts.push('Tutor');
+  if (sources.egg) parts.push('Egg');
 
-  return parts.length ? `Legal in Reborn · ${parts.join(" · ")}` : "Legal in Reborn";
+  return parts.length ? `Legal in Reborn · ${parts.join(' · ')}` : 'Legal in Reborn';
 }

@@ -9,25 +9,25 @@
  * header, the replay id's format segment, the thread's prefix label via
  * rmt.prefixMap, a per-listing pinned format in the config.
  */
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { parseShowdownTeam } from "./teamscrape/parseShowdownTeam.mjs";
-import { normalizeSampleTeam } from "./scrape-sample-teams.mjs";
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { parseShowdownTeam } from './teamscrape/parseShowdownTeam.mjs';
+import { normalizeSampleTeam } from './scrape-sample-teams.mjs';
 import {
   archivePath,
   normalizeReplay,
   readArchiveIds,
-} from "./scrape-replay-teams.mjs";
-import { extractThreadRows, htmlToText } from "./scrape-rmt-teams.mjs";
-import { REAL_FORMATS } from "./config.mjs";
+} from './scrape-replay-teams.mjs';
+import { extractThreadRows, htmlToText } from './scrape-rmt-teams.mjs';
+import { REAL_FORMATS } from './config.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const ARCHIVE_DIR = path.join(scriptDir, "teamscrape", "archive");
-const SOURCES_PATH = path.join(scriptDir, "teamscrape", "sources.json");
+const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
+const SOURCES_PATH = path.join(scriptDir, 'teamscrape', 'sources.json');
 
 const USER_AGENT =
-  "pokemon-usage-viewer team harvester (github.com/TheSkeward/pokemon-usage-viewer)";
+  'pokemon-usage-viewer team harvester (github.com/TheSkeward/pokemon-usage-viewer)';
 const REQUEST_GAP_MS = 900;
 const MAX_LISTING_PAGES = 20;
 const DEFAULT_MAX_NEW = 40;
@@ -38,7 +38,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function fetchText(url) {
   await sleep(REQUEST_GAP_MS);
-  const response = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+  const response = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
   if (!response.ok) throw new Error(`${response.status} ${url}`);
   return response.text();
 }
@@ -92,7 +92,7 @@ async function harvestThreadPage(html, { fallbackFormat, thread, counters }) {
     const { file, seen } = forFormat(formatId);
     if (seen.has(pasteId)) continue;
     const record = normalizeSampleTeam({ pasteId, formatId, thread, sets: parsed.sets });
-    record.source = "tournament";
+    record.source = 'tournament';
     fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
     seen.add(pasteId);
     counters.pastes += 1;
@@ -114,7 +114,7 @@ async function harvestThreadPage(html, { fallbackFormat, thread, counters }) {
       continue;
     }
     const record = normalizeReplay(replay, formatId);
-    record.source = "tournament";
+    record.source = 'tournament';
     if (record.teams.every((team) => team.length)) {
       fs.mkdirSync(path.dirname(file), { recursive: true });
       fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
@@ -125,21 +125,21 @@ async function harvestThreadPage(html, { fallbackFormat, thread, counters }) {
 }
 
 async function main() {
-  const config = JSON.parse(fs.readFileSync(SOURCES_PATH, "utf8"));
+  const config = JSON.parse(fs.readFileSync(SOURCES_PATH, 'utf8'));
   const tournament = config.tournament || {};
   const prefixMap = { ...(config.rmt?.prefixMap || {}), ...(tournament.prefixMap || {}) };
   const maxNew =
-    Number(process.argv.find((a) => a.startsWith("--max-new="))?.split("=")[1]) ||
+    Number(process.argv.find((a) => a.startsWith('--max-new='))?.split('=')[1]) ||
     DEFAULT_MAX_NEW;
   fs.mkdirSync(ARCHIVE_DIR, { recursive: true });
   const counters = { pastes: 0, replays: 0, replaySeen: new Map() };
-  const visited = readArchiveIds(path.join(ARCHIVE_DIR, "tournament-threads.jsonl"));
-  const visitedFile = path.join(ARCHIVE_DIR, "tournament-threads.jsonl");
+  const visited = readArchiveIds(path.join(ARCHIVE_DIR, 'tournament-threads.jsonl'));
+  const visitedFile = path.join(ARCHIVE_DIR, 'tournament-threads.jsonl');
 
   // Standalone dump threads: {url, format?} — the whole thread is harvested
   // (replies ARE team dumps by other players, unlike RMT).
   for (const entry of tournament.dumpThreads || []) {
-    const { url, format = null } = typeof entry === "string" ? { url: entry } : entry;
+    const { url, format = null } = typeof entry === 'string' ? { url: entry } : entry;
     try {
       const html = await fetchText(url);
       await harvestThreadPage(html, { fallbackFormat: format, thread: url, counters });

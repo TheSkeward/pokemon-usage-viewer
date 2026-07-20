@@ -4,9 +4,9 @@
  * optimizer cache keys and to show the user exactly which Reborn/data/scoring
  * versions produced a recommendation.
  */
-import { dataUrl } from "./utils/dataUrl.js";
+import { dataUrl } from './utils/dataUrl.js';
 
-import { setDataVersionTag } from "./utils/dataUrl.js";
+import { setDataVersionTag } from './utils/dataUrl.js';
 
 let manifestPromise = null;
 
@@ -16,7 +16,7 @@ export function loadManifest() {
     // no-store: the manifest is the freshness root — reading a CDN-stale
     // manifest would version every data fetch with the OLD signature and
     // pin the whole session to stale data (the Mawile incident).
-    manifestPromise = fetch(dataUrl("manifest.json"), { cache: "no-store" })
+    manifestPromise = fetch(dataUrl('manifest.json'), { cache: 'no-store' })
       .then((response) => (response.ok ? response.json() : null))
       .then((manifest) => {
         if (manifest?.dataSignature) setDataVersionTag(manifest.dataSignature);
@@ -33,5 +33,5 @@ export function loadManifest() {
  */
 export async function getDataSignature() {
   const manifest = await loadManifest();
-  return manifest?.dataSignature || "unversioned";
+  return manifest?.dataSignature || 'unversioned';
 }

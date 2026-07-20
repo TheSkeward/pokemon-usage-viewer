@@ -12,9 +12,9 @@ import {
   createTopTeams,
   offerTopTeam,
   getRealizedTeamScore,
-} from "./searchKernel.js";
-import { parallelFullSearch, PARALLEL_THRESHOLD } from "./parallelSearch.js";
-import { tunable } from "./scoringConstants.js";
+} from './searchKernel.js';
+import { parallelFullSearch, PARALLEL_THRESHOLD } from './parallelSearch.js';
+import { tunable } from './scoringConstants.js';
 
 /**
  * Selects the best team the pool's resolved lines can field — exhaustive or
@@ -45,10 +45,10 @@ export async function choosePoolTeam(
   const team = addTeamFitNotes(evaluated.team);
   const megaUsed = evaluated.megaUsed
     ? team.find(
-        (choice) =>
-          choice.inputPokemonId === evaluated.megaUsed.inputPokemonId &&
+      (choice) =>
+        choice.inputPokemonId === evaluated.megaUsed.inputPokemonId &&
           choice.pokemonId === evaluated.megaUsed.pokemonId,
-      )
+    )
     : null;
 
   return {
@@ -119,7 +119,7 @@ export function assignTeamBuilds(team, opponentTypeBias = {}) {
 // Deterministic: realized score, then team identity.
 function realizeBestTeam(candidates, opponentTypeBias) {
   let best = null;
-  let bestIdentity = "";
+  let bestIdentity = '';
   for (const evaluated of candidates) {
     if (!evaluated?.team?.length) continue;
     const realized = assignTeamBuilds(evaluated.team, opponentTypeBias);
@@ -159,9 +159,9 @@ function addTeamFitNotes(team) {
 
     return {
       ...choice,
-      note: [choice.note, `team fit: ${reasons.join("; ")}`]
+      note: [choice.note, `team fit: ${reasons.join('; ')}`]
         .filter(Boolean)
-        .join("; "),
+        .join('; '),
     };
   });
 }
@@ -177,11 +177,11 @@ function getTeamFitReasons(choice, team, attackTypeCounts) {
   const defensiveCovers = getDefensiveCoverTypes(profile, team);
 
   if (uniqueAttackTypes.length) {
-    reasons.push(`adds ${uniqueAttackTypes.slice(0, 2).join("/")} attacks`);
+    reasons.push(`adds ${uniqueAttackTypes.slice(0, 2).join('/')} attacks`);
   }
 
   if (defensiveCovers.length) {
-    reasons.push(`covers ${defensiveCovers.slice(0, 2).join("/")}`);
+    reasons.push(`covers ${defensiveCovers.slice(0, 2).join('/')}`);
   }
 
   return reasons.slice(0, 2);
@@ -340,8 +340,8 @@ async function selectTeamByFit(
   const budget = hint
     ? HINT_SEARCH_BUDGET
     : exhaustive
-      ? tunable("EXHAUSTIVE_CAP")
-      : tunable("AUTO_EXHAUSTIVE_BUDGET");
+      ? tunable('EXHAUSTIVE_CAP')
+      : tunable('AUTO_EXHAUSTIVE_BUDGET');
 
   // A from-scratch / grown search big enough to be worth it runs in parallel off
   // the main thread. A pure deletion (incremental, no added lines) and a
@@ -353,7 +353,7 @@ async function selectTeamByFit(
   // small enough to enumerate fully, so its optimum can be compared to the true
   // exact optimum. No effect in production (the global is never set).
   const forceShortlist =
-    !!tunable("FORCE_SHORTLIST") && !incApplies && !isStoreCovered;
+    !!tunable('FORCE_SHORTLIST') && !incApplies && !isStoreCovered;
   const useParallel =
     !forceShortlist &&
     !isPureDeletion &&
@@ -361,7 +361,7 @@ async function selectTeamByFit(
     combinations <= budget &&
     combinations >= PARALLEL_THRESHOLD;
 
-  const realizationPool = Math.max(1, tunable("REALIZATION_POOL"));
+  const realizationPool = Math.max(1, tunable('REALIZATION_POOL'));
 
   if (useParallel) {
     teamStore = null;
@@ -376,7 +376,7 @@ async function selectTeamByFit(
     );
     prepareFitScoring(lines, opponentTypeBias);
     try {
-      onSearchStage?.("realize");
+      onSearchStage?.('realize');
       await yieldForPaint();
       const candidates = (refs?.top || [])
         .map((entry) => evaluatedFromRefs(entry, lines, targetSize, opponentTypeBias))
@@ -384,7 +384,7 @@ async function selectTeamByFit(
       const evaluated = realizeBestTeam(candidates, opponentTypeBias);
       if (evaluated) {
         if (benchSwaps) {
-          onSearchStage?.("bench");
+          onSearchStage?.('bench');
           await yieldForPaint();
         }
         const benchSwapScores = benchSwaps
@@ -475,7 +475,7 @@ async function selectTeamByFit(
       searchExact = false; // exact on the shortlist, not the whole pool
     }
 
-    onSearchStage?.("realize");
+    onSearchStage?.('realize');
     await yieldForPaint();
     let evaluated =
       realizeBestTeam(candidates || [], opponentTypeBias) || {
@@ -502,7 +502,7 @@ async function selectTeamByFit(
       searchPolish = polished.record;
       benchSwapScores = polished.scanScores;
     } else if (benchSwaps) {
-      onSearchStage?.("bench");
+      onSearchStage?.('bench');
       await yieldForPaint();
       // Exact paths: the ranking is display-only (the bench view's "most
       // droppable" flags) and skippable — the confidence sweep only needs the
@@ -653,7 +653,7 @@ const POLISH_MAX_SWAPS = 8;
 async function polishTeamBySwaps(lines, evaluated, opponentTypeBias, onSearchStage = null) {
   let current = evaluated;
   const swaps = [];
-  onSearchStage?.("polish", { round: 1 });
+  onSearchStage?.('polish', { round: 1 });
   await yieldForPaint();
   let scan = scanTeamSwaps(lines, current.team, opponentTypeBias);
 
@@ -684,7 +684,7 @@ async function polishTeamBySwaps(lines, evaluated, opponentTypeBias, onSearchSta
       score: realized.score,
       megaUsed: realized.team.find((choice) => choice.isMega) || null,
     };
-    onSearchStage?.("polish", { round: swaps.length + 1 });
+    onSearchStage?.('polish', { round: swaps.length + 1 });
     await yieldForPaint();
     scan = scanTeamSwaps(lines, current.team, opponentTypeBias);
   }
@@ -700,12 +700,12 @@ async function polishTeamBySwaps(lines, evaluated, opponentTypeBias, onSearchSta
 
 function choiceLabel(choice) {
   return {
-    inputName: choice?.inputName || "",
+    inputName: choice?.inputName || '',
     name:
       choice?.legalityProfile?.currentName ||
       choice?.inputName ||
       choice?.pokemonId ||
-      "?",
+      '?',
   };
 }
 
@@ -732,19 +732,19 @@ function explainShortlistMiss(lines, line) {
       if (multiplier === 0) matched.push(`immune to ${type}`);
       else if (multiplier < 1) matched.push(`resists ${type}`);
     });
-    if ((entry.best?.currentFeatures?.speed_q || 0) >= 0.8) matched.push("fast");
+    if ((entry.best?.currentFeatures?.speed_q || 0) >= 0.8) matched.push('fast');
     if (
       (entry.best?.legalityProfile?.recommendedMoves || []).some(
         (move) => (move.priority || 0) > 0,
       )
     ) {
-      matched.push("priority");
+      matched.push('priority');
     }
     if ((entry.best?.currentFeatures?.utility_q || 0) >= 0.6) {
-      matched.push("utility");
+      matched.push('utility');
     }
     if ((entry.best?.online ?? 0) === 1 && (entry.best?.friction || 0) === 0) {
-      matched.push("friction-free online");
+      matched.push('friction-free online');
     }
   }
   return { rank: index + 1, of: scored.length, matched };
@@ -897,8 +897,8 @@ function shortlistCoverageOf(entry) {
 function buildShortlist(lines, maxSizeOverride = null) {
   const scored = rankShortlistEntries(lines);
 
-  const maxSize = maxSizeOverride ?? tunable("SHORTLIST_MAX");
-  const coreSize = Math.min(tunable("SHORTLIST_CORE"), maxSize);
+  const maxSize = maxSizeOverride ?? tunable('SHORTLIST_MAX');
+  const coreSize = Math.min(tunable('SHORTLIST_CORE'), maxSize);
   const picked = new Map();
   const add = (entry) => {
     if (entry && !picked.has(entry.line.lineKey)) {

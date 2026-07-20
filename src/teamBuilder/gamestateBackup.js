@@ -7,9 +7,9 @@
  * download link and a file picker.
  */
 
-import { getActiveGame } from "../games/registry.js";
+import { getActiveGame } from '../games/registry.js';
 
-const FORMAT = "pokemon-usage-viewer-gamestate";
+const FORMAT = 'pokemon-usage-viewer-gamestate';
 const VERSION = 1;
 
 /**
@@ -25,7 +25,7 @@ export function buildGamestateExport({ query, progression }) {
       // exports, which are all Reborn by construction.
       game: getActiveGame().id,
       exportedAt: new Date().toISOString(),
-      pool: String(query || ""),
+      pool: String(query || ''),
       progression: progression || {},
     },
     null,
@@ -49,21 +49,21 @@ export function parseGamestateImport(text) {
   try {
     parsed = JSON.parse(text);
   } catch {
-    throw new Error("Not a JSON file.");
+    throw new Error('Not a JSON file.');
   }
   if (parsed?.format !== FORMAT) {
-    throw new Error("Not a gamestate export from this tool.");
+    throw new Error('Not a gamestate export from this tool.');
   }
   if (parsed.version !== VERSION) {
     throw new Error(
       `Unsupported gamestate version ${parsed.version} (this build reads v${VERSION}).`,
     );
   }
-  if (typeof parsed.pool !== "string") {
-    throw new Error("Gamestate file has no pool text.");
+  if (typeof parsed.pool !== 'string') {
+    throw new Error('Gamestate file has no pool text.');
   }
-  if (parsed.progression == null || typeof parsed.progression !== "object") {
-    throw new Error("Gamestate file has no progression.");
+  if (parsed.progression == null || typeof parsed.progression !== 'object') {
+    throw new Error('Gamestate file has no progression.');
   }
   return {
     pool: parsed.pool,
@@ -71,7 +71,7 @@ export function parseGamestateImport(text) {
     // Pre-registry exports carry no game field; they are all Reborn. The
     // caller decides how to route a backup for a different game than the
     // active one (today there is only one game, so this is a pass-through).
-    game: typeof parsed.game === "string" ? parsed.game : "reborn",
+    game: typeof parsed.game === 'string' ? parsed.game : 'reborn',
   };
 }
 

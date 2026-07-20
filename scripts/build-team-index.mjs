@@ -6,17 +6,17 @@
  * pool, progression, and tracked inventory. Uncapped: see real harvest volume
  * before deciding any cap is needed.
  */
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { REAL_FORMATS } from "./config.mjs";
-import { writeJson } from "./set-index/io.mjs";
-import { readArchive } from "./build-observed-sets.mjs";
-import { teamWeight } from "./teamscrape/weights.mjs";
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { REAL_FORMATS } from './config.mjs';
+import { writeJson } from './set-index/io.mjs';
+import { readArchive } from './build-observed-sets.mjs';
+import { teamWeight } from './teamscrape/weights.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const ARCHIVE_DIR = path.join(scriptDir, "teamscrape", "archive");
-const OUT_ROOT = path.join(scriptDir, "..", "site-data", "data", "team-index");
+const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
+const OUT_ROOT = path.join(scriptDir, '..', 'site-data', 'data', 'team-index');
 
 const MIN_MEMBERS = 4;
 const familyOf = new Map(REAL_FORMATS.map((f) => [f.id, f.family]));
@@ -24,11 +24,11 @@ const familyOf = new Map(REAL_FORMATS.map((f) => [f.id, f.family]));
 function memberKey(set) {
   return [
     set.speciesId,
-    set.itemId || "",
-    set.abilityId || "",
-    (set.nature || "").toLowerCase(),
-    [...(set.moveIds || [])].sort().join(","),
-  ].join("~");
+    set.itemId || '',
+    set.abilityId || '',
+    (set.nature || '').toLowerCase(),
+    [...(set.moveIds || [])].sort().join(','),
+  ].join('~');
 }
 
 /**
@@ -49,7 +49,7 @@ export function buildTeamIndex(records) {
     const key = sets
       .map(memberKey)
       .sort()
-      .join("|");
+      .join('|');
     const perFormat = (
       byFamily.get(family) || byFamily.set(family, new Map()).get(family)
     );
@@ -77,7 +77,7 @@ export function buildTeamIndex(records) {
     };
     entry.weight += teamWeight(record);
     entry.count += 1;
-    const source = record.source || "sample";
+    const source = record.source || 'sample';
     entry.sources[source] = (entry.sources[source] || 0) + 1;
     teams.set(key, entry);
   }
@@ -100,9 +100,9 @@ export function buildTeamIndex(records) {
 
 async function main() {
   const records = [
-    ...readArchive(ARCHIVE_DIR, "samples-"),
-    ...readArchive(ARCHIVE_DIR, "rmt-"),
-    ...readArchive(ARCHIVE_DIR, "tournament-"),
+    ...readArchive(ARCHIVE_DIR, 'samples-'),
+    ...readArchive(ARCHIVE_DIR, 'rmt-'),
+    ...readArchive(ARCHIVE_DIR, 'tournament-'),
   ];
   const byFamily = buildTeamIndex(records);
   for (const [family, files] of byFamily) {
@@ -112,10 +112,10 @@ async function main() {
       await writeJson(path.join(dir, `${formatId}.json`), detail);
       teams += detail.teams.length;
     }
-    await writeJson(path.join(dir, "index.json"), [...files.keys()].sort());
+    await writeJson(path.join(dir, 'index.json'), [...files.keys()].sort());
     console.log(`team-index/${family}: ${teams} teams across ${files.size} formats`);
   }
-  if (!byFamily.size) console.log("team-index: no archives yet — nothing to build");
+  if (!byFamily.size) console.log('team-index: no archives yet — nothing to build');
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

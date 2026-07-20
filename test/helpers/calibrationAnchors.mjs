@@ -3,12 +3,12 @@ export function poorAnchor(name, unlock = name) {
 }
 
 export function poorAnchorInput(anchor) {
-  return typeof anchor === "string" ? anchor : anchor.unlock;
+  return typeof anchor === 'string' ? anchor : anchor.unlock;
 }
 
 export function poorAnchorLabel(anchor) {
-  if (typeof anchor === "string" || anchor.name === anchor.unlock) {
-    return typeof anchor === "string" ? anchor : anchor.name;
+  if (typeof anchor === 'string' || anchor.name === anchor.unlock) {
+    return typeof anchor === 'string' ? anchor : anchor.name;
   }
   return `${anchor.name} (via ${anchor.unlock})`;
 }

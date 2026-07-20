@@ -1,36 +1,36 @@
-import { escapeHtml, escapeAttr } from "../utils/html.js";
-import { detailsStateAttrs } from "../utils/detailsState.js";
-import { getMoveMeta, describeMoveMeta } from "../moveMeta";
+import { escapeHtml, escapeAttr } from '../utils/html.js';
+import { detailsStateAttrs } from '../utils/detailsState.js';
+import { getMoveMeta, describeMoveMeta } from '../moveMeta';
 import {
   REBORN_MOVE_LEGALITY_BASE,
   REBORN_PROGRESSION_NOTES,
   REBORN_PROMOTED_TM_MOVES,
   REBORN_TMX_MOVES,
-} from "./rules";
+} from './rules';
 import {
   REBORN_TUTOR_GROUPS,
   REBORN_TM_OPTIONS,
   REBORN_TMX_OPTIONS,
-} from "./progressionOptions";
-import { EVOLUTION_ACCESS_FIELDS } from "./evolutionRequirements.js";
+} from './progressionOptions';
+import { EVOLUTION_ACCESS_FIELDS } from './evolutionRequirements.js';
 import {
   REBORN_PROGRESSION_CHECKPOINTS,
   getRebornCheckpoint,
   getItemUnlockBadge,
   getUnlockBadge,
-} from "./badgeTimeline.js";
+} from './badgeTimeline.js';
 import {
   REBORN_EXTRA_INVENTORY_ITEMS,
   getPurchasableShopItems,
-} from "./itemAvailability.js";
-import { MAX_TRACKED_ITEM_COUNT, MAX_OPPONENT_TYPE_BIAS } from "./progression";
-import { HIDDEN_INVENTORY_ITEM_IDS } from "./rebornSeeds";
-import { REBORN_ANALYSIS_TYPES } from "./typeChart.js";
-import { getTypeColor } from "../moveMeta";
+} from './itemAvailability.js';
+import { MAX_TRACKED_ITEM_COUNT, MAX_OPPONENT_TYPE_BIAS } from './progression';
+import { HIDDEN_INVENTORY_ITEM_IDS } from './rebornSeeds';
+import { REBORN_ANALYSIS_TYPES } from './typeChart.js';
+import { getTypeColor } from '../moveMeta';
 import {
   GEN7_HELD_ITEMS,
   GEN7_HELD_ITEMS_BY_ID,
-} from "../generated/gen7HeldItems.generated.js";
+} from '../generated/gen7HeldItems.generated.js';
 
 /**
  * `includeBias: false` lets the modern layout render the opponent-bias group
@@ -55,7 +55,7 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
           <input
             data-progression-field="moveRelearnerUnlocked"
             type="checkbox"
-            ${progression.moveRelearnerUnlocked ? "checked" : ""}
+            ${progression.moveRelearnerUnlocked ? 'checked' : ''}
           />
           <span>Move relearner unlocked</span>
         </label>
@@ -64,7 +64,7 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
           <input
             data-progression-field="daycareUnlocked"
             type="checkbox"
-            ${progression.daycareUnlocked ? "checked" : ""}
+            ${progression.daycareUnlocked ? 'checked' : ''}
           />
           <span>Daycare unlocked</span>
         </label>
@@ -73,12 +73,12 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
           <input
             data-progression-field="hiddenPowerTypeChangerUnlocked"
             type="checkbox"
-            ${progression.hiddenPowerTypeChangerUnlocked ? "checked" : ""}
+            ${progression.hiddenPowerTypeChangerUnlocked ? 'checked' : ''}
           />
           <span>Hidden Power Type Changer unlocked</span>
         </label>
 
-        <details class="progression-option-group wide-control evo-access-group" ${detailsStateAttrs("evo-access", false)}>
+        <details class="progression-option-group wide-control evo-access-group" ${detailsStateAttrs('evo-access', false)}>
           <summary>
             <span>Evolution access <span class="muted">(checked = you can use it)</span></span>
           </summary>
@@ -88,46 +88,46 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
               // area/method gates by the walkthrough schedule.
               const badge = field.item
                 ? getItemUnlockBadge(
-                    field.item.toLowerCase().replace(/[^a-z0-9]+/g, ""),
-                  )
+                  field.item.toLowerCase().replace(/[^a-z0-9]+/g, ''),
+                )
                 : getUnlockBadge(field.key);
               return `
                 <label class="checkbox-label">
                   <input
                     data-progression-field="${escapeAttr(field.key)}"
                     type="checkbox"
-                    ${progression[field.key] === false ? "" : "checked"}
+                    ${progression[field.key] === false ? '' : 'checked'}
                   />
-                  <span>${escapeHtml(field.label)}${badge != null ? ` <small class="muted">(~${badge} badge${badge === 1 ? "" : "s"})</small>` : ""}</span>
+                  <span>${escapeHtml(field.label)}${badge != null ? ` <small class="muted">(~${badge} badge${badge === 1 ? '' : 's'})</small>` : ''}</span>
                 </label>`;
-            }).join("")}
+            }).join('')}
           </div>
         </details>
 
         ${renderOptionGroup({
-          field: "availableTmIds",
+          field: 'availableTmIds',
           options: REBORN_TM_OPTIONS,
           selectedIds: progression.availableTmIds,
-          summary: "Available TMs",
-          detailsId: "tms",
+          summary: 'Available TMs',
+          detailsId: 'tms',
           badges: getRebornCheckpoint(progression.checkpoint)?.badges ?? null,
         })}
 
         ${renderOptionGroup({
-          field: "availableTmxIds",
+          field: 'availableTmxIds',
           options: REBORN_TMX_OPTIONS,
           selectedIds: progression.availableTmxIds,
-          summary: "Available TMXs",
-          detailsId: "tmxs",
+          summary: 'Available TMXs',
+          detailsId: 'tmxs',
           badges: getRebornCheckpoint(progression.checkpoint)?.badges ?? null,
         })}
 
         ${renderOptionGroup({
-          field: "availableTutorMoveIds",
+          field: 'availableTutorMoveIds',
           groups: REBORN_TUTOR_GROUPS,
           selectedIds: progression.availableTutorMoveIds,
-          summary: "Available tutors",
-          detailsId: "tutors",
+          summary: 'Available tutors',
+          detailsId: 'tutors',
           badges: getRebornCheckpoint(progression.checkpoint)?.badges ?? null,
         })}
 
@@ -136,17 +136,17 @@ export function renderRebornProgressionPanel(progression, { includeBias = true }
           getRebornCheckpoint(progression.checkpoint)?.badges ?? null,
         )}
 
-        ${includeBias ? renderOpponentTypeBias(progression.opponentTypeBias || {}) : ""}
+        ${includeBias ? renderOpponentTypeBias(progression.opponentTypeBias || {}) : ''}
       </div>
 
-      <details class="progression-rules" ${detailsStateAttrs("rules", false)}>
+      <details class="progression-rules" ${detailsStateAttrs('rules', false)}>
         <summary>Reborn legality assumptions</summary>
         <ul>
           <li>Base: ${escapeHtml(REBORN_MOVE_LEGALITY_BASE.baseGames)} learnsets.</li>
-          <li>Transfer moves available by default: ${REBORN_MOVE_LEGALITY_BASE.transferMovesAvailableByDefault ? "yes" : "no"}.</li>
-          <li>TMX moves: ${REBORN_TMX_MOVES.map(escapeHtml).join(", ")}.</li>
-          <li>Promoted TMs: ${REBORN_PROMOTED_TM_MOVES.map(escapeHtml).join(", ")}.</li>
-          ${REBORN_PROGRESSION_NOTES.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}
+          <li>Transfer moves available by default: ${REBORN_MOVE_LEGALITY_BASE.transferMovesAvailableByDefault ? 'yes' : 'no'}.</li>
+          <li>TMX moves: ${REBORN_TMX_MOVES.map(escapeHtml).join(', ')}.</li>
+          <li>Promoted TMs: ${REBORN_PROMOTED_TM_MOVES.map(escapeHtml).join(', ')}.</li>
+          ${REBORN_PROGRESSION_NOTES.map((note) => `<li>${escapeHtml(note)}</li>`).join('')}
         </ul>
       </details>
 
@@ -164,16 +164,16 @@ function renderCheckpointControl(progression) {
   const selected = getRebornCheckpoint(progression.checkpoint);
   const options = REBORN_PROGRESSION_CHECKPOINTS.map(
     (checkpoint) => `
-      <option value="${escapeAttr(checkpoint.id)}" ${selected?.id === checkpoint.id ? "selected" : ""}>
+      <option value="${escapeAttr(checkpoint.id)}" ${selected?.id === checkpoint.id ? 'selected' : ''}>
         ${escapeHtml(`${checkpoint.label} — cap ${checkpoint.levelCap}`)}
       </option>`,
-  ).join("");
+  ).join('');
 
   const capNote = selected
     ? `Level cap ${selected.levelCap} (from badges)`
     : progression.levelCap
       ? `Level cap ${progression.levelCap} (saved before the badge picker; pick your badges to keep it in sync)`
-      : "Pick your badges to set the level cap.";
+      : 'Pick your badges to set the level cap.';
 
   const selectedIndex = selected
     ? REBORN_PROGRESSION_CHECKPOINTS.findIndex((c) => c.id === selected.id)
@@ -184,13 +184,13 @@ function renderCheckpointControl(progression) {
     ? next
       ? `Next: ${next.label} — cap ${next.levelCap}`
       : `Final checkpoint — cap ${selected.levelCap}`
-    : "";
+    : '';
 
   return `
-    <label class="progression-level-control wide-control"${nextTip ? ` title="${escapeAttr(nextTip)}"` : ""}>
+    <label class="progression-level-control wide-control"${nextTip ? ` title="${escapeAttr(nextTip)}"` : ''}>
       <span>Badges earned</span>
       <select data-progression-checkpoint>
-        <option value="" ${selected ? "" : "selected"}>— choose —</option>
+        <option value="" ${selected ? '' : 'selected'}>— choose —</option>
         ${options}
       </select>
       <span class="muted" data-checkpoint-cap-note>${escapeHtml(capNote)}</span>
@@ -208,7 +208,7 @@ export function renderOpponentTypeBias(bias) {
   ).length;
 
   return `
-    <details class="progression-option-group wide-control opponent-bias-group" ${detailsStateAttrs("bias", false)}>
+    <details class="progression-option-group wide-control opponent-bias-group" ${detailsStateAttrs('bias', false)}>
       <summary>
         <span>Opponent type bias</span>
         <span class="progression-option-count">${activeCount} active</span>
@@ -220,7 +220,7 @@ export function renderOpponentTypeBias(bias) {
       <div class="opponent-bias-grid">
         ${REBORN_ANALYSIS_TYPES.map((type) =>
           renderBiasRow(type, bias[type] || 0),
-        ).join("")}
+        ).join('')}
       </div>
     </details>
   `;
@@ -261,16 +261,16 @@ function renderItemInventory(ownedItems, badges) {
   ]
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((item) => `<option value="${escapeAttr(item.name)}"></option>`)
-    .join("");
+    .join('');
 
   const ownedRows = ownedIds.length
     ? ownedIds
-        .map((item) => renderOwnedItemRow(item, ownedItems[item.id]))
-        .join("")
+      .map((item) => renderOwnedItemRow(item, ownedItems[item.id]))
+      .join('')
     : '<p class="muted">No held items added yet. Search above to add what you own.</p>';
 
   return `
-    <details class="progression-option-group wide-control" ${detailsStateAttrs("items", true)}>
+    <details class="progression-option-group wide-control" ${detailsStateAttrs('items', true)}>
       <summary>
         <span>Held items owned</span>
         <span class="progression-option-count">${ownedIds.length} tracked</span>
@@ -296,9 +296,9 @@ function renderItemInventory(ownedItems, badges) {
               const label =
                 value === MAX_TRACKED_ITEM_COUNT ? `${value}+` : `${value}`;
               const selected =
-                value === MAX_TRACKED_ITEM_COUNT ? " selected" : "";
+                value === MAX_TRACKED_ITEM_COUNT ? ' selected' : '';
               return `<option value="${value}"${selected}>×${label}</option>`;
-            }).join("")}
+            }).join('')}
           </select>
         </label>
         <button type="button" data-item-add-button>Add</button>
@@ -316,14 +316,14 @@ function renderItemInventory(ownedItems, badges) {
 // stock: buy as many as you need).
 function renderPurchasableShopItems(ownedItems, badges) {
   const purchasable = getPurchasableShopItems(badges, ownedItems);
-  if (!purchasable.length) return "";
+  if (!purchasable.length) return '';
 
   const names = purchasable
     .map((item) => `<span class="item-shop-name">${escapeHtml(item.name)}</span>`)
-    .join(", ");
+    .join(', ');
 
   return `
-    <details class="item-shop-sync" ${detailsStateAttrs("shop-sync", false)}>
+    <details class="item-shop-sync" ${detailsStateAttrs('shop-sync', false)}>
       <summary>
         <span>Purchasable at your badge, not tracked yet</span>
         <span class="progression-option-count">${purchasable.length}</span>
@@ -344,8 +344,8 @@ function renderOwnedItemRow(item, count) {
   const options = Array.from({ length: MAX_TRACKED_ITEM_COUNT }, (_, index) => {
     const value = index + 1;
     const label = value === MAX_TRACKED_ITEM_COUNT ? `${value}+` : `${value}`;
-    return `<option value="${value}" ${value === count ? "selected" : ""}>${label}</option>`;
-  }).join("");
+    return `<option value="${value}" ${value === count ? 'selected' : ''}>${label}</option>`;
+  }).join('');
 
   return `
     <div class="item-inventory-row">
@@ -371,7 +371,7 @@ function renderOwnedItemRow(item, count) {
 
 // "After Badge NN" (possibly with a sidequest rider) → NN, else null.
 function parseAvailabilityBadge(available) {
-  const match = /Badge\s+(\d+)/i.exec(String(available || ""));
+  const match = /Badge\s+(\d+)/i.exec(String(available || ''));
   return match ? Number.parseInt(match[1], 10) : null;
 }
 
@@ -409,18 +409,18 @@ function renderOptionGroup({
     badges == null
       ? 0
       : uniqueOptions.reduce((count, option) => {
-          const badge = parseAvailabilityBadge(availabilityById.get(option.id));
-          return (
-            count +
+        const badge = parseAvailabilityBadge(availabilityById.get(option.id));
+        return (
+          count +
             (badge != null && badge <= badges && !selected.has(option.id) ? 1 : 0)
-          );
-        }, 0);
+        );
+      }, 0);
 
   return `
     <details class="progression-option-group wide-control" data-progression-group="${escapeAttr(field)}" ${detailsStateAttrs(detailsId || field, true)}>
       <summary>
         <span>${escapeHtml(summary)}</span>
-        <span class="progression-option-count" data-progression-group-count data-option-total="${uniqueOptions.length}">${selectedCount}/${uniqueOptions.length} selected${missableCount ? ` · ${missableCount} obtainable now` : ""}</span>
+        <span class="progression-option-count" data-progression-group-count data-option-total="${uniqueOptions.length}">${selectedCount}/${uniqueOptions.length} selected${missableCount ? ` · ${missableCount} obtainable now` : ''}</span>
       </summary>
       ${renderObtainableRail({ field, uniqueOptions, availabilityById, selected, badges })}
       <div class="progression-option-actions">
@@ -428,7 +428,7 @@ function renderOptionGroup({
           type="button"
           data-progression-option-bulk="${escapeAttr(field)}"
           data-progression-option-action="select"
-          data-progression-option-ids="${escapeAttr(uniqueOptions.map((option) => option.id).join(","))}"
+          data-progression-option-ids="${escapeAttr(uniqueOptions.map((option) => option.id).join(','))}"
         >
           Select all
         </button>
@@ -443,7 +443,7 @@ function renderOptionGroup({
       ${
         groups
           ? renderOptionSubgroups({ field, groups, selected, badges })
-          : `<div class="progression-checklist">${options.map((option) => renderOptionCheckbox({ field, option, selected, badges })).join("")}</div>`
+          : `<div class="progression-checklist">${options.map((option) => renderOptionCheckbox({ field, option, selected, badges })).join('')}</div>`
       }
     </details>
   `;
@@ -461,12 +461,12 @@ function renderObtainableRail({
   selected,
   badges,
 }) {
-  if (badges == null) return "";
+  if (badges == null) return '';
   const obtainable = uniqueOptions.filter((option) => {
     const badge = parseAvailabilityBadge(availabilityById.get(option.id));
     return badge != null && badge <= badges && !selected.has(option.id);
   });
-  if (!obtainable.length) return "";
+  if (!obtainable.length) return '';
   return `
     <div class="progression-obtainable-rail">
       <div class="progression-subgroup-title">
@@ -481,10 +481,10 @@ function renderObtainableRail({
               option,
               selected,
               badges,
-              fallbackAvailable: availabilityById.get(option.id) || "",
+              fallbackAvailable: availabilityById.get(option.id) || '',
             }),
           )
-          .join("")}
+          .join('')}
       </div>
     </div>
   `;
@@ -504,7 +504,7 @@ function renderOptionSubgroups({ field, groups, selected, badges = null }) {
                   type="button"
                   class="progression-subgroup-all"
                   data-progression-subgroup-all="${escapeAttr(field)}"
-                  data-progression-option-ids="${escapeAttr(group.options.map((option) => option.id).join(","))}"
+                  data-progression-option-ids="${escapeAttr(group.options.map((option) => option.id).join(','))}"
                   title="Mark every move from this ${escapeHtml(group.label)} location as available"
                 >
                   All
@@ -521,12 +521,12 @@ function renderOptionSubgroups({ field, groups, selected, badges = null }) {
                       fallbackAvailable: group.available,
                     }),
                   )
-                  .join("")}
+                  .join('')}
               </div>
             </section>
           `,
         )
-        .join("")}
+        .join('')}
     </div>
   `;
 }
@@ -536,7 +536,7 @@ function renderOptionCheckbox({
   option,
   selected,
   badges = null,
-  fallbackAvailable = "",
+  fallbackAvailable = '',
 }) {
   const badge = parseAvailabilityBadge(option.available || fallbackAvailable);
   // "Reachable at the current badge" is stamped as data so the change handler
@@ -546,20 +546,20 @@ function renderOptionCheckbox({
   const obtainable = badgeOk && !selected.has(option.id);
   const facts = describeMoveMeta(getMoveMeta(option.move));
   return `
-    <label class="progression-option${obtainable ? " option-obtainable" : ""}"${badgeOk ? ' data-option-badge-ok="1"' : ""}${facts ? ` title="${escapeAttr(facts)}"` : ""}>
+    <label class="progression-option${obtainable ? ' option-obtainable' : ''}"${badgeOk ? ' data-option-badge-ok="1"' : ''}${facts ? ` title="${escapeAttr(facts)}"` : ''}>
       <input
         type="checkbox"
         data-progression-option-list="${escapeAttr(field)}"
         value="${escapeAttr(option.id)}"
-        ${selected.has(option.id) ? "checked" : ""}
+        ${selected.has(option.id) ? 'checked' : ''}
       />
       <span>
-        ${option.code ? `<strong>${escapeHtml(option.code)}</strong> ` : ""}
+        ${option.code ? `<strong>${escapeHtml(option.code)}</strong> ` : ''}
         ${escapeHtml(option.move)}
         ${
           option.available
-            ? `<small>${escapeHtml(option.available)}${option.location ? ` - ${escapeHtml(option.location)}` : ""}</small>`
-            : ""
+            ? `<small>${escapeHtml(option.available)}${option.location ? ` - ${escapeHtml(option.location)}` : ''}</small>`
+            : ''
         }
       </span>
     </label>

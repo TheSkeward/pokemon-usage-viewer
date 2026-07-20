@@ -13,17 +13,17 @@
  * silent (trust 0).
  */
 
-import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from "node:fs";
-import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const MONTHS_PER_FORMAT = 3; // highest-volume months, weight-averaged
 const TOP_TEAMMATES = 24;
 
 const toId = (name) =>
-  String(name || "")
+  String(name || '')
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
+    .replace(/[^a-z0-9]+/g, '');
 
 async function fetchText(url) {
   const response = await fetch(url);
@@ -49,14 +49,14 @@ export function parseTeammates(text) {
   let current = null;
   let inTeammates = false;
   let atBlockStart = false;
-  for (const rawLine of text.split("\n")) {
+  for (const rawLine of text.split('\n')) {
     const line = rawLine.trim();
-    if (line.startsWith("+--")) {
+    if (line.startsWith('+--')) {
       atBlockStart = true;
       inTeammates = false;
       continue;
     }
-    const cell = line.replace(/^\|/, "").replace(/\|$/, "").trim();
+    const cell = line.replace(/^\|/, '').replace(/\|$/, '').trim();
     if (!cell) continue;
     const startsBlock = atBlockStart;
     atBlockStart = false;
@@ -76,7 +76,7 @@ export function parseTeammates(text) {
       if (match) current.teammates.set(toId(match[1]), Number.parseFloat(match[2]));
       continue;
     }
-    if (startsBlock && !cell.includes(":") && !cell.includes("%") && /^[A-Z]/.test(cell)) {
+    if (startsBlock && !cell.includes(':') && !cell.includes('%') && /^[A-Z]/.test(cell)) {
       current = { teammates: new Map(), rawCount: 0 };
       byMon.set(toId(cell), current);
     }
@@ -86,7 +86,7 @@ export function parseTeammates(text) {
 
 async function buildFamily(family) {
   const resolver = JSON.parse(
-    readFileSync(`site-data/data/resolver-index/${family}/all.json`, "utf8"),
+    readFileSync(`site-data/data/resolver-index/${family}/all.json`, 'utf8'),
   );
   const byTier = new Map();
   for (const [monId, entry] of Object.entries(resolver.pokemon || {})) {
@@ -105,14 +105,14 @@ async function buildFamily(family) {
     const dir = `site-data/data/movesets/${tier.formatId}`;
     if (!existsSync(dir)) continue;
     const months = readdirSync(dir)
-      .filter((file) => file.endsWith(".json"))
+      .filter((file) => file.endsWith('.json'))
       .map((file) => {
-        const data = JSON.parse(readFileSync(path.join(dir, file), "utf8"));
+        const data = JSON.parse(readFileSync(path.join(dir, file), 'utf8'));
         const total = Object.values(data.pokemon || {}).reduce(
           (sum, mon) => sum + (mon.rawCount || 0),
           0,
         );
-        return { month: file.replace(".json", ""), total };
+        return { month: file.replace('.json', ''), total };
       })
       .sort((a, b) => b.total - a.total)
       .slice(0, MONTHS_PER_FORMAT);
@@ -197,7 +197,7 @@ async function buildFamily(family) {
   // fetches for the rest instead of eating an expected 404 (browsers log
   // network 404s to the console even when the fetch is caught).
   writeFileSync(
-    path.join(outDir, "index.json"),
+    path.join(outDir, 'index.json'),
     `${JSON.stringify(availableIds.sort())}\n`,
   );
   console.log(`[teammate-index] ${family}/all: ${written} mons`);
@@ -209,7 +209,7 @@ if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(process.argv[1]).href
 ) {
-  for (const family of ["singles", "doubles"]) {
+  for (const family of ['singles', 'doubles']) {
     await buildFamily(family);
   }
 }

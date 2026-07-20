@@ -2,10 +2,10 @@ import {
   GEN7_BASE_STATS,
   GEN7_BASE_HP,
   GEN7_WEIGHTS_KG,
-} from "../generated/gen7BaseStats.generated.js";
-import { getTypeMultiplier } from "./typeChart.js";
-import { toId } from "../utils/ids.js";
-import { natureStatMultiplier } from "../natures.js";
+} from '../generated/gen7BaseStats.generated.js';
+import { getTypeMultiplier } from './typeChart.js';
+import { toId } from '../utils/ids.js';
+import { natureStatMultiplier } from '../natures.js';
 
 // A naive, defender-agnostic damage model. We can't know the real opponent's
 // stats, so every move is scored as "unresisted output" against a fixed neutral
@@ -30,9 +30,9 @@ const REFERENCE_DEFENSE_BASE = 70;
 const STAB_MULTIPLIER = 1.5;
 
 function abilityId(ability) {
-  return String(ability || "")
+  return String(ability || '')
     .toLowerCase()
-    .replace(/[^a-z]/g, "");
+    .replace(/[^a-z]/g, '');
 }
 
 // Same-type-attack bonus, ability-aware. Protean/Libero change the user's type to
@@ -43,9 +43,9 @@ function abilityStab(ability, attackerTypes, moveType) {
   const id = abilityId(ability);
   // Protean only — Libero is a Gen 8 ability and vanilla Reborn is Gen 7, so it
   // would never legally appear; left out rather than pretending to support it.
-  if (id === "protean") return STAB_MULTIPLIER;
+  if (id === 'protean') return STAB_MULTIPLIER;
   const matches = attackerTypes.includes(moveType);
-  if (id === "adaptability") return matches ? 2 : 1;
+  if (id === 'adaptability') return matches ? 2 : 1;
   return matches ? STAB_MULTIPLIER : 1;
 }
 
@@ -66,10 +66,10 @@ function abilityStab(ability, attackerTypes, moveType) {
 // downstream — STAB, effectiveness, coverage, type Gems — which is exactly
 // why Mega Salamence runs Return and Sylveon runs Hyper Voice.
 const ATE_CONVERSIONS = {
-  aerilate: "Flying",
-  galvanize: "Electric",
-  pixilate: "Fairy",
-  refrigerate: "Ice",
+  aerilate: 'Flying',
+  galvanize: 'Electric',
+  pixilate: 'Fairy',
+  refrigerate: 'Ice',
 };
 
 // A decorated move may already carry its converted type (stamped as `type`
@@ -91,9 +91,9 @@ function baseMoveType(move) {
 export function getAbilityEffectiveMoveType(ability, move) {
   const id = abilityId(ability);
   const type = baseMoveType(move);
-  if (ATE_CONVERSIONS[id] && type === "Normal") return ATE_CONVERSIONS[id];
-  if (id === "liquidvoice" && move.flags?.sound) return "Water";
-  if (id === "normalize") return "Normal";
+  if (ATE_CONVERSIONS[id] && type === 'Normal') return ATE_CONVERSIONS[id];
+  if (id === 'liquidvoice' && move.flags?.sound) return 'Water';
+  if (id === 'normalize') return 'Normal';
   return type;
 }
 
@@ -113,41 +113,41 @@ export function getAbilityDamageMultiplier(ability, move) {
   if (!id) return 1;
   const type = baseMoveType(move);
   const flags = move.flags || {};
-  const physical = move.category === "Physical";
+  const physical = move.category === 'Physical';
   let multiplier = 1;
 
   // Attack-stat rewrites (our damage is linear in the attacking stat).
-  if ((id === "hugepower" || id === "purepower") && physical) multiplier *= 2;
+  if ((id === 'hugepower' || id === 'purepower') && physical) multiplier *= 2;
   // Hustle: +50% Atk at -20% physical accuracy. The accuracy factor applied
   // later reads move.accuracy and can't see the ability, so the expected-value
   // haircut is folded in here: 1.5 × 0.8 = 1.2.
-  if (id === "hustle" && physical) multiplier *= 1.5 * 0.8;
+  if (id === 'hustle' && physical) multiplier *= 1.5 * 0.8;
   // Slow Start halves Atk for the first five turns — most of a real fight,
   // so it's priced as always-on rather than ignored (Regigigas is bad).
-  if (id === "slowstart" && physical) multiplier *= 0.5;
+  if (id === 'slowstart' && physical) multiplier *= 0.5;
 
   // Base-power boosts gated on move properties.
-  if (id === "technician" && move.basePower > 0 && move.basePower <= 60) {
+  if (id === 'technician' && move.basePower > 0 && move.basePower <= 60) {
     multiplier *= 1.5; // per-hit BP gate — multi-hit moves qualify per hit
   }
-  if (id === "toughclaws" && flags.contact) multiplier *= 1.3;
-  if (id === "strongjaw" && flags.bite) multiplier *= 1.5;
-  if (id === "megalauncher" && flags.pulse) multiplier *= 1.5;
-  if (id === "ironfist" && flags.punch) multiplier *= 1.2;
-  if (id === "reckless" && flags.recoil) multiplier *= 1.2;
-  if (id === "sheerforce" && flags.secondary) multiplier *= 1.3;
+  if (id === 'toughclaws' && flags.contact) multiplier *= 1.3;
+  if (id === 'strongjaw' && flags.bite) multiplier *= 1.5;
+  if (id === 'megalauncher' && flags.pulse) multiplier *= 1.5;
+  if (id === 'ironfist' && flags.punch) multiplier *= 1.2;
+  if (id === 'reckless' && flags.recoil) multiplier *= 1.2;
+  if (id === 'sheerforce' && flags.secondary) multiplier *= 1.3;
 
   // Type-keyed boosts.
-  if (id === "waterbubble" && type === "Water") multiplier *= 2;
-  if (id === "steelworker" && type === "Steel") multiplier *= 1.5;
-  if (id === "darkaura" && type === "Dark") multiplier *= 4 / 3;
-  if (id === "fairyaura" && type === "Fairy") multiplier *= 4 / 3;
-  if (ATE_CONVERSIONS[id] && type === "Normal") multiplier *= 1.2;
-  if (id === "normalize") multiplier *= 1.2;
+  if (id === 'waterbubble' && type === 'Water') multiplier *= 2;
+  if (id === 'steelworker' && type === 'Steel') multiplier *= 1.5;
+  if (id === 'darkaura' && type === 'Dark') multiplier *= 4 / 3;
+  if (id === 'fairyaura' && type === 'Fairy') multiplier *= 4 / 3;
+  if (ATE_CONVERSIONS[id] && type === 'Normal') multiplier *= 1.2;
+  if (id === 'normalize') multiplier *= 1.2;
 
   // Parental Bond: the second hit lands at 25% (Gen 7) → 1.25x on single-hit
   // moves; genuinely multi-hit moves don't get a bonus hit in-game.
-  if (id === "parentalbond" && !move.multihit) multiplier *= 1.25;
+  if (id === 'parentalbond' && !move.multihit) multiplier *= 1.25;
 
   return multiplier;
 }
@@ -227,18 +227,18 @@ const REFERENCE_WEIGHT_KG = medianOf(
 );
 
 const VARIABLE_POWER_MOVE_IDS = new Set([
-  "electroball",
-  "gyroball",
-  "grassknot",
-  "lowkick",
-  "heavyslam",
-  "heatcrash",
-  "punishment",
-  "crushgrip",
-  "wringout",
-  "flail",
-  "reversal",
-  "magnitude",
+  'electroball',
+  'gyroball',
+  'grassknot',
+  'lowkick',
+  'heavyslam',
+  'heatcrash',
+  'punishment',
+  'crushgrip',
+  'wringout',
+  'flail',
+  'reversal',
+  'magnitude',
 ]);
 
 /**
@@ -284,7 +284,7 @@ export function variableMovePower(moveId, level, attackerId = null, attackerSpe 
   const userSpe = Math.max(1, attackerSpe ?? statValue(baseSpe, 0, lvl, 1));
 
   switch (moveId) {
-    case "electroball": {
+    case 'electroball': {
       const ratio = userSpe / Math.max(1, referenceSpe);
       if (ratio >= 4) return 150;
       if (ratio >= 3) return 120;
@@ -292,14 +292,14 @@ export function variableMovePower(moveId, level, attackerId = null, attackerSpe 
       if (ratio >= 1) return 60;
       return 40;
     }
-    case "gyroball": {
+    case 'gyroball': {
       return Math.min(150, Math.floor((25 * referenceSpe) / userSpe) + 1);
     }
-    case "grassknot":
-    case "lowkick":
+    case 'grassknot':
+    case 'lowkick':
       return weightBucketPower(REFERENCE_WEIGHT_KG);
-    case "heavyslam":
-    case "heatcrash": {
+    case 'heavyslam':
+    case 'heatcrash': {
       const ratio = weight / Math.max(0.1, REFERENCE_WEIGHT_KG);
       if (ratio >= 5) return 120;
       if (ratio >= 4) return 100;
@@ -307,15 +307,15 @@ export function variableMovePower(moveId, level, attackerId = null, attackerSpe 
       if (ratio >= 2) return 60;
       return 40;
     }
-    case "punishment":
+    case 'punishment':
       return 60; // unboosted reference target — the move's floor
-    case "crushgrip":
-    case "wringout":
+    case 'crushgrip':
+    case 'wringout':
       return 120; // full-HP target
-    case "flail":
-    case "reversal":
+    case 'flail':
+    case 'reversal':
       return 20; // full-HP user
-    case "magnitude":
+    case 'magnitude':
       // Expected value of the 5/10/20/30/20/10/5% magnitude table.
       return 71;
     default:
@@ -348,22 +348,22 @@ export function coverageDamageIntoType(moveId, moveType, damage, defenseType) {
 export function fixedMoveDamage(moveId, level) {
   const lvl = normalizeLevel(level);
   switch (moveId) {
-    case "seismictoss":
-    case "nightshade":
+    case 'seismictoss':
+    case 'nightshade':
       return lvl;
-    case "psywave":
+    case 'psywave':
       // Uniform 0.5x–1.5x the user's level — expected value 1.0x.
       return lvl;
-    case "sonicboom":
+    case 'sonicboom':
       return 20;
-    case "dragonrage":
+    case 'dragonrage':
       return 40;
-    case "superfang":
-    case "naturemadness":
+    case 'superfang':
+    case 'naturemadness':
       return Math.round(referenceHp(lvl) / 2); // half a typical body's HP
-    case "guardianofalola":
+    case 'guardianofalola':
       return Math.round(referenceHp(lvl) * 0.75);
-    case "finalgambit":
+    case 'finalgambit':
       return referenceHp(lvl); // ≈ the user's own full HP
     default:
       return null;
@@ -389,11 +389,11 @@ export function normalizeLevel(levelCap) {
  *     when the string doesn't parse.
  */
 export function parseSpread(spreadName) {
-  if (typeof spreadName !== "string") return null;
-  const [naturePart, evPart] = spreadName.split(":");
+  if (typeof spreadName !== 'string') return null;
+  const [naturePart, evPart] = spreadName.split(':');
   if (!naturePart || !evPart) return null;
 
-  const evs = evPart.split("/").map((value) => Number.parseInt(value, 10));
+  const evs = evPart.split('/').map((value) => Number.parseInt(value, 10));
   if (evs.length < 6 || evs.some((value) => !Number.isFinite(value))) return null;
 
   // natureLabel is the spread's verbatim nature text ("Adamant"), for
@@ -440,7 +440,7 @@ export function getAttackingStats({ pokemonId, levelCap, spread }) {
         baseSpe,
         parsed.evs[EV_INDEX.spe],
         level,
-        natureStatMultiplier(parsed.nature, "spe"),
+        natureStatMultiplier(parsed.nature, 'spe'),
       ),
     };
   }
@@ -479,7 +479,7 @@ export function computeFinalStats({ pokemonId, level, nature, evs }) {
         at +
         10;
   const result = { level: at, hp };
-  for (const key of ["atk", "def", "spa", "spd", "spe"]) {
+  for (const key of ['atk', 'def', 'spa', 'spd', 'spe']) {
     result[key] = statValue(
       stats[STAT_INDEX[key]],
       evOf(EV_INDEX[key]),
@@ -537,9 +537,9 @@ export function estimateMoveDamage({
   // Foul Play deals damage with the TARGET's Attack stat, not the user's —
   // priced as the reference defender's median Atk, uninvested at level.
   const attack =
-    moveId === "foulplay"
+    moveId === 'foulplay'
       ? statValue(REFERENCE_ATTACK_BASE, 0, lvl, 1)
-      : category === "Physical"
+      : category === 'Physical'
         ? attackerStats.atk
         : attackerStats.spa;
   const defense = statValue(REFERENCE_DEFENSE_BASE, 0, lvl, 1);

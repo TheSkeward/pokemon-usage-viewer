@@ -1,6 +1,6 @@
-import { dataUrl } from "../utils/dataUrl.js";
-import { fetchJsonCached } from "../utils/fetchJsonCached.js";
-import { moveId as toMoveId } from "../utils/ids.js";
+import { dataUrl } from '../utils/dataUrl.js';
+import { fetchJsonCached } from '../utils/fetchJsonCached.js';
+import { moveId as toMoveId } from '../utils/ids.js';
 
 /**
  * Loads a team member's most-used competitive set details from its stitched set
@@ -17,8 +17,8 @@ import { moveId as toMoveId } from "../utils/ids.js";
 export async function loadTopSet({ family, pokemonId, selection }) {
   const data =
     (await fetchSetIndex({ family, pokemonId, selection })) ||
-    (selection !== "all"
-      ? await fetchSetIndex({ family, pokemonId, selection: "all" })
+    (selection !== 'all'
+      ? await fetchSetIndex({ family, pokemonId, selection: 'all' })
       : null);
 
   return {
@@ -46,10 +46,10 @@ export async function loadTopSet({ family, pokemonId, selection }) {
 function abilityList(entries) {
   if (!Array.isArray(entries)) return [];
   return entries
-    .filter((entry) => typeof entry?.name === "string")
+    .filter((entry) => typeof entry?.name === 'string')
     .map((entry) => ({
       name: entry.name,
-      usage: typeof entry.usage === "number" ? entry.usage : 0,
+      usage: typeof entry.usage === 'number' ? entry.usage : 0,
     }))
     .sort((a, b) => b.usage - a.usage);
 }
@@ -58,7 +58,7 @@ function moveUsageMap(entries) {
   const map = new Map();
   if (!Array.isArray(entries)) return map;
   for (const entry of entries) {
-    if (typeof entry?.name !== "string" || typeof entry.usage !== "number") continue;
+    if (typeof entry?.name !== 'string' || typeof entry.usage !== 'number') continue;
     const id = toMoveId(entry.name);
     if (!map.has(id) || entry.usage > map.get(id)) map.set(id, entry.usage);
   }
@@ -70,7 +70,7 @@ function moveRankMap(entries) {
   if (!Array.isArray(entries)) return map;
   for (let index = 0; index < entries.length; index += 1) {
     const name = entries[index]?.name;
-    if (typeof name !== "string") continue;
+    if (typeof name !== 'string') continue;
     const id = toMoveId(name);
     if (!map.has(id)) map.set(id, index);
   }
@@ -83,8 +83,8 @@ function topUsageName(entries) {
 
   let best = null;
   for (const entry of entries) {
-    if (typeof entry?.name !== "string") continue;
-    const usage = typeof entry.usage === "number" ? entry.usage : -1;
+    if (typeof entry?.name !== 'string') continue;
+    const usage = typeof entry.usage === 'number' ? entry.usage : -1;
     if (!best || usage > best.usage) best = { name: entry.name, usage };
   }
 

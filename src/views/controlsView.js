@@ -1,4 +1,4 @@
-import { escapeHtml } from "../utils/html.js";
+import { escapeHtml } from '../utils/html.js';
 
 /**
  * Format/month/search toolbar for the Usage Data page. Synthetic formats are

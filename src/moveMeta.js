@@ -87,8 +87,8 @@ export function hydrateLegalMove(rawMove) {
   return {
     id: rawMove.id,
     name: meta?.name ?? rawMove.id,
-    type: meta?.type ?? "Normal",
-    category: meta?.category ?? "Status",
+    type: meta?.type ?? 'Normal',
+    category: meta?.category ?? 'Status',
     basePower: meta?.basePower ?? 0,
     priority: meta?.priority ?? 0,
     utility: meta?.utility ?? false,
@@ -120,16 +120,16 @@ export function hydrateLegalMove(rawMove) {
  * @return {string}
  */
 export function describeMoveMeta(meta) {
-  if (!meta) return "";
+  if (!meta) return '';
   const parts = [meta.type, meta.category];
-  if (meta.category !== "Status" && meta.basePower > 0) {
+  if (meta.category !== 'Status' && meta.basePower > 0) {
     parts.push(`${meta.basePower} BP`);
   }
   parts.push(`${meta.accuracy ?? 100}% acc`);
   if (meta.priority) {
-    parts.push(`${meta.priority > 0 ? "+" : ""}${meta.priority} priority`);
+    parts.push(`${meta.priority > 0 ? '+' : ''}${meta.priority} priority`);
   }
-  return parts.filter(Boolean).join(" · ");
+  return parts.filter(Boolean).join(' · ');
 }
 
 /** @return {string} CSS color for the type; neutral gray when unknown. */

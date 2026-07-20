@@ -1,6 +1,6 @@
-import { resolveQueryEntries } from "../data";
-import { parsePoolTokens } from "./poolParsing";
-import { normalizeName } from "./nameUtils";
+import { resolveQueryEntries } from '../data';
+import { parsePoolTokens } from './poolParsing';
+import { normalizeName } from './nameUtils';
 
 /**
  * @param {string} query

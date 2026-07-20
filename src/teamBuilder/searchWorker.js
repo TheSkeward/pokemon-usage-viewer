@@ -5,7 +5,7 @@
  * stays small and can't recurse.
  */
 
-import { searchCombinationRange } from "./searchKernel.js";
+import { searchCombinationRange } from './searchKernel.js';
 
 self.onmessage = (event) => {
   const { id, compactLines, targetSize, bias, start, end, topCount } = event.data;

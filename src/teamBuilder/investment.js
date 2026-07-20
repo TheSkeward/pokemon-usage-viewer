@@ -13,8 +13,8 @@
  * full future-gamestate simulation.
  */
 
-import { optimizeTeamFromPool } from "./teamOptimizer.js";
-import { REBORN_PROGRESSION_CHECKPOINTS } from "../reborn/badgeTimeline.js";
+import { optimizeTeamFromPool } from './teamOptimizer.js';
+import { REBORN_PROGRESSION_CHECKPOINTS } from '../reborn/badgeTimeline.js';
 
 const TRAIN_SOON_GAIN = 250; // score points at the next cap that make a mon worth tracking
 const CLOSE_BENCH_MARGIN = 0.985; // swap score within 1.5% of the team's own score
@@ -88,7 +88,7 @@ export async function computeInvestmentPlan({
         progression: { ...progression, levelCap: String(cap) },
         query,
         selection,
-        searchMode: "fast",
+        searchMode: 'fast',
       }),
     });
     if (futureResults.length < caps.length && onPartial) {

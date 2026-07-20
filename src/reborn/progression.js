@@ -2,18 +2,18 @@ import {
   readLocalStorage,
   removeLocalStorage,
   writeLocalStorage,
-} from "../storage/safeLocalStorage";
+} from '../storage/safeLocalStorage';
 import {
   REBORN_TM_OPTIONS,
   REBORN_TMX_OPTIONS,
   REBORN_TUTOR_OPTIONS,
-} from "./progressionOptions";
-import { TERRAIN_SEED_MIGRATION } from "./rebornSeeds";
-import { REBORN_ANALYSIS_TYPES } from "./typeChart.js";
-import { EVOLUTION_ACCESS_FIELDS } from "./evolutionRequirements.js";
-import { getRebornCheckpoint } from "./badgeTimeline.js";
-import { getActiveGame } from "../games/registry.js";
-import { toId as normalizeSearch } from "../utils/ids.js";
+} from './progressionOptions';
+import { TERRAIN_SEED_MIGRATION } from './rebornSeeds';
+import { REBORN_ANALYSIS_TYPES } from './typeChart.js';
+import { EVOLUTION_ACCESS_FIELDS } from './evolutionRequirements.js';
+import { getRebornCheckpoint } from './badgeTimeline.js';
+import { getActiveGame } from '../games/registry.js';
+import { toId as normalizeSearch } from '../utils/ids.js';
 
 // Per-game: each game's playthrough progression is its own saved state (the
 // descriptor pins Reborn's pre-registry literal so existing saves survive).
@@ -27,8 +27,8 @@ export const MAX_OPPONENT_TYPE_BIAS = 6;
 
 /** A fresh playthrough: nothing unlocked, no cap set, empty inventory. */
 export const DEFAULT_REBORN_PROGRESSION = {
-  checkpoint: "",
-  levelCap: "",
+  checkpoint: '',
+  levelCap: '',
   moveRelearnerUnlocked: false,
   daycareUnlocked: false,
   hiddenPowerTypeChangerUnlocked: false,
@@ -45,7 +45,7 @@ export const DEFAULT_REBORN_PROGRESSION = {
  * @return {Object}
  */
 export function loadSavedRebornProgression() {
-  const raw = readLocalStorage(progressionStorageKey(), "");
+  const raw = readLocalStorage(progressionStorageKey(), '');
 
   if (!raw) return { ...DEFAULT_REBORN_PROGRESSION };
 
@@ -53,7 +53,7 @@ export function loadSavedRebornProgression() {
     const parsed = JSON.parse(raw);
     return normalizeRebornProgression(parsed);
   } catch (error) {
-    console.warn("Failed to parse saved Reborn progression", error);
+    console.warn('Failed to parse saved Reborn progression', error);
     return { ...DEFAULT_REBORN_PROGRESSION };
   }
 }
@@ -94,7 +94,7 @@ export function normalizeRebornProgression(progression = {}) {
     // single field every consumer reads.
     checkpoint: getRebornCheckpoint(progression.checkpoint)
       ? String(progression.checkpoint)
-      : "",
+      : '',
     levelCap: normalizeStoredLevelCap(progression.levelCap),
     moveRelearnerUnlocked: Boolean(progression.moveRelearnerUnlocked),
     daycareUnlocked: Boolean(progression.daycareUnlocked),
@@ -133,7 +133,7 @@ function normalizeEvolutionAccess(progression) {
   const legacyStonesBlocked = progression.evoAccessStones === false;
   for (const field of EVOLUTION_ACCESS_FIELDS) {
     const isItemGate =
-      field.item !== undefined || field.key === "evoAccessOtherEvoItems";
+      field.item !== undefined || field.key === 'evoAccessOtherEvoItems';
     const value =
       progression[field.key] !== undefined
         ? progression[field.key]
@@ -173,7 +173,7 @@ export function setRebornOpponentTypeBias(progression, type, level) {
  * @return {Object} The normalized progression.
  */
 export function setRebornOwnedItemCount(progression, itemId, count) {
-  const id = String(itemId || "").trim();
+  const id = String(itemId || '').trim();
   if (!id) return normalizeRebornProgression(progression);
 
   const owned = { ...(progression.ownedItems || {}) };
@@ -199,7 +199,7 @@ export function setRebornOwnedItemCount(progression, itemId, count) {
 export function addRebornOwnedItems(progression, counts = {}) {
   const owned = { ...(progression.ownedItems || {}) };
   for (const [itemId, count] of Object.entries(counts)) {
-    const id = String(itemId || "").trim();
+    const id = String(itemId || '').trim();
     const parsed = Number.parseInt(count, 10);
     if (!id || !Number.isFinite(parsed) || parsed <= 0) continue;
     owned[id] = Math.min(
@@ -219,7 +219,7 @@ export function addRebornOwnedItems(progression, counts = {}) {
 export function applyRebornCheckpoint(progression, checkpointId) {
   const checkpoint = getRebornCheckpoint(checkpointId);
   if (!checkpoint) {
-    return normalizeRebornProgression({ ...progression, checkpoint: "" });
+    return normalizeRebornProgression({ ...progression, checkpoint: '' });
   }
   return normalizeRebornProgression({
     ...progression,
@@ -296,21 +296,21 @@ export function normalizeLevelCap(value) {
 // Storage keeps the cap as text with "" meaning unset — an empty field must
 // round-trip as empty, not harden into a number.
 function normalizeStoredLevelCap(value) {
-  const text = String(value || "").trim();
-  if (!text || !Number.isFinite(Number.parseInt(text, 10))) return "";
+  const text = String(value || '').trim();
+  if (!text || !Number.isFinite(Number.parseInt(text, 10))) return '';
   return String(normalizeLevelCap(text));
 }
 
-function normalizeOptionIds(value, options, legacyText = "") {
+function normalizeOptionIds(value, options, legacyText = '') {
   const allowed = new Set(options.map((option) => option.id));
   const ids = new Set();
 
   for (const raw of Array.isArray(value) ? value : []) {
-    const id = String(raw || "").trim();
+    const id = String(raw || '').trim();
     if (allowed.has(id)) ids.add(id);
   }
 
-  for (const rawToken of String(legacyText || "").split(/[,\n]+/)) {
+  for (const rawToken of String(legacyText || '').split(/[,\n]+/)) {
     const token = normalizeSearch(rawToken);
     if (!token) continue;
 
@@ -332,7 +332,7 @@ function normalizeOptionIds(value, options, legacyText = "") {
 }
 
 function normalizeOpponentTypeBias(value) {
-  if (!value || typeof value !== "object") return {};
+  if (!value || typeof value !== 'object') return {};
 
   const bias = {};
 
@@ -346,12 +346,12 @@ function normalizeOpponentTypeBias(value) {
 }
 
 function normalizeOwnedItems(value) {
-  if (!value || typeof value !== "object") return {};
+  if (!value || typeof value !== 'object') return {};
 
   const owned = {};
 
   for (const [rawId, rawCount] of Object.entries(value)) {
-    const trimmed = String(rawId || "").trim();
+    const trimmed = String(rawId || '').trim();
     if (!trimmed) continue;
 
     const count = Number.parseInt(rawCount, 10);

@@ -1,14 +1,14 @@
 // Test harness that runs the REAL optimizer against the committed site data —
 // the same modules the browser runs, with fetch/localStorage shimmed to the
 // filesystem.
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const DATA = path.join(ROOT, "site-data", "data");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const DATA = path.join(ROOT, 'site-data', 'data');
 
-globalThis.__ENV__ = { BASE_URL: "/" };
+globalThis.__ENV__ = { BASE_URL: '/' };
 globalThis.localStorage = {
   getItem: () => null,
   setItem() {},
@@ -20,9 +20,9 @@ globalThis.fetch = async (url) => {
   // Strip the ?v=<dataSignature> cache-buster (utils/dataUrl.js) like any
   // static file server would — the filesystem has no query strings.
   const rel = String(url)
-    .replace(/\?.*$/, "")
-    .replace(/^\/?data\//, "")
-    .replace(/^\//, "");
+    .replace(/\?.*$/, '')
+    .replace(/^\/?data\//, '')
+    .replace(/^\//, '');
   try {
     const buf = await readFile(path.join(DATA, rel));
     return {
@@ -32,25 +32,25 @@ globalThis.fetch = async (url) => {
       text: async () => buf.toString(),
     };
   } catch {
-    return { ok: false, status: 404, json: async () => null, text: async () => "" };
+    return { ok: false, status: 404, json: async () => null, text: async () => '' };
   }
 };
 
-const { loadAvailability, loadPokemonIndex } = await import("../../src/data.js");
+const { loadAvailability, loadPokemonIndex } = await import('../../src/data.js');
 const { optimizeTeamFromPool } = await import(
-  "../../src/teamBuilder/teamOptimizer.js"
+  '../../src/teamBuilder/teamOptimizer.js',
 );
 // Wire the exact-search worker pool to node worker_threads, mirroring the
 // browser's Web Worker pool: each big search splits its combination range
 // across cores. Web-Worker-shaped shim over worker_threads' EventEmitter API.
 // Generous timeout: a CI box splitting a 2M-combo range is legitimately slow.
 {
-  const { Worker: NodeWorker } = await import("node:worker_threads");
+  const { Worker: NodeWorker } = await import('node:worker_threads');
   const { setSearchWorkerPoolFactory } = await import(
-    "../../src/teamBuilder/parallelSearch.js"
+    '../../src/teamBuilder/parallelSearch.js',
   );
-  const os = await import("node:os");
-  const workerUrl = new URL("./searchWorker.node.mjs", import.meta.url);
+  const os = await import('node:os');
+  const workerUrl = new URL('./searchWorker.node.mjs', import.meta.url);
   const shim = () => {
     const worker = new NodeWorker(workerUrl);
     worker.unref();
@@ -58,7 +58,7 @@ const { optimizeTeamFromPool } = await import(
     return {
       addEventListener(type, fn) {
         const handler =
-          type === "message"
+          type === 'message'
             ? (data) => fn({ data })
             : (err) => fn({ message: err?.message || String(err) });
         wrapped.set(fn, [type, handler]);
@@ -85,10 +85,10 @@ const { optimizeTeamFromPool } = await import(
 }
 
 const { setScoringOverrides } = await import(
-  "../../src/teamBuilder/scoringConstants.js"
+  '../../src/teamBuilder/scoringConstants.js',
 );
 const progressionOptions = await import(
-  "../../src/reborn/progressionOptions.js"
+  '../../src/reborn/progressionOptions.js',
 );
 
 const shared = { availability: null, pokemonIndex: null };
@@ -103,7 +103,7 @@ export async function loadShared() {
 }
 
 function badgeNumber(text) {
-  const match = /Badge\s+(\d+)/.exec(text || "");
+  const match = /Badge\s+(\d+)/.exec(text || '');
   return match ? Number(match[1]) : 99; // no badge string => not yet available
 }
 
@@ -147,12 +147,12 @@ export async function runPool({
   try {
     return await optimizeTeamFromPool({
       availability,
-      family: "singles",
+      family: 'singles',
       pokemonIndex,
       progression:
         progression || progressionAt({ badge, levelCap, opponentTypeBias }),
-      query: pool.join("\n"),
-      selection: "all",
+      query: pool.join('\n'),
+      selection: 'all',
     });
   } finally {
     if (overrides) setScoringOverrides(null);

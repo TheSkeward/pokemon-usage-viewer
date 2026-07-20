@@ -14,14 +14,14 @@
  * than aborting the team.
  */
 
-import { toId } from "../../src/utils/ids.js";
+import { toId } from '../../src/utils/ids.js';
 
-const STAT_KEYS = { hp: "hp", atk: "atk", def: "def", spa: "spa", spd: "spd", spe: "spe" };
-const GENDER_TOKENS = new Set(["M", "F", "N"]);
+const STAT_KEYS = { hp: 'hp', atk: 'atk', def: 'def', spa: 'spa', spd: 'spd', spe: 'spe' };
+const GENDER_TOKENS = new Set(['M', 'F', 'N']);
 
 function parseStatLine(rest) {
   const out = {};
-  for (const part of rest.split("/")) {
+  for (const part of rest.split('/')) {
     const match = part.trim().match(/^(\d+)\s*(HP|Atk|Def|SpA|SpD|Spe)$/i);
     if (!match) return null;
     out[STAT_KEYS[match[2].toLowerCase()]] = Number(match[1]);
@@ -35,7 +35,7 @@ function parseStatLine(rest) {
 function parseHeaderLine(line) {
   let rest = line;
   let item = null;
-  const atIndex = rest.lastIndexOf(" @ ");
+  const atIndex = rest.lastIndexOf(' @ ');
   if (atIndex !== -1) {
     item = rest.slice(atIndex + 3).trim() || null;
     rest = rest.slice(0, atIndex);
@@ -71,7 +71,7 @@ function parseHeaderLine(line) {
  */
 export function parseShowdownSet(block) {
   const lines = block
-    .replace(/ /g, " ")
+    .replace(/ /g, ' ')
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
@@ -96,7 +96,7 @@ export function parseShowdownSet(block) {
   };
 
   for (const line of lines.slice(1)) {
-    if (line.startsWith("- ") || line.startsWith("– ")) {
+    if (line.startsWith('- ') || line.startsWith('– ')) {
       const move = line.slice(2).trim();
       if (move) {
         set.moves.push(move);
@@ -108,15 +108,15 @@ export function parseShowdownSet(block) {
     if (labeled) {
       const label = labeled[1].trim().toLowerCase();
       const rest = labeled[2].trim();
-      if (label === "ability") {
+      if (label === 'ability') {
         set.ability = rest;
         set.abilityId = toId(rest);
-      } else if (label === "level") {
+      } else if (label === 'level') {
         const level = Number.parseInt(rest, 10);
         if (Number.isFinite(level)) set.level = level;
-      } else if (label === "evs") {
+      } else if (label === 'evs') {
         set.evs = parseStatLine(rest) ?? set.evs;
-      } else if (label === "ivs") {
+      } else if (label === 'ivs') {
         set.ivs = parseStatLine(rest) ?? set.ivs;
       }
       // Shiny / Happiness / Dynamax Level / Tera Type / Hidden Power are
@@ -143,8 +143,8 @@ export function parseShowdownSet(block) {
  * @return {{sets: !Array<!Object>, dropped: number, format: ?string}}
  */
 export function parseShowdownTeam(text) {
-  const blocks = String(text || "")
-    .replace(/\r\n/g, "\n")
+  const blocks = String(text || '')
+    .replace(/\r\n/g, '\n')
     .split(/\n\s*\n+/)
     .map((block) => block.trim())
     .filter(Boolean);
@@ -152,7 +152,7 @@ export function parseShowdownTeam(text) {
   let dropped = 0;
   let format = null;
   for (const block of blocks) {
-    const header = block.split("\n")[0].match(/^===\s*(?:\[(\w+)\])?.*===$/);
+    const header = block.split('\n')[0].match(/^===\s*(?:\[(\w+)\])?.*===$/);
     if (header) {
       format = format || header[1] || null;
       continue;

@@ -8,9 +8,9 @@
  * parallel and sequential paths can never diverge.
  */
 
-import { getTypeMultiplier, REBORN_ANALYSIS_TYPES } from "../reborn/typeChart.js";
-import { MAX_OPPONENT_TYPE_BIAS } from "../reborn/progression";
-import { tunable } from "./scoringConstants.js";
+import { getTypeMultiplier, REBORN_ANALYSIS_TYPES } from '../reborn/typeChart.js';
+import { MAX_OPPONENT_TYPE_BIAS } from '../reborn/progression';
+import { tunable } from './scoringConstants.js';
 
 export { REBORN_ANALYSIS_TYPES, getTypeMultiplier };
 
@@ -30,18 +30,18 @@ let ACTIVE = snapshotFitTunables();
 
 function snapshotFitTunables() {
   return {
-    coverageWeight: tunable("COVERAGE_WEIGHT"),
-    coverageScale: tunable("COVERAGE_SCALE"),
-    sharedWeakPenalty: tunable("SHARED_WEAK_PENALTY"),
-    uncoveredWeakPenalty: tunable("UNCOVERED_WEAK_PENALTY"),
-    resistStackBonus: tunable("RESIST_STACK_BONUS"),
-    synergyScale: tunable("SYNERGY_SCALE"),
+    coverageWeight: tunable('COVERAGE_WEIGHT'),
+    coverageScale: tunable('COVERAGE_SCALE'),
+    sharedWeakPenalty: tunable('SHARED_WEAK_PENALTY'),
+    uncoveredWeakPenalty: tunable('UNCOVERED_WEAK_PENALTY'),
+    resistStackBonus: tunable('RESIST_STACK_BONUS'),
+    synergyScale: tunable('SYNERGY_SCALE'),
   };
 }
 
 function computeCoverageWeights(opponentTypeBias) {
   const weights = new Array(TYPE_COUNT).fill(1);
-  const boost = tunable("BIAS_COVERAGE_BOOST");
+  const boost = tunable('BIAS_COVERAGE_BOOST');
   if (!opponentTypeBias) return weights;
   for (let j = 0; j < TYPE_COUNT; j++) {
     const raw = opponentTypeBias[REBORN_ANALYSIS_TYPES[j]];
@@ -197,7 +197,7 @@ function fastTeamFit(team) {
 export function getTeamScore(team, opponentTypeBias = {}) {
   const fast = fitReady ? fastTeamFit(team) : null;
   const fit = fast != null ? fast : scoreTeamFit(team, opponentTypeBias);
-  const weight = fitReady ? ACTIVE.coverageWeight : tunable("COVERAGE_WEIGHT");
+  const weight = fitReady ? ACTIVE.coverageWeight : tunable('COVERAGE_WEIGHT');
   return sumTeamScore(team) + weight * fit;
 }
 
@@ -223,11 +223,11 @@ function scoreTeamFit(team, opponentTypeBias = {}) {
   const fitWeights = profiles.map(
     (profile) => 1 - biasCounterExemption(profile, opponentTypeBias),
   );
-  const coverageScale = tunable("COVERAGE_SCALE");
-  const sharedWeakPenalty = tunable("SHARED_WEAK_PENALTY");
-  const uncoveredWeakPenalty = tunable("UNCOVERED_WEAK_PENALTY");
-  const resistStackBonus = tunable("RESIST_STACK_BONUS");
-  const synergyScale = tunable("SYNERGY_SCALE");
+  const coverageScale = tunable('COVERAGE_SCALE');
+  const sharedWeakPenalty = tunable('SHARED_WEAK_PENALTY');
+  const uncoveredWeakPenalty = tunable('UNCOVERED_WEAK_PENALTY');
+  const resistStackBonus = tunable('RESIST_STACK_BONUS');
+  const synergyScale = tunable('SYNERGY_SCALE');
 
   // Same Phase 3 blend as fastTeamFit — kept in lockstep.
   let synergy = 0;
@@ -364,9 +364,9 @@ export function getLineChoiceOptions(line) {
     const types = choice.legalityProfile?.currentTypes || [];
     // Unknown-typed forms never collapse into each other.
     const profile = types.length
-      ? [...types].sort().join("/")
+      ? [...types].sort().join('/')
       : `id:${choice.pokemonId}`;
-    const key = `${choice.isMega ? "m" : "n"}|${profile}`;
+    const key = `${choice.isMega ? 'm' : 'n'}|${profile}`;
     if (seenProfiles.has(key)) continue;
     seenProfiles.add(key);
     kept.push(choice);
@@ -447,7 +447,7 @@ export function teamIdentityKey(team) {
   return team
     .map((choice) => `${choice.inputPokemonId}:${choice.pokemonId}`)
     .sort()
-    .join("|");
+    .join('|');
 }
 
 // --- Top-N team collection ---------------------------------------------------
@@ -493,7 +493,7 @@ export function offerTopTeam(top, evaluated) {
 export function getRealizedTeamScore(team, opponentTypeBias = {}) {
   return (
     sumTeamScore(team) +
-    tunable("COVERAGE_WEIGHT") * scoreTeamFit(team, opponentTypeBias)
+    tunable('COVERAGE_WEIGHT') * scoreTeamFit(team, opponentTypeBias)
   );
 }
 
@@ -595,13 +595,13 @@ export function searchCombinationRange(lines, targetSize, opponentTypeBias, star
   const n = lines.length;
   const stride = onProgress
     ? Math.max(
-        SEARCH_PROGRESS_MIN_STRIDE,
-        Math.min(
-          SEARCH_PROGRESS_MAX_STRIDE,
-          Math.floor((end - start) / SEARCH_PROGRESS_REPORTS_PER_RANGE) ||
+      SEARCH_PROGRESS_MIN_STRIDE,
+      Math.min(
+        SEARCH_PROGRESS_MAX_STRIDE,
+        Math.floor((end - start) / SEARCH_PROGRESS_REPORTS_PER_RANGE) ||
             SEARCH_PROGRESS_MIN_STRIDE,
-        ),
-      )
+      ),
+    )
     : 0;
   const idx = unrankCombination(start, n, targetSize);
   if (idx) {
@@ -629,9 +629,9 @@ export function searchCombinationRange(lines, targetSize, opponentTypeBias, star
       })),
       megaUsed: evaluated.megaUsed
         ? {
-            inputPokemonId: evaluated.megaUsed.inputPokemonId,
-            pokemonId: evaluated.megaUsed.pokemonId,
-          }
+          inputPokemonId: evaluated.megaUsed.inputPokemonId,
+          pokemonId: evaluated.megaUsed.pokemonId,
+        }
         : null,
       score: evaluated.score,
       identityKey: identityOf(evaluated),

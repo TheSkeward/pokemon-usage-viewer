@@ -1,11 +1,11 @@
-import test from "node:test";
-import assert from "node:assert/strict";
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
 const { SCORING_DEFAULTS } = await import(
-  "../src/teamBuilder/scoringConstants.js"
+  '../src/teamBuilder/scoringConstants.js',
 );
 
-test("ε·C tiebreak can never override a real quantized usage difference", () => {
+test('ε·C tiebreak can never override a real quantized usage difference', () => {
   const maxTiebreak =
     SCORING_DEFAULTS.EPSILON_C * SCORING_DEFAULTS.CURRENT_VALUE_SCALE;
   assert.ok(
@@ -14,6 +14,6 @@ test("ε·C tiebreak can never override a real quantized usage difference", () =
   );
 });
 
-test("tier steps always dominate within-tier usage", () => {
+test('tier steps always dominate within-tier usage', () => {
   assert.ok(SCORING_DEFAULTS.TIER_STEP > 100);
 });

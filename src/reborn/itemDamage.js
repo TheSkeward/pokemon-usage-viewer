@@ -1,5 +1,5 @@
-import { GEN7_ITEM_DAMAGE } from "../generated/gen7ItemDamage.generated.js";
-import { toId } from "../utils/ids.js";
+import { GEN7_ITEM_DAMAGE } from '../generated/gen7ItemDamage.generated.js';
+import { toId } from '../utils/ids.js';
 
 /**
  * The damage multiplier a held item grants a given move: 1 when the item has no

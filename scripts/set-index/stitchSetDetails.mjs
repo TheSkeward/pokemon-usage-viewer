@@ -1,7 +1,7 @@
-import { MIN_MEANINGFUL_SET_ENTRY_USAGE_PERCENT } from "./constants.mjs";
-import { formatSource } from "./candidates.mjs";
-import { buildRelatedPokemonChain } from "./speciesContext.mjs";
-import { normalizeName } from "./stringUtils.mjs";
+import { MIN_MEANINGFUL_SET_ENTRY_USAGE_PERCENT } from './constants.mjs';
+import { formatSource } from './candidates.mjs';
+import { buildRelatedPokemonChain } from './speciesContext.mjs';
+import { normalizeName } from './stringUtils.mjs';
 
 /**
  * One mon's set-index detail: the primary tier's entries plus usage-less
@@ -64,7 +64,7 @@ export function stitchPokemonSetDetail({
         monthsAvailable: aggregate.monthsAvailable,
         monthsPresent: aggregate.monthsPresent,
         sourceText,
-        kind: "additional",
+        kind: 'additional',
       });
     }
   }
@@ -86,10 +86,10 @@ function choosePrimaryIndex({ present, ranking, trace, family }) {
   const matchIndex = (tier) =>
     tier?.formatId != null
       ? present.findIndex(
-          (aggregate) =>
-            aggregate.formatId === tier.formatId &&
+        (aggregate) =>
+          aggregate.formatId === tier.formatId &&
             aggregate.cutoff === tier.cutoff,
-        )
+      )
       : -1;
 
   if (ranking?.formatId != null) {
@@ -145,7 +145,7 @@ export function appendRelatedSetOptions({
     });
 
     detail.sourcesUsed.push({
-      kind: "related",
+      kind: 'related',
       pokemonId: related.id,
       name: related.name,
       reason: related.reason,
@@ -168,7 +168,7 @@ function createPrimaryDetail({
     monthsAvailable: aggregate.monthsAvailable,
     monthsPresent: aggregate.monthsPresent,
     sourceText,
-    kind: "primary",
+    kind: 'primary',
   };
 
   return {
@@ -210,7 +210,7 @@ function makePrimaryEntry(entry, sourceText) {
 
   return {
     ...entry,
-    kind: "primary",
+    kind: 'primary',
     trace: false,
   };
 }
@@ -310,18 +310,18 @@ function appendRelatedSection({ target, entries, seenMap, related }) {
 
   for (const entry of entries) {
     const relatedSourceText = `Related: ${related.name} (${related.reason})${
-      entry.sourceText ? ` — ${entry.sourceText}` : ""
+      entry.sourceText ? ` — ${entry.sourceText}` : ''
     }`;
 
     const output = isTraceEntry(entry)
       ? makeTraceEntry({
-          name: entry.name,
-          sourceText: relatedSourceText,
-        })
+        name: entry.name,
+        sourceText: relatedSourceText,
+      })
       : makeAdditionalEntry({
-          name: entry.name,
-          sourceText: relatedSourceText,
-        });
+        name: entry.name,
+        sourceText: relatedSourceText,
+      });
 
     if (appendOutputEntry({ target, output, seenMap })) {
       contributed = true;
@@ -391,7 +391,7 @@ function makeAdditionalEntry({ name, sourceText }) {
   return {
     name,
     usage: null,
-    kind: "additional",
+    kind: 'additional',
     sourceText,
     trace: false,
   };
@@ -401,7 +401,7 @@ function makeTraceEntry({ name, sourceText }) {
   return {
     name,
     usage: null,
-    kind: "additional",
+    kind: 'additional',
     sourceText: makeTraceSourceText(sourceText),
     trace: true,
   };
@@ -409,14 +409,14 @@ function makeTraceEntry({ name, sourceText }) {
 
 function isTraceEntry(entry) {
   if (entry?.trace) return true;
-  if (typeof entry?.usage !== "number") return false;
+  if (typeof entry?.usage !== 'number') return false;
   return entry.usage < MIN_MEANINGFUL_SET_ENTRY_USAGE_PERCENT;
 }
 
 function makeTraceSourceText(sourceText) {
-  const base = String(sourceText || "")
-    .replace(/^Trace:\s*/, "")
-    .replace(/\s*\(<0\.1%\)\s*$/, "");
+  const base = String(sourceText || '')
+    .replace(/^Trace:\s*/, '')
+    .replace(/\s*\(<0\.1%\)\s*$/, '');
 
   return `Trace: ${base} (<0.1%)`;
 }

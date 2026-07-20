@@ -6,18 +6,18 @@
  * lost, in the same auditable terms.
  */
 
-import { REBORN_ANALYSIS_TYPES } from "../reborn/typeChart.js";
-import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
+import { REBORN_ANALYSIS_TYPES } from '../reborn/typeChart.js';
+import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
 
 const ROLE_LABELS = {
-  fast_attacker: "fast attacker",
-  bulky_attacker: "bulky attacker",
-  specialist_bulky_attacker: "type-resilient bulky attacker",
-  tempo_attacker: "Speed Boost tempo attacker",
-  bulky_utility: "bulky utility",
-  fast_utility: "fast utility",
-  priority_utility: "priority utility",
-  screen_support: "single-action team protection",
+  fast_attacker: 'fast attacker',
+  bulky_attacker: 'bulky attacker',
+  specialist_bulky_attacker: 'type-resilient bulky attacker',
+  tempo_attacker: 'Speed Boost tempo attacker',
+  bulky_utility: 'bulky utility',
+  fast_utility: 'fast utility',
+  priority_utility: 'priority utility',
+  screen_support: 'single-action team protection',
 };
 
 function speciesName(id) {
@@ -57,23 +57,23 @@ export function explainSeatedChoice(choice, team, confidenceEntry) {
   const profile = choice.legalityProfile || {};
   const features = choice.currentFeatures || {};
 
-  const role = ROLE_LABELS[choice.currentRole] || choice.currentRole || "pick";
+  const role = ROLE_LABELS[choice.currentRole] || choice.currentRole || 'pick';
   const featureBits = [];
   if (features.damage_q != null)
     featureBits.push(`damage ${formatPercent(features.damage_q)}`);
   if (features.speed_q != null)
     featureBits.push(`speed ${formatPercent(features.speed_q)}`);
   if (
-    choice.currentRole === "tempo_attacker" &&
+    choice.currentRole === 'tempo_attacker' &&
     features.tempo_speed_q != null
   ) {
     featureBits.push(
       `after one boost ${formatPercent(features.tempo_speed_q)}`,
     );
-    if (features.tempo_reliability_q) featureBits.push("protected ramp");
+    if (features.tempo_reliability_q) featureBits.push('protected ramp');
   }
   if (
-    choice.currentRole === "screen_support" &&
+    choice.currentRole === 'screen_support' &&
     features.screen_protection_q != null
   ) {
     featureBits.push(
@@ -84,7 +84,7 @@ export function explainSeatedChoice(choice, team, confidenceEntry) {
     );
   }
   if (
-    choice.currentRole === "specialist_bulky_attacker" &&
+    choice.currentRole === 'specialist_bulky_attacker' &&
     features.physical_bulk_q != null &&
     features.special_bulk_q != null
   ) {
@@ -99,7 +99,7 @@ export function explainSeatedChoice(choice, team, confidenceEntry) {
       );
     }
   } else if (
-    ["bulky_attacker", "bulky_utility"].includes(choice.currentRole) &&
+    ['bulky_attacker', 'bulky_utility'].includes(choice.currentRole) &&
     features.effective_bulk_q != null
   ) {
     featureBits.push(
@@ -114,7 +114,7 @@ export function explainSeatedChoice(choice, team, confidenceEntry) {
       );
     }
   } else if (
-    choice.currentRole === "fast_attacker" &&
+    choice.currentRole === 'fast_attacker' &&
     features.fast_attacker_penalty_q != null
   ) {
     featureBits.push(
@@ -128,14 +128,14 @@ export function explainSeatedChoice(choice, team, confidenceEntry) {
   } else if (features.bulk_q != null) {
     featureBits.push(`bulk ${formatPercent(features.bulk_q)}`);
   }
-  lines.push(`Seats as ${role} (${featureBits.join(", ")}).`);
+  lines.push(`Seats as ${role} (${featureBits.join(', ')}).`);
 
-  if (choice.buildKey && choice.buildKey !== "default") {
+  if (choice.buildKey && choice.buildKey !== 'default') {
     lines.push(`Runs the ${choice.buildLabel || choice.buildKey} build.`);
   }
 
   const moves = (profile.recommendedMoves || []).map((move) => move.name);
-  if (moves.length) lines.push(`Set: ${moves.join(" / ")}.`);
+  if (moves.length) lines.push(`Set: ${moves.join(' / ')}.`);
 
   if (profile.preMegaAbility && profile.assumedAbility) {
     const sameAbility =
@@ -179,7 +179,7 @@ export function explainSeatedChoice(choice, team, confidenceEntry) {
           ? `${speciesName(step.to)} (${step.reason}, K ${step.friction})`
           : `${speciesName(step.to)} (${step.reason})`,
       )
-      .join(" → ");
+      .join(' → ');
     lines.push(`Evolution path: ${path}.`);
   }
   const delayed = profile.legalityProof?.delayedMoves || [];
@@ -187,7 +187,7 @@ export function explainSeatedChoice(choice, team, confidenceEntry) {
     lines.push(
       `Requires delayed evolution for ${delayed
         .map((move) => `${move.name} (${move.source})`)
-        .join(", ")} — K ${profile.legalityProof.buildFriction}.`,
+        .join(', ')} — K ${profile.legalityProof.buildFriction}.`,
     );
   }
   const blocked = profile.legalityProof?.blockedEvolutions || [];
@@ -195,19 +195,19 @@ export function explainSeatedChoice(choice, team, confidenceEntry) {
     lines.push(
       `Not assumed: ${blocked
         .map((entry) => `${speciesName(entry.to)} (${entry.reason})`)
-        .join("; ")}.`,
+        .join('; ')}.`,
     );
   }
 
   const patches = coverageContribution(choice, team);
   if (patches.length) {
-    lines.push(`Team's best answer into ${patches.join("/")}.`);
+    lines.push(`Team's best answer into ${patches.join('/')}.`);
   }
 
   if (confidenceEntry) {
     const drop = confidenceEntry.dropConditions?.length
-      ? ` Drops under: ${confidenceEntry.dropConditions.join(", ")}.`
-      : "";
+      ? ` Drops under: ${confidenceEntry.dropConditions.join(', ')}.`
+      : '';
     lines.push(
       `Appears in ${formatPercent(confidenceEntry.frequency)} of robustness settings (${confidenceEntry.tier}).${drop}`,
     );
@@ -237,9 +237,9 @@ export function explainExcludedChoice(choice, result, confidenceAlternative) {
 
   const patches = coverageContribution(choice, [...team, choice]);
   if (!patches.length) {
-    lines.push("Coverage redundant: adds no answer the team lacks.");
+    lines.push('Coverage redundant: adds no answer the team lacks.');
   } else {
-    lines.push(`Would add coverage into ${patches.join("/")}.`);
+    lines.push(`Would add coverage into ${patches.join('/')}.`);
   }
 
   if ((choice.friction || 0) > 0) {
@@ -250,7 +250,7 @@ export function explainExcludedChoice(choice, result, confidenceAlternative) {
     lines.push(
       `Better forms unavailable: ${blocked
         .map((entry) => `${speciesName(entry.to)} — ${entry.reason}`)
-        .join("; ")}.`,
+        .join('; ')}.`,
     );
   }
   if ((choice.online ?? 1) < 0.35) {

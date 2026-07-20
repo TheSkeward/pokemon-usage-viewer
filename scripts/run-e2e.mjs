@@ -9,28 +9,28 @@
  * browser.
  */
 
-import { spawn, execSync } from "node:child_process";
-import { readdirSync, symlinkSync, rmSync, existsSync } from "node:fs";
-import path from "node:path";
+import { spawn, execSync } from 'node:child_process';
+import { readdirSync, symlinkSync, rmSync, existsSync } from 'node:fs';
+import path from 'node:path';
 
 const PORT = 4199;
 const root = process.cwd();
-const dataLink = path.join(root, "dist", "data");
+const dataLink = path.join(root, 'dist', 'data');
 
 function log(message) {
   console.log(`[e2e] ${message}`);
 }
 
-log("building…");
-execSync("npm run build", { stdio: "inherit" });
+log('building…');
+execSync('npm run build', { stdio: 'inherit' });
 
 if (!existsSync(dataLink)) {
-  symlinkSync(path.join("..", "site-data", "data"), dataLink);
+  symlinkSync(path.join('..', 'site-data', 'data'), dataLink);
 }
 
 log(`starting preview on :${PORT}…`);
-const preview = spawn("npx", ["vite", "preview", "--port", String(PORT), "--strictPort"], {
-  stdio: "ignore",
+const preview = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], {
+  stdio: 'ignore',
   detached: false,
 });
 
@@ -45,27 +45,27 @@ async function waitForServer() {
     }
     await new Promise((resolve) => setTimeout(resolve, 300));
   }
-  throw new Error("preview server never became ready");
+  throw new Error('preview server never became ready');
 }
 
 function runSpec(file) {
   return new Promise((resolve) => {
     log(`running ${file}`);
-    const child = spawn(process.execPath, [path.join("test", "e2e", file)], {
-      stdio: "inherit",
+    const child = spawn(process.execPath, [path.join('test', 'e2e', file)], {
+      stdio: 'inherit',
       env: { ...process.env, E2E_BASE_URL: `http://localhost:${PORT}/pokemon-usage-viewer` },
     });
-    child.on("exit", (code) => resolve({ file, code: code ?? 1 }));
+    child.on('exit', (code) => resolve({ file, code: code ?? 1 }));
   });
 }
 
 let failures = 0;
 try {
   await waitForServer();
-  const specs = readdirSync(path.join(root, "test", "e2e"))
-    .filter((file) => file.endsWith(".e2e.mjs"))
+  const specs = readdirSync(path.join(root, 'test', 'e2e'))
+    .filter((file) => file.endsWith('.e2e.mjs'))
     .sort();
-  if (!specs.length) throw new Error("no specs found in test/e2e/");
+  if (!specs.length) throw new Error('no specs found in test/e2e/');
   for (const spec of specs) {
     const { file, code } = await runSpec(spec);
     if (code !== 0) {
@@ -74,9 +74,9 @@ try {
     }
   }
 } finally {
-  preview.kill("SIGTERM");
+  preview.kill('SIGTERM');
   rmSync(dataLink, { force: true });
 }
 
-log(failures ? `${failures} spec(s) FAILED` : "all specs passed");
+log(failures ? `${failures} spec(s) FAILED` : 'all specs passed');
 process.exit(failures ? 1 : 0);

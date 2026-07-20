@@ -30,7 +30,7 @@ async function main() {
 // column's first-meaningful tier, and the set-index tier sourcing all move
 // together when it changes — regenerate this index and the set index in the
 // same commit.
-import { SCORING_DEFAULTS } from "../src/teamBuilder/scoringConstants.js";
+import { SCORING_DEFAULTS } from '../src/teamBuilder/scoringConstants.js';
 const MEANINGFUL_USAGE_PERCENT = SCORING_DEFAULTS.MIN_MEANINGFUL_USAGE_PERCENT;
 
 async function buildFamilyAllIndex(availability, family) {
@@ -247,7 +247,7 @@ function* iterateCandidateSources(availability, family, dataKind) {
   for (const formatId of formatOrder) {
     for (const cutoff of cutoffPriority) {
       const candidateMonths = months.filter((month) =>
-        availability?.months?.[month]?.[formatId]?.[dataKind]?.includes(cutoff)
+        availability?.months?.[month]?.[formatId]?.[dataKind]?.includes(cutoff),
       );
 
       if (candidateMonths.length === 0) continue;
@@ -265,7 +265,7 @@ function* iterateCandidateSources(availability, family, dataKind) {
 
 async function readSourceData(month, formatId, cutoff, dataKind) {
   return readJsonNullable(
-    path.join(dataRoot, 'sources', month, formatId, String(cutoff), `${dataKind}.json`)
+    path.join(dataRoot, 'sources', month, formatId, String(cutoff), `${dataKind}.json`),
   );
 }
 

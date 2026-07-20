@@ -6,18 +6,18 @@
  * move is Water Gun in Reborn, Aqua Jet in USUM).
  */
 
-import { readFileSync } from "node:fs";
-import { Dex } from "@pkmn/dex";
-import { parseMarshal, RubySymbol } from "./parseMarshal.mjs";
+import { readFileSync } from 'node:fs';
+import { Dex } from '@pkmn/dex';
+import { parseMarshal, RubySymbol } from './parseMarshal.mjs';
 
 const dex = Dex.forGen(7);
-const toId = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, "");
+const toId = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
 
 // Reborn move-name → our move id where they differ.
-const MOVE_ALIASES = { vicegrip: "visegrip", hijumpkick: "highjumpkick" };
+const MOVE_ALIASES = { vicegrip: 'visegrip', hijumpkick: 'highjumpkick' };
 // Our species id → Reborn species id where they differ (Reborn keeps the gender
 // suffix on the Nidoran symbols).
-const SPECIES_ALIASES = { nidoranf: "nidoranfe", nidoranm: "nidoranma" };
+const SPECIES_ALIASES = { nidoranf: 'nidoranfe', nidoranm: 'nidoranma' };
 const moveId = (sym) => {
   const id = toId(sym.name);
   return MOVE_ALIASES[id] || id;
@@ -34,7 +34,7 @@ export function loadRebornMons(monsDatPath) {
   const bySpecies = new Map();
   for (const [key, wrapper] of top) {
     if (!(key instanceof RubySymbol)) continue;
-    const pokemonData = wrapper.ivars.get("@pokemonData");
+    const pokemonData = wrapper.ivars.get('@pokemonData');
     if (!pokemonData) continue;
     const forms = new Map();
     for (const [formKey, monData] of pokemonData) {
@@ -47,10 +47,10 @@ export function loadRebornMons(monsDatPath) {
 
 // Normalised form token for matching Reborn form names against @pkmn/dex formes.
 const normForm = (name) =>
-  toId(String(name).replace(/\b(form|forme)\b/gi, ""));
+  toId(String(name).replace(/\b(form|forme)\b/gi, ''));
 
 const hasMoveset = (monData) =>
-  monData && (monData.ivars.get("@Moveset") || []).length > 0;
+  monData && (monData.ivars.get('@Moveset') || []).length > 0;
 
 // Prefer the requested form, but Mega/Primal/Arceus-plate/etc. forms carry an
 // empty moveset in Reborn (they share the base learnset, stored only on the
@@ -58,7 +58,7 @@ const hasMoveset = (monData) =>
 // holds a moveset.
 function pickMonData(forms, preferred) {
   if (hasMoveset(preferred)) return preferred;
-  const normal = forms.get("Normal Form");
+  const normal = forms.get('Normal Form');
   if (hasMoveset(normal)) return normal;
   for (const monData of forms.values()) if (hasMoveset(monData)) return monData;
   return preferred || normal || [...forms.values()][0];
@@ -78,7 +78,7 @@ function resolveMonData(ourId, bySpecies) {
   const forms = lookup(baseId) || lookup(ourId);
   if (!forms) return null;
 
-  const base = pickMonData(forms, forms.get("Normal Form"));
+  const base = pickMonData(forms, forms.get('Normal Form'));
   if (!species?.forme) return { primary: base, base };
 
   const target = normForm(species.forme);
@@ -107,9 +107,9 @@ const listWithBase = (primary, base, field) => {
 };
 
 function extractMoves(primary, base) {
-  const moveset = (primary.ivars.get("@Moveset") || []).length
-    ? primary.ivars.get("@Moveset")
-    : base.ivars.get("@Moveset") || [];
+  const moveset = (primary.ivars.get('@Moveset') || []).length
+    ? primary.ivars.get('@Moveset')
+    : base.ivars.get('@Moveset') || [];
   const levelUp = []; // [level, moveId] for level >= 1
   const evolutionMoves = []; // moves at level 0
   for (const [level, sym] of moveset) {
@@ -120,9 +120,9 @@ function extractMoves(primary, base) {
   return {
     levelUp,
     evolutionMoves,
-    eggMoves: listWithBase(primary, base, "@EggMoves"),
-    compatibleMoves: listWithBase(primary, base, "@compatiblemoves"),
-    relearnerMoves: listWithBase(primary, base, "@RelearnerMoves"),
+    eggMoves: listWithBase(primary, base, '@EggMoves'),
+    compatibleMoves: listWithBase(primary, base, '@compatiblemoves'),
+    relearnerMoves: listWithBase(primary, base, '@RelearnerMoves'),
   };
 }
 

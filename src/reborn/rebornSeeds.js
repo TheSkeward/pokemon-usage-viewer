@@ -12,10 +12,10 @@
 
 /** The four Reborn Field Seeds. Display names. */
 export const REBORN_SEEDS = [
-  "Elemental Seed",
-  "Telluric Seed",
-  "Synthetic Seed",
-  "Magical Seed",
+  'Elemental Seed',
+  'Telluric Seed',
+  'Synthetic Seed',
+  'Magical Seed',
 ];
 
 /**
@@ -23,10 +23,10 @@ export const REBORN_SEEDS = [
  * field-triggered seed at all — which scales the seed recommendation.
  */
 export const GEN7_TERRAIN_SEEDS = [
-  "Electric Seed",
-  "Grassy Seed",
-  "Misty Seed",
-  "Psychic Seed",
+  'Electric Seed',
+  'Grassy Seed',
+  'Misty Seed',
+  'Psychic Seed',
 ];
 
 /**
@@ -37,13 +37,13 @@ export const GEN7_TERRAIN_SEEDS = [
  * replacement.
  */
 export const TERRAIN_SEED_REPLACEMENTS = {
-  "Electric Seed": "Elemental Seed",
-  "Grassy Seed": "Elemental Seed",
-  "Misty Seed": "Elemental Seed",
-  "Psychic Seed": "Magical Seed",
+  'Electric Seed': 'Elemental Seed',
+  'Grassy Seed': 'Elemental Seed',
+  'Misty Seed': 'Elemental Seed',
+  'Psychic Seed': 'Magical Seed',
 };
 
-const seedId = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "");
+const seedId = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '');
 
 /**
  * id -> replacement id, for migrating saved inventory off the hidden seeds.
@@ -70,10 +70,10 @@ export const HIDDEN_INVENTORY_ITEM_IDS = new Set(
 // gravitates to the archetype it amplifies: Elemental→fast, Telluric→physical
 // bulk, Synthetic→special wall, Magical→special attacker.
 const RAW_SEED_STAT_VECTORS = {
-  "Elemental Seed": [2, 1, 3, 2, 6],
-  "Telluric Seed": [3, 6, 3, 2, 1],
-  "Synthetic Seed": [1, 1, 2, 2, 0],
-  "Magical Seed": [2, 2, 8, 3, 2],
+  'Elemental Seed': [2, 1, 3, 2, 6],
+  'Telluric Seed': [3, 6, 3, 2, 1],
+  'Synthetic Seed': [1, 1, 2, 2, 0],
+  'Magical Seed': [2, 2, 8, 3, 2],
 };
 
 /**

@@ -1,5 +1,5 @@
-import { Dex } from "@pkmn/dex";
-import { normalizeName } from "./stringUtils.mjs";
+import { Dex } from '@pkmn/dex';
+import { normalizeName } from './stringUtils.mjs';
 
 const DEX = getGen7Dex();
 
@@ -70,15 +70,15 @@ export function buildRelatedPokemonChain(pokemon, speciesContext) {
     for (const sibling of siblingForms.filter(
       (candidate) => candidate.isMega && candidate.id !== info.id,
     )) {
-      add(sibling.id, "alternate Mega form");
+      add(sibling.id, 'alternate Mega form');
     }
 
-    add(baseId, "base form");
+    add(baseId, 'base form');
   } else if (info.id === baseId) {
     for (const sibling of siblingForms.filter(
       (candidate) => candidate.isMega,
     )) {
-      add(sibling.id, "Mega form");
+      add(sibling.id, 'Mega form');
     }
   } else {
     add(baseId, getFormReason(info));
@@ -99,7 +99,7 @@ function appendPreEvolutionChain({ add, baseId, speciesContext }) {
     const prevo = speciesContext.infoByPokemonId.get(current.prevoId);
     if (!prevo) return;
 
-    add(prevo.id, "pre-evolution");
+    add(prevo.id, 'pre-evolution');
     current = prevo;
   }
 }
@@ -109,7 +109,7 @@ function getSpeciesInfo(pokemon) {
   const name = species?.exists ? species.name : pokemon.name;
   const id = pokemon.id;
   const baseId = species?.baseSpecies ? normalizeName(species.baseSpecies) : id;
-  const prevoId = species?.prevo ? normalizeName(species.prevo) : "";
+  const prevoId = species?.prevo ? normalizeName(species.prevo) : '';
 
   return {
     id,
@@ -117,29 +117,29 @@ function getSpeciesInfo(pokemon) {
     dexId: species?.id || id,
     baseId,
     prevoId,
-    forme: species?.forme || "",
+    forme: species?.forme || '',
     isMega: Boolean(species?.isMega) || /mega/.test(id),
     isPrimal: /primal/.test(id),
     isTotem: /totem/.test(id),
     isBattleOnly: Boolean(species?.battleOnly),
     isPikachuCosplay:
-      id.startsWith("pikachu") &&
-      !["pikachu", "pichu", "raichu", "raichualola"].includes(id),
+      id.startsWith('pikachu') &&
+      !['pikachu', 'pichu', 'raichu', 'raichualola'].includes(id),
   };
 }
 
 function getFormReason(info) {
-  if (info.isTotem) return "normal Totem-relative form";
-  if (info.isPrimal) return "base Primal-relative form";
-  if (info.isPikachuCosplay) return "base Pikachu form";
-  if (info.isBattleOnly) return "base form";
-  if (info.forme) return "base form";
+  if (info.isTotem) return 'normal Totem-relative form';
+  if (info.isPrimal) return 'base Primal-relative form';
+  if (info.isPikachuCosplay) return 'base Pikachu form';
+  if (info.isBattleOnly) return 'base form';
+  if (info.forme) return 'base form';
 
-  return "related form";
+  return 'related form';
 }
 
 function getGen7Dex() {
-  if (typeof Dex.forGen === "function") return Dex.forGen(7);
-  if (typeof Dex.mod === "function") return Dex.mod("gen7");
+  if (typeof Dex.forGen === 'function') return Dex.forGen(7);
+  if (typeof Dex.mod === 'function') return Dex.mod('gen7');
   return Dex;
 }

@@ -1,23 +1,23 @@
-import { escapeHtml, escapeAttr } from "../utils/html.js";
+import { escapeHtml, escapeAttr } from '../utils/html.js';
 import {
   getAvailableMoveMap,
   getAvailableRebornMoves,
   getRebornMoveId,
   loadRebornLegalMoveData,
-} from "./legalMoves";
+} from './legalMoves';
 import {
   applyBreedingContextToProgression,
   buildRebornBreedingContext,
-} from "./breeding.js";
+} from './breeding.js';
 
-const HIDDEN_MOVESET_ENTRY_KEYS = new Set(["other", "nothing"]);
+const HIDDEN_MOVESET_ENTRY_KEYS = new Set(['other', 'nothing']);
 const SOURCE_TONE = {
-  "level-up": "level",
-  relearner: "relearner",
-  tm: "machine",
-  tmx: "machine",
-  tutor: "tutor",
-  egg: "egg",
+  'level-up': 'level',
+  relearner: 'relearner',
+  tm: 'machine',
+  tmx: 'machine',
+  tutor: 'tutor',
+  egg: 'egg',
 };
 
 /**
@@ -126,12 +126,12 @@ function renderLoadedPanel({
           ${
             currentSpecies?.differsFromRepresentative
               ? `<p class="muted">Long-term representative: ${escapeHtml(currentSpecies.representativeName)}. Current progression is checked against ${escapeHtml(currentSpecies.name)}.</p>`
-              : ""
+              : ''
           }
           ${
             progression.daycareUnlocked
               ? `<p class="muted">${eggMoveCount} egg moves are supported by the current pool breeding chain.</p>`
-              : ""
+              : ''
           }
           ${
             observedMoves.length
@@ -152,7 +152,7 @@ function renderLoadedPanel({
 }
 
 function renderObservedMoves(observedMoves, availableMoveMap) {
-  if (!observedMoves.length) return "";
+  if (!observedMoves.length) return '';
 
   return `
     <section class="legal-move-section">
@@ -162,7 +162,7 @@ function renderObservedMoves(observedMoves, availableMoveMap) {
           .map((entry) => {
             const availableMove = availableMoveMap.get(getRebornMoveId(entry.name));
             return `
-              <div class="legal-observed-row ${availableMove ? "available" : "unavailable"}">
+              <div class="legal-observed-row ${availableMove ? 'available' : 'unavailable'}">
                 <strong>${escapeHtml(entry.name)}</strong>
                 ${
                   availableMove
@@ -172,7 +172,7 @@ function renderObservedMoves(observedMoves, availableMoveMap) {
               </div>
             `;
           })
-          .join("")}
+          .join('')}
       </div>
     </section>
   `;
@@ -197,7 +197,7 @@ function renderMovePool(availableMoves) {
             </div>
           `,
         )
-        .join("")}
+        .join('')}
     </div>
   `;
 }
@@ -216,7 +216,7 @@ function renderSourcePills(sources) {
             </span>
           `,
         )
-        .join("")}
+        .join('')}
     </span>
   `;
 }

@@ -12,8 +12,8 @@
  * never a source of truth, so a failure just falls back to recomputing.
  */
 
-const DB_NAME = "pokemon-usage-viewer";
-const STORE = "team-results";
+const DB_NAME = 'pokemon-usage-viewer';
+const STORE = 'team-results';
 const DB_VERSION = 1;
 // Cap stored pools so the database can't grow without bound; oldest-written are
 // evicted first. Sized for the investment plan's future-cap projections, which
@@ -27,7 +27,7 @@ function openDb() {
   if (dbPromise) return dbPromise;
   dbPromise = new Promise((resolve) => {
     try {
-      if (typeof indexedDB === "undefined") {
+      if (typeof indexedDB === 'undefined') {
         resolve(null);
         return;
       }
@@ -35,8 +35,8 @@ function openDb() {
       request.onupgradeneeded = () => {
         const db = request.result;
         if (!db.objectStoreNames.contains(STORE)) {
-          const store = db.createObjectStore(STORE, { keyPath: "poolKey" });
-          store.createIndex("ts", "ts");
+          const store = db.createObjectStore(STORE, { keyPath: 'poolKey' });
+          store.createIndex('ts', 'ts');
         }
       };
       request.onsuccess = () => resolve(request.result);
@@ -64,7 +64,7 @@ export async function loadPersistedResults(version) {
   return new Promise((resolve) => {
     const stale = [];
     try {
-      const tx = db.transaction(STORE, "readonly");
+      const tx = db.transaction(STORE, 'readonly');
       const request = tx.objectStore(STORE).openCursor();
       request.onsuccess = () => {
         const cursor = request.result;
@@ -98,7 +98,7 @@ export async function persistResult(version, poolKey, result) {
   const db = await openDb();
   if (!db) return;
   try {
-    const tx = db.transaction(STORE, "readwrite");
+    const tx = db.transaction(STORE, 'readwrite');
     const store = tx.objectStore(STORE);
     // put() structured-clones synchronously and throws DataCloneError here if
     // the result isn't cloneable, so the catch keeps a bad entry from breaking
@@ -122,7 +122,7 @@ export async function persistResult(version, poolKey, result) {
 
 function evictOldest(store, count) {
   try {
-    const request = store.index("ts").openCursor();
+    const request = store.index('ts').openCursor();
     let removed = 0;
     request.onsuccess = () => {
       const cursor = request.result;
@@ -140,7 +140,7 @@ async function deleteKeys(keys) {
   const db = await openDb();
   if (!db) return;
   try {
-    const store = db.transaction(STORE, "readwrite").objectStore(STORE);
+    const store = db.transaction(STORE, 'readwrite').objectStore(STORE);
     for (const key of keys) store.delete(key);
   } catch {
     // best-effort cleanup

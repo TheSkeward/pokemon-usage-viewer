@@ -2,17 +2,17 @@
 // rendered HTML must carry the nature (+/− stats), the spread's real stat
 // line, and per-move facts — computed from the same tables the app ships.
 // Renders with a stub container; no optimizer, no fetches.
-import test from "node:test";
-import assert from "node:assert/strict";
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-globalThis.__ENV__ ??= { BASE_URL: "/" };
-const { renderMovesetPanel } = await import("../src/views/movesetView.js");
-const { describeNature, NATURE_EFFECTS } = await import("../src/natures.js");
-const { computeFinalStats } = await import("../src/reborn/damageModel.js");
+globalThis.__ENV__ ??= { BASE_URL: '/' };
+const { renderMovesetPanel } = await import('../src/views/movesetView.js');
+const { describeNature, NATURE_EFFECTS } = await import('../src/natures.js');
+const { computeFinalStats } = await import('../src/reborn/damageModel.js');
 
 function renderToHtml(options) {
   const container = {
-    innerHTML: "",
+    innerHTML: '',
     querySelectorAll: () => [],
     querySelector: () => null,
   };
@@ -21,12 +21,12 @@ function renderToHtml(options) {
 }
 
 
-test("nature table is complete and internally consistent", () => {
+test('nature table is complete and internally consistent', () => {
   const names = Object.keys(NATURE_EFFECTS);
   assert.equal(names.length, 25);
   const neutral = names.filter((name) => !NATURE_EFFECTS[name].plus);
   assert.equal(neutral.length, 5);
-  const statKeys = new Set(["atk", "def", "spa", "spd", "spe"]);
+  const statKeys = new Set(['atk', 'def', 'spa', 'spd', 'spe']);
   for (const name of names) {
     const { plus, minus } = NATURE_EFFECTS[name];
     if (!plus) {
@@ -38,31 +38,31 @@ test("nature table is complete and internally consistent", () => {
     assert.match(describeNature(name), /\+\w+, −\w+/);
   }
   // Unknown natures produce no tooltip rather than a wrong one.
-  assert.equal(describeNature("Bold Adamant"), "");
+  assert.equal(describeNature('Bold Adamant'), '');
 });
 
-test("computeFinalStats matches known reference stat lines", () => {
+test('computeFinalStats matches known reference stat lines', () => {
   // Lv-50 max-speed Jolly Garchomp — a number every builder site agrees on.
   const garchomp = computeFinalStats({
-    pokemonId: "Garchomp",
+    pokemonId: 'Garchomp',
     level: 50,
-    nature: "Jolly",
+    nature: 'Jolly',
     evs: [0, 252, 0, 0, 4, 252],
   });
   assert.equal(garchomp.spe, 169);
   assert.equal(garchomp.atk, 182);
   // Shedinja's HP is 1 regardless of investment.
   const shedinja = computeFinalStats({
-    pokemonId: "Shedinja",
+    pokemonId: 'Shedinja',
     level: 100,
-    nature: "Adamant",
+    nature: 'Adamant',
     evs: [252, 252, 0, 0, 0, 4],
   });
   assert.equal(shedinja.hp, 1);
   // Unknown species: null, not a throw. (Not "missingno" — @pkmn/dex ships
   // that one with real base stats, [136, 0, 6, 6, 29].)
   assert.equal(
-    computeFinalStats({ pokemonId: "notarealmon", level: 50, nature: "Bold", evs: [] }),
+    computeFinalStats({ pokemonId: 'notarealmon', level: 50, nature: 'Bold', evs: [] }),
     null,
   );
 });

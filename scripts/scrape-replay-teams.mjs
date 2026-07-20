@@ -11,19 +11,19 @@
  * format so a scheduled run is bounded. Runs where network policy allows
  * (CI / user machines); a blocked or failing format logs and moves on.
  */
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { REAL_FORMATS } from "./config.mjs";
-import { parseReplayTeams, toTeamSheetId } from "./teamscrape/replayLog.mjs";
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { REAL_FORMATS } from './config.mjs';
+import { parseReplayTeams, toTeamSheetId } from './teamscrape/replayLog.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 /** Directory holding the committed JSONL archives. @type {string} */
-export const ARCHIVE_DIR = path.join(scriptDir, "teamscrape", "archive");
+export const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
 
-const REPLAY_ROOT = "https://replay.pokemonshowdown.com";
+const REPLAY_ROOT = 'https://replay.pokemonshowdown.com';
 const USER_AGENT =
-  "pokemon-usage-viewer team harvester (github.com/TheSkeward/pokemon-usage-viewer)";
+  'pokemon-usage-viewer team harvester (github.com/TheSkeward/pokemon-usage-viewer)';
 const REQUEST_GAP_MS = 600;
 const SEARCH_PAGE_SIZE = 51; // search.json returns up to 51; fewer means the end
 const DEFAULT_MAX_NEW_PER_FORMAT = 300;
@@ -32,7 +32,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function fetchJson(url) {
   await sleep(REQUEST_GAP_MS);
-  const response = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+  const response = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
   if (!response.ok) throw new Error(`${response.status} ${url}`);
   return response.json();
 }
@@ -46,7 +46,7 @@ export function archivePath(formatId) {
 export function readArchiveIds(file) {
   if (!fs.existsSync(file)) return new Set();
   const ids = new Set();
-  for (const line of fs.readFileSync(file, "utf8").split("\n")) {
+  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
     if (!line.trim()) continue;
     try {
       ids.add(JSON.parse(line).id);
@@ -84,7 +84,7 @@ async function harvestFormat(formatId, { maxNew }) {
   let before = null;
 
   while (appended < maxNew) {
-    const url = `${REPLAY_ROOT}/search.json?format=${formatId}${before ? `&before=${before}` : ""}`;
+    const url = `${REPLAY_ROOT}/search.json?format=${formatId}${before ? `&before=${before}` : ''}`;
     const page = await fetchJson(url);
     if (!Array.isArray(page) || !page.length) break;
     for (const entry of page) {
@@ -112,7 +112,7 @@ async function harvestFormat(formatId, { maxNew }) {
 
 async function main() {
   const maxNew =
-    Number(process.argv.find((a) => a.startsWith("--max-new="))?.split("=")[1]) ||
+    Number(process.argv.find((a) => a.startsWith('--max-new='))?.split('=')[1]) ||
     DEFAULT_MAX_NEW_PER_FORMAT;
   let failures = 0;
   for (const { id } of REAL_FORMATS) {
@@ -126,7 +126,7 @@ async function main() {
   }
   // All-formats failure means no network (policy denial), not empty ladders.
   if (failures === REAL_FORMATS.length) {
-    console.error("every format failed — is this environment allowed to reach replay.pokemonshowdown.com?");
+    console.error('every format failed — is this environment allowed to reach replay.pokemonshowdown.com?');
     process.exitCode = 1;
   }
 }

@@ -11,12 +11,12 @@
  * files ({ source, pokemon }) so the viewer renders it unchanged.
  */
 
-import fs from "node:fs";
-import path from "node:path";
+import fs from 'node:fs';
+import path from 'node:path';
 
-const MOVESETS_ROOT = path.resolve("site-data", "data", "movesets");
+const MOVESETS_ROOT = path.resolve('site-data', 'data', 'movesets');
 const MONTH_FILE = /^\d{4}-\d{2}\.json$/;
-const SECTIONS = ["moves", "items", "abilities", "spreads"];
+const SECTIONS = ['moves', 'items', 'abilities', 'spreads'];
 
 function aggregateFormat(formatId) {
   const dir = path.join(MOVESETS_ROOT, formatId);
@@ -29,7 +29,7 @@ function aggregateFormat(formatId) {
   const byPokemon = new Map();
 
   for (const file of months) {
-    const data = JSON.parse(fs.readFileSync(path.join(dir, file), "utf8"));
+    const data = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
     for (const [pokemonId, entry] of Object.entries(data.pokemon || {})) {
       let aggregate = byPokemon.get(pokemonId);
       if (!aggregate) {
@@ -81,8 +81,8 @@ function aggregateFormat(formatId) {
   return {
     source: {
       formatId,
-      selection: "all",
-      months: months.map((file) => file.replace(/\.json$/, "")),
+      selection: 'all',
+      months: months.map((file) => file.replace(/\.json$/, '')),
       note: "Aggregated across all available months, weighted by each month's raw usage count.",
     },
     pokemon,
@@ -101,7 +101,7 @@ function main() {
     const aggregate = aggregateFormat(formatId);
     if (!aggregate) continue;
     fs.writeFileSync(
-      path.join(MOVESETS_ROOT, formatId, "all.json"),
+      path.join(MOVESETS_ROOT, formatId, 'all.json'),
       JSON.stringify(aggregate),
     );
     written += 1;

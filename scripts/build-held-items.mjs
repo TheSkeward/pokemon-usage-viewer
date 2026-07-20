@@ -6,30 +6,30 @@
  * re-run via `npm run build:held-items`.
  */
 
-import fs from "node:fs";
-import path from "node:path";
-import { TYPE_GEMS } from "../src/reborn/typeGems.js";
-import { REBORN_SEEDS } from "../src/reborn/rebornSeeds.js";
+import fs from 'node:fs';
+import path from 'node:path';
+import { TYPE_GEMS } from '../src/reborn/typeGems.js';
+import { REBORN_SEEDS } from '../src/reborn/rebornSeeds.js';
 
-const SET_INDEX_GLOB_ROOT = path.resolve("site-data", "data", "set-index");
+const SET_INDEX_GLOB_ROOT = path.resolve('site-data', 'data', 'set-index');
 const OUT_PATH = path.resolve(
-  "src",
-  "generated",
-  "gen7HeldItems.generated.js",
+  'src',
+  'generated',
+  'gen7HeldItems.generated.js',
 );
-const HIDDEN = new Set(["other", "nothing", ""]);
+const HIDDEN = new Set(['other', 'nothing', '']);
 
 function toId(name) {
-  return String(name || "")
+  return String(name || '')
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
+    .replace(/[^a-z0-9]+/g, '');
 }
 
 function* walkJsonFiles(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) yield* walkJsonFiles(full);
-    else if (entry.isFile() && entry.name.endsWith(".json")) yield full;
+    else if (entry.isFile() && entry.name.endsWith('.json')) yield full;
   }
 }
 
@@ -39,7 +39,7 @@ function main() {
   for (const file of walkJsonFiles(SET_INDEX_GLOB_ROOT)) {
     let data;
     try {
-      data = JSON.parse(fs.readFileSync(file, "utf8"));
+      data = JSON.parse(fs.readFileSync(file, 'utf8'));
     } catch {
       continue;
     }
@@ -52,7 +52,7 @@ function main() {
       const existing = byId.get(id);
       if (existing) {
         existing.appearances += 1;
-        if (name.includes(" ") && !existing.name.includes(" ")) {
+        if (name.includes(' ') && !existing.name.includes(' ')) {
           existing.name = name;
         }
       } else {
