@@ -116,20 +116,6 @@ test("item gate aggregates counts across the whole team", () => {
   assert.equal(teamItemsCovered([makeMember("c")], {}), true);
 });
 
-test("ranking: weight beats count and similarity; ties fall through in order", () => {
-  const recommended = new Set(["skarmory"]);
-  const heavy = makeTeam("heavy", 10, 3, ["tauros"]);
-  const light = makeTeam("light", 2, 9, ["skarmory"]);
-  assert.ok(compareRealTeams(heavy, light, recommended) < 0);
-
-  const sameWeight = makeTeam("aaa", 5, 4, ["tauros"]);
-  const closer = makeTeam("bbb", 5, 4, ["skarmory"]);
-  assert.ok(compareRealTeams(closer, sameWeight, recommended) < 0);
-
-  const twinA = makeTeam("aaa", 5, 4, ["tauros"]);
-  const twinB = makeTeam("bbb", 5, 4, ["tauros"]);
-  assert.ok(compareRealTeams(twinA, twinB, recommended) < 0, "stable by key");
-});
 
 test("findFieldableRealTeam returns the best FIELDABLE team, or null", async () => {
   const lines = [

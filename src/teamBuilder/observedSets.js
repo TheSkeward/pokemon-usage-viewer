@@ -32,42 +32,16 @@ export async function loadObservedSets({ family, pokemonId }) {
   }
 }
 
-const SPREAD_STAT_ORDER = ["hp", "atk", "def", "spa", "spd", "spe"];
-
-// "Adamant:252/4/0/0/252/0" — the set-index spread-name format parseSpread
-// reads. Null when the observed set carried no nature or EVs at all.
-function toSpreadName(set) {
-  if (!set.nature && !set.evs) return null;
-  const evs = SPREAD_STAT_ORDER.map((stat) => set.evs?.[stat] || 0).join("/");
-  return `${set.nature || "Serious"}:${evs}`;
-}
-
-// Picks the most-common observed set whose moves are ALL legal under the
-// progression (the ratified "whole set legal under the progression" bar).
-// Returns { adopt, context }:
-//   adopt   — coherent spread+item to replace the marginal top-spread/top-item
-//             assembly (null when no observed set is fully legal). Moves and
-//             ability are NOT adopted: moves stay scoring-anchored (score-
-//             what-you-show), ability stays the damage-active assumption.
-//   context — the most-run observed set outright (legality ignored), for
-//             display as labeled real-world context.
-export function chooseObservedSet(sets, legalMoveIds) {
-  const usable = (sets || []).filter((set) => (set.moveIds || []).length >= 3);
-  if (!usable.length) return { adopt: null, context: null };
-  const legal = usable.filter((set) =>
-    set.moveIds.every((id) => legalMoveIds.has(id)),
-  );
-  const best = legal[0] || null; // builder emits most-common first
-  return {
-    adopt: best ? { spread: toSpreadName(best), item: best.item ?? null } : null,
-    context: usable[0],
-  };
-}
-
-export async function selectObservedSet({ family, candidateIds, legalMoveIds }) {
+// The most-run observed whole set (≥3 known moves — fragments aren't sets),
+// regardless of current legality: labeled real-world CONTEXT only (user
+// ruling), never a recommendation. Builder files are most-common-first.
+export async function selectObservedSet({ family, candidateIds }) {
   for (const pokemonId of candidateIds.filter(Boolean)) {
     const detail = await loadObservedSets({ family, pokemonId });
-    if (detail?.sets?.length) return chooseObservedSet(detail.sets, legalMoveIds);
+    const context = (detail?.sets || []).find(
+      (set) => (set.moveIds || []).length >= 3,
+    );
+    if (context) return context;
   }
-  return { adopt: null, context: null };
+  return null;
 }

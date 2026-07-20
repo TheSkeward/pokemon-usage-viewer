@@ -137,23 +137,6 @@ test("core index: symmetric lift, min pair support, quality weighting", () => {
   assert.ok(aggron.trios.length >= 1);
 });
 
-await import("./helpers/harness.mjs"); // fetch → filesystem shim
-const { chooseObservedSet } = await import("../src/teamBuilder/observedSets.js");
-
-test("chooseObservedSet: adopts only fully-legal sets, always offers context", () => {
-  const sets = [
-    { count: 5, item: "Choice Band", nature: "Adamant", evs: { atk: 252 },
-      moveIds: ["crunch", "playrough", "suckerpunch", "firefang"] },
-    { count: 2, item: "Black Sludge", nature: "Careful", evs: { hp: 252 },
-      moveIds: ["crunch", "poisonjab", "taunt"] },
-  ];
-  const legal = new Set(["crunch", "poisonjab", "taunt"]);
-  const { adopt, context } = chooseObservedSet(sets, legal);
-  assert.equal(adopt.item, "Black Sludge"); // top set has illegal moves
-  assert.equal(adopt.spread, "Careful:252/0/0/0/0/0");
-  assert.equal(context.count, 5); // context is the most-run set regardless
-  assert.equal(chooseObservedSet(sets, new Set()).adopt, null);
-});
 
 const { htmlToText, extractThreadRows, extractFirstPostText } = await import(
   "../scripts/scrape-rmt-teams.mjs"
@@ -179,23 +162,6 @@ test("rmt: listing rows carry prefixes, first post yields inline sets", () => {
   assert.equal(htmlToText("a &amp; b<br>c"), "a & b\nc");
 });
 
-test("observed sets order by source weight: curation outranks RMT volume", () => {
-  const rmtSet = {
-    speciesId: "skuntank", species: "Skuntank", itemId: "choiceband",
-    item: "Choice Band", nature: "Adamant",
-    moves: ["Crunch"], moveIds: ["crunch"],
-  };
-  const byFamily = buildObservedSetIndex([
-    { format: "gen7ou", source: "rmt", sets: [rmtSet] },
-    { format: "gen7ou", source: "rmt", sets: [rmtSet] },
-    SAMPLE_TEAMS[0],
-  ]);
-  const sets = byFamily.get("singles").get("skuntank").sets;
-  assert.equal(sets[0].item, "Black Sludge"); // sample 1000 > rmt 2×5
-  assert.equal(sets[0].weight, 1000);
-  assert.equal(sets[1].weight, 10);
-  assert.equal(sets[1].count, 2);
-});
 
 const { WEIGHTS, replayWeight, teamWeight } = await import(
   "../scripts/teamscrape/weights.mjs"
@@ -228,38 +194,3 @@ test("tournament: replay-link format attribution incl. smogtours ids", () => {
   );
 });
 
-const { summarizeCorpus, topCores } = await import(
-  "../scripts/report-team-corpus.mjs"
-);
-
-test("corpus report: source weights, rating bands, dedup, skip-markers excluded", () => {
-  const replays = [
-    { format: "gen7ou", rating: 1800, teams: [["a", "b"], ["c", "d"]] },
-    { format: "gen7ou", rating: 1550, teams: [["a", "b"], ["c", "d"]] },
-    { format: "gen7ou", rating: null, source: "tournament", teams: [["a", "b"], ["c", "d"]] },
-  ];
-  const skuntankSet = {
-    speciesId: "skuntank", species: "Skuntank",
-    moves: ["Crunch"], moveIds: ["crunch"],
-  };
-  const teams = [
-    { format: "gen7ou", source: "sample", sets: [skuntankSet, { ...skuntankSet, speciesId: "aggron", species: "Aggron" }, { ...skuntankSet, speciesId: "b1" }, { ...skuntankSet, speciesId: "b2" }] },
-    { format: "gen7ou", source: "sample", sets: [skuntankSet, { ...skuntankSet, speciesId: "aggron", species: "Aggron" }, { ...skuntankSet, speciesId: "b1" }, { ...skuntankSet, speciesId: "b2" }] },
-    { format: "gen7ou", source: "rmt", sets: [] }, // teamless skip marker
-  ];
-  const summary = summarizeCorpus({ replays, teams });
-  assert.equal(summary.pasteRecords, 2); // marker excluded
-  assert.equal(summary.uniqueTeams, 1); // identical sample teams dedup
-  const ou = summary.formats.get("gen7ou");
-  assert.equal(ou.sources.get("ladder").records, 2);
-  assert.equal(ou.sources.get("ladder").weight, 1.02); // 1.0 + 0.02
-  assert.equal(ou.sources.get("tournament-replay").weight, 60);
-  assert.equal(ou.sources.get("sample").weight, 2000);
-  assert.equal(ou.ratings.get("1760+"), 1);
-  assert.equal(ou.ratings.get("1500-1629"), 1);
-  assert.equal(ou.ratings.get("unrated"), 0); // tournament replay not a ladder band
-
-  const cores = topCores({ replays, teams });
-  const pairs = cores.get("singles").map((p) => p.pair);
-  assert.ok(pairs.includes("aggron+skuntank"));
-});

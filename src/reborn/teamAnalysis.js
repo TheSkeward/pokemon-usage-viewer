@@ -221,13 +221,12 @@ async function buildMemberLegalMoveEntry({
   // assembly stays the recommendation — real sets assume an unrestricted
   // movepool, and adopting their spread/item would pair components with
   // recommended moves they never ran beside.
-  const observed = itemAware
+  const observedSet = itemAware
     ? await selectObservedSet({
         family,
         candidateIds: [member.representativeId, member.id, megaBaseId],
-        legalMoveIds: new Set(moves.map((move) => move.id)),
       })
-    : { adopt: null, context: null };
+    : null;
   const attackerStats = getAttackingStats({
     pokemonId: member.id,
     levelCap: progression.levelCap,
@@ -273,7 +272,7 @@ async function buildMemberLegalMoveEntry({
   });
   // Labeled context, not a recommendation: the most-run real set regardless
   // of current legality, for the panel/export layers to surface.
-  profile.observedSet = observed.context;
+  profile.observedSet = observedSet;
 
   return { member, moves, profile, topSet, row };
 }
