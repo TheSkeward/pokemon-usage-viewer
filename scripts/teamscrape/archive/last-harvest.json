@@ -1,0 +1,36 @@
+{
+  "finishedAt": "2026-07-20T17:48:44.996Z",
+  "results": [
+    {
+      "script": "scrape-sample-teams.mjs",
+      "exitCode": 0,
+      "outputTail": [
+        "gen7ou https://www.smogon.com/forums/threads/usum-ou-sample-teams.3667587/: +0 (archive 0)",
+        "  paste a75a1c114c9c8f4e: 5 unreadable block(s)",
+        "  paste 3329dbb7a4c40a9f: 3 unreadable block(s)",
+        "gen7uu https://www.smogon.com/forums/threads/usum-uu-sample-teams.3621217/: +43 (archive 43)",
+        "gen7ru https://www.smogon.com/forums/threads/usum-ru-sample-teams.3645873/: +1 (archive 1)",
+        "gen7nu https://www.smogon.com/forums/threads/usum-nu-sample-teams.3641525/: +0 (archive 0)",
+        "gen7pu https://www.smogon.com/forums/threads/usum-pu-sample-teams.3611496/: +6 (archive 6)",
+        "gen7lc https://www.smogon.com/forums/threads/usum-lc-sample-teams.3639319/: +7 (archive 7)",
+        "  paste 8866b0595cbc0552: 1 unreadable block(s)",
+        "gen7ubers https://www.smogon.com/forums/threads/usum-ubers-sample-teams.3639330/: +62 (archive 62)",
+        "gen7doublesou https://www.smogon.com/forums/threads/usum-doubles-ou-sample-teams.3645990/: +0 (archive 0)"
+      ]
+    },
+    {
+      "script": "scrape-rmt-teams.mjs",
+      "exitCode": 0,
+      "outputTail": [
+        "rmt: +0 new teams this run"
+      ]
+    },
+    {
+      "script": "scrape-tournament-teams.mjs",
+      "exitCode": 0,
+      "outputTail": [
+        "tournament: +0 paste teams, +0 replays"
+      ]
+    }
+  ]
+}
