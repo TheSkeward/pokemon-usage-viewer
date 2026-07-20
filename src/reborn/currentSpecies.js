@@ -4,6 +4,7 @@ import {
   getEvolutionRequirement,
   evolutionChainProof,
 } from "./evolutionRequirements.js";
+import { normalizeLevelCap } from "./progression.js";
 
 export function getCurrentRebornSpeciesForChoice(choice, progression = {}) {
   const inputId = toId(choice?.inputPokemonId || choice?.pokemonId);
@@ -171,12 +172,4 @@ function getDepth(speciesId) {
   }
 
   return depth;
-}
-
-function normalizeLevelCap(value) {
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed)) return 100;
-  if (parsed < 1) return 1;
-  if (parsed > 100) return 100;
-  return parsed;
 }

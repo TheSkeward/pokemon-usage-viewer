@@ -10,6 +10,7 @@ await import("./helpers/harness.mjs"); // fetch → filesystem shim
 const { getAvailableRebornMoves, loadRebornLegalMoveData } = await import(
   "../src/reborn/legalMoves.js"
 );
+const { normalizeLevelCap } = await import("../src/reborn/progression.js");
 
 const staraptor = await loadRebornLegalMoveData("staraptor");
 
@@ -36,4 +37,20 @@ test("cap 50: Staraptor's own Level 49 needs no delay at all", () => {
   const source = braveBirdSource("50");
   assert.equal(source.learnerId, "staraptor");
   assert.equal(source.delayedEvolution, undefined);
+});
+
+// Reborn's post-game raises the cap past 100 (to 150); a cap of 120
+// truncated to 100 would silently hide everything gated in 101-150.
+test("post-game level caps above 100 are not truncated", () => {
+  assert.equal(normalizeLevelCap("120"), 120);
+  assert.equal(normalizeLevelCap(150), 150);
+  assert.equal(normalizeLevelCap(999), 150);
+});
+
+test("cap 150: Judgment (level 100, the data's highest learn level) is available", async () => {
+  const arceus = await loadRebornLegalMoveData("arceus");
+  const judgment = getAvailableRebornMoves(arceus, { levelCap: "150" }).find(
+    (move) => move.id === "judgment",
+  );
+  assert.equal(judgment?.availableSources?.[0]?.label, "Level 100");
 });

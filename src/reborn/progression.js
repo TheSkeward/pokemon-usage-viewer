@@ -70,7 +70,7 @@ export function normalizeRebornProgression(progression = {}) {
     checkpoint: getRebornCheckpoint(progression.checkpoint)
       ? String(progression.checkpoint)
       : "",
-    levelCap: normalizeLevelCap(progression.levelCap),
+    levelCap: normalizeStoredLevelCap(progression.levelCap),
     moveRelearnerUnlocked: Boolean(progression.moveRelearnerUnlocked),
     daycareUnlocked: Boolean(progression.daycareUnlocked),
     hiddenPowerTypeChangerUnlocked: Boolean(
@@ -217,20 +217,24 @@ export function setRebornProgressionOptions(progression, field, optionIds) {
   });
 }
 
-function normalizeLevelCap(value) {
+// Reborn's post-game raises the cap past 100 (to 150). Damage/stat math
+// still clamps levels to 100 internally (damageModel's normalizeLevel); the
+// cap only widens legality and reachability. An unset cap reads as 100, the
+// main-game maximum.
+export function normalizeLevelCap(value) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return 100;
+  if (parsed < 1) return 1;
+  if (parsed > 150) return 150;
+  return parsed;
+}
+
+// Storage keeps the cap as text with "" meaning unset — an empty field must
+// round-trip as empty, not harden into a number.
+function normalizeStoredLevelCap(value) {
   const text = String(value || "").trim();
-
-  if (!text) return "";
-
-  const parsed = Number.parseInt(text, 10);
-
-  if (!Number.isFinite(parsed)) return "";
-  if (parsed < 1) return "1";
-  // Reborn's post-game raises the cap past 100 (to 150). Damage/stat math
-  // still clamps levels to 100 internally; the cap only widens legality.
-  if (parsed > 150) return "150";
-
-  return String(parsed);
+  if (!text || !Number.isFinite(Number.parseInt(text, 10))) return "";
+  return String(normalizeLevelCap(text));
 }
 
 function normalizeOptionIds(value, options, legacyText = "") {

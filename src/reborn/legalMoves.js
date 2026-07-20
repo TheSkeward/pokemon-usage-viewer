@@ -4,6 +4,7 @@ import {
   REBORN_TUTOR_OPTIONS,
 } from "./progressionOptions.js";
 import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
+import { normalizeLevelCap } from "./progression.js";
 import { dataUrl } from "../utils/dataUrl.js";
 import { getActiveGame } from "../games/registry.js";
 import { hydrateLegalMove } from "../moveMeta.js";
@@ -471,14 +472,6 @@ function getBestSourcePriority(move) {
   return Math.min(
     ...move.availableSources.map((source) => priorities[source.kind] ?? 9),
   );
-}
-
-export function normalizeLevelCap(value) {
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed)) return 100;
-  if (parsed < 1) return 1;
-  if (parsed > 100) return 100;
-  return parsed;
 }
 
 function mapOptionsByMoveId(options) {

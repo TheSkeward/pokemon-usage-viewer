@@ -6,8 +6,8 @@ import {
   compareEvolutionRouteOptions,
   getAvailableRebornMoves,
   loadRebornLegalMoveData,
-  normalizeLevelCap,
 } from "./legalMoves";
+import { normalizeLevelCap } from "./progression.js";
 
 const BLOCKED_EGG_GROUPS = new Set(["Undiscovered", "Ditto"]);
 

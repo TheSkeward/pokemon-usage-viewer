@@ -199,7 +199,10 @@ const MAX_RESULT_CACHE = 400;
 // v41: breeding-donor routes obey the same least-evolutionary-delay
 // preference, so chain provenance, donor labels, and interim guides in
 // persisted results change.
-const RESULT_CACHE_VERSION = "41";
+// v42: legality honors post-game level caps above 100 (previously truncated
+// to 100), so candidates, available moves, and scores change for
+// progressions with caps in the 101-150 range.
+const RESULT_CACHE_VERSION = "42";
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
