@@ -1,11 +1,13 @@
-// End-to-end runner: builds the site, serves it with `vite preview` (data
-// symlinked from site-data so nothing is copied), runs every
-// test/e2e/*.e2e.mjs as a child process, and exits non-zero if any fail.
-// These specs cover behaviors the unit suites cannot see — focus retention,
-// scroll pinning, downloads, in-place DOM patching. Run: npm run e2e
-//
-// Not wired into CI on purpose: it needs the full site-data tree and a
-// browser.
+/**
+ * @fileoverview End-to-end runner: builds the site, serves it with `vite
+ * preview` (data symlinked from site-data so nothing is copied), runs every
+ * test/e2e/*.e2e.mjs as a child process, and exits non-zero if any fail.
+ * These specs cover behaviors the unit suites cannot see — focus retention,
+ * scroll pinning, downloads, in-place DOM patching. Run: npm run e2e
+ *
+ * Not wired into CI on purpose: it needs the full site-data tree and a
+ * browser.
+ */
 
 import { spawn, execSync } from "node:child_process";
 import { readdirSync, symlinkSync, rmSync, existsSync } from "node:fs";

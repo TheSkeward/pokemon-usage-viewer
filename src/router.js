@@ -5,6 +5,10 @@ const VALID_SORT_DIRS = new Set(['asc', 'desc']);
 const VALID_VIEWS = new Set(['resolver', 'pool', 'browser']);
 const VALID_FAMILIES = new Set(['singles', 'doubles']);
 
+/**
+ * @return {!Object} App state from the URL query params; missing or invalid
+ *     values fall back to DEFAULT_STATE.
+ */
 export function readStateFromUrl() {
   const params = new URLSearchParams(window.location.search);
 
@@ -24,6 +28,7 @@ export function readStateFromUrl() {
   };
 }
 
+/** Serializes state into the URL query string via history.replaceState. */
 export function writeStateToUrl(state) {
   const params = new URLSearchParams();
 

@@ -1,4 +1,12 @@
 import { escapeHtml } from "../utils/html.js";
+
+/**
+ * Period/query toolbar for the Set Lookup page.
+ * @param {!Element} container
+ * @param {!Object} state
+ * @param {?{months: !Object}} availability Month options come from the
+ *     months keys, newest first.
+ */
 export function renderResolverControls(container, state, availability) {
   const months = Object.keys(availability?.months || {})
     .sort()

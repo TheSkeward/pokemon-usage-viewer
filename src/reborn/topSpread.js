@@ -2,11 +2,18 @@ import { dataUrl } from "../utils/dataUrl.js";
 import { fetchJsonCached } from "../utils/fetchJsonCached.js";
 import { moveId as toMoveId } from "../utils/ids.js";
 
-// Loads a team member's most-used competitive set details from its stitched set
-// index — top EV spread + nature ("Nature:HP/Atk/Def/SpA/SpD/Spe"), ability, and
-// item — so the damage model can use the real investment and the analysis can
-// show a complete Showdown set. Shares the URL-keyed fetch cache with the item
-// recommender.
+/**
+ * Loads a team member's most-used competitive set details from its stitched set
+ * index — top EV spread + nature ("Nature:HP/Atk/Def/SpA/SpD/Spe"), ability, and
+ * item — so the damage model can use the real investment and the analysis can
+ * show a complete Showdown set. Shares the URL-keyed fetch cache with the item
+ * recommender. Falls back to the "all" selection when the requested selection
+ * has no set index.
+ * @param {{family: string, pokemonId: string, selection: string}} target
+ * @return {Promise<{spread: ?string, ability: ?string,
+ *     abilities: Array<{name: string, usage: number}>, item: ?string,
+ *     moveUsage: Map<string, number>, moveRank: Map<string, number>}>}
+ */
 export async function loadTopSet({ family, pokemonId, selection }) {
   const data =
     (await fetchSetIndex({ family, pokemonId, selection })) ||

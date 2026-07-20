@@ -1,5 +1,11 @@
 import { escapeHtml } from "../utils/html.js";
 
+/**
+ * Replaces `app` contents with the shell chrome; pages mount into the empty
+ * #page-root section it creates.
+ * @param {!Element} app
+ * @param {{family: string, view: string}} state
+ */
 export function renderAppShell(app, state) {
   app.innerHTML = `
     <div class="app-shell">
@@ -23,6 +29,10 @@ export function renderAppShell(app, state) {
   `;
 }
 
+/**
+ * @param {!Element} app
+ * @param {!Error} error
+ */
 export function renderFatalAppError(app, error) {
   app.innerHTML = `
     <div class="app-shell">

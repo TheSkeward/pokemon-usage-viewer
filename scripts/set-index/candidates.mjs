@@ -1,3 +1,10 @@
+/**
+ * Moveset sources for a family, in formatOrder × cutoffPriority order (the
+ * tier ladder set stitching descends).
+ *
+ * @return {!Array<{family: string, selection: string, formatId: string,
+ *     cutoff: number, months: !Array<string>}>}
+ */
 export function getMovesetCandidates(availability, family, selection) {
   const familyConfig = availability?.familyConfigs?.[family];
 
@@ -34,6 +41,11 @@ export function getMovesetCandidates(availability, family, selection) {
   return candidates;
 }
 
+/**
+ * @param {string} selection A month ("2019-11") or "all".
+ * @return {!Array<string>} Months whose availability lists the cutoff for
+ *     this format and data kind; at most one month unless selection is "all".
+ */
 export function getCandidateMonths(
   availability,
   selection,
@@ -56,6 +68,7 @@ export function getCandidateMonths(
     : [];
 }
 
+/** @return {string} Human-readable source label, e.g. "Gen 7 OU @ 1500 (3/4 mo)". */
 export function formatSource(source, formatsIndex) {
   const label =
     formatsIndex.find((format) => format.id === source.formatId)?.label ||

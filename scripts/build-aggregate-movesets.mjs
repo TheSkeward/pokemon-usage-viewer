@@ -1,13 +1,15 @@
-// Builds movesets/<formatId>/all.json — the "All available" aggregate of a
-// format's monthly moveset files — so the browser's detail pane can show
-// genuinely aggregated sets instead of silently falling back to the latest
-// month (which for thin formats is one player's single set at 100%).
-//
-// Aggregation matches scripts/set-index/aggregateMovesets.mjs: an entry's
-// monthly usage% is converted back to a count (usage/100 × that month's
-// rawCount for the mon), counts are summed across months, and the final
-// percentage is count / total rawCount. Output shape mirrors the monthly
-// files ({ source, pokemon }) so the viewer renders it unchanged.
+/**
+ * @fileoverview Builds movesets/<formatId>/all.json — the "All available"
+ * aggregate of a format's monthly moveset files — so the browser's detail pane
+ * can show genuinely aggregated sets instead of silently falling back to the
+ * latest month (which for thin formats is one player's single set at 100%).
+ *
+ * Aggregation matches scripts/set-index/aggregateMovesets.mjs: an entry's
+ * monthly usage% is converted back to a count (usage/100 × that month's
+ * rawCount for the mon), counts are summed across months, and the final
+ * percentage is count / total rawCount. Output shape mirrors the monthly
+ * files ({ source, pokemon }) so the viewer renders it unchanged.
+ */
 
 import fs from "node:fs";
 import path from "node:path";

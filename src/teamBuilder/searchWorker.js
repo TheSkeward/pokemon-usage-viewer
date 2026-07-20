@@ -1,6 +1,9 @@
-// Web Worker entry: scores one slice of the team-combination space and posts back
-// the best team it found. It imports ONLY the pure kernel (no caches, no DOM, no
-// worker orchestration), so the worker bundle stays small and can't recurse.
+/**
+ * @fileoverview Web Worker entry: scores one slice of the team-combination
+ * space and posts back the best team it found. It imports ONLY the pure
+ * kernel (no caches, no DOM, no worker orchestration), so the worker bundle
+ * stays small and can't recurse.
+ */
 
 import { searchCombinationRange } from "./searchKernel.js";
 

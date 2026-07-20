@@ -1,11 +1,14 @@
-// Tournament harvester: walks the configured tournament forums/threads
-// (team dumps and replay threads — SPL old-gen slots, RoA cups). Two yields:
-//   pastes  → tournament-<format>.jsonl (whole sets, elite prepared play)
-//   replays → replays-<format>.jsonl with source:"tournament", so the core
-//             index prices them as tournament play instead of unrated.
-// Format attribution, most→least reliable: the paste's own "=== [gen7ou] ==="
-// header, the replay id's format segment, the thread's prefix label via
-// rmt.prefixMap, a per-listing pinned format in the config.
+/**
+ * @fileoverview Tournament harvester: walks the configured tournament
+ * forums/threads (team dumps and replay threads — SPL old-gen slots, RoA
+ * cups). Two yields:
+ *   pastes  → tournament-<format>.jsonl (whole sets, elite prepared play)
+ *   replays → replays-<format>.jsonl with source:"tournament", so the core
+ *             index prices them as tournament play instead of unrated.
+ * Format attribution, most→least reliable: the paste's own "=== [gen7ou] ==="
+ * header, the replay id's format segment, the thread's prefix label via
+ * rmt.prefixMap, a per-listing pinned format in the config.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -40,13 +43,18 @@ async function fetchText(url) {
   return response.text();
 }
 
-// replay.pokemonshowdown.com/<id> ids embed the format:
-// "gen7ou-967241" and "smogtours-gen7ou-406712" both attribute to gen7ou.
+/**
+ * replay.pokemonshowdown.com/<id> ids embed the format:
+ * "gen7ou-967241" and "smogtours-gen7ou-406712" both attribute to gen7ou.
+ *
+ * @return {?string} The format id, or null when absent or not tracked.
+ */
 export function replayLinkFormat(replayId) {
   const match = replayId.match(/(?:^|-)((?:gen\d)[a-z0-9]+)-\d+$/);
   return match && knownFormats.has(match[1]) ? match[1] : null;
 }
 
+/** @return {!Array<string>} Unique replay ids linked in the HTML. */
 export function extractReplayIds(html) {
   return [
     ...new Set(

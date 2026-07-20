@@ -1,13 +1,24 @@
+/**
+ * @param {string} query
+ * @param {Array<Object>} pokemonIndex
+ * @return {Array<string>} Canonical Pokémon names, one per recognized pool
+ *     token, duplicates preserved.
+ */
 export function parsePoolTokens(query, pokemonIndex) {
   return extractPoolNames(query, pokemonIndex);
 }
 
-// Ability annotations: a pool line like "Froakie (Torrent)" or
-// "Froakie [Torrent]" declares the CAUGHT mon's actual ability, replacing the
-// competitive-primary assumption for that line. Returns a map of normalized
-// pokemon name -> annotation text; the optimizer validates the text against
-// the line's real ability options and silently ignores anything that doesn't
-// match, so ordinary parenthetical noise in pasted lists can't corrupt scoring.
+/**
+ * Ability annotations: a pool line like "Froakie (Torrent)" or
+ * "Froakie [Torrent]" declares the CAUGHT mon's actual ability, replacing the
+ * competitive-primary assumption for that line. The optimizer validates the
+ * text against the line's real ability options and silently ignores anything
+ * that doesn't match, so ordinary parenthetical noise in pasted lists can't
+ * corrupt scoring.
+ * @param {string} query
+ * @param {Array<Object>} pokemonIndex
+ * @return {Map<string, string>} Normalized pokemon name -> annotation text.
+ */
 export function parseAbilityAnnotations(query, pokemonIndex) {
   const annotations = new Map();
   for (const rawLine of String(query || "").split(/\n+/)) {
@@ -24,6 +35,11 @@ export function parseAbilityAnnotations(query, pokemonIndex) {
   return annotations;
 }
 
+/**
+ * @param {string} query
+ * @param {Array<Object>} pokemonIndex
+ * @return {{totalCount: number, uniqueCount: number, duplicateCount: number}}
+ */
 export function getPoolStats(query, pokemonIndex) {
   const tokens = parsePoolTokens(query, pokemonIndex);
   const unique = new Set(tokens.map(normalizeName).filter(Boolean));
@@ -35,6 +51,12 @@ export function getPoolStats(query, pokemonIndex) {
   };
 }
 
+/**
+ * @param {string} query
+ * @param {Array<Object>} pokemonIndex
+ * @return {string} Deduplicated canonical names, alphabetized and
+ *     comma-joined.
+ */
 export function normalizePoolText(query, pokemonIndex) {
   const byKey = new Map();
 

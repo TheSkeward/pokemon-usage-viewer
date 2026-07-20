@@ -5,6 +5,15 @@ import { renderMovesetPanel } from "../views/movesetView";
 import { renderResolverControls } from "../views/resolverControlsView";
 import { renderResolverResults } from "../views/resolverResultsView";
 
+/**
+ * Renders the Set Lookup page (controls, results table, set-detail panel)
+ * into `pageRoot`, replacing its contents.
+ * @param {!Element} pageRoot
+ * @param {{availability: ?Object, formatsIndex: !Array<!Object>,
+ *     resolverLoadingState: !Object, resolverResults: !Array<!Object>,
+ *     setDetails: !Object, state: !Object}} context `setDetails` is a
+ *     createPrecomputedSetDetailsLoader instance.
+ */
 export function renderResolverPage(pageRoot, context) {
   const {
     availability,

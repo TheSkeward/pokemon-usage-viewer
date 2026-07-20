@@ -1,12 +1,19 @@
-// Loader for the real-team index (whole scraped teams per format;
-// scripts/build-team-index.mjs). Same fetch conventions as observedSets:
-// index.json gates the per-format fetches so families with no scraped
-// teams never 404, and any failure degrades to "no data".
+/**
+ * @fileoverview Loader for the real-team index (whole scraped teams per
+ * format; scripts/build-team-index.mjs). Same fetch conventions as
+ * observedSets: index.json gates the per-format fetches so families with no
+ * scraped teams never 404, and any failure degrades to "no data".
+ */
 import { dataUrl } from "../utils/dataUrl.js";
 import { fetchJsonCached } from "../utils/fetchJsonCached.js";
 
 const teamsCache = new Map();
 
+/**
+ * @param {?string} family
+ * @return {Promise<Array<Object>>} Scraped teams tagged with formatId; empty
+ *     on any fetch failure.
+ */
 export async function loadTeamIndex(family) {
   if (!family) return [];
   if (!teamsCache.has(family)) {

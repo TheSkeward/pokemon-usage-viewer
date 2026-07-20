@@ -1,52 +1,63 @@
-// Browser performance telemetry for the optimizer:
-// every interactive optimizer run records a sample — resolve/search wall-clock,
-// pool size, surviving candidate-build count, browser core count, and cache
-// temperature — into localStorage, and the provenance footer reports
-// p50/p90/p95 grouped by cache temperature AND pool-size bucket (a cold run on
-// a 7-mon pool and one on a 45-mon pool are different distributions; mixing
-// them — or a 2ms result-cache hit — would make every percentile meaningless).
-// There is no analytics backend — this is a static site — so "telemetry"
-// means: measured in the user's real browser, on their real pools and core
-// count, inspectable in the UI, copyable as a redacted report for bug filings,
-// and exportable raw via `__TEAM_TELEMETRY__` in the console.
-//
-// Every sample is stamped with an environment signature (telemetry schema |
-// app build id | scoring version | data signature) and the summary only reads
-// samples matching the newest sample's environment: after a deploy changes any
-// of those, the old implementation's latencies stop contributing — no
-// percentiles that average a slow old optimizer with a fast new one. Stale
-// samples age out of the bounded history naturally.
-//
-// Confidence-sweep runs (active scoring overrides) and background callers that
-// opt out (investment future-cap re-runs) are NOT recorded: the distribution
-// should describe interactive latency.
-//
-// `cancelled` is recorded (always false today) so that when optimize
-// cancellation lands, aborted runs stay visible in the latency story instead
-// of silently vanishing — a cancelling caller must record the phase it stopped
-// in ("resolve"/"search") and the elapsed ms up to the abort.
+/**
+ * @fileoverview Browser performance telemetry for the optimizer:
+ * every interactive optimizer run records a sample — resolve/search
+ * wall-clock, pool size, surviving candidate-build count, browser core
+ * count, and cache temperature — into localStorage, and the provenance
+ * footer reports p50/p90/p95 grouped by cache temperature AND pool-size
+ * bucket (a cold run on a 7-mon pool and one on a 45-mon pool are different
+ * distributions; mixing them — or a 2ms result-cache hit — would make every
+ * percentile meaningless). There is no analytics backend — this is a static
+ * site — so "telemetry" means: measured in the user's real browser, on their
+ * real pools and core count, inspectable in the UI, copyable as a redacted
+ * report for bug filings, and exportable raw via `__TEAM_TELEMETRY__` in the
+ * console.
+ *
+ * Every sample is stamped with an environment signature (telemetry schema |
+ * app build id | scoring version | data signature) and the summary only
+ * reads samples matching the newest sample's environment: after a deploy
+ * changes any of those, the old implementation's latencies stop contributing
+ * — no percentiles that average a slow old optimizer with a fast new one.
+ * Stale samples age out of the bounded history naturally.
+ *
+ * Confidence-sweep runs (active scoring overrides) and background callers
+ * that opt out (investment future-cap re-runs) are NOT recorded: the
+ * distribution should describe interactive latency.
+ *
+ * `cancelled` is recorded (always false today) so that when optimize
+ * cancellation lands, aborted runs stay visible in the latency story instead
+ * of silently vanishing — a cancelling caller must record the phase it
+ * stopped in ("resolve"/"search") and the elapsed ms up to the abort.
+ */
 import { SCORING_VERSION } from "./scoringConstants.js";
 
 const STORE_KEY = "teamOptimizerTelemetryV1";
 const MAX_SAMPLES = 500;
-// Schema 3: samples cover the FULL user-perceived pipeline, not just the
-// optimizer core. `phases` breaks the wait down (setup / resolve / search /
-// items / render / confidence / investment), `totalMs` is click →
-// team-and-movesets rendered, `fullMs` is click → post-analysis (stability +
-// investment) done. Schema 2 measured only resolve+search; the schema bump
-// retires those samples via the env signature.
+/**
+ * Schema 3: samples cover the FULL user-perceived pipeline, not just the
+ * optimizer core. `phases` breaks the wait down (setup / resolve / search /
+ * items / render / confidence / investment), `totalMs` is click →
+ * team-and-movesets rendered, `fullMs` is click → post-analysis (stability +
+ * investment) done. Schema 2 measured only resolve+search; the schema bump
+ * retires those samples via the env signature.
+ */
 export const TELEMETRY_SCHEMA = 3;
 
-// Cache temperature of a run:
-//   "result" — layer-3 hit, no resolution and no search;
-//   "warm"   — some line-cache hits and/or an incremental search;
-//   "cold"   — every line resolved and the search ran from scratch.
+/**
+ * Cache temperature of a run:
+ *   "result" — layer-3 hit, no resolution and no search;
+ *   "warm"   — some line-cache hits and/or an incremental search;
+ *   "cold"   — every line resolved and the search ran from scratch.
+ */
 export const CACHE_STATES = Object.freeze(["cold", "warm", "result"]);
 
 // The running bundle's build id (vite `define`); absent in dev/Node.
 const BUILD_ID =
   typeof __BUILD_ID__ !== "undefined" && __BUILD_ID__ ? __BUILD_ID__ : "dev";
 
+/**
+ * @param {?string} dataSignature
+ * @return {{schema: number, build: string, scoring: string, data: string}}
+ */
 export function telemetryEnv(dataSignature) {
   return {
     schema: TELEMETRY_SCHEMA,
@@ -60,8 +71,12 @@ function envKey(env) {
   return `${env.schema}|${env.build}|${env.scoring}|${env.data}`;
 }
 
-// Workload buckets: a p95 over cold runs from pool 7 and pool 45 is not one
-// distribution.
+/**
+ * Workload buckets: a p95 over cold runs from pool 7 and pool 45 is not one
+ * distribution.
+ * @param {number} poolSize
+ * @return {string}
+ */
 export function poolBucket(poolSize) {
   if (poolSize <= 12) return "1–12";
   if (poolSize <= 24) return "13–24";
@@ -69,8 +84,12 @@ export function poolBucket(poolSize) {
   return "37+";
 }
 
-// Build-count bucket, scaled to the ≤4-builds-per-line cap at the pool-bucket
-// edges (pool 12 → ≤48 builds, pool 24 → ≤96).
+/**
+ * Build-count bucket, scaled to the ≤4-builds-per-line cap at the
+ * pool-bucket edges (pool 12 → ≤48 builds, pool 24 → ≤96).
+ * @param {number} builds
+ * @return {string}
+ */
 export function buildBucket(builds) {
   if (builds <= 48) return "low";
   if (builds <= 96) return "medium";
@@ -85,6 +104,10 @@ function storage() {
   }
 }
 
+/**
+ * @return {Array<Object>} Stored samples; empty when localStorage is
+ *     unavailable or unparsable.
+ */
 export function loadTelemetrySamples() {
   try {
     const raw = storage()?.getItem(STORE_KEY);
@@ -120,6 +143,10 @@ function roundMs(value) {
   return Math.max(0, Math.round(value || 0));
 }
 
+/**
+ * @return {Object} The stored sample, env-stamped and appended to the
+ *     bounded history.
+ */
 export function recordOptimizerSample({
   cache,
   resolveMs,
@@ -177,7 +204,12 @@ export function recordOptimizerSample({
   return sample;
 }
 
-// Nearest-rank percentile of an ASCENDING numeric array.
+/**
+ * Nearest-rank percentile of an ASCENDING numeric array.
+ * @param {Array<number>} sorted
+ * @param {number} q Percentile in [0, 100].
+ * @return {?number} Null for an empty array.
+ */
 export function percentile(sorted, q) {
   if (!sorted.length) return null;
   const rank = Math.ceil((q / 100) * sorted.length);
@@ -197,11 +229,15 @@ function range(values) {
   return { min: Math.min(...values), max: Math.max(...values) };
 }
 
-// Summary over the CURRENT environment's history (the newest sample's env —
-// by definition the running deployment): one segment per (cache temperature ×
-// pool-size bucket), each with resolve/search percentiles and the build-count
-// range it was measured over. Samples from older builds/scoring/data are
-// counted as `stale` and excluded.
+/**
+ * Summary over the CURRENT environment's history (the newest sample's env —
+ * by definition the running deployment): one segment per (cache temperature
+ * × pool-size bucket), each with resolve/search percentiles and the
+ * build-count range it was measured over. Samples from older
+ * builds/scoring/data are counted as `stale` and excluded.
+ * @param {Array<Object>} samples
+ * @return {Object}
+ */
 export function getTelemetrySummary(samples = loadTelemetrySamples()) {
   const currentEnv = samples.length ? samples[samples.length - 1].env : null;
   const current = samples.filter(
@@ -303,9 +339,13 @@ export function getTelemetrySummary(samples = loadTelemetrySamples()) {
   };
 }
 
-// Redacted performance report for bug filings (the footer's copy button): the
-// summary, the last run, and the environment that produced them. No pool
-// content, no team, no query text, nothing user-identifying beyond core count.
+/**
+ * Redacted performance report for bug filings (the footer's copy button):
+ * the summary, the last run, and the environment that produced them. No pool
+ * content, no team, no query text, nothing user-identifying beyond core
+ * count.
+ * @return {Object}
+ */
 export function buildPerformanceReport() {
   const samples = loadTelemetrySamples();
   const summary = getTelemetrySummary(samples);
@@ -353,6 +393,11 @@ const FALLBACK_BUDGETS = {
   "37+": { resolveMs: 2600, searchMs: 3200 },
 };
 
+/**
+ * @param {number} poolSize
+ * @return {{resolveMs: number, searchMs: number, tailMs: number}}
+ *     Milliseconds per phase.
+ */
 export function estimateRunBudget(poolSize) {
   const bucket = poolBucket(poolSize || 0);
   const samples = loadTelemetrySamples();
@@ -387,6 +432,7 @@ export function estimateRunBudget(poolSize) {
   return { resolveMs: fallback.resolveMs, searchMs: fallback.searchMs, tailMs: 300 };
 }
 
+/** Removes the sample store from localStorage; failures are ignored. */
 export function clearTelemetry() {
   try {
     storage()?.removeItem(STORE_KEY);

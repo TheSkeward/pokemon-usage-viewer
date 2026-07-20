@@ -3,6 +3,12 @@ import { normalizeName } from "./stringUtils.mjs";
 
 const DEX = getGen7Dex();
 
+/**
+ * @param {!Array<{id: string, name: string}>} pokemonIndex
+ * @return {{infoByPokemonId: !Map<string, !Object>,
+ *     formsByBaseId: !Map<string, !Array<!Object>>}} Species info plus the
+ *     sibling forms grouped under each base species id.
+ */
 export function buildSpeciesContext(pokemonIndex) {
   const infoByPokemonId = new Map();
   const formsByBaseId = new Map();
@@ -27,6 +33,13 @@ export function buildSpeciesContext(pokemonIndex) {
   return { infoByPokemonId, formsByBaseId };
 }
 
+/**
+ * Related mons whose sets may be borrowed: sibling/base forms first (Mega ↔
+ * base, Totem/Primal/battle-only → base), then the pre-evolution chain.
+ *
+ * @return {!Array<{id: string, name: string, reason: string}>} Deduped, in
+ *     borrow-priority order; `reason` is display text.
+ */
 export function buildRelatedPokemonChain(pokemon, speciesContext) {
   const info = speciesContext.infoByPokemonId.get(pokemon.id);
   if (!info) return [];

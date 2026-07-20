@@ -1,20 +1,24 @@
-// THE single home for every tunable preference in the scoring model (see
-// SCORING.md). Mechanical observations (stats, types, move data) live in the
-// data layer; everything here is a JUDGEMENT with a default, and every
-// judgement is sweepable by the confidence layer.
-//
-// Change policy: a default here moves only when the badge-anchor corpus, a
-// concrete mechanical correction, or an explicitly recorded decision
-// justifies it.
-// SCORING.md records the current contract and measured calibration effect.
-//
-// Override API: reads go through tunable(key). The confidence sweep (and tests)
-// set a plain object of overrides; production never sets one, so defaults apply.
-// Hot loops (searchKernel) snapshot values once per search in prepareFitScoring
-// rather than calling tunable() per team.
+/**
+ * @fileoverview THE single home for every tunable preference in the scoring
+ * model (see SCORING.md). Mechanical observations (stats, types, move data)
+ * live in the data layer; everything here is a JUDGEMENT with a default, and
+ * every judgement is sweepable by the confidence layer.
+ *
+ * Change policy: a default here moves only when the badge-anchor corpus, a
+ * concrete mechanical correction, or an explicitly recorded decision
+ * justifies it.
+ * SCORING.md records the current contract and measured calibration effect.
+ *
+ * Override API: reads go through tunable(key). The confidence sweep (and
+ * tests) set a plain object of overrides; production never sets one, so
+ * defaults apply. Hot loops (searchKernel) snapshot values once per search in
+ * prepareFitScoring rather than calling tunable() per team.
+ */
 
+/** @const {string} */
 export const SCORING_VERSION = "2.0.0";
 
+/** @const {Object<string, *>} Frozen defaults, keyed by tunable name. */
 export const SCORING_DEFAULTS = Object.freeze({
   // --- Individual value (usage-convergence blend — see candidateScoring.js) --
   USAGE_INFLUENCE: 0.3, // α — usage informative, never sovereign
@@ -174,23 +178,38 @@ export const SCORING_DEFAULTS = Object.freeze({
   REALIZATION_POOL: 64,
 });
 
+/**
+ * @param {string} key
+ * @return {*} The active override for `key` when one is set, else the
+ *     default.
+ */
 export function tunable(key) {
   const overrides = globalThis.__SCORING_OVERRIDES__;
   if (overrides && key in overrides) return overrides[key];
   return SCORING_DEFAULTS[key];
 }
 
+/**
+ * @param {?Object<string, *>} overrides Null or empty clears the active
+ *     overrides.
+ */
 export function setScoringOverrides(overrides) {
   globalThis.__SCORING_OVERRIDES__ =
     overrides && Object.keys(overrides).length ? overrides : null;
 }
 
+/**
+ * @return {?Object<string, *>}
+ */
 export function getScoringOverrides() {
   return globalThis.__SCORING_OVERRIDES__ || null;
 }
 
-// Stable signature of the active overrides, folded into optimizer cache keys so
-// a sweep or a test never poisons the production caches (and vice versa).
+/**
+ * Stable signature of the active overrides, folded into optimizer cache keys
+ * so a sweep or a test never poisons the production caches (and vice versa).
+ * @return {string}
+ */
 export function scoringOverridesSignature() {
   const overrides = globalThis.__SCORING_OVERRIDES__;
   if (!overrides) return "base";

@@ -1,10 +1,16 @@
-// Session-lifetime cache of JSON fetches keyed by URL. Storing the in-flight
-// promise (not just the result) also dedupes concurrent requests for the same
-// file. A 404 resolves to null and is cached; network/parse errors are NOT
-// cached, so a transient failure can be retried.
+/**
+ * @fileoverview Session-lifetime cache of JSON fetches keyed by URL. Storing
+ * the in-flight promise (not just the result) also dedupes concurrent
+ * requests for the same file. A 404 resolves to null and is cached;
+ * network/parse errors are NOT cached, so a transient failure can be retried.
+ */
 
 const cache = new Map();
 
+/**
+ * @param {string} url
+ * @return {!Promise<?Object>} Parsed JSON, or null on 404.
+ */
 export function fetchJsonCached(url) {
   const existing = cache.get(url);
   if (existing) return existing;

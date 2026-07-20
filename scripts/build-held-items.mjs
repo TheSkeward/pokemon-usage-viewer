@@ -1,7 +1,10 @@
-// Builds the held-item universe used by the Team Builder inventory picker and
-// item recommendations, derived from the per-Pokémon Smogon set data. Items are
-// sorted by how broadly they're used (appearance count) so the most common ones
-// surface first in the picker. Reproducible: re-run via `npm run build:held-items`.
+/**
+ * @fileoverview Builds the held-item universe used by the Team Builder
+ * inventory picker and item recommendations, derived from the per-Pokémon
+ * Smogon set data. Items are sorted by how broadly they're used (appearance
+ * count) so the most common ones surface first in the picker. Reproducible:
+ * re-run via `npm run build:held-items`.
+ */
 
 import fs from "node:fs";
 import path from "node:path";

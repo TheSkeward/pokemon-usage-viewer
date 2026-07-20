@@ -1,7 +1,9 @@
-// Competitive teammate co-use lift, extracted from each mon's
-// first-meaningful tier by scripts/build-teammate-index.mjs.
-// A missing file means "the prior has no opinion" — callers treat that as
-// trust 0 and the hand-built team-fit judgements stay fully in force.
+/**
+ * @fileoverview Competitive teammate co-use lift, extracted from each mon's
+ * first-meaningful tier by scripts/build-teammate-index.mjs.
+ * A missing file means "the prior has no opinion" — callers treat that as
+ * trust 0 and the hand-built team-fit judgements stay fully in force.
+ */
 import { dataUrl } from "../utils/dataUrl.js";
 import { fetchJsonCached } from "../utils/fetchJsonCached.js";
 
@@ -22,6 +24,11 @@ async function loadAvailableIds(family) {
   }
 }
 
+/**
+ * @param {{family: ?string, pokemonId: ?string}} key
+ * @return {Promise<?Object>} Teammate-lift entry; null when the mon has no
+ *     index file or the fetch fails.
+ */
 export async function loadTeammateLift({ family, pokemonId }) {
   if (!family || !pokemonId) return null;
   const available = await loadAvailableIds(family);
@@ -51,9 +58,14 @@ function* lineChoices(line, seen = new Set()) {
   }
 }
 
-// Attaches `_teammates` (id -> lift %) to every choice of every line, so the
-// search kernel can build its pair-trust matrix without further IO. Fetches
-// are cached and deduped per representative id.
+/**
+ * Attaches `_teammates` (id -> lift %) to every choice of every line, so the
+ * search kernel can build its pair-trust matrix without further IO. Fetches
+ * are cached and deduped per representative id.
+ * @param {Array<Object>} lines
+ * @param {string} family
+ * @return {Promise<void>}
+ */
 export async function attachTeammateLift(lines, family) {
   const byId = new Map();
   for (const line of lines) {

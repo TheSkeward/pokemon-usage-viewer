@@ -1,5 +1,12 @@
 const REBORN_MACHINE_AVAILABILITY = getRebornMachineAvailability();
 
+/**
+ * Reborn's 100 TMs with their pickup timing, sorted by unlock badge then
+ * location. `available`/`location` are absent for machines with no curated
+ * timing entry.
+ * @type {Array<{id: string, code: string, move: string,
+ *     available: (string|undefined), location: (string|undefined)}>}
+ */
 export const REBORN_TM_OPTIONS = [
   ["tm01", "TM01", "Work Up"],
   ["tm02", "TM02", "Dragon Claw"],
@@ -110,6 +117,12 @@ export const REBORN_TM_OPTIONS = [
   }))
   .sort(compareMachineAvailability);
 
+/**
+ * The TMX (HM-replacement) machines, same shape and ordering as
+ * REBORN_TM_OPTIONS.
+ * @type {Array<{id: string, code: string, move: string,
+ *     available: (string|undefined), location: (string|undefined)}>}
+ */
 export const REBORN_TMX_OPTIONS = [
   ["tmx1", "TMX1", "Cut"],
   ["tmx2", "TMX2", "Fly"],
@@ -129,6 +142,12 @@ export const REBORN_TMX_OPTIONS = [
   }))
   .sort(compareMachineAvailability);
 
+/**
+ * Move tutors grouped by tutor NPC, in unlock order; `options` carries the
+ * group's moves as {id, move} pairs.
+ * @type {Array<{label: string, available: string, moves: Array<string>,
+ *     options: Array<{id: string, move: string}>}>}
+ */
 export const REBORN_TUTOR_GROUPS = [
   {
     label: "Onyx Trainers' School - left lower room",
@@ -250,6 +269,11 @@ export const REBORN_TUTOR_GROUPS = [
   options: group.moves.map((move) => ({ id: normalizeMoveId(move), move })),
 }));
 
+/**
+ * Every tutor move once, first-group-first — some moves (the Pledges, Giga
+ * Drain) have multiple tutors.
+ * @type {Array<{id: string, move: string}>}
+ */
 export const REBORN_TUTOR_OPTIONS = uniqueOptions(
   REBORN_TUTOR_GROUPS.flatMap((group) => group.options),
 );

@@ -1,10 +1,13 @@
-// Lever B: notice when a newer build has been deployed and offer a one-click
-// reload, so a long-lived tab doesn't silently run stale code. The running build
-// stamps its own id into the bundle (__BUILD_ID__, injected by vite.config); a
-// small poll fetches the deployed version.json and compares. When they differ, an
-// unobtrusive banner appears. Paired with the persisted result cache (Lever A),
-// the reload it triggers is cheap — results are restored from IndexedDB, not
-// recomputed (unless that deploy bumped the optimizer version).
+/**
+ * @fileoverview Lever B: notice when a newer build has been deployed and
+ * offer a one-click reload, so a long-lived tab doesn't silently run stale
+ * code. The running build stamps its own id into the bundle (__BUILD_ID__,
+ * injected by vite.config); a small poll fetches the deployed version.json
+ * and compares. When they differ, an unobtrusive banner appears. Paired with
+ * the persisted result cache (Lever A), the reload it triggers is cheap —
+ * results are restored from IndexedDB, not recomputed (unless that deploy
+ * bumped the optimizer version).
+ */
 
 // vite `define` replaces __BUILD_ID__ with a string literal at build time; the
 // typeof guard keeps this safe if it's ever left undefined (e.g. an odd dev run).
@@ -17,6 +20,7 @@ const VERSION_URL = `${import.meta.env.BASE_URL || "/"}version.json`;
 import { dataUrl } from "./utils/dataUrl.js";
 import { getDataSignature } from "./manifest.js";
 
+/** Starts the new-build / new-data poll. */
 export function startUpdateNotifier() {
   // No id means a dev server (no build), where version.json isn't emitted and
   // there's nothing to update to — so don't poll.

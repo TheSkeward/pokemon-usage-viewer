@@ -1,18 +1,20 @@
-// Canonical-set readiness (display only): how much of a mon's competitive
-// set — its top-4 usage moves plus canonical item — is assemblable right
-// now, and the cap at which it completes ("L*").
-//
-// Definitional rules:
-//   - A level-scaling move in the canonical set (Seismic Toss class: damage =
-//     user level) means the set is not fully online until cap 100, period.
-//   - L* is min(100, earliest cap at which every element is obtainable under
-//     the walkthrough schedule): level-up moves at their level, TM/tutor moves
-//     at their unlock badge's cap, items at their timeline badge's cap.
-//   - Abilities are ALWAYS ready: Reborn distributes hidden abilities evenly
-//     at catch and Ability Capsules switch between all of a mon's abilities
-//     at will, from the start of the game.
-//
-// This annotates the analysis display; it feeds no scoring input.
+/**
+ * @fileoverview Canonical-set readiness (display only): how much of a mon's
+ * competitive set — its top-4 usage moves plus canonical item — is assemblable
+ * right now, and the cap at which it completes ("L*").
+ *
+ * Definitional rules:
+ *   - A level-scaling move in the canonical set (Seismic Toss class: damage =
+ *     user level) means the set is not fully online until cap 100, period.
+ *   - L* is min(100, earliest cap at which every element is obtainable under
+ *     the walkthrough schedule): level-up moves at their level, TM/tutor moves
+ *     at their unlock badge's cap, items at their timeline badge's cap.
+ *   - Abilities are ALWAYS ready: Reborn distributes hidden abilities evenly
+ *     at catch and Ability Capsules switch between all of a mon's abilities
+ *     at will, from the start of the game.
+ *
+ * This annotates the analysis display; it feeds no scoring input.
+ */
 
 import {
   getRebornCheckpoint,
@@ -28,6 +30,7 @@ import { getMoveMetaById } from "../moveMeta.js";
 import { toId } from "../utils/ids.js";
 import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
 
+/** Moves in a canonical set — a full Showdown moveset. */
 export const CANONICAL_SET_SIZE = 4;
 
 // Damage scales with user level (Seismic Toss / Night Shade / Psywave class):
@@ -67,7 +70,12 @@ const capOfBadge = (badge) =>
 const badgePhrase = (badge) =>
   badge === 0 ? "from the start" : `@${badge} badge${badge === 1 ? "" : "s"}`;
 
-// The canonical competitive set: the top-N usage moves of the represented form.
+/**
+ * The canonical competitive set: the top-N usage moves of the represented form.
+ * @param {?Map<string, number>} moveUsage Move id -> usage %.
+ * @param {number=} size
+ * @return {Array<string>}
+ */
 export function canonicalMoveIds(moveUsage, size = CANONICAL_SET_SIZE) {
   if (!moveUsage?.size) return [];
   return [...moveUsage.entries()]
@@ -76,6 +84,15 @@ export function canonicalMoveIds(moveUsage, size = CANONICAL_SET_SIZE) {
     .map(([id]) => id);
 }
 
+/**
+ * Prices the canonical set against the current progression: per-element status
+ * with a human detail (moves: "ready" / "scaling" / "later" / "blocked"; item:
+ * "ready" / "later" / "unknown" / "none") and the cap at which the set
+ * completes.
+ * @return {?Object} Null when there is no canonical set (no usage data).
+ *     `fullAtCap` is null when the set is complete now; `pendingPickups` marks
+ *     sets gated only on pickups already reachable at the current cap.
+ */
 export function computeSetReadiness({
   legalMoveData,
   availableMoves = [],

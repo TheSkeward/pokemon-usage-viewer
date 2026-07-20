@@ -1,11 +1,14 @@
+/** The learnset basis move legality is evaluated against. */
 export const REBORN_MOVE_LEGALITY_BASE = {
   generation: 7,
   baseGames: "USUM",
   transferMovesAvailableByDefault: false,
 };
 
+/** Moves that are TMX (HM-like) machines in Reborn, not ordinary TMs. Display names. */
 export const REBORN_TMX_MOVES = ["Fly", "Surf", "Waterfall"];
 
+/** Moves Reborn promotes to TMs beyond the USUM TM list. Display names. */
 export const REBORN_PROMOTED_TM_MOVES = [
   "Power-Up Punch",
   "Struggle Bug",
@@ -17,6 +20,7 @@ export const REBORN_PROMOTED_TM_MOVES = [
 // the generator or its mons.dat source — do not add hand-curated per-mon
 // move lists to this module.
 
+/** User-facing summary of the legality rules above, rendered verbatim in the progression view. */
 export const REBORN_PROGRESSION_NOTES = [
   "Move legality is based on USUM learnsets, with Reborn-specific exceptions.",
   "Generic transfer moves are unavailable.",

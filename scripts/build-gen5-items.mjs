@@ -1,14 +1,17 @@
-// Generates per-Pokémon Gen 5 held-item usage from Smogon moveset stats, used
-// to blend real historic item data (especially type Gems, legal and used in
-// Gen 5 but absent from USUM) into the Team Builder recommendations.
-//
-// Aggregates across EVERY available Gen 5 month, weighted by raw count, so the
-// high-population old-gen years dominate and sparse modern ladders wash out.
-// Sample-size filters drop noise (a few meme sets on a near-dead modern ladder
-// must not become "56% Ghost Gem"). Successful fetches are cached, since
-// old-gen monthly stats are immutable — so re-runs don't re-hammer Smogon.
-//
-// Network-bound: runs only where smogon.com is reachable (CI).
+/**
+ * @fileoverview Generates per-Pokémon Gen 5 held-item usage from Smogon
+ * moveset stats, used to blend real historic item data (especially type Gems,
+ * legal and used in Gen 5 but absent from USUM) into the Team Builder
+ * recommendations.
+ *
+ * Aggregates across EVERY available Gen 5 month, weighted by raw count, so the
+ * high-population old-gen years dominate and sparse modern ladders wash out.
+ * Sample-size filters drop noise (a few meme sets on a near-dead modern ladder
+ * must not become "56% Ghost Gem"). Successful fetches are cached, since
+ * old-gen monthly stats are immutable — so re-runs don't re-hammer Smogon.
+ *
+ * Network-bound: runs only where smogon.com is reachable (CI).
+ */
 
 import fs from "node:fs/promises";
 import path from "node:path";

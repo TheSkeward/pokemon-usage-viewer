@@ -1,14 +1,16 @@
-// RMT-forum harvester: walks the Smogon RMT forum listings in
-// teamscrape/sources.json (rmt.listings), maps each thread's prefix label
-// ("SM OU") to a format id via rmt.prefixMap, and harvests the OPENING POST
-// only — the team being rated. Replies are suggested edits, not teams.
-// RMT teams are usually pasted inline rather than pokepaste-linked, so both
-// are extracted. Lowest-trust source: the index builders weight rmt below
-// curated samples and rated replays.
-//
-// Same politeness contract as the other scrapers; --max-new bounds fresh
-// threads per run, and already-seen threads skip fast, so successive
-// scheduled runs walk ever deeper into the listings.
+/**
+ * @fileoverview RMT-forum harvester: walks the Smogon RMT forum listings in
+ * teamscrape/sources.json (rmt.listings), maps each thread's prefix label
+ * ("SM OU") to a format id via rmt.prefixMap, and harvests the OPENING POST
+ * only — the team being rated. Replies are suggested edits, not teams.
+ * RMT teams are usually pasted inline rather than pokepaste-linked, so both
+ * are extracted. Lowest-trust source: the index builders weight rmt below
+ * curated samples and rated replays.
+ *
+ * Same politeness contract as the other scrapers; --max-new bounds fresh
+ * threads per run, and already-seen threads skip fast, so successive
+ * scheduled runs walk ever deeper into the listings.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -36,6 +38,7 @@ async function fetchText(url) {
   return response.text();
 }
 
+/** @return {string} Plain text: tags stripped, common entities decoded. */
 export function htmlToText(html) {
   return String(html)
     .replace(/<br\s*\/?>/gi, "\n")
@@ -50,8 +53,12 @@ export function htmlToText(html) {
     .replace(/&nbsp;/g, " ");
 }
 
-// Listing rows: prefix label span(s) followed by the thread link. Returns
-// [{threadId, url, prefix}] in listing order; prefix null when unlabeled.
+/**
+ * Listing rows: prefix label span(s) followed by the thread link. Returns
+ * [{threadId, url, prefix}] in listing order; prefix null when unlabeled.
+ *
+ * @return {!Array<{threadId: string, url: string, prefix: ?string}>}
+ */
 export function extractThreadRows(html, baseUrl) {
   const rows = [];
   const seen = new Set();
@@ -70,7 +77,7 @@ export function extractThreadRows(html, baseUrl) {
   return rows;
 }
 
-// The opening post is the first message body on page 1.
+/** The opening post is the first message body on page 1. */
 export function extractFirstPostText(html) {
   const match = String(html).match(
     /<article[^>]*class="[^"]*message-body[^"]*"[^>]*>([\s\S]*?)<\/article>|<div[^>]*class="[^"]*bbWrapper[^"]*"[^>]*>([\s\S]*?)<\/div>/,

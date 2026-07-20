@@ -50,17 +50,24 @@ function itemEligibleForMember(itemId, allowedTypes, fieldSetterShare = null) {
   return allowedTypes.has(gemType);
 }
 
+/** @const {string} */
 export const FIELD_EXTENDER_ITEM_ID = "amplifieldrock";
 // Measured conditional propensity of the nearest mainline analog (Light Clay
 // held given screens usage, rawCount-weighted across gen7) — the fraction of
 // setter sets that pay the item slot for the duration extender.
 const FIELD_EXTENDER_PROPENSITY = 0.8;
 
-// The Amplifield Rock never appears in Smogon item usage (fangame-original),
-// so a member whose recommended set carries a field-setting move gets it
-// injected as a candidate. Weight = propensity × the member's own setter-move
-// usage share — the same estimator the propensity was measured with — so it
-// competes honestly against observed items for the scarce owned copy.
+/**
+ * The Amplifield Rock never appears in Smogon item usage (fangame-original),
+ * so a member whose recommended set carries a field-setting move gets it
+ * injected as a candidate. Weight = propensity × the member's own
+ * setter-move usage share — the same estimator the propensity was measured
+ * with — so it competes honestly against observed items for the scarce owned
+ * copy.
+ * @param {Array<Object>} items
+ * @param {?number} fieldSetterShare
+ * @return {Array<Object>}
+ */
 export function withFieldExtenderCandidate(items, fieldSetterShare) {
   if (!fieldSetterShare || fieldSetterShare <= 0) return items;
   return [
@@ -96,16 +103,23 @@ const ITEM_QUALITY_RANK = new Map(
 const TAIL_BASE_WEIGHT = 0.09;
 const TAIL_STEP = 0.0005;
 
+/**
+ * @param {Object} choice
+ * @return {string} "inputPokemonId|pokemonId".
+ */
 export function teamMemberKey(choice) {
   return `${choice.inputPokemonId}|${choice.pokemonId}`;
 }
 
-// Loads each team member's observed Smogon held-item usage (id + usage%), keyed
-// by member. Cached by the caller so recommendations can recompute instantly
-// when the owned-item inventory changes without re-fetching. The optional
-// itemContext (memberKey -> { unburden }) decides the Unburden gem boost from
-// the member's actual top-set ability rather than merely whether the species
-// can have Unburden.
+/**
+ * Loads each team member's observed Smogon held-item usage (id + usage%),
+ * keyed by member. Cached by the caller so recommendations can recompute
+ * instantly when the owned-item inventory changes without re-fetching. The
+ * optional itemContext (memberKey -> { unburden }) decides the Unburden gem
+ * boost from the member's actual top-set ability rather than merely whether
+ * the species can have Unburden.
+ * @return {Promise<Map<string, Array<Object>>>} memberKey -> item candidates.
+ */
 export async function loadTeamItemUsage({ team, family, selection, itemContext }) {
   const usageByMember = new Map();
 
@@ -131,13 +145,16 @@ export async function loadTeamItemUsage({ team, family, selection, itemContext }
   return usageByMember;
 }
 
-// Assigns at most one owned held item to each team member, respecting how many
-// of each the player owns. Two phases:
-//   1. weighted greedy over each member's observed items (incl. the stitched
-//      tail and gem proxies) so the best fit wins scarce items;
-//   2. an ultimate fallback that hands any leftover owned items to still-
-//      itemless members — a held item beats none — giving the best generic
-//      item to the highest-scoring member first.
+/**
+ * Assigns at most one owned held item to each team member, respecting how
+ * many of each the player owns. Two phases:
+ *   1. weighted greedy over each member's observed items (incl. the stitched
+ *      tail and gem proxies) so the best fit wins scarce items;
+ *   2. an ultimate fallback that hands any leftover owned items to still-
+ *      itemless members — a held item beats none — giving the best generic
+ *      item to the highest-scoring member first.
+ * @return {Object<string, Object>} memberKey -> assigned item.
+ */
 export function assignTeamItems({ team, usageByMember, ownedItems, itemContext }) {
   const remaining = { ...(ownedItems || {}) };
   const assignments = {};

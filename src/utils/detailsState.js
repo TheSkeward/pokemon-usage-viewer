@@ -18,14 +18,21 @@ function readMap() {
   }
 }
 
-// Attribute chunk for a persistent <details> tag. `id` is a code-controlled
-// literal (no user content).
+/**
+ * Attribute chunk for a persistent <details> tag. `id` is a code-controlled
+ * literal (no user content).
+ * @return {string}
+ */
 export function detailsStateAttrs(id, defaultOpen) {
   const saved = readMap()[id];
   const open = typeof saved === "boolean" ? saved : defaultOpen;
   return `data-details-id="${id}"${open ? " open" : ""}`;
 }
 
+/**
+ * @param {string} id
+ * @param {boolean} open
+ */
 export function saveDetailsOpen(id, open) {
   if (!id) return;
   const map = readMap();
@@ -34,6 +41,7 @@ export function saveDetailsOpen(id, open) {
   writeLocalStorage(DETAILS_STATE_KEY, JSON.stringify(map));
 }
 
+/** @param {!Element} root */
 export function bindPersistentDetails(root) {
   root.querySelectorAll("details[data-details-id]").forEach((element) => {
     element.addEventListener("toggle", () =>

@@ -6,6 +6,16 @@ import {
 } from "./evolutionRequirements.js";
 import { normalizeLevelCap } from "./progression.js";
 
+/**
+ * The form a picked mon actually holds under the given progression state: the
+ * deepest evolution reachable from the choice's input species within the level
+ * cap and evolution-access rules, preferring forms on the usage
+ * representative's line when any are reachable.
+ * @param {?Object} choice Usage choice; reads pokemonId (representative),
+ *     inputPokemonId (species the player owns), and name.
+ * @param {Object=} progression
+ * @return {?Object} Null when the input species is unknown.
+ */
 export function getCurrentRebornSpeciesForChoice(choice, progression = {}) {
   const inputId = toId(choice?.inputPokemonId || choice?.pokemonId);
   const representativeId = toId(choice?.pokemonId);
@@ -48,10 +58,13 @@ export function getCurrentRebornSpeciesForChoice(choice, progression = {}) {
   };
 }
 
-// A strict pre-evolution is a form the owned mon can never be again — this
-// keeps a line's usage representative from being a baby the player already
-// evolved past (an owned Mantine must not be presented as an Eviolite Mantyke
-// because Mantyke owns the LC tier).
+/**
+ * A strict pre-evolution is a form the owned mon can never be again — this
+ * keeps a line's usage representative from being a baby the player already
+ * evolved past (an owned Mantine must not be presented as an Eviolite Mantyke
+ * because Mantyke owns the LC tier).
+ * @return {boolean}
+ */
 export function isStrictPreEvolutionOf(candidateId, inputId) {
   const candidate = toId(candidateId);
   const input = toId(inputId);
@@ -59,6 +72,13 @@ export function isStrictPreEvolutionOf(candidateId, inputId) {
   return getAncestorIds(input).includes(candidate);
 }
 
+/**
+ * getCurrentRebornSpeciesForChoice for a bare species id: no representative
+ * line to prefer, no evolution proof in the result.
+ * @param {?string} pokemonId
+ * @param {Object=} progression
+ * @return {?Object} Null when the species is unknown.
+ */
 export function getCurrentRebornSpecies(pokemonId, progression = {}) {
   const inputId = toId(pokemonId);
   if (!inputId) return null;

@@ -1,4 +1,15 @@
 import { escapeHtml } from "../utils/html.js";
+
+/**
+ * Set Lookup results table: empty-query prompt, loading banner, or one row
+ * per resolved Pokémon with representative and canonical-tier annotations.
+ * @param {!Element} container
+ * @param {!Array<!Object>} rows Rows from computeResolverRepresentativeResults.
+ * @param {!Object} state
+ * @param {!Array<!Object>} formatsIndex
+ * @param {string} selectionLabel
+ * @param {{loading: (boolean|undefined), message: (string|undefined)}=} status
+ */
 export function renderResolverResults(
   container,
   rows,

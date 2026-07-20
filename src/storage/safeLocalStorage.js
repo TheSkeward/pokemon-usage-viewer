@@ -1,5 +1,9 @@
 const CACHE_KEY_PREFIXES = ["resolverMovesets:"];
 
+/**
+ * @return {string} The stored value, or fallback when the key is absent or
+ *     storage is unavailable.
+ */
 export function readLocalStorage(key, fallback = "") {
   try {
     return localStorage.getItem(key) ?? fallback;
@@ -9,6 +13,10 @@ export function readLocalStorage(key, fallback = "") {
   }
 }
 
+/**
+ * @return {boolean} Whether the value was stored; a failed write retries
+ *     once after clearing the large caches.
+ */
 export function writeLocalStorage(key, value) {
   try {
     localStorage.setItem(key, value);
@@ -37,6 +45,7 @@ export function writeLocalStorage(key, value) {
   }
 }
 
+/** @return {boolean} Whether the removal succeeded. */
 export function removeLocalStorage(key) {
   try {
     localStorage.removeItem(key);
@@ -47,6 +56,7 @@ export function removeLocalStorage(key) {
   }
 }
 
+/** Frees quota by removing entries under the known cache prefixes. */
 export function clearLargeLocalStorageCaches() {
   try {
     for (const key of Object.keys(localStorage)) {

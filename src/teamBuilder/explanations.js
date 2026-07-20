@@ -1,8 +1,10 @@
-// Explanation layer: no recommendation is a naked scalar.
-// Every seated pick explains its role, its assumptions (ability, evolution
-// path, delayed moves), the team holes it patches, and — once the confidence
-// sweep lands — how robust its seat is. Notable exclusions explain WHY they
-// lost, in the same auditable terms.
+/**
+ * @fileoverview Explanation layer: no recommendation is a naked scalar.
+ * Every seated pick explains its role, its assumptions (ability, evolution
+ * path, delayed moves), the team holes it patches, and — once the confidence
+ * sweep lands — how robust its seat is. Notable exclusions explain WHY they
+ * lost, in the same auditable terms.
+ */
 
 import { REBORN_ANALYSIS_TYPES } from "../reborn/typeChart.js";
 import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
@@ -44,6 +46,12 @@ function coverageContribution(choice, team) {
   return contributions;
 }
 
+/**
+ * @param {Object} choice
+ * @param {Array<Object>} team
+ * @param {?Object} confidenceEntry
+ * @return {Array<string>} Explanation sentences, one per line.
+ */
 export function explainSeatedChoice(choice, team, confidenceEntry) {
   const lines = [];
   const profile = choice.legalityProfile || {};
@@ -208,6 +216,12 @@ export function explainSeatedChoice(choice, team, confidenceEntry) {
   return lines;
 }
 
+/**
+ * @param {Object} choice
+ * @param {Object} result
+ * @param {?Object} confidenceAlternative
+ * @return {Array<string>} Explanation sentences, one per line.
+ */
 export function explainExcludedChoice(choice, result, confidenceAlternative) {
   const lines = [];
   const team = result.team || [];

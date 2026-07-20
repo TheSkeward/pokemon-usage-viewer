@@ -1,9 +1,12 @@
-// Pure team-scoring + enumeration core, with NO dependency on the cache layers,
-// the DOM, or the worker orchestration — so it can run identically on the main
-// thread or inside a Web Worker. teamSelection.js (orchestration + caches) and
-// searchWorker.js (the worker entry) both import from here; this is the single
-// source of truth for how a team is scored and how a slice of the combination
-// space is enumerated, so the parallel and sequential paths can never diverge.
+/**
+ * @fileoverview Pure team-scoring + enumeration core, with NO dependency on
+ * the cache layers, the DOM, or the worker orchestration — so it can run
+ * identically on the main thread or inside a Web Worker. teamSelection.js
+ * (orchestration + caches) and searchWorker.js (the worker entry) both
+ * import from here; this is the single source of truth for how a team is
+ * scored and how a slice of the combination space is enumerated, so the
+ * parallel and sequential paths can never diverge.
+ */
 
 import { getTypeMultiplier, REBORN_ANALYSIS_TYPES } from "../reborn/typeChart.js";
 import { MAX_OPPONENT_TYPE_BIAS } from "../reborn/progression";
@@ -80,6 +83,10 @@ function precomputeFit(choice, opponentTypeBias) {
   };
 }
 
+/**
+ * @param {Array<Object>} lines
+ * @param {?Object} opponentTypeBias
+ */
 export function prepareFitScoring(lines, opponentTypeBias) {
   coverageWeights = computeCoverageWeights(opponentTypeBias);
   ACTIVE = snapshotFitTunables();
@@ -91,6 +98,9 @@ export function prepareFitScoring(lines, opponentTypeBias) {
   fitReady = true;
 }
 
+/**
+ * @param {Array<Object>} lines
+ */
 export function resetFitScoring(lines) {
   fitReady = false;
   coverageWeights = null;
@@ -174,11 +184,16 @@ function fastTeamFit(team) {
   return score;
 }
 
-// COVERAGE_WEIGHT: how much the team-level coverage/defense fit is worth relative
-// to the summed individual values — a strong-but-not-dominant marginal term: it
-// can pull a genuine answer onto the team over a redundant stronger mon when it
-// fills a real hole, but can't assemble a team of type-spread chaff over the
-// clear individual standouts.
+/**
+ * COVERAGE_WEIGHT: how much the team-level coverage/defense fit is worth
+ * relative to the summed individual values — a strong-but-not-dominant
+ * marginal term: it can pull a genuine answer onto the team over a redundant
+ * stronger mon when it fills a real hole, but can't assemble a team of
+ * type-spread chaff over the clear individual standouts.
+ * @param {Array<Object>} team
+ * @param {Object} opponentTypeBias
+ * @return {number}
+ */
 export function getTeamScore(team, opponentTypeBias = {}) {
   const fast = fitReady ? fastTeamFit(team) : null;
   const fit = fast != null ? fast : scoreTeamFit(team, opponentTypeBias);
@@ -186,6 +201,10 @@ export function getTeamScore(team, opponentTypeBias = {}) {
   return sumTeamScore(team) + weight * fit;
 }
 
+/**
+ * @param {Object} choice
+ * @return {number} Usage %, floored at 0.
+ */
 export function getUsagePercent(choice) {
   return Math.max(0, choice.bundle?.usage?.value || 0);
 }
@@ -290,9 +309,14 @@ function biasCounterExemption(profile, opponentTypeBias = {}) {
 
 // --- Per-line form options + team comparison -------------------------------
 
-// Score-first, mirroring compareScoredCandidates: the meaningfulUsage boolean
-// no longer outranks score anywhere (usage is informative inside score, never
-// sovereign over it — invariant 1).
+/**
+ * Score-first, mirroring compareScoredCandidates: the meaningfulUsage
+ * boolean no longer outranks score anywhere (usage is informative inside
+ * score, never sovereign over it — invariant 1).
+ * @param {Object} a
+ * @param {Object} b
+ * @return {number}
+ */
 export function compareChoices(a, b) {
   return (
     b.score - a.score ||

@@ -3,6 +3,15 @@ import { DATA_ROOT, HIDDEN_ENTRY_KEYS } from "./constants.mjs";
 import { readJsonIfExists } from "./io.mjs";
 import { normalizeName } from "./stringUtils.mjs";
 
+/**
+ * Aggregates a candidate's monthly moveset sidecars, weighting each entry's
+ * usage% by that month's rawCount so the final percentages are count-based.
+ *
+ * @param {{family: string, selection: string, formatId: string,
+ *     cutoff: number, months: !Array<string>}} candidate
+ * @return {!Promise<!Map<string, !Object>>} pokemonId → aggregate with a
+ *     monthly-summed `entry` (moves/items/abilities/spreads).
+ */
 export async function aggregateCandidateSource(candidate) {
   const byPokemon = new Map();
 

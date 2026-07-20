@@ -1,34 +1,40 @@
-// Confidence layer (roadmap Phase 5): the recommendation is not one team from
-// one parameter vector — it is the distribution of teams across every plausible
-// setting of the model's judgement knobs. This module re-scores the already-
-// resolved lines under a DETERMINISTIC grid of one-at-a-time perturbations
-// (every axis the roadmap names: usage α, coverage weight/scale, portfolio,
-// utility strictness, O-gate jitter, collapse penalty, R_cap blend, shortlist
-// size, ability assumption, K friction) and reports, per mon, how often it is
-// seated:
-//
-//   core     ≥ 90%   — recommend without hedging
-//   likely   60–90%
-//   flex     25–60%  — a genuine close call; say so
-//   fragile  < 25%   — assumption-sensitive; never present as confident
-//
-// One-at-a-time perturbation is deliberate: it answers the reviewable question
-// "does changing ONE knob silently produce a different confident team?", which
-// is the false-precision failure mode this layer exists to defeat.
-//
-// Deterministic by construction (fixed grid, no randomness): reloads reproduce.
+/**
+ * @fileoverview Confidence layer (roadmap Phase 5): the recommendation is not
+ * one team from one parameter vector — it is the distribution of teams across
+ * every plausible setting of the model's judgement knobs. This module
+ * re-scores the already-resolved lines under a DETERMINISTIC grid of
+ * one-at-a-time perturbations (every axis the roadmap names: usage α,
+ * coverage weight/scale, portfolio, utility strictness, O-gate jitter,
+ * collapse penalty, R_cap blend, shortlist size, ability assumption,
+ * K friction) and reports, per mon, how often it is seated:
+ *
+ *   core     ≥ 90%   — recommend without hedging
+ *   likely   60–90%
+ *   flex     25–60%  — a genuine close call; say so
+ *   fragile  < 25%   — assumption-sensitive; never present as confident
+ *
+ * One-at-a-time perturbation is deliberate: it answers the reviewable
+ * question "does changing ONE knob silently produce a different confident
+ * team?", which is the false-precision failure mode this layer exists to
+ * defeat.
+ *
+ * Deterministic by construction (fixed grid, no randomness): reloads
+ * reproduce.
+ */
 
 import { scoreCandidate } from "./candidateScoring.js";
 import { choosePoolTeam } from "./teamSelection.js";
 import { setScoringOverrides } from "./scoringConstants.js";
 
-// CONSTRAINT for new settings: overrides are process-globals on THIS thread.
-// Web Workers never receive them, so a setting that perturbs a constant read
-// inside the search kernel (COVERAGE_WEIGHT, SYNERGY_SCALE, penalties, ...)
-// must keep its search under PARALLEL_THRESHOLD combinations (SHORTLIST_MAX
-// ≤ ~24 → C(24,6) ≈ 135k) so it runs synchronously on the main thread. Only
-// shortlist-36 exceeds the threshold today, and it perturbs main-thread-read
-// knobs only.
+/**
+ * CONSTRAINT for new settings: overrides are process-globals on THIS thread.
+ * Web Workers never receive them, so a setting that perturbs a constant read
+ * inside the search kernel (COVERAGE_WEIGHT, SYNERGY_SCALE, penalties, ...)
+ * must keep its search under PARALLEL_THRESHOLD combinations (SHORTLIST_MAX
+ * ≤ ~24 → C(24,6) ≈ 135k) so it runs synchronously on the main thread. Only
+ * shortlist-36 exceeds the threshold today, and it perturbs main-thread-read
+ * knobs only.
+ */
 export const CONFIDENCE_GRID = [
   { key: "usage-low", overrides: { USAGE_INFLUENCE: 0.15 } },
   { key: "usage-high", overrides: { USAGE_INFLUENCE: 0.45 } },
@@ -135,6 +141,10 @@ const CONTENDER_LIMIT = 40;
 // measured fidelity/speed trade behind the value.
 const SWEEP_FORM_OPTIONS = 3;
 
+/**
+ * @param {number} frequency Seated fraction across settings, 0–1.
+ * @return {string} "core", "likely", "flex", or "fragile".
+ */
 export function classifyFrequency(frequency) {
   if (frequency >= 0.9) return "core";
   if (frequency >= 0.6) return "likely";
@@ -142,6 +152,11 @@ export function classifyFrequency(frequency) {
   return "fragile";
 }
 
+/**
+ * @return {Promise<?{settings: number, members: Array<Object>,
+ *     alternatives: Array<Object>}>} Null when there is no team to sweep or
+ *     the sweep was aborted.
+ */
 export async function computeTeamConfidence({
   result,
   availability,

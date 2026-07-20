@@ -9,6 +9,13 @@ import { renderControls } from "../views/controlsView";
 import { renderMovesetPanel } from "../views/movesetView";
 import { renderTable } from "../views/tableView";
 
+/**
+ * Renders the Usage Data page (controls, usage table, moveset panel) into
+ * `pageRoot`, replacing its contents.
+ * @param {!Element} pageRoot
+ * @param {{browserMovesetData: ?Object, dataset: !Object,
+ *     formatsIndex: !Array<!Object>, state: !Object}} context
+ */
 export function renderBrowserPage(pageRoot, context) {
   const { browserMovesetData, dataset, formatsIndex, state } = context;
 

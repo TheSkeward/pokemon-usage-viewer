@@ -1,9 +1,11 @@
-// Data provenance manifest. Every recommendation must be able to say WHICH
-// data produced it, so "this is illegal!" reports can be triaged into
-// model-wrong vs data-stale. Hashes every data source directory and every
-// generated module, plus the scoring version, into site-data/data/manifest.json.
-// The optimizer folds the manifest signature into its cache keys, so stale
-// caches can never survive a data refresh.
+/**
+ * @fileoverview Data provenance manifest. Every recommendation must be able to
+ * say WHICH data produced it, so "this is illegal!" reports can be triaged
+ * into model-wrong vs data-stale. Hashes every data source directory and every
+ * generated module, plus the scoring version, into
+ * site-data/data/manifest.json. The optimizer folds the manifest signature
+ * into its cache keys, so stale caches can never survive a data refresh.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";

@@ -1,22 +1,24 @@
-// Evolution legality-with-friction. One uniform rule set — nothing
-// mon-specific, no verdict fitting:
-//
-//   level evolution:      legal if the cap permits, K = 0
-//   friendship:           legal, K = friendship grind
-//   move-based:           legal once the pre-evo can have learned the move
-//                         (gated by the move's learn level vs the cap)
-//   item / hold / trade:  legal if the item is farmable (curated, sourced
-//                         table), K = item friction (higher when tedious);
-//                         UNKNOWN item availability is surfaced, not silently
-//                         blocked or allowed
-//   special condition:    affection ⇒ friendship-like; trivial party/time
-//                         conditions ⇒ minor friction; known Reborn location
-//                         evolutions (moss/ice rock, magnetic field, Lanakila
-//                         equivalent) ⇒ legal with item-level friction — the
-//                         locations exist in Reborn and open up mid-game
-//
-// If a correct requirement model makes some line good, it competes; if that
-// looks wrong, the fix is C/K/utility — never a special legality rule.
+/**
+ * @fileoverview Evolution legality-with-friction. One uniform rule set —
+ * nothing mon-specific, no verdict fitting:
+ *
+ *   level evolution:      legal if the cap permits, K = 0
+ *   friendship:           legal, K = friendship grind
+ *   move-based:           legal once the pre-evo can have learned the move
+ *                         (gated by the move's learn level vs the cap)
+ *   item / hold / trade:  legal if the item is farmable (curated, sourced
+ *                         table), K = item friction (higher when tedious);
+ *                         UNKNOWN item availability is surfaced, not silently
+ *                         blocked or allowed
+ *   special condition:    affection ⇒ friendship-like; trivial party/time
+ *                         conditions ⇒ minor friction; known Reborn location
+ *                         evolutions (moss/ice rock, magnetic field, Lanakila
+ *                         equivalent) ⇒ legal with item-level friction — the
+ *                         locations exist in Reborn and open up mid-game
+ *
+ * If a correct requirement model makes some line good, it competes; if that
+ * looks wrong, the fix is C/K/utility — never a special legality rule.
+ */
 
 import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.generated.js";
 import { toId } from "../utils/ids.js";
@@ -25,17 +27,20 @@ import { tunable } from "../teamBuilder/scoringConstants.js";
 
 const TEDIOUS_MULTIPLIER = 1.5;
 
-// Player-facing access gates: which SPECIAL evolution methods the player can
-// currently use (Reborn locks them behind story/area unlocks — the magnetic
-// field lives behind Shade's gym via the Yureyal key, stones drip in over
-// badges, the Link Stone is a mid-game purchase). Each maps a requirement to
-// a flat boolean progression field; an ABSENT field means accessible (so old
-// saved progressions and tests behave exactly as before), an explicit `false`
-// blocks the evolution — surfaced in blockedEvolutions, never silent.
-// Each elemental stone gets its own gate; the rest of the item-shaped
-// methods (Metal Coat, Razor Claw, ...) share one gate. Legacy saves with the
-// old blanket `evoAccessStones: false` still block all of these (see the
-// denied check below and the migration in progression.js).
+/**
+ * Player-facing access gates: which SPECIAL evolution methods the player can
+ * currently use (Reborn locks them behind story/area unlocks — the magnetic
+ * field lives behind Shade's gym via the Yureyal key, stones drip in over
+ * badges, the Link Stone is a mid-game purchase). Each maps a requirement to
+ * a flat boolean progression field; an ABSENT field means accessible (so old
+ * saved progressions and tests behave exactly as before), an explicit `false`
+ * blocks the evolution — surfaced in blockedEvolutions, never silent.
+ * Each elemental stone gets its own gate; the rest of the item-shaped
+ * methods (Metal Coat, Razor Claw, ...) share one gate. Legacy saves with the
+ * old blanket `evoAccessStones: false` still block all of these (see the
+ * denied check below and the migration in progression.js).
+ * @type {Array<{key: string, label: string, item: string}>}
+ */
 export const EVOLUTION_STONE_FIELDS = Object.freeze([
   { key: "evoAccessFireStone", label: "Fire Stone", item: "Fire Stone" },
   { key: "evoAccessWaterStone", label: "Water Stone", item: "Water Stone" },
@@ -49,6 +54,11 @@ export const EVOLUTION_STONE_FIELDS = Object.freeze([
   { key: "evoAccessIceStone", label: "Ice Stone", item: "Ice Stone" },
 ]);
 
+/**
+ * All access gates, stones included, in the order the progression UI lists
+ * them. `item` is set only on the per-stone entries.
+ * @type {Array<{key: string, label: string, item: (string|undefined)}>}
+ */
 export const EVOLUTION_ACCESS_FIELDS = Object.freeze([
   { key: "evoAccessFriendship", label: "Friendship / affection evolutions" },
   ...EVOLUTION_STONE_FIELDS,
@@ -114,12 +124,17 @@ function requiredAccessKeys(evoType, condition, species) {
   return [];
 }
 
-// The requirement for evolving INTO `species` from its direct pre-evolution.
-// Returns { status: "legal" | "unknown" | "blocked", levelRequired, friction,
-// method, reason } — `levelRequired` still needs checking against the level
-// cap by the caller; `friction` is in score points (K). `access` is the
-// progression object (flat evoAccess* booleans); omitted = everything
-// accessible.
+/**
+ * The requirement for evolving INTO `species` from its direct pre-evolution.
+ * `levelRequired` still needs checking against the level cap by the caller;
+ * `friction` is in score points (K). `access` is the progression object (flat
+ * evoAccess* booleans); omitted = everything accessible.
+ * @param {?Object} species Dex entry of the evolved form.
+ * @param {?Object=} access
+ * @return {?{status: string, levelRequired: ?number, friction: number,
+ *     method: string, reason: string}} status is "legal" | "unknown" |
+ *     "blocked"; null for a null species.
+ */
 export function getEvolutionRequirement(species, access = null) {
   if (!species) return null;
   if (!species.prevoId) {
@@ -384,12 +399,17 @@ function shortStepRequirement(species) {
   return { level: null, text: extras("") || "special condition" };
 }
 
-// Human note for "what it takes" to evolve `fromId` into `toId`, appended to
-// the input mon's name: Burmy -> Wormadam-Trash reads "@20 (Female, in
-// buildings)"; Happiny -> Blissey reads " (hold Oval Stone, during the day,
-// then friendship)". Empty string when `fromId` isn't a strict ancestor of
-// `toId` (nothing to explain). Static game mechanics only — gamestate (owned
-// items, access gates) is deliberately not consulted, so the note is stable.
+/**
+ * Human note for "what it takes" to evolve `fromId` into `toId`, appended to
+ * the input mon's name: Burmy -> Wormadam-Trash reads "@20 (Female, in
+ * buildings)"; Happiny -> Blissey reads " (hold Oval Stone, during the day,
+ * then friendship)". Empty string when `fromId` isn't a strict ancestor of
+ * `toId` (nothing to explain). Static game mechanics only — gamestate (owned
+ * items, access gates) is deliberately not consulted, so the note is stable.
+ * @param {?string} fromId
+ * @param {?string} toId
+ * @return {string}
+ */
 export function describeEvolutionPath(fromId, toId) {
   if (!fromId || !toId || fromId === toId) return "";
   const chain = [];
@@ -437,10 +457,15 @@ export function describeEvolutionPath(fromId, toId) {
   return `${attachedLevel}${tokens.length ? ` (${tokens.join(", ")})` : ""}`;
 }
 
-// Walks from the fielded form down toward the family base, or — when the
-// player's input form is on the chain — stops there: evolutions below the
-// owned form are already done, so they carry no pending requirement and no
-// friction (an input Alakazam owes nothing for Kadabra → Alakazam).
+/**
+ * Walks from the fielded form down toward the family base, or — when the
+ * player's input form is on the chain — stops there: evolutions below the
+ * owned form are already done, so they carry no pending requirement and no
+ * friction (an input Alakazam owes nothing for Kadabra → Alakazam).
+ * @return {{friction: number, steps: Array<{from: string, to: string,
+ *     method: string, friction: number, reason: string}>}} steps in
+ *     base-to-fielded order; friction is the steps' total (K).
+ */
 export function evolutionChainProof(fieldedId, access = null, inputId = null) {
   const steps = [];
   let friction = 0;

@@ -1,14 +1,16 @@
-// Persists the team-optimizer's Layer-3 result memo across page loads, so a
-// reload (to pick up a deploy, restore a tab, or recover from a crash) restores
-// a previously-computed pool instantly instead of paying the line-resolution and
-// search cost again.
-//
-// IndexedDB (not localStorage) because a result holds the full resolved-lines
-// graph and bench-swap Map — that's structured-clone-friendly and can exceed
-// localStorage's ~5MB cap on exactly the big pools this is meant to help. Every
-// operation degrades silently to a no-op if IndexedDB is unavailable, the data
-// isn't cloneable, or the quota is exceeded: persistence is a cache, never a
-// source of truth, so a failure just falls back to recomputing.
+/**
+ * @fileoverview Persists the team-optimizer's Layer-3 result memo across page
+ * loads, so a reload (to pick up a deploy, restore a tab, or recover from a
+ * crash) restores a previously-computed pool instantly instead of paying the
+ * line-resolution and search cost again.
+ *
+ * IndexedDB (not localStorage) because a result holds the full resolved-lines
+ * graph and bench-swap Map — that's structured-clone-friendly and can exceed
+ * localStorage's ~5MB cap on exactly the big pools this is meant to help.
+ * Every operation degrades silently to a no-op if IndexedDB is unavailable,
+ * the data isn't cloneable, or the quota is exceeded: persistence is a cache,
+ * never a source of truth, so a failure just falls back to recomputing.
+ */
 
 const DB_NAME = "pokemon-usage-viewer";
 const STORE = "team-results";
@@ -47,9 +49,13 @@ function openDb() {
   return dbPromise;
 }
 
-// Returns a Map(poolKey -> result) of entries matching the current version, and
-// asynchronously prunes any entry from a different version (a deploy that changed
-// optimizer output bumps the version, retiring the old results).
+/**
+ * Entries matching the current version; asynchronously prunes any entry from
+ * a different version (a deploy that changed optimizer output bumps the
+ * version, retiring the old results).
+ * @param {string} version
+ * @return {Promise<Map<string, Object>>} poolKey -> result.
+ */
 export async function loadPersistedResults(version) {
   const db = await openDb();
   const entries = new Map();
@@ -82,7 +88,12 @@ export async function loadPersistedResults(version) {
   });
 }
 
-// Write-through a single result. Fire-and-forget: callers don't await it.
+/**
+ * Write-through a single result. Fire-and-forget: callers don't await it.
+ * @param {string} version
+ * @param {string} poolKey
+ * @param {Object} result
+ */
 export async function persistResult(version, poolKey, result) {
   const db = await openDb();
   if (!db) return;

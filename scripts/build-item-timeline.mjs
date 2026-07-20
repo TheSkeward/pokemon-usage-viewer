@@ -1,20 +1,22 @@
-// Generates src/generated/rebornItemTimeline.generated.js: the badge count at
-// which each held item first becomes obtainable, merged from three sources
-// (earliest wins):
-//
-//  1. site-data/data/reborn-item-availability.extracted.json — extracted from
-//     the community "Pokemon Reborn Ep19 Items & Services Guide" spreadsheet
-//     (All Items Locations + Shops + Arcade Lottery tabs), with the sheet's
-//     fight order mapped to badge counts (Corey/Kiki/Saphira award no badge;
-//     post-game tiers collapse to badge 18).
-//  2. The same file's Mining Items tab: everything minable unlocks with the
-//     Mining Kit (Grand Stairway hiker, badge 3 — right after Shelly).
-//  3. WILD_HELD below (user-curated): items carried by wild Pokémon are
-//     obtainable as soon as the holder is catchable. Only entries with a
-//     confidently-known holder timing are listed; corrections are one-line
-//     edits.
-//
-// Rerun: node scripts/build-item-timeline.mjs
+/**
+ * @fileoverview Generates src/generated/rebornItemTimeline.generated.js: the
+ * badge count at which each held item first becomes obtainable, merged from
+ * three sources (earliest wins):
+ *
+ *  1. site-data/data/reborn-item-availability.extracted.json — extracted from
+ *     the community "Pokemon Reborn Ep19 Items & Services Guide" spreadsheet
+ *     (All Items Locations + Shops + Arcade Lottery tabs), with the sheet's
+ *     fight order mapped to badge counts (Corey/Kiki/Saphira award no badge;
+ *     post-game tiers collapse to badge 18).
+ *  2. The same file's Mining Items tab: everything minable unlocks with the
+ *     Mining Kit (Grand Stairway hiker, badge 3 — right after Shelly).
+ *  3. WILD_HELD below (user-curated): items carried by wild Pokémon are
+ *     obtainable as soon as the holder is catchable. Only entries with a
+ *     confidently-known holder timing are listed; corrections are one-line
+ *     edits.
+ *
+ * Rerun: node scripts/build-item-timeline.mjs
+ */
 
 import { readFileSync, writeFileSync } from "node:fs";
 

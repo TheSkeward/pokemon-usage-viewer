@@ -1,15 +1,17 @@
-// LEVEL-CAP investment projection: "best six right now" and
-// "worth training soon" are different products. Selection never spends future
-// value; THIS view is where the future lives. It re-runs the real optimizer at
-// the next level cap(s) — same pool, SAME unlocks, only the cap moved — and
-// compares each line's value, so "Magikarp is one badge from a real payoff"
-// falls out of the same model instead of a special rule.
-//
-// Scope honesty: this projects the level cap ONLY. Real Reborn progression also
-// unlocks TMs, tutors, items, shops, and locations at future badges — none of
-// that is modeled here (it would need per-badge unlock data), and the UI says
-// so. Good for cap-gated futures (evolutions, level-up moves); not a full
-// future-gamestate simulation.
+/**
+ * @fileoverview LEVEL-CAP investment projection: "best six right now" and
+ * "worth training soon" are different products. Selection never spends future
+ * value; THIS view is where the future lives. It re-runs the real optimizer
+ * at the next level cap(s) — same pool, SAME unlocks, only the cap moved —
+ * and compares each line's value, so "Magikarp is one badge from a real
+ * payoff" falls out of the same model instead of a special rule.
+ *
+ * Scope honesty: this projects the level cap ONLY. Real Reborn progression
+ * also unlocks TMs, tutors, items, shops, and locations at future badges —
+ * none of that is modeled here (it would need per-badge unlock data), and the
+ * UI says so. Good for cap-gated futures (evolutions, level-up moves); not a
+ * full future-gamestate simulation.
+ */
 
 import { optimizeTeamFromPool } from "./teamOptimizer.js";
 import { REBORN_PROGRESSION_CHECKPOINTS } from "../reborn/badgeTimeline.js";
@@ -17,8 +19,13 @@ import { REBORN_PROGRESSION_CHECKPOINTS } from "../reborn/badgeTimeline.js";
 const TRAIN_SOON_GAIN = 250; // score points at the next cap that make a mon worth tracking
 const CLOSE_BENCH_MARGIN = 0.985; // swap score within 1.5% of the team's own score
 
-// The distinct upcoming caps, straight from the badge timeline — the single
-// source of progression truth; never hardcode a copy here.
+/**
+ * The distinct upcoming caps, straight from the badge timeline — the single
+ * source of progression truth; never hardcode a copy here.
+ * @param {string|number} levelCap
+ * @param {number} count
+ * @return {Array<number>}
+ */
 export function nextLevelCaps(levelCap, count = 2) {
   const cap = Number.parseInt(levelCap, 10) || 0;
   const upcoming = [];
@@ -30,6 +37,11 @@ export function nextLevelCaps(levelCap, count = 2) {
   return upcoming.slice(0, count);
 }
 
+/**
+ * @return {Promise<?{caps: Array<number>, trainSoon: Array<Object>,
+ *     holdOff: Array<Object>, closeBench: Array<Object>}>} Null when there
+ *     are no upcoming caps, no current team, or the run was aborted.
+ */
 export async function computeInvestmentPlan({
   availability,
   family,

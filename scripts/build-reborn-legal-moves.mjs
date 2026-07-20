@@ -1,12 +1,16 @@
-// Builds per-Pokémon Reborn legal-move files from Reborn's own learnsets
-// (scripts/reborn/reborn-learnsets.generated.json, decompiled from the game's
-// mons.dat) rather than mainline @pkmn/dex. Reborn is the authoritative source
-// for the game this tool targets, and it diverges from mainline (e.g. Bibarel's
-// evolution move is Water Gun in Reborn, Aqua Jet in USUM). Reborn also encodes
-// the evolution move explicitly as a level-0 entry, so no heuristic is needed.
-//
-// @pkmn/dex is still used for species relationships (pre-evolution chains, types)
-// and to validate move ids; only the learnset *content* comes from Reborn.
+/**
+ * @fileoverview Builds per-Pokémon Reborn legal-move files from Reborn's own
+ * learnsets (scripts/reborn/reborn-learnsets.generated.json, decompiled from
+ * the game's mons.dat) rather than mainline {@code @pkmn/dex}. Reborn is the
+ * authoritative source for the game this tool targets, and it diverges from
+ * mainline (e.g. Bibarel's evolution move is Water Gun in Reborn, Aqua Jet in
+ * USUM). Reborn also encodes the evolution move explicitly as a level-0 entry,
+ * so no heuristic is needed.
+ *
+ * {@code @pkmn/dex} is still used for species relationships (pre-evolution
+ * chains, types) and to validate move ids; only the learnset *content* comes
+ * from Reborn.
+ */
 
 import fs from "node:fs/promises";
 import { readFileSync } from "node:fs";

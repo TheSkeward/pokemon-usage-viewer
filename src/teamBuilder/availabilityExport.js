@@ -6,9 +6,14 @@ import {
 import { MAX_TRACKED_ITEM_COUNT } from "../reborn/progression";
 import { GEN7_HELD_ITEMS_BY_ID } from "../generated/gen7HeldItems.generated.js";
 
-// Builds the plain-text "here are my available Pokémon and items" list from the
-// resolved pool lines and the current progression. Each Pokémon is reported as
-// its current playable form with the moves that are currently legal/available.
+/**
+ * Builds the plain-text "here are my available Pokémon and items" list from
+ * the resolved pool lines and the current progression. Each Pokémon is
+ * reported as its current playable form with the moves that are currently
+ * legal/available.
+ * @param {{lines: Array<Object>, progression: Object}} state
+ * @return {Promise<string>}
+ */
 export async function buildPoolAvailabilityText({ lines, progression }) {
   const resolvedLines = (lines || []).filter(
     (line) => line && !line.unresolved && (line.best || line.bestNonMega),

@@ -12,6 +12,17 @@ import { STAT_LABELS } from "../utils/stats.js";
 
 const HIDDEN_MOVESET_ENTRY_KEYS = new Set(["other", "nothing"]);
 
+/**
+ * Moveset detail panel; also binds move hover-highlight and click-to-filter
+ * interactions on the rendered rows. Renders empty, loading, and no-data
+ * states from selectedPokemonName/movesetEntry/status. "Other" and "Nothing"
+ * entries are dropped from every list.
+ * @param {!Element} container
+ * @param {{selectedPokemonName: ?string, movesetEntry: ?Object,
+ *     lookupLabel: string, sourceUsageLabel: (string|undefined),
+ *     aggregate: boolean, stitched: boolean,
+ *     status: ?{phase: string}}=} options
+ */
 export function renderMovesetPanel(container, options = {}) {
   const {
     selectedPokemonName = null,

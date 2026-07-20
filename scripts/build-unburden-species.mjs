@@ -1,7 +1,10 @@
-// Generates the set of Gen 7 species that can have the Unburden ability, used
-// to weight consumable held items (gems, berries) higher for them: Unburden
-// doubles Speed when the held item is consumed, and a Z-Crystal (which our gem
-// proxy is built on) does NOT trigger it, so the proxy under-rates gems here.
+/**
+ * @fileoverview Generates the set of Gen 7 species that can have the Unburden
+ * ability, used to weight consumable held items (gems, berries) higher for
+ * them: Unburden doubles Speed when the held item is consumed, and a Z-Crystal
+ * (which our gem proxy is built on) does NOT trigger it, so the proxy
+ * under-rates gems here.
+ */
 
 import fs from "node:fs";
 import path from "node:path";

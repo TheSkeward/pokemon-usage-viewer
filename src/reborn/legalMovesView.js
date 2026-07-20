@@ -20,6 +20,18 @@ const SOURCE_TONE = {
   egg: "egg",
 };
 
+/**
+ * Renders the legal-moves panel into `container`: a loading state immediately,
+ * then (async) the observed-set legality check and the full legal move pool
+ * under the given progression. Legality is checked against the CURRENT form
+ * (options.currentSpecies) when it differs from the usage representative.
+ * A stale async result is dropped when the container has since been re-rendered
+ * for a different pokemon/progression.
+ * @param {Element} container
+ * @param {{currentSpecies: ?Object, movesetEntry: ?Object, pokemonId: string,
+ *     pokemonName: string, progression: Object, pokemonIndex: ?Object,
+ *     poolQuery: ?string}} options
+ */
 export function renderRebornLegalMovesPanel(container, options) {
   const { currentSpecies, movesetEntry, pokemonId, pokemonName, progression } = options;
   const legalityPokemonId = currentSpecies?.id || pokemonId;

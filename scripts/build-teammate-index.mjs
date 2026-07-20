@@ -1,15 +1,17 @@
-// Builds the teammate-synergy index: for each mon, the co-use LIFT of its
-// teammates in its FIRST-MEANINGFUL tier (same tier law as set sourcing),
-// from Smogon's text moveset stats ("Teammates" blocks carry P(B|A) − P(B)
-// precomputed). Downloads a few highest-volume months per format,
-// weight-averages, symmetrizes, and emits per-mon JSONs:
-//   site-data/data/teammate-index/<family>/all/<monId>.json
-//     { pokemonId, tier: {formatId, cutoff}, teammates: { otherId: liftPct } }
-//
-// Runs in the data-refresh CI (network to smogon.com); rerun via
-//   npm run build:teammate-index
-// Missing index files at runtime mean "no opinion" — the synergy term stays
-// silent (trust 0).
+/**
+ * @fileoverview Builds the teammate-synergy index: for each mon, the co-use
+ * LIFT of its teammates in its FIRST-MEANINGFUL tier (same tier law as set
+ * sourcing), from Smogon's text moveset stats ("Teammates" blocks carry
+ * P(B|A) − P(B) precomputed). Downloads a few highest-volume months per
+ * format, weight-averages, symmetrizes, and emits per-mon JSONs:
+ *   site-data/data/teammate-index/<family>/all/<monId>.json
+ *     { pokemonId, tier: {formatId, cutoff}, teammates: { otherId: liftPct } }
+ *
+ * Runs in the data-refresh CI (network to smogon.com); rerun via
+ *   npm run build:teammate-index
+ * Missing index files at runtime mean "no opinion" — the synergy term stays
+ * silent (trust 0).
+ */
 
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from "node:fs";
 import path from "node:path";
@@ -29,8 +31,14 @@ async function fetchText(url) {
   return response.text();
 }
 
-// Parse the Teammates block per mon from a Smogon text moveset file.
-// Exported for the parser unit test.
+/**
+ * Parse the Teammates block per mon from a Smogon text moveset file.
+ * Exported for the parser unit test.
+ *
+ * @param {string} text
+ * @return {!Map<string, {teammates: !Map<string, number>, rawCount: number}>}
+ *     monId → its Teammates lifts (percentage points) and raw count.
+ */
 export function parseTeammates(text) {
   const byMon = new Map();
   // Walk lines, tracking the current mon and whether we are in its Teammates

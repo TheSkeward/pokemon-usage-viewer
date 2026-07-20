@@ -1,13 +1,16 @@
-// Generates per-species base stats (Atk/Def/SpA/SpD/Spe) from @pkmn/dex Gen 7
-// data, used by the Team Builder's stat-fit seed model. Stored as compact
-// [atk, def, spa, spd, spe] arrays keyed by species id.
-//
-// Also emits GEN7_BASE_STAT_TOTALS (full base-stat total, *including* HP) keyed
-// by species id, used by the form-readiness discount to gauge how much weaker a
-// stuck pre-evolution is than the evolved form it borrows its usage prior from.
-// HP stays out of the [Atk..Spe] array (the seed model indexes it positionally)
-// but is folded into the totals, since HP is central to walls like the Chansey
-// line.
+/**
+ * @fileoverview Generates per-species base stats (Atk/Def/SpA/SpD/Spe) from
+ * {@code @pkmn/dex} Gen 7 data, used by the Team Builder's stat-fit seed
+ * model. Stored as compact [atk, def, spa, spd, spe] arrays keyed by species
+ * id.
+ *
+ * Also emits GEN7_BASE_STAT_TOTALS (full base-stat total, *including* HP) keyed
+ * by species id, used by the form-readiness discount to gauge how much weaker a
+ * stuck pre-evolution is than the evolved form it borrows its usage prior from.
+ * HP stays out of the [Atk..Spe] array (the seed model indexes it positionally)
+ * but is folded into the totals, since HP is central to walls like the Chansey
+ * line.
+ */
 
 import fs from "node:fs";
 import path from "node:path";

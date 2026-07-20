@@ -8,8 +8,10 @@ import {
 } from "./currentFormValue.js";
 import { tunable } from "./scoringConstants.js";
 
-// Snapshotted at module load — not a confidence-sweep axis, so late overrides
-// don't need to reach it.
+/**
+ * Snapshotted at module load — not a confidence-sweep axis, so late
+ * overrides don't need to reach it.
+ */
 export const MIN_MEANINGFUL_USAGE_PERCENT = tunable(
   "MIN_MEANINGFUL_USAGE_PERCENT",
 );
@@ -50,6 +52,11 @@ export const MIN_MEANINGFUL_USAGE_PERCENT = tunable(
 const ONLINE_FINAL = 1.0;
 const ONLINE_DEAD = 0.0;
 
+/**
+ * @return {Object} Scored fields (score/teamScore = V plus the display
+ *     components: ceiling, online, futureValue, friction, role/features,
+ *     usage stats); score is -Infinity when the bundle has no usage entry.
+ */
 export function scoreCandidate({
   availability,
   bundle,
@@ -197,27 +204,36 @@ export function scoreCandidate({
   };
 }
 
-// The usage trust w before the α·O floor:
-//   ramp = O_rep · min((cap/L*)^k, r_now)
-// O_rep: only a fielded form that IS this profile's usage representative can
-// ramp — the usage prior describes THAT form; a deliberately unevolved
-// pre-evo keeps the upside-only α·O treatment. L* comes from the Phase 1 readiness
-// schedule; r_now (canonical moves actually assembled) caps it so "reachable
-// but not picked up yet" never scores as done. Items influence w only through
-// L* — endgame items are purchasable at will, so an unowned Eviolite must not
-// hold w below 1 at cap 100.
-// The id the player actually FIELDS to express an archetype: a mega
-// representative is fielded by fielding its BASE form (the mega happens in
-// battle, and currentSpecies never walks onto mega ids). Readiness — both O
-// and the w ramp — must judge the fielded form against this, or a
-// mega-anchored archetype reads as perpetually "near-final" (never online,
-// never converging) even when the base form is in hand.
+/**
+ * The id the player actually FIELDS to express an archetype: a mega
+ * representative is fielded by fielding its BASE form (the mega happens in
+ * battle, and currentSpecies never walks onto mega ids). Readiness — both O
+ * and the w ramp — must judge the fielded form against this, or a
+ * mega-anchored archetype reads as perpetually "near-final" (never online,
+ * never converging) even when the base form is in hand.
+ * @param {?string} representativeId
+ * @return {?string}
+ */
 export function fieldableRepresentativeId(representativeId) {
   if (!representativeId) return representativeId;
   const record = GEN7_PROGRESSION_SPECIES[representativeId];
   return record?.isMega ? record.baseSpeciesId || representativeId : representativeId;
 }
 
+/**
+ * The usage trust w before the α·O floor:
+ *   ramp = O_rep · min((cap/L*)^k, r_now)
+ * O_rep: only a fielded form that IS this profile's usage representative can
+ * ramp — the usage prior describes THAT form; a deliberately unevolved
+ * pre-evo keeps the upside-only α·O treatment. L* comes from the Phase 1
+ * readiness schedule; r_now (canonical moves actually assembled) caps it so
+ * "reachable but not picked up yet" never scores as done. Items influence w
+ * only through L* — endgame items are purchasable at will, so an unowned
+ * Eviolite must not hold w below 1 at cap 100.
+ * @param {?Object} legalityProfile
+ * @param {number} levelCap
+ * @return {number} w in [0, 1].
+ */
 export function computeUsageRamp(legalityProfile, levelCap) {
   const readiness = legalityProfile?.setReadiness || null;
   const representativeId = legalityProfile?.representativeId;
@@ -238,13 +254,18 @@ export function computeUsageRamp(legalityProfile, levelCap) {
   return Math.min(schedule, rNow);
 }
 
-// U_rank: a tier-dominant rank scalar on C's scale.
-//   U_rank = TIER_STEP·tierIndex + quantize(usage%) + ε·C
-// TIER_STEP strictly exceeds any usage %, so a shallower first-meaningful
-// tier ALWAYS dominates within-tier usage; usage is quantized so ε·C (kept
-// below the quantum — see USAGE_QUANTUM / EPSILON_C) can only break exact
-// ties. Monotonically rescaled onto CURRENT_VALUE_SCALE — any monotone
-// rescale preserves the ordering guarantees.
+/**
+ * U_rank: a tier-dominant rank scalar on C's scale.
+ *   U_rank = TIER_STEP·tierIndex + quantize(usage%) + ε·C
+ * TIER_STEP strictly exceeds any usage %, so a shallower first-meaningful
+ * tier ALWAYS dominates within-tier usage; usage is quantized so ε·C (kept
+ * below the quantum — see USAGE_QUANTUM / EPSILON_C) can only break exact
+ * ties. Monotonically rescaled onto CURRENT_VALUE_SCALE — any monotone
+ * rescale preserves the ordering guarantees.
+ * @param {{tierRank: number, value: number, totalTiers: number}} rank
+ * @param {number} currentValue
+ * @return {number}
+ */
 export function usageRankScore(rank, currentValue = 0) {
   const totalTiers = Math.max(1, rank.totalTiers || 1);
   const tierIndex = Math.max(0, totalTiers - rank.tierRank);
@@ -276,9 +297,16 @@ function usageCeiling(rank) {
   return CURRENT_VALUE_SCALE * Math.max(0, Math.min(1, combined));
 }
 
-// The first tier whose usage clears the meaningful-usage bar
-// (MIN_MEANINGFUL_USAGE_PERCENT), used to rank low-usage mons by real signal
-// rather than their noisy headline-tier raw count.
+/**
+ * The first tier whose usage clears the meaningful-usage bar
+ * (MIN_MEANINGFUL_USAGE_PERCENT), used to rank low-usage mons by real signal
+ * rather than their noisy headline-tier raw count.
+ * @param {?Object} bundle
+ * @param {Array<string>} formatOrder
+ * @param {Array<string>} cutoffPriority
+ * @return {{tierRank: number, value: number, rawCount: number,
+ *     totalTiers: number}} tierRank === totalTiers means no meaningful tier.
+ */
 export function getUsageRanking(bundle, formatOrder = [], cutoffPriority = []) {
   const totalTiers = Math.max(1, formatOrder.length * cutoffPriority.length);
   const ranking = bundle?.ranking;
@@ -307,10 +335,16 @@ export function getUsageRanking(bundle, formatOrder = [], cutoffPriority = []) {
   return { tierRank: totalTiers, value, rawCount, totalTiers };
 }
 
-// Competitive evidence used only to select the downward-trust law. A ranked
-// row is already meaningful. Below that bar, sustained trace usage in one of
-// the ordered ladder's first few formats is enough to reject "absence
-// everywhere" without manufacturing a rank from noisy tail data.
+/**
+ * Competitive evidence used only to select the downward-trust law. A ranked
+ * row is already meaningful. Below that bar, sustained trace usage in one of
+ * the ordered ladder's first few formats is enough to reject "absence
+ * everywhere" without manufacturing a rank from noisy tail data.
+ * @param {?Object} bundle
+ * @param {Array<string>} formatOrder
+ * @param {Array<string>} cutoffPriority
+ * @return {boolean}
+ */
 export function hasCompetitivePriorEvidence(
   bundle,
   formatOrder = [],
@@ -403,9 +437,15 @@ function getReadinessGate(profile, features) {
   return ladder[step];
 }
 
-// Score-first, no boolean gates: making `meaningfulUsage` a primary key would
-// put usage SOVEREIGN over the whole value model (invariant 1 violation).
-// Usage already speaks inside score (U, bias); here it only breaks exact ties.
+/**
+ * Score-first, no boolean gates: making `meaningfulUsage` a primary key
+ * would put usage SOVEREIGN over the whole value model (invariant 1
+ * violation). Usage already speaks inside score (U, bias); here it only
+ * breaks exact ties.
+ * @param {Object} a
+ * @param {Object} b
+ * @return {number}
+ */
 export function compareScoredCandidates(a, b) {
   return (
     b.score - a.score ||

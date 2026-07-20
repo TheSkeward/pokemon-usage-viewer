@@ -1,12 +1,15 @@
-// Generates a table of held-item damage multipliers from @pkmn/dex Gen 7 data,
-// so the damage model can reflect the item a Pokémon is holding. Each entry is a
-// rule: { mult, type?, types?, category?, users? } — the multiplier applies only
-// when the move's type/category (and, for signature items, the holder) match.
-//
-// Most item effects are coded as functions in the dex (not introspectable), so
-// we derive what we can structurally (Plates expose their type) and match the
-// rest against the stable shortDesc text, with a small curated set for the items
-// whose effect isn't a plain "<Type>-type attacks have 1.2x power".
+/**
+ * @fileoverview Generates a table of held-item damage multipliers from
+ * {@code @pkmn/dex} Gen 7 data, so the damage model can reflect the item a
+ * Pokémon is holding. Each entry is a rule: { mult, type?, types?, category?,
+ * users? } — the multiplier applies only when the move's type/category (and,
+ * for signature items, the holder) match.
+ *
+ * Most item effects are coded as functions in the dex (not introspectable), so
+ * we derive what we can structurally (Plates expose their type) and match the
+ * rest against the stable shortDesc text, with a small curated set for the
+ * items whose effect isn't a plain "<Type>-type attacks have 1.2x power".
+ */
 
 import fs from "node:fs";
 import path from "node:path";

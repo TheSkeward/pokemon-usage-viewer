@@ -1,13 +1,16 @@
-// Incremental Showdown replay harvester: for every format the app tracks
-// (scripts/config.mjs REAL_FORMATS — singles AND doubles), page through the
-// public replay search and append each new replay's team compositions to a
-// committed JSONL archive. The archive is the accumulating dataset the
-// derived indexes (core-index) are built from; raw fetches are not kept.
-//
-// Politeness contract: one request at a time, REQUEST_GAP_MS between
-// requests, identifying User-Agent, and a per-run cap on new replays per
-// format so a scheduled run is bounded. Runs where network policy allows
-// (CI / user machines); a blocked or failing format logs and moves on.
+/**
+ * @fileoverview Incremental Showdown replay harvester: for every format the
+ * app tracks (scripts/config.mjs REAL_FORMATS — singles AND doubles), page
+ * through the public replay search and append each new replay's team
+ * compositions to a committed JSONL archive. The archive is the accumulating
+ * dataset the derived indexes (core-index) are built from; raw fetches are
+ * not kept.
+ *
+ * Politeness contract: one request at a time, REQUEST_GAP_MS between
+ * requests, identifying User-Agent, and a per-run cap on new replays per
+ * format so a scheduled run is bounded. Runs where network policy allows
+ * (CI / user machines); a blocked or failing format logs and moves on.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -15,6 +18,7 @@ import { REAL_FORMATS } from "./config.mjs";
 import { parseReplayTeams, toTeamSheetId } from "./teamscrape/replayLog.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+/** Directory holding the committed JSONL archives. @type {string} */
 export const ARCHIVE_DIR = path.join(scriptDir, "teamscrape", "archive");
 
 const REPLAY_ROOT = "https://replay.pokemonshowdown.com";
@@ -33,10 +37,12 @@ async function fetchJson(url) {
   return response.json();
 }
 
+/** @return {string} The replay archive file for a format. */
 export function archivePath(formatId) {
   return path.join(ARCHIVE_DIR, `replays-${formatId}.jsonl`);
 }
 
+/** @return {!Set<string>} Record ids already present in a JSONL archive file. */
 export function readArchiveIds(file) {
   if (!fs.existsSync(file)) return new Set();
   const ids = new Set();
@@ -51,6 +57,12 @@ export function readArchiveIds(file) {
   return ids;
 }
 
+/**
+ * @param {!Object} replay Raw replay JSON (with battle log).
+ * @return {{id: string, format: string, uploadtime: ?number, rating: ?number,
+ *     teams: !Array<!Array<string>>}} The archive record: both sides'
+ *     team-sheet species ids, deduped and sorted.
+ */
 export function normalizeReplay(replay, formatId) {
   const teams = parseReplayTeams(replay.log).map((side) =>
     [...new Set(side.map(toTeamSheetId))].sort(),

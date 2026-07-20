@@ -32,6 +32,10 @@ const VALID_TYPES = new Set(Object.keys(TYPE_COLORS));
 
 const cache = new Map();
 
+/**
+ * @param {string} name Move display name.
+ * @return {?Object} Move metadata, or null when unknown.
+ */
 export function getMoveMeta(name) {
   const rawName = String(name || '').trim();
   const id = moveId(rawName);
@@ -64,14 +68,20 @@ function resolveHiddenPower(name) {
   };
 }
 
+/**
+ * @param {string} id
+ * @return {?Object}
+ */
 export function getMoveMetaById(id) {
   return MOVE_META[id] || null;
 }
 
-// Rejoins a stripped legal-move entry ({ id, sources }) with its central
-// metadata, reproducing the fully-populated move object the rest of the app
-// consumes, including screen mechanics. Unknown ids fall back to inert
-// defaults so a missing entry can't crash a render.
+/**
+ * Rejoins a stripped legal-move entry ({ id, sources }) with its central
+ * metadata, reproducing the fully-populated move object the rest of the app
+ * consumes, including screen mechanics. Unknown ids fall back to inert
+ * defaults so a missing entry can't crash a render.
+ */
 export function hydrateLegalMove(rawMove) {
   const meta = MOVE_META[rawMove.id] || null;
   return {
@@ -103,9 +113,12 @@ export function hydrateLegalMove(rawMove) {
   };
 }
 
-// One-line move facts for tooltips: "Rock · Physical · 100 BP · 80% acc",
-// with priority only when it isn't 0 ("+2 priority"). Status moves skip BP.
-// Empty string for unknown moves so callers can omit the tooltip.
+/**
+ * One-line move facts for tooltips: "Rock · Physical · 100 BP · 80% acc",
+ * with priority only when it isn't 0 ("+2 priority"). Status moves skip BP.
+ * Empty string for unknown moves so callers can omit the tooltip.
+ * @return {string}
+ */
 export function describeMoveMeta(meta) {
   if (!meta) return "";
   const parts = [meta.type, meta.category];
@@ -119,10 +132,12 @@ export function describeMoveMeta(meta) {
   return parts.filter(Boolean).join(" · ");
 }
 
+/** @return {string} CSS color for the type; neutral gray when unknown. */
 export function getTypeColor(type) {
   return TYPE_COLORS[type] || '#AAB5C3';
 }
 
+/** @return {string} CSS color for the category; neutral gray when unknown. */
 export function getCategoryColor(category) {
   return CATEGORY_COLORS[category] || '#AAB5C3';
 }

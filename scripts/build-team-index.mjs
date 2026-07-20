@@ -1,9 +1,11 @@
-// Builds site-data/data/team-index/<family>/<formatId>.json: whole real
-// teams from the paste-sourced archives (samples, tournament dumps, RMT),
-// deduped by composition+sets with summed source weight. The runtime's
-// "fieldable real team" panel filters these against the player's pool,
-// progression, and tracked inventory. Uncapped: see real harvest volume
-// before deciding any cap is needed.
+/**
+ * @fileoverview Builds site-data/data/team-index/<family>/<formatId>.json:
+ * whole real teams from the paste-sourced archives (samples, tournament
+ * dumps, RMT), deduped by composition+sets with summed source weight. The
+ * runtime's "fieldable real team" panel filters these against the player's
+ * pool, progression, and tracked inventory. Uncapped: see real harvest volume
+ * before deciding any cap is needed.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -29,6 +31,12 @@ function memberKey(set) {
   ].join("~");
 }
 
+/**
+ * @param {!Array<!Object>} records Paste-sourced team records.
+ * @return {!Map<string, !Map<string, {formatId: string,
+ *     teams: !Array<!Object>}>>} family → formatId → per-format file payload,
+ *     teams heaviest-first.
+ */
 export function buildTeamIndex(records) {
   // family → formatId → key → entry
   const byFamily = new Map();

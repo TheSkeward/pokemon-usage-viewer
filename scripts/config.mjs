@@ -1,3 +1,7 @@
+/**
+ * @type {!Object<string, {label: string, formatOrder: !Array<string>,
+ *     cutoffPriority: !Array<number>, defaultBrowserFormat: string}>}
+ */
 export const FAMILY_CONFIGS = {
   singles: {
     label: 'Singles',
@@ -28,6 +32,7 @@ export const FAMILY_CONFIGS = {
   },
 };
 
+/** @type {!Array<{id: string, label: string, family: string}>} */
 export const REAL_FORMATS = [
   { id: 'gen7anythinggoes', label: 'Gen 7 AG', family: 'singles' },
   { id: 'gen7ubers', label: 'Gen 7 Ubers', family: 'singles' },
@@ -44,6 +49,10 @@ export const REAL_FORMATS = [
   { id: 'gen7doublesuu', label: 'Gen 7 DUU', family: 'doubles' },
 ];
 
+/**
+ * @type {!Array<{id: string, label: string, family: string,
+ *     fallbackOrder: !Array<string>}>}
+ */
 export const SYNTHETIC_FORMATS = [
   {
     id: 'gen7best',
@@ -53,7 +62,9 @@ export const SYNTHETIC_FORMATS = [
   },
 ];
 
+/** Singles format ids, strongest tier first. @type {!Array<string>} */
 export const FORMAT_POWER_ORDER = FAMILY_CONFIGS.singles.formatOrder;
+/** Union of both families' cutoff priorities. @type {!Array<number>} */
 export const CUTOFF_PRIORITY = [
   ...new Set([
     ...FAMILY_CONFIGS.singles.cutoffPriority,
@@ -61,5 +72,7 @@ export const CUTOFF_PRIORITY = [
   ]),
 ];
 
+/** Cutoff used for browser datasets: 0 is the unfiltered baseline. @type {number} */
 export const DEFAULT_RATING = 0;
+/** @type {string} */
 export const STATS_ROOT = 'https://www.smogon.com/stats';

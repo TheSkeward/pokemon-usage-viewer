@@ -3,6 +3,15 @@ import { formatSource } from "./candidates.mjs";
 import { buildRelatedPokemonChain } from "./speciesContext.mjs";
 import { normalizeName } from "./stringUtils.mjs";
 
+/**
+ * One mon's set-index detail: the primary tier's entries plus usage-less
+ * "additional" entries from every other tier it appears in, deduped (a real
+ * entry replaces a trace one, never the reverse).
+ *
+ * @return {?Object} The detail record written to
+ *     set-index/<family>/<selection>/<id>.json, or null when the mon appears
+ *     in no aggregate.
+ */
 export function stitchPokemonSetDetail({
   family,
   formatsIndex,
@@ -99,6 +108,11 @@ function choosePrimaryIndex({ present, ranking, trace, family }) {
   return deepestOwnFamily >= 0 ? deepestOwnFamily : present.length - 1;
 }
 
+/**
+ * Appends related-form/pre-evolution entries (from the already-stitched
+ * details in `samePokemonDetails`) to a detail in place, recording each
+ * contributor in relatedPokemonUsed/sourcesUsed.
+ */
 export function appendRelatedSetOptions({
   detail,
   pokemon,

@@ -2,6 +2,13 @@ import { resolveQueryEntries } from "../data";
 import { parsePoolTokens } from "./poolParsing";
 import { normalizeName } from "./nameUtils";
 
+/**
+ * @param {string} query
+ * @param {Object} pokemonIndex
+ * @return {Array<{token: string, input: Object, entries: Array<Object>,
+ *     unresolved: boolean}>} One group per pool token; unresolved tokens
+ *     carry a synthetic input and empty entries.
+ */
 export function buildInputGroups(query, pokemonIndex) {
   const tokens = parsePoolTokens(query, pokemonIndex);
   const groups = [];

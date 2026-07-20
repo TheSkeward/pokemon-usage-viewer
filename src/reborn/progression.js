@@ -19,12 +19,13 @@ import { toId as normalizeSearch } from "../utils/ids.js";
 // descriptor pins Reborn's pre-registry literal so existing saves survive).
 const progressionStorageKey = () => getActiveGame().storage.progression;
 
-// Highest tracked held-item quantity; the picker treats this as "6 or more".
+/** Highest tracked held-item quantity; the picker treats this as "6 or more". */
 export const MAX_TRACKED_ITEM_COUNT = 6;
 
-// Strongest opponent-type bias the team builder will weight toward (0 = off).
+/** Strongest opponent-type bias the team builder will weight toward (0 = off). */
 export const MAX_OPPONENT_TYPE_BIAS = 6;
 
+/** A fresh playthrough: nothing unlocked, no cap set, empty inventory. */
 export const DEFAULT_REBORN_PROGRESSION = {
   checkpoint: "",
   levelCap: "",
@@ -38,6 +39,11 @@ export const DEFAULT_REBORN_PROGRESSION = {
   opponentTypeBias: {},
 };
 
+/**
+ * Reads the active game's saved progression from localStorage, normalized;
+ * missing or unparseable state yields the default progression.
+ * @return {Object}
+ */
 export function loadSavedRebornProgression() {
   const raw = readLocalStorage(progressionStorageKey(), "");
 
@@ -52,6 +58,10 @@ export function loadSavedRebornProgression() {
   }
 }
 
+/**
+ * Persists the progression (normalized first) under the active game's key.
+ * @return {boolean} Whether the write succeeded.
+ */
 export function saveRebornProgression(progression) {
   return writeLocalStorage(
     progressionStorageKey(),
@@ -59,10 +69,24 @@ export function saveRebornProgression(progression) {
   );
 }
 
+/**
+ * Deletes the active game's saved progression.
+ * @return {boolean} Whether the removal succeeded.
+ */
 export function clearSavedRebornProgression() {
   return removeLocalStorage(progressionStorageKey());
 }
 
+/**
+ * Canonicalizes any progression-shaped input (saved state, legacy saves,
+ * mid-edit objects) into the schema of DEFAULT_REBORN_PROGRESSION: unknown
+ * checkpoints/options drop out, counts and biases clamp to their caps, and
+ * legacy fields (free-text option lists, the blanket stone gate) migrate.
+ * Every mutator below funnels its result through this, so persisted state
+ * is normalized by construction.
+ * @param {Object=} progression
+ * @return {Object}
+ */
 export function normalizeRebornProgression(progression = {}) {
   return {
     // The badge/post-game checkpoint the player selected (badgeTimeline.js).
@@ -121,6 +145,11 @@ function normalizeEvolutionAccess(progression) {
   return access;
 }
 
+/**
+ * Sets one type's opponent bias, clamped to MAX_OPPONENT_TYPE_BIAS; a level
+ * of 0 (or unparseable) clears the entry. Unknown types are a no-op.
+ * @return {Object} The normalized progression.
+ */
 export function setRebornOpponentTypeBias(progression, type, level) {
   const bias = { ...(progression.opponentTypeBias || {}) };
   const parsed = Number.parseInt(level, 10);
@@ -138,6 +167,11 @@ export function setRebornOpponentTypeBias(progression, type, level) {
   return normalizeRebornProgression({ ...progression, opponentTypeBias: bias });
 }
 
+/**
+ * Sets one owned item's count, clamped to MAX_TRACKED_ITEM_COUNT; a count of
+ * 0 (or unparseable) clears the entry.
+ * @return {Object} The normalized progression.
+ */
 export function setRebornOwnedItemCount(progression, itemId, count) {
   const id = String(itemId || "").trim();
   if (!id) return normalizeRebornProgression(progression);
@@ -154,9 +188,14 @@ export function setRebornOwnedItemCount(progression, itemId, count) {
   return normalizeRebornProgression({ ...progression, ownedItems: owned });
 }
 
-// Bulk inventory merge (shop sync / batch adds): raises each item to the
-// given count, never LOWERING one — re-running a sync can't shrink a stack
-// the player recorded by hand. Counts clamp to the tracking cap.
+/**
+ * Bulk inventory merge (shop sync / batch adds): raises each item to the
+ * given count, never LOWERING one — re-running a sync can't shrink a stack
+ * the player recorded by hand. Counts clamp to the tracking cap.
+ * @param {Object} progression
+ * @param {Object<string, number>=} counts Item id -> target count.
+ * @return {Object} The normalized progression.
+ */
 export function addRebornOwnedItems(progression, counts = {}) {
   const owned = { ...(progression.ownedItems || {}) };
   for (const [itemId, count] of Object.entries(counts)) {
@@ -171,8 +210,12 @@ export function addRebornOwnedItems(progression, counts = {}) {
   return normalizeRebornProgression({ ...progression, ownedItems: owned });
 }
 
-// Selecting a badge/post-game checkpoint derives the level cap from the
-// timeline — the player deals in badges; the cap is a consequence.
+/**
+ * Selecting a badge/post-game checkpoint derives the level cap from the
+ * timeline — the player deals in badges; the cap is a consequence. An unknown
+ * checkpoint id clears the selection (the cap keeps its last value).
+ * @return {Object} The normalized progression.
+ */
 export function applyRebornCheckpoint(progression, checkpointId) {
   const checkpoint = getRebornCheckpoint(checkpointId);
   if (!checkpoint) {
@@ -185,6 +228,10 @@ export function applyRebornCheckpoint(progression, checkpointId) {
   });
 }
 
+/**
+ * Sets one progression field and renormalizes.
+ * @return {Object} The normalized progression.
+ */
 export function updateRebornProgressionField(progression, field, value) {
   return normalizeRebornProgression({
     ...progression,
@@ -192,6 +239,11 @@ export function updateRebornProgressionField(progression, field, value) {
   });
 }
 
+/**
+ * Adds or removes a single id in one of the option-list fields
+ * (availableTmIds / availableTmxIds / availableTutorMoveIds).
+ * @return {Object} The normalized progression.
+ */
 export function updateRebornProgressionOption(
   progression,
   field,
@@ -211,6 +263,13 @@ export function updateRebornProgressionOption(
   });
 }
 
+/**
+ * Replaces one option-list field wholesale (select-all / clear-all).
+ * @param {Object} progression
+ * @param {string} field
+ * @param {?Array<string>} optionIds Non-arrays clear the field.
+ * @return {Object} The normalized progression.
+ */
 export function setRebornProgressionOptions(progression, field, optionIds) {
   return normalizeRebornProgression({
     ...progression,
@@ -218,10 +277,14 @@ export function setRebornProgressionOptions(progression, field, optionIds) {
   });
 }
 
-// Reborn's post-game raises the cap past 100 (to 150). Damage/stat math
-// still clamps levels to 100 internally (damageModel's normalizeLevel); the
-// cap only widens legality and reachability. An unset cap reads as 100, the
-// main-game maximum.
+/**
+ * Reborn's post-game raises the cap past 100 (to 150). Damage/stat math
+ * still clamps levels to 100 internally (damageModel's normalizeLevel); the
+ * cap only widens legality and reachability. An unset cap reads as 100, the
+ * main-game maximum.
+ * @param {*} value Number-ish; clamped to [1, 150].
+ * @return {number}
+ */
 export function normalizeLevelCap(value) {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed)) return 100;

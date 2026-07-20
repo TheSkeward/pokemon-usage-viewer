@@ -1,8 +1,11 @@
-// Generates the central move-metadata table from @pkmn/dex Gen 7 data. This is
-// the single source of truth for a move's intrinsic properties — name, type,
-// damage category, base power, priority, and whether it carries utility beyond
-// raw damage, including per-action screen coverage and weather requirements —
-// so that per-Pokémon legal-move files only need to reference a move by id.
+/**
+ * @fileoverview Generates the central move-metadata table from
+ * {@code @pkmn/dex} Gen 7 data. This is the single source of truth for a
+ * move's intrinsic properties — name, type, damage category, base power,
+ * priority, and whether it carries utility beyond raw damage, including
+ * per-action screen coverage and weather requirements — so that per-Pokémon
+ * legal-move files only need to reference a move by id.
+ */
 
 import fs from "node:fs";
 import path from "node:path";

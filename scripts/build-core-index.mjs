@@ -1,12 +1,15 @@
-// Builds site-data/data/core-index/<family>/<monId>.json from BOTH archives'
-// team compositions: pairwise co-use lift over real teams, plus the most
-// frequent trios. Same lift semantics as the teammate index — percentage
-// points of P(B|A) − P(B), symmetrized — so any future scoring term can be
-// calibrated the way SYNERGY_SCALE was. Not consumed by scoring yet (that is
-// its own ratification); observed-set display and future team-fit work read it.
-//
-// Quality weighting: curated sample teams count SAMPLE_WEIGHT; replays count
-// 1, or RATED_WEIGHT at/above the same 1500 bar the usage stats publish.
+/**
+ * @fileoverview Builds site-data/data/core-index/<family>/<monId>.json from
+ * BOTH archives' team compositions: pairwise co-use lift over real teams, plus
+ * the most frequent trios. Same lift semantics as the teammate index —
+ * percentage points of P(B|A) − P(B), symmetrized — so any future scoring term
+ * can be calibrated the way SYNERGY_SCALE was. Not consumed by scoring yet
+ * (that is its own ratification); observed-set display and future team-fit
+ * work read it.
+ *
+ * Quality weighting: curated sample teams count SAMPLE_WEIGHT; replays count
+ * 1, or RATED_WEIGHT at/above the same 1500 bar the usage stats publish.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -26,7 +29,10 @@ const MAX_PARTNERS = 24; // teammate-index cap, kept for parity
 const MAX_TRIOS = 12;
 const familyOf = new Map(REAL_FORMATS.map((f) => [f.id, f.family]));
 
-// → Map(family → [{ mons: [ids], weight }]) — one entry per team side.
+/**
+ * @return {!Map<string, !Array<{mons: !Array<string>, weight: number}>>}
+ *     Map(family → [{ mons: [ids], weight }]) — one entry per team side.
+ */
 export function collectCompositions({ replays, samples }) {
   const byFamily = new Map();
   const push = (formatId, mons, weight) => {
@@ -50,6 +56,13 @@ export function collectCompositions({ replays, samples }) {
   return byFamily;
 }
 
+/**
+ * @param {!Array<{mons: !Array<string>, weight: number}>} compositions One
+ *     family's team sides.
+ * @return {!Map<string, {pokemonId: string, teams: number, partners: !Object,
+ *     trios: !Array<{ids: !Array<string>, count: number}>}>} Per-mon detail
+ *     records, one output file each.
+ */
 export function buildCoreIndex(compositions) {
   let total = 0;
   const monWeight = new Map();

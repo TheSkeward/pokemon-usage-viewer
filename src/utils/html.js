@@ -1,3 +1,7 @@
+/**
+ * @param {*} value
+ * @return {string}
+ */
 export function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -7,6 +11,9 @@ export function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
-// Attribute values need the same escaping as text content; kept as a named
-// alias so call sites read clearly at the point of use.
+/**
+ * Attribute values need the same escaping as text content; kept as a named
+ * alias so call sites read clearly at the point of use.
+ * @const
+ */
 export const escapeAttr = escapeHtml;

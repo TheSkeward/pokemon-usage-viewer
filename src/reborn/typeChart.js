@@ -1,3 +1,4 @@
+/** The 18 Gen 7 types, in the fixed order the analysis grids index by. */
 export const REBORN_ANALYSIS_TYPES = [
   "Normal",
   "Fire",
@@ -19,6 +20,14 @@ export const REBORN_ANALYSIS_TYPES = [
   "Fairy",
 ];
 
+/**
+ * Combined effectiveness of an attacking type against a defensive typing:
+ * the product of the per-type multipliers (0 on any immunity), so 0–4 for
+ * standard dual types. Unknown type names contribute ×1.
+ * @param {string} attackType
+ * @param {Array<string>} defenseTypes
+ * @return {number}
+ */
 export function getTypeMultiplier(attackType, defenseTypes = []) {
   let multiplier = 1;
 

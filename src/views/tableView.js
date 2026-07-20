@@ -7,6 +7,14 @@ const SORTERS = {
   leadTendency: (a, b) => (a.leadTendency || 0) - (b.leadTendency || 0),
 };
 
+/**
+ * Usage table, filtered by state.search and sorted by state.sortBy/sortDir.
+ * @param {!Element} container
+ * @param {!Array<!Object>} rows
+ * @param {!Object} state
+ * @param {{selectionLabel: (string|undefined),
+ *     resolvedFormatLabel: (string|undefined)}=} options
+ */
 export function renderTable(container, rows, state, options = {}) {
   const filteredRows = filterRows(rows, state.search);
   const sortedRows = sortRows(filteredRows, state.sortBy, state.sortDir);

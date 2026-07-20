@@ -1,3 +1,4 @@
+/** @return {string} Showdown-style id: lowercased, non-alphanumerics stripped. */
 export function normalizeName(value) {
   return String(value || "")
     .toLowerCase()

@@ -1,7 +1,10 @@
-// Loader + selection for the observed-sets index (whole competitive sets
-// scraped from curated sample teams; scripts/build-observed-sets.mjs).
-// Same fetch conventions as teammateSynergy: index.json gates per-mon
-// fetches so mons with no observed sets never 404.
+/**
+ * @fileoverview Loader + selection for the observed-sets index (whole
+ * competitive sets scraped from curated sample teams;
+ * scripts/build-observed-sets.mjs). Same fetch conventions as
+ * teammateSynergy: index.json gates per-mon fetches so mons with no observed
+ * sets never 404.
+ */
 import { dataUrl } from "../utils/dataUrl.js";
 import { fetchJsonCached } from "../utils/fetchJsonCached.js";
 
@@ -19,6 +22,11 @@ async function loadAvailableIds(family) {
   return availableIdsCache.get(family);
 }
 
+/**
+ * @param {{family: ?string, pokemonId: ?string}} key
+ * @return {Promise<?Object>} Observed-sets detail; null when the mon has no
+ *     observed sets or the fetch fails.
+ */
 export async function loadObservedSets({ family, pokemonId }) {
   if (!family || !pokemonId) return null;
   const available = await loadAvailableIds(family);
@@ -32,9 +40,13 @@ export async function loadObservedSets({ family, pokemonId }) {
   }
 }
 
-// The most-run observed whole set (≥3 known moves — fragments aren't sets),
-// regardless of current legality: labeled real-world CONTEXT only (user
-// ruling), never a recommendation. Builder files are most-common-first.
+/**
+ * The most-run observed whole set (≥3 known moves — fragments aren't sets),
+ * regardless of current legality: labeled real-world CONTEXT only, never a
+ * recommendation. Builder files are most-common-first.
+ * @param {{family: ?string, candidateIds: Array<string>}} key
+ * @return {Promise<?Object>}
+ */
 export async function selectObservedSet({ family, candidateIds }) {
   for (const pokemonId of candidateIds.filter(Boolean)) {
     const detail = await loadObservedSets({ family, pokemonId });

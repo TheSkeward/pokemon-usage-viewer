@@ -1,14 +1,20 @@
-// Main-thread orchestration of the parallel team search: maintains a small pool
-// of Web Workers, partitions the combination space into contiguous lexicographic
-// ranges, dispatches a range to each worker, and merges the per-range winners
-// with the same comparator the sequential search uses. Falls back to a synchronous
-// in-process search on ANY problem (no Worker support, a worker error, a small
-// job) — the search is a cache, never load-bearing, so a failure just costs time.
+/**
+ * @fileoverview Main-thread orchestration of the parallel team search:
+ * maintains a small pool of Web Workers, partitions the combination space
+ * into contiguous lexicographic ranges, dispatches a range to each worker,
+ * and merges the per-range winners with the same comparator the sequential
+ * search uses. Falls back to a synchronous in-process search on ANY problem
+ * (no Worker support, a worker error, a small job) — the search is a cache,
+ * never load-bearing, so a failure just costs time.
+ */
 
 import { searchCombinationRange } from "./searchKernel.js";
 
-// Below this many combinations the worker round-trip (spawn already amortized,
-// but message + clone) isn't worth it — the sequential search is sub-second.
+/**
+ * Below this many combinations the worker round-trip (spawn already
+ * amortized, but message + clone) isn't worth it — the sequential search is
+ * sub-second.
+ */
 export const PARALLEL_THRESHOLD = 150_000;
 
 let workerPool = null;
@@ -21,6 +27,12 @@ let messageSeq = 0;
 // machine; a CI box splitting a 2M-combo range can legitimately need longer).
 let injectedPoolFactory = null;
 
+/**
+ * @param {?function(): Array<Worker>} factory Replaces the browser Worker
+ *     pool; also resets any broken-pool state.
+ * @param {{timeoutMs: (number|undefined)}} options Overrides the per-range
+ *     hang timeout.
+ */
 export function setSearchWorkerPoolFactory(factory, { timeoutMs } = {}) {
   injectedPoolFactory = factory;
   workerPoolBroken = false;
@@ -63,10 +75,19 @@ function getWorkerPool() {
   return workerPool;
 }
 
-// Returns the top relaxed teams (compact id refs, best first) over the whole
-// combination space, found in parallel when possible. `compactLines` is the
-// trimmed, worker-cloneable line data; `total` is C(lines, targetSize);
-// `topCount` is how many candidates the realization pass wants to re-rank.
+/**
+ * The top relaxed teams (compact id refs, best first) over the whole
+ * combination space, found in parallel when possible.
+ * @param {Array<Object>} compactLines The trimmed, worker-cloneable line
+ *     data.
+ * @param {number} targetSize
+ * @param {Object} bias
+ * @param {number} total C(lines, targetSize).
+ * @param {number} topCount How many candidates the realization pass wants to
+ *     re-rank.
+ * @param {?function(number, number)} onProgress
+ * @return {Promise<?{top: Array<Object>}>}
+ */
 export function parallelFullSearch(compactLines, targetSize, bias, total, topCount = 1, onProgress = null) {
   const run = () => dispatch(compactLines, targetSize, bias, total, topCount, onProgress);
   const result = chain.then(run, run);

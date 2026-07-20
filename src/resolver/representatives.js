@@ -5,6 +5,20 @@ import {
 } from "../data";
 import { toId as normalizeName } from "../utils/ids.js";
 
+/**
+ * Resolves each query token to result rows: normally one row carrying the
+ * token's best-scoring line representative (exact form-specific inputs force
+ * their own form), or one literal row per match when the token is a broad
+ * match, spans multiple lines, or is a form-specific prefix. Literal groups
+ * larger than `literalResolveLimit` skip bundle resolution and come back as
+ * literalSearchOnly rows with empty bundles. Rows are deduped by
+ * representative id (highest score wins) and sorted by lead% descending,
+ * broad matches last.
+ * @param {{availability: ?Object, family: string, pokemonIndex: !Object,
+ *     query: string, selection: string, literalResolveLimit: number}} params
+ * @return {!Promise<!Array<!Object>>} representativeScore is -Infinity on
+ *     literal and unresolved rows.
+ */
 export async function computeResolverRepresentativeResults({
   availability,
   family,

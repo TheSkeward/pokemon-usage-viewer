@@ -4,6 +4,20 @@ import { getActiveGame } from "../games/registry.js";
 import { getRebornMoveId } from "../reborn/legalMoves.js";
 import { hydrateLegalMove } from "../moveMeta.js";
 
+/**
+ * Stateful loader for the selected Pokémon's precomputed set detail.
+ * select() on the already-selected Pokémon deselects; stale async responses
+ * are dropped via a generation counter. When the requested selection has no
+ * set file, the "all" selection file is used and flagged on the detail as
+ * selectionFallback. Unused legal moves are appended as kind "legal-unused".
+ * `onUpdate` fires after every state change.
+ * @param {{getFamily: function(): string, getSelection: function(): string,
+ *     onUpdate: function(): void}} deps
+ * @return {{cancel: function(): void, getDetail: function(): ?Object,
+ *     getMessage: function(): string, getSelectedPokemonId: function(): ?string,
+ *     getStatus: function(): ?Object, isSelected: function(string): boolean,
+ *     select: function(string): void}}
+ */
 export function createPrecomputedSetDetailsLoader({
   getFamily,
   getSelection,
@@ -133,6 +147,13 @@ export function createPrecomputedSetDetailsLoader({
   }
 }
 
+/**
+ * Source label for a set detail: "format @ cutoff", prefixed with "canonical
+ * tier" when the detail names a primarySource, suffixed with the requested
+ * period when all-period details were substituted for it.
+ * @param {?Object} source Set detail as produced by the loader.
+ * @return {string} Empty when the source carries no format info.
+ */
 export function describePrecomputedSetSource(source) {
   const fallback = source?.selectionFallback;
 

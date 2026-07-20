@@ -1,9 +1,11 @@
-// Builds site-data/data/observed-sets/<family>/<speciesId>.json from the
-// curated sample-team archives: whole sets as they were actually run,
-// deduped with counts, most-common first. Only paste-sourced sets qualify —
-// replay reveals are partial and never enter this index.
-// Mirrors the teammate-index runtime conventions: per-mon files plus an
-// index.json id list so the app can skip 404-generating fetches.
+/**
+ * @fileoverview Builds site-data/data/observed-sets/<family>/<speciesId>.json
+ * from the curated sample-team archives: whole sets as they were actually run,
+ * deduped with counts, most-common first. Only paste-sourced sets qualify —
+ * replay reveals are partial and never enter this index.
+ * Mirrors the teammate-index runtime conventions: per-mon files plus an
+ * index.json id list so the app can skip 404-generating fetches.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -19,6 +21,10 @@ const OUT_ROOT = path.join(scriptDir, "..", "site-data", "data", "observed-sets"
 const MAX_SETS_PER_MON = 20;
 const familyOf = new Map(REAL_FORMATS.map((f) => [f.id, f.family]));
 
+/**
+ * @return {!Array<!Object>} Parsed records of every `<prefix>*.jsonl` file in
+ *     `dir`; empty when the directory does not exist.
+ */
 export function readArchive(dir, prefix) {
   const records = [];
   if (!fs.existsSync(dir)) return records;
@@ -50,6 +56,11 @@ function setKey(formatId, set) {
   ].join("|");
 }
 
+/**
+ * @param {!Array<!Object>} teams Paste-sourced team records.
+ * @return {!Map<string, !Map<string, {pokemonId: string,
+ *     sets: !Array<!Object>}>>} family → speciesId → per-mon file payload.
+ */
 export function buildObservedSetIndex(teams) {
   // family → speciesId → key → {count, set}
   const byFamily = new Map();

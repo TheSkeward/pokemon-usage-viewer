@@ -1,9 +1,11 @@
-// Corpus report (npm run report:teams): what the team archives actually
-// contain, so ladder judgements can be checked against data instead of
-// priors — per-source volumes and weight shares (is RMT drowning things or
-// negligible?), replay rating distributions (is there any elite ladder
-// signal left in gen 7?), paste dedup rates (how much of RMT is unique?),
-// and the top cores by evidence weight per family.
+/**
+ * @fileoverview Corpus report (npm run report:teams): what the team archives
+ * actually contain, so ladder judgements can be checked against data instead
+ * of priors — per-source volumes and weight shares (is RMT drowning things or
+ * negligible?), replay rating distributions (is there any elite ladder
+ * signal left in gen 7?), paste dedup rates (how much of RMT is unique?),
+ * and the top cores by evidence weight per family.
+ */
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { REAL_FORMATS } from "./config.mjs";
@@ -26,6 +28,12 @@ const RATING_BANDS = [
   ["unrated", (r) => r == null],
 ];
 
+/**
+ * @return {{formats: !Map<string, !Object>, pasteRecords: number,
+ *     uniqueTeams: number, totalWeightBySource: !Map<string, number>}}
+ *     Per-format source/rating tallies plus corpus-wide dedup and weight-share
+ *     totals.
+ */
 export function summarizeCorpus({ replays, teams }) {
   const formats = new Map(); // formatId → per-source {records, weight} + rating bands
   const forFormat = (id) => {
@@ -84,6 +92,10 @@ export function summarizeCorpus({ replays, teams }) {
   };
 }
 
+/**
+ * @return {!Map<string, !Array<{pair: string, lift: number, count: number}>>}
+ *     family → heaviest partner pairs, `perFamily` of them.
+ */
 export function topCores({ replays, teams }, perFamily = 10) {
   const realTeams = teams.filter((team) => (team.sets || []).length);
   const byFamily = collectCompositions({ replays, samples: realTeams });

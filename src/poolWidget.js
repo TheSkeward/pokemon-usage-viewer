@@ -72,6 +72,11 @@ const TEAM_SORT_DIR_STORAGE_KEY = "pokemon-usage-viewer:pool-team-sort-dir:v1";
 const POST_ANALYSIS_MAX_POOL_SIZE = 80;
 const POST_ANALYSIS_MAX_BUILDS = 200;
 
+/**
+ * @param {!Element} container
+ * @param {{embedded: (boolean|undefined), family: (string|undefined)}=}
+ *     options `embedded` suppresses the widget's own URL query-param writes.
+ */
 export function mountPoolOptimizer(container, options = {}) {
   const app = container;
   const embedded = Boolean(options.embedded);
@@ -1521,10 +1526,12 @@ export function mountPoolOptimizer(container, options = {}) {
   }
 }
 
+/** @return {boolean} Whether the pool text was persisted to localStorage. */
 export function savePool(value) {
   return writeLocalStorage(poolStorageKey(), value);
 }
 
+/** @return {string} The saved pool text, or '' when none. */
 export function loadSavedPool() {
   return readLocalStorage(poolStorageKey(), "");
 }

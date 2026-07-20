@@ -53,9 +53,12 @@ const ITEM_AVAILABILITY = {
   everstone: { status: "farmable-tedious", source: "Reborn mining" },
 };
 
-// Reborn-only inventory items that aren't in the Gen 7 held-items list but
-// belong in the owned-items tracker (owning one zeroes the matching evolution
-// friction and overrides its access gate).
+/**
+ * Reborn-only inventory items that aren't in the Gen 7 held-items list but
+ * belong in the owned-items tracker (owning one zeroes the matching evolution
+ * friction and overrides its access gate).
+ * @type {Array<{id: string, name: string}>}
+ */
 export const REBORN_EXTRA_INVENTORY_ITEMS = Object.freeze([
   { id: "linkstone", name: "Link Stone" },
   // Reborn-original (E16+): the holder's area-altering moves last 8 turns
@@ -65,13 +68,21 @@ export const REBORN_EXTRA_INVENTORY_ITEMS = Object.freeze([
   { id: "amplifieldrock", name: "Amplifield Rock" },
 ]);
 
-// Every item id that participates in evolution requirements — owning one of
-// THESE changes optimization results (friction/access), unlike ordinary held
-// items, so progression-staleness checks must watch them.
+/**
+ * Every item id that participates in evolution requirements — owning one of
+ * THESE changes optimization results (friction/access), unlike ordinary held
+ * items, so progression-staleness checks must watch them.
+ * @return {Array<string>}
+ */
 export function getEvolutionItemIds() {
   return Object.keys(ITEM_AVAILABILITY);
 }
 
+/**
+ * @param {?string} itemName Item name or id (normalized internally).
+ * @return {{status: string, source: string}} status is "farmable",
+ *     "farmable-tedious", or "unknown"; source states the basis for belief.
+ */
 export function getItemAvailability(itemName) {
   const id = toId(itemName);
   if (!id) return { status: "unknown", source: "no item recorded" };
@@ -83,14 +94,20 @@ export function getItemAvailability(itemName) {
   );
 }
 
-// The shop-purchasable held items the player could stock RIGHT NOW but isn't
-// tracking yet: reachable at their badge count, in the held-item catalog,
-// not a hidden/replaced id, and absent from (or under-stocked in) the owned
-// list. Drives the inventory panel's one-click "purchasable now" sync — the
-// data already knows what the shops sell, so discovering shops shouldn't
-// mean transcribing them. Sorted by name for a stable display list.
-// `badges` and `ownedItems` arrive as plain values (not the progression
-// object) to keep this module import-cycle-free.
+/**
+ * The shop-purchasable held items the player could stock RIGHT NOW but isn't
+ * tracking yet: reachable at their badge count, in the held-item catalog,
+ * not a hidden/replaced id, and absent from (or under-stocked in) the owned
+ * list. Drives the inventory panel's one-click "purchasable now" sync — the
+ * data already knows what the shops sell, so discovering shops shouldn't
+ * mean transcribing them. Sorted by name for a stable display list.
+ * `badges` and `ownedItems` arrive as plain values (not the progression
+ * object) to keep this module import-cycle-free.
+ * @param {number} badges
+ * @param {Object<string, number>=} ownedItems id -> owned count.
+ * @param {number=} minCount Owned count at which an item stops qualifying.
+ * @return {Array<{id: string, name: string, badge: number}>}
+ */
 export function getPurchasableShopItems(badges, ownedItems = {}, minCount = 1) {
   if (!Number.isFinite(badges)) return [];
   const extrasById = Object.fromEntries(

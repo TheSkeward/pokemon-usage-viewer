@@ -1,10 +1,12 @@
-// Curated sample-team harvester: visits the Smogon sample-team threads
-// listed in teamscrape/sources.json, follows every pokepast.es link, and
-// appends each new paste's parsed team to a committed JSONL archive
-// (samples-<format>.jsonl). Curated threads are the high-trust source for
-// whole observed sets; replays only contribute compositions.
-//
-// Same politeness contract as scrape-replay-teams.mjs.
+/**
+ * @fileoverview Curated sample-team harvester: visits the Smogon sample-team
+ * threads listed in teamscrape/sources.json, follows every pokepast.es link,
+ * and appends each new paste's parsed team to a committed JSONL archive
+ * (samples-<format>.jsonl). Curated threads are the high-trust source for
+ * whole observed sets; replays only contribute compositions.
+ *
+ * Same politeness contract as scrape-replay-teams.mjs.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -30,6 +32,7 @@ async function fetchText(url) {
   return response.text();
 }
 
+/** @return {!Array<string>} Unique pokepast.es paste ids found in the HTML. */
 export function extractPasteIds(html) {
   return [
     ...new Set(
@@ -40,6 +43,11 @@ export function extractPasteIds(html) {
   ];
 }
 
+/**
+ * @return {{id: string, format: string, thread: string, source: string,
+ *     sets: !Array<!Object>}} The archive record; species ids are collapsed
+ *     to team-sheet ids.
+ */
 export function normalizeSampleTeam({ pasteId, formatId, thread, sets }) {
   return {
     id: pasteId,

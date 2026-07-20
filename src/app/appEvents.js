@@ -1,3 +1,10 @@
+/**
+ * Attaches listeners to the currently rendered DOM; must be rebound after
+ * any innerHTML replacement, since listeners die with the replaced nodes.
+ * @param {!Object<string, function(string)>} handlers Keyed by hook name
+ *     (onFamilyChange, onSort, ...); each receives the relevant dataset or
+ *     input value as a string.
+ */
 export function bindAppEvents(handlers) {
   document.querySelectorAll("[data-app-family]").forEach((button) => {
     button.addEventListener("click", () => {

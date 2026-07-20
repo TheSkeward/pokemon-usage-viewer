@@ -27,11 +27,24 @@ const resolverSummaryCache = new Map();
 const resolverIndexCache = new Map();
 const aggregatedMovesetCandidateCache = new Map();
 
+/** @return {!Promise<!Array<!Object>>} */
 export async function loadFormatsIndex() { return loadJson(dataUrl('formats.json')); }
+/** @return {!Promise<!Object>} */
 export async function loadAvailability() { return loadJson(dataUrl('availability.json')); }
+/** @return {!Promise<!Array<!Object>>} */
 export async function loadPokemonIndex() { return loadJson(dataUrl('pokemon-index.json')); }
+/**
+ * @param {string} formatId
+ * @return {!Promise<!Object>}
+ */
 export async function loadFormatData(formatId) { return loadJson(dataUrl(`by-format/${formatId}.json`)); }
 
+/**
+ * @param {string} formatId
+ * @param {string} month
+ * @return {!Promise<?Object>} Moveset data, or null when the format/month has
+ *     none (404).
+ */
 export async function loadMovesetData(formatId, month) {
   const key = `${formatId}:${month}`;
   if (browserMovesetCache.has(key)) return browserMovesetCache.get(key);
@@ -43,6 +56,13 @@ export async function loadMovesetData(formatId, month) {
   return data;
 }
 
+/**
+ * @param {string} month
+ * @param {string} formatId
+ * @param {number} cutoff Rating cutoff the source file was published at.
+ * @param {string} dataKind 'usage', 'leads', or 'moveset'.
+ * @return {!Promise<?Object>} Parsed source file, or null when absent (404).
+ */
 export async function loadSourceData(month, formatId, cutoff, dataKind) {
   const key = `${month}:${formatId}:${cutoff}:${dataKind}`;
   // Cache the in-flight promise (not just the resolved data) so the many
@@ -88,18 +108,30 @@ async function loadJson(url) {
   return data;
 }
 
+/**
+ * @param {string} family
+ * @return {!Object} Family config; unknown families fall back to singles.
+ */
 export function getFamilyConfig(family) { return FAMILY_CONFIGS[family] || FAMILY_CONFIGS.singles; }
+/** @return {string} */
 export function getDefaultBrowserFormat(family) { return getFamilyConfig(family).defaultBrowserFormat; }
+/** @return {boolean} */
 export function formatBelongsToFamily(formatsIndex, formatId, family) {
   const format = formatsIndex.find((entry) => entry.id === formatId);
   return format ? format.family === family : false;
 }
 
+/**
+ * @param {!Object} dataset
+ * @param {string} selection Month key, or 'all' to aggregate across months.
+ * @return {!Array<!Object>} Usage rows with lead metrics attached.
+ */
 export function getRowsForSelection(dataset, selection) {
   const rows = selection === 'all' ? buildAggregateRows(dataset) : dataset.monthly?.[selection] || [];
   return addLeadMetrics(rows);
 }
 
+/** @return {string} */
 export function getSelectionLabel(dataset, selection) {
   if (selection === 'all') {
     const months = dataset.months || [];
@@ -109,6 +141,10 @@ export function getSelectionLabel(dataset, selection) {
   return selection;
 }
 
+/**
+ * @return {?string} Label of the concrete format a synthetic format resolved
+ *     to for the selected month, or null when there is none (or 'all').
+ */
 export function getResolvedFormatLabel(dataset, formatsIndex, selection) {
   if (selection === 'all') return null;
   const resolvedFormatId = dataset.resolvedMonths?.[selection];
@@ -116,15 +152,22 @@ export function getResolvedFormatLabel(dataset, formatsIndex, selection) {
   return formatsIndex.find((format) => format.id === resolvedFormatId)?.label || resolvedFormatId;
 }
 
+/** @return {boolean} */
 export function isSyntheticFormat(formatId, formatsIndex) {
   return Boolean(formatsIndex.find((format) => format.id === formatId)?.synthetic);
 }
 
+/** @return {string} Latest month in the dataset, or '' when it has none. */
 export function getLatestMonth(dataset) {
   const months = dataset.months || [];
   return months[months.length - 1] || '';
 }
 
+/**
+ * @return {?{formatId: string, month: string, label: string,
+ *     aggregate: boolean}} Where to load movesets for the current selection,
+ *     or null when no Pokémon is selected or a synthetic month is unresolved.
+ */
 export function getMovesetLookupContext(dataset, formatsIndex, state) {
   if (!state.selectedPokemon) return null;
   if (state.month === 'all') {
@@ -146,9 +189,13 @@ export function getMovesetLookupContext(dataset, formatsIndex, state) {
   return { formatId: state.format, month: state.month, label: state.month, aggregate: false };
 }
 
+/** @return {?Object} */
 export function getMovesetEntry(movesetData, pokemonId) { return movesetData?.pokemon?.[pokemonId] || null; }
+/** @return {!Array<string>} Sorted month keys. */
 export function getAvailabilityMonths(availability) { return Object.keys(availability?.months || {}).sort(); }
+/** @return {string} */
 export function getLatestAvailabilityMonth(availability) { return availability?.latestMonth || getAvailabilityMonths(availability).at(-1) || ''; }
+/** @return {string} */
 export function getAvailabilitySelectionLabel(availability, selection) {
   if (selection !== 'all') return selection;
   const months = getAvailabilityMonths(availability);
@@ -156,6 +203,11 @@ export function getAvailabilitySelectionLabel(availability, selection) {
   return `All available (${months[0]} → ${months[months.length - 1]})`;
 }
 
+/**
+ * @return {!Array<{id: string, name: string, isMega: boolean,
+ *     isExact: boolean}>} Deduplicated evolution-line representative
+ *     candidates; the Pokémon itself when the line table has no entry.
+ */
 export function getLineRepresentativeCandidates(pokemonId, pokemonIndex) {
   const nameById = new Map(pokemonIndex.map((entry) => [entry.id, entry.name]));
   const rawCandidates = LINE_REPRESENTATIVE_CANDIDATES[pokemonId] || [
@@ -177,6 +229,13 @@ export function getLineRepresentativeCandidates(pokemonId, pokemonIndex) {
     }));
 }
 
+/**
+ * Resolves a comma/newline-separated query against the Pokémon index. Per
+ * token, the first non-empty match tier wins: exact, then prefix, then
+ * substring.
+ * @return {!Array<{id: string, name: string, token: string,
+ *     matchMode: string, broadMatch: boolean}>}
+ */
 export function resolveQueryEntries(query, pokemonIndex) {
   const raw = query.trim();
   if (!raw) return [];
@@ -266,6 +325,10 @@ async function loadResolverIndex(family, selection) {
   return index;
 }
 
+/**
+ * @return {!Promise<!Object>} One Pokémon's usage/leads summaries (each null
+ *     when absent everywhere) plus canonical ranking/trace facts.
+ */
 export async function resolveBestAvailableLightBundle({ availability, family, selection, pokemonId }) {
   const cacheKey = `${family}:${selection}:${pokemonId}`;
   if (resolverSummaryCache.has(cacheKey)) return resolverSummaryCache.get(cacheKey);
@@ -310,11 +373,19 @@ export async function resolveBestAvailableLightBundle({ availability, family, se
 
 
 
+/**
+ * @return {!Array<!Object>} Moveset source candidates in resolution priority
+ *     order: the requested family's formats first, then the other family's.
+ */
 export function getMovesetResolverCandidates(availability, family, selection) {
   const families = family === 'doubles' ? ['doubles', 'singles'] : ['singles', 'doubles'];
   return families.flatMap((familyId) => [...iterateCandidateSources(availability, familyId, selection, 'moveset')]);
 }
 
+/**
+ * @return {!Promise<?Object>} The candidate's moveset entry aggregated across
+ *     its months, or null when the Pokémon appears in none of them.
+ */
 export async function loadAggregatedMovesetCandidate(candidate, pokemonId) {
   const cacheKey = `${candidate.family}:${candidate.selection}:${candidate.formatId}:${candidate.cutoff}:${pokemonId}`;
   if (aggregatedMovesetCandidateCache.has(cacheKey)) return aggregatedMovesetCandidateCache.get(cacheKey);

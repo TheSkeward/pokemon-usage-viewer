@@ -1,32 +1,35 @@
-// The Reborn progression timeline: what the world looks like at each badge
-// count (and post-game tier). Curated from BIGJRA's Pokemon Reborn walkthrough
-// (bigjra.github.io/reborn, E19.5) — the project's canonical progression
-// source — by mapping each walkthrough episode to the badge count the player
-// holds while playing it.
-//
-// Two distinct authorities, deliberately kept apart:
-//   - The user's own progression clicks (TMs, tutors, evolution access,
-//     owned items) remain the ONLY source of truth for what is available NOW.
-//   - This timeline is the SCHEDULE: it derives the level cap from the badge
-//     picker, annotates controls with when their unlock is normally reached,
-//     and prices how far a mon's competitive set is from fully assembled
-//     (setReadiness.js).
-//
-// `unlocks` on a checkpoint lists what FIRST becomes obtainable there:
-//   - access: evolution-access keys (EVOLUTION_ACCESS_FIELDS) — areas reached
-//   - flags:  boolean progression fields (daycare, relearner, HP changer)
-//   - items:  headline competitive held items (normalized item ids)
-// Mechanic-style access keys (friendship, party-condition, other-locations)
-// have no schedule entry: they are available from the start.
-//
-// Notes against the walkthrough:
-//   - Corey and Kiki award no badge ("No gym badge or TM is awarded to you
-//     after this fight"), so the 18 badges are the list below.
-//   - Strike, Gravity, and Torrent do not raise the level cap.
-//   - Post-game raises the cap in ten silent steps of 5, to 150.
+/**
+ * @fileoverview The Reborn progression timeline: what the world looks like at
+ * each badge count (and post-game tier). Curated from BIGJRA's Pokemon Reborn
+ * walkthrough (bigjra.github.io/reborn, E19.5) — the project's canonical
+ * progression source — by mapping each walkthrough episode to the badge count
+ * the player holds while playing it.
+ *
+ * Two distinct authorities, deliberately kept apart:
+ *   - The user's own progression clicks (TMs, tutors, evolution access,
+ *     owned items) remain the ONLY source of truth for what is available NOW.
+ *   - This timeline is the SCHEDULE: it derives the level cap from the badge
+ *     picker, annotates controls with when their unlock is normally reached,
+ *     and prices how far a mon's competitive set is from fully assembled
+ *     (setReadiness.js).
+ *
+ * `unlocks` on a checkpoint lists what FIRST becomes obtainable there:
+ *   - access: evolution-access keys (EVOLUTION_ACCESS_FIELDS) — areas reached
+ *   - flags:  boolean progression fields (daycare, relearner, HP changer)
+ *   - items:  headline competitive held items (normalized item ids)
+ * Mechanic-style access keys (friendship, party-condition, other-locations)
+ * have no schedule entry: they are available from the start.
+ *
+ * Notes against the walkthrough:
+ *   - Corey and Kiki award no badge ("No gym badge or TM is awarded to you
+ *     after this fight"), so the 18 badges are the list below.
+ *   - Strike, Gravity, and Torrent do not raise the level cap.
+ *   - Post-game raises the cap in ten silent steps of 5, to 150.
+ */
 
 import { REBORN_ITEM_UNLOCK_BADGES } from "../generated/rebornItemTimeline.generated.js";
 
+/** The timeline, in play order: 19 badge checkpoints then 10 post-game tiers. */
 export const REBORN_PROGRESSION_CHECKPOINTS = [
   { id: "start", badges: 0, label: "No badges", detail: "Game start", levelCap: 20, unlocks: {} },
   {
@@ -129,17 +132,29 @@ const BY_ID = new Map(
   ]),
 );
 
+/**
+ * @param {?string} id
+ * @return {?Object} Null for unknown ids.
+ */
 export function getRebornCheckpoint(id) {
   return BY_ID.get(String(id || ""))?.checkpoint || null;
 }
 
+/**
+ * @param {?string} id
+ * @return {number} Position in timeline order; -1 for unknown ids.
+ */
 export function getRebornCheckpointOrdinal(id) {
   const entry = BY_ID.get(String(id || ""));
   return entry ? entry.index : -1;
 }
 
-// Everything the schedule expects to be obtainable once the given checkpoint
-// is reached (cumulative through that checkpoint).
+/**
+ * Everything the schedule expects to be obtainable once the given checkpoint
+ * is reached (cumulative through that checkpoint).
+ * @param {?string} id Checkpoint id; unknown ids yield empty sets.
+ * @return {{accessKeys: Set<string>, flags: Set<string>, itemIds: Set<string>}}
+ */
 export function getExpectedUnlocks(id) {
   const ordinal = getRebornCheckpointOrdinal(id);
   const expected = { accessKeys: new Set(), flags: new Set(), itemIds: new Set() };
@@ -153,8 +168,12 @@ export function getExpectedUnlocks(id) {
   return expected;
 }
 
-// The badge count at which the schedule first expects an unlock (access key or
-// boolean flag); null when it is never scheduled (available from the start).
+/**
+ * The badge count at which the schedule first expects an unlock (access key or
+ * boolean flag); null when it is never scheduled (available from the start).
+ * @param {string} key
+ * @return {?number}
+ */
 export function getUnlockBadge(key) {
   for (const checkpoint of REBORN_PROGRESSION_CHECKPOINTS) {
     if (
@@ -167,11 +186,15 @@ export function getUnlockBadge(key) {
   return null;
 }
 
-// The badge count at which a held item first becomes obtainable; null when
-// nothing tracks it (treat as timing-unknown, not unobtainable). The
-// hand-curated checkpoint entries above (walkthrough-verified) win; the
-// generated table (community item guide: locations, shops, arcade, mining,
-// user-curated wild holders) covers the other ~350 held items.
+/**
+ * The badge count at which a held item first becomes obtainable; null when
+ * nothing tracks it (treat as timing-unknown, not unobtainable). The
+ * hand-curated checkpoint entries above (walkthrough-verified) win; the
+ * generated table (community item guide: locations, shops, arcade, mining,
+ * user-curated wild holders) covers the other ~350 held items.
+ * @param {string} itemId Normalized item id.
+ * @return {?number}
+ */
 export function getItemUnlockBadge(itemId) {
   for (const checkpoint of REBORN_PROGRESSION_CHECKPOINTS) {
     if ((checkpoint.unlocks.items || []).includes(itemId)) {
@@ -181,6 +204,10 @@ export function getItemUnlockBadge(itemId) {
   return REBORN_ITEM_UNLOCK_BADGES[itemId]?.badge ?? null;
 }
 
+/**
+ * @param {?Object} checkpoint
+ * @return {string} "Post N" for post-game tiers, "N badges" otherwise; "" for null.
+ */
 export function getRebornCheckpointShortLabel(checkpoint) {
   if (!checkpoint) return "";
   if (checkpoint.postgame) return `Post ${checkpoint.postgame}`;

@@ -1,5 +1,11 @@
 const FOCUSABLE_INPUT_IDS = new Set(["search-input", "resolver-query-input"]);
 
+/**
+ * Captures which tracked search input has focus so a full re-render can hand
+ * it back via restoreFocusState.
+ * @return {?{id: string, selectionStart: ?number, selectionEnd: ?number}}
+ *     Null when focus is outside the tracked inputs.
+ */
 export function captureFocusState() {
   const active = document.activeElement;
 
@@ -12,6 +18,11 @@ export function captureFocusState() {
   };
 }
 
+/**
+ * @param {?{id: string, selectionStart: ?number, selectionEnd: ?number}}
+ *     focusState As returned by captureFocusState; null is a no-op, as is an
+ *     id no longer present in the DOM.
+ */
 export function restoreFocusState(focusState) {
   if (!focusState?.id) return;
 
