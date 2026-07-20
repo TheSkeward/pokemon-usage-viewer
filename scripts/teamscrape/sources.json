@@ -1,5 +1,13 @@
 {
   "comment": "Smogon sample-team thread URLs per format id. Add or correct URLs freely — the scraper visits every listed thread, follows pokepast.es links, and reports per-thread counts. UNVERIFIED seed list: this environment cannot reach smogon.com, so these URLs are best-effort and the first networked run's log is the verification.",
+  "tournament": {
+    "comment": "Team-dump threads ({url, format} pins a format for pastes without === headers) and tournament forum listings to walk (UNVERIFIED seed URLs). Paste === headers and replay-link ids attribute formats directly; thread prefixes fall back through the rmt prefixMap.",
+    "dumpThreads": [],
+    "listings": [
+      "https://www.smogon.com/forums/forums/ruins-of-alph.281/",
+      "https://www.smogon.com/forums/forums/smogon-classic.334/"
+    ]
+  },
   "rmt": {
     "comment": "RMT forum listings to walk (UNVERIFIED seed URLs, same caveat as above). Threads are attributed to formats via their prefix label; unmapped prefixes are reported by the scraper log so the map can grow.",
     "listings": [

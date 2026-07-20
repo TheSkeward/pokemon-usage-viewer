@@ -26,6 +26,8 @@ import { loadTopSet } from "./topSpread.js";
 import { computeSetReadiness } from "./setReadiness.js";
 import { teamMemberKey } from "../teamBuilder/itemRecommendations.js";
 import { selectObservedSet } from "../teamBuilder/observedSets.js";
+import { loadTeamIndex } from "../teamBuilder/teamIndex.js";
+import { findFieldableRealTeam } from "../teamBuilder/realTeams.js";
 import { toId } from "../utils/ids.js";
 import { MAX_OPPONENT_TYPE_BIAS } from "./progression.js";
 import { getItemDamageMultiplier } from "./itemDamage.js";
@@ -98,7 +100,36 @@ export async function buildRebornTeamAnalysis(
     }),
     offensive,
     profiles,
+    fieldableRealTeam: await computeFieldableRealTeam({
+      family,
+      lines: breedingOptions.lines || [],
+      progression,
+      members,
+    }),
   };
+}
+
+// The most-seen scraped real team the current pool could field, ranked toward
+// the recommended picks. Display-only — nothing here feeds scoring — and
+// missing team-index data costs nothing (the loader resolves to []).
+async function computeFieldableRealTeam({ family, lines, progression, members }) {
+  try {
+    const teams = await loadTeamIndex(family);
+    if (!teams.length) return null;
+    const recommendedIds = new Set(
+      members
+        .flatMap((member) => [member.id, member.representativeId])
+        .filter(Boolean),
+    );
+    return await findFieldableRealTeam({
+      teams,
+      lines,
+      progression,
+      recommendedIds,
+    });
+  } catch {
+    return null;
+  }
 }
 
 // Loads one team member's current species, its progression-legal moves, and the

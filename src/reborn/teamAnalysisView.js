@@ -103,13 +103,23 @@ function wirePokepasteCopy(root, analysis) {
   // Bind every copy button on the page, not just the one inside this panel —
   // the modern layout puts a second one in the team-table header.
   const scope = root.ownerDocument || document;
-  const buttons = scope.querySelectorAll("[data-copy-pokepaste]");
-  if (!buttons.length) return;
-
-  const pokepaste = formatTeamPokepaste(
-    analysis.profiles.map((profile) => profile.recommendedSet),
+  wireCopyButtons(
+    scope.querySelectorAll("[data-copy-pokepaste]"),
+    formatTeamPokepaste(
+      analysis.profiles.map((profile) => profile.recommendedSet),
+    ),
+    "Copy team as poképaste",
   );
+  if (analysis.fieldableRealTeam) {
+    wireCopyButtons(
+      scope.querySelectorAll("[data-copy-real-pokepaste]"),
+      formatTeamPokepaste(realTeamPokepasteSets(analysis.fieldableRealTeam)),
+      "Copy as poképaste",
+    );
+  }
+}
 
+function wireCopyButtons(buttons, pokepaste, idleLabel) {
   for (const button of buttons) {
     if (button.dataset.pokepasteWired) continue;
     button.dataset.pokepasteWired = "1";
@@ -121,7 +131,7 @@ function wirePokepasteCopy(root, analysis) {
         button.textContent = "Copy failed";
       }
       setTimeout(() => {
-        button.textContent = "Copy team as poképaste";
+        button.textContent = idleLabel;
       }, 2000);
     });
   }
@@ -209,8 +219,105 @@ function renderAnalysis(analysis) {
           ${renderCoverageSummary(analysis.offensive)}
         </div>
       </div>
+
+      ${renderFieldableRealTeam(analysis.fieldableRealTeam)}
     </section>
   `;
+}
+
+// The most-seen scraped real team the current pool could actually field —
+// its members' full sets exactly as played, with provenance. Renders nothing
+// when no scraped team qualifies (or no team-index data exists).
+function renderFieldableRealTeam(team) {
+  if (!team) return "";
+
+  const provenance = [
+    team.formatId,
+    dominantSourceKind(team.sources),
+    team.count ? `seen ${team.count}×` : null,
+  ].filter(Boolean);
+
+  return `
+    <div class="team-real-team">
+      <div class="team-analysis-header">
+        <div>
+          <h3>Fieldable real team</h3>
+          <p class="muted">${escapeHtml(provenance.join(" · "))}</p>
+        </div>
+        <button type="button" class="view-tab" data-copy-real-pokepaste>Copy as poképaste</button>
+      </div>
+      <div class="team-set-cards">
+        ${(team.members || []).map(renderRealTeamMember).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function dominantSourceKind(sources = {}) {
+  const best = Object.entries(sources || {}).sort(
+    (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
+  )[0];
+  return best ? `${best[0]} team` : null;
+}
+
+function renderRealTeamMember(member) {
+  const natureTip = member.nature ? describeNature(member.nature) : "";
+  const metaParts = [
+    escapeHtml(member.item || "No item"),
+    member.ability ? escapeHtml(member.ability) : null,
+    member.level ? escapeHtml(`Lv ${member.level}`) : null,
+    member.nature
+      ? `<span${natureTip ? ` title="${escapeHtml(natureTip)}"` : ""}>${escapeHtml(`${member.nature} nature`)}</span>`
+      : null,
+  ].filter(Boolean);
+  const evs = formatEvs(evsToArray(member.evs));
+
+  return `
+    <div class="team-set-card">
+      <div class="team-set-head">
+        <strong>${escapeHtml(member.species)}</strong>
+      </div>
+      <div class="team-set-meta">${metaParts.join(" · ")}</div>
+      ${evs ? `<div class="team-set-evs">${escapeHtml(evs)}</div>` : ""}
+      <div class="team-set-moves">
+        ${(member.moves || []).map(renderRealTeamMove).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderRealTeamMove(name) {
+  const meta = getMoveMeta(name);
+  const facts = describeMoveMeta(meta);
+
+  return `
+    <div class="team-set-move">
+      ${renderTypeBadge(meta?.type || "Normal")}
+      <span class="team-set-move-name"${facts ? ` title="${escapeHtml(facts)}"` : ""}>${escapeHtml(name)}</span>
+    </div>
+  `;
+}
+
+// Team-index members carry evs as a {hp,atk,...} object; the poképaste and
+// EV-line formatters expect the HP→Spe array.
+const EV_STAT_ORDER = ["hp", "atk", "def", "spa", "spd", "spe"];
+
+function evsToArray(evs) {
+  if (!evs) return null;
+  if (Array.isArray(evs)) return evs;
+  return EV_STAT_ORDER.map((stat) => evs[stat] || 0);
+}
+
+function realTeamPokepasteSets(team) {
+  return (team?.members || []).map((member) => ({
+    species: member.species,
+    item: member.item || null,
+    ability: member.ability || null,
+    level: member.level || null,
+    evs: evsToArray(member.evs),
+    nature: member.nature || null,
+    moves: member.moves || [],
+  }));
 }
 
 function renderExplanation(explanation) {

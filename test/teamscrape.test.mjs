@@ -43,7 +43,8 @@ garbage block without any set shape
 that should be dropped not fatal`;
 
 test("parseShowdownTeam reads sets, tolerates junk blocks", () => {
-  const { sets, dropped } = parseShowdownTeam(PASTE);
+  const { sets, dropped, format } = parseShowdownTeam(PASTE);
+  assert.equal(format, "gen7ou"); // read from the === header
   assert.equal(sets.length, 2);
   assert.equal(dropped, 1);
   const lando = sets[0];
@@ -121,17 +122,17 @@ test("observed-set index dedups identical sets and skips unknown formats", () =>
 
 test("core index: symmetric lift, min pair support, quality weighting", () => {
   const replays = [
-    { format: "gen7uu", rating: 1600, teams: [["aggron", "blissey", "crobat"], ["aggron", "blissey", "dugtrio"]] },
+    { format: "gen7uu", rating: 1800, teams: [["aggron", "blissey", "crobat"], ["aggron", "blissey", "crobat"]] },
     { format: "gen7uu", rating: null, teams: [["aggron", "crobat", "emolga"], ["blissey", "dugtrio", "flygon"]] },
   ];
   const byFamily = collectCompositions({ replays, samples: [] });
   const index = buildCoreIndex(byFamily.get("singles"));
   const aggron = index.get("aggron");
-  // aggron+blissey co-occur at weight 2+2=4 (both sides of the rated replay);
-  // aggron appears once more unrated (weight 1). Symmetric across both files.
-  assert.equal(aggron.partners.blissey.count, 4);
+  // aggron+blissey: 1.0 per side of the 1760+ replay = 2.0, at the pair
+  // floor. Symmetric across both files.
+  assert.equal(aggron.partners.blissey.count, 2);
   assert.equal(index.get("blissey").partners.aggron.lift, aggron.partners.blissey.lift);
-  // emolga's only pairings weigh 1 — below MIN_PAIR_WEIGHT, no file at all.
+  // emolga only appears in the unrated mixture (0.005/pair) — floored out.
   assert.equal(index.get("emolga"), undefined);
   assert.ok(aggron.trios.length >= 1);
 });
@@ -178,7 +179,7 @@ test("rmt: listing rows carry prefixes, first post yields inline sets", () => {
   assert.equal(htmlToText("a &amp; b<br>c"), "a & b\nc");
 });
 
-test("observed sets order by source weight: 1 sample outranks 2 rmt", () => {
+test("observed sets order by source weight: curation outranks RMT volume", () => {
   const rmtSet = {
     speciesId: "skuntank", species: "Skuntank", itemId: "choiceband",
     item: "Choice Band", nature: "Adamant",
@@ -190,8 +191,39 @@ test("observed sets order by source weight: 1 sample outranks 2 rmt", () => {
     SAMPLE_TEAMS[0],
   ]);
   const sets = byFamily.get("singles").get("skuntank").sets;
-  assert.equal(sets[0].item, "Black Sludge"); // sample weight 3 > rmt 2×1
-  assert.equal(sets[0].weight, 3);
-  assert.equal(sets[1].weight, 2);
+  assert.equal(sets[0].item, "Black Sludge"); // sample 1000 > rmt 2×5
+  assert.equal(sets[0].weight, 1000);
+  assert.equal(sets[1].weight, 10);
   assert.equal(sets[1].count, 2);
+});
+
+const { WEIGHTS, replayWeight, teamWeight } = await import(
+  "../scripts/teamscrape/weights.mjs"
+);
+const { replayLinkFormat, extractReplayIds } = await import(
+  "../scripts/scrape-tournament-teams.mjs"
+);
+
+test("weight ladder: bands, tournament override, unrated-mixture inversion", () => {
+  assert.equal(replayWeight({ rating: null }), WEIGHTS.unrated_replay);
+  assert.equal(replayWeight({ rating: 1400 }), WEIGHTS.rated_below_1500);
+  assert.ok(replayWeight({ rating: null }) > replayWeight({ rating: 1400 }));
+  assert.equal(replayWeight({ rating: 1630 }), 0.2);
+  assert.equal(replayWeight({ rating: 1900 }), 1.0);
+  assert.equal(replayWeight({ rating: null, source: "tournament" }), 60);
+  assert.equal(teamWeight({ source: "rmt" }), 5);
+  assert.equal(teamWeight({ source: "tournament" }), 60);
+  assert.equal(teamWeight({}), 1000);
+});
+
+test("tournament: replay-link format attribution incl. smogtours ids", () => {
+  assert.equal(replayLinkFormat("gen7ou-967241"), "gen7ou");
+  assert.equal(replayLinkFormat("smogtours-gen7uu-406712"), "gen7uu");
+  assert.equal(replayLinkFormat("gen9ou-1"), null); // untracked format
+  assert.deepEqual(
+    extractReplayIds(
+      '<a href="https://replay.pokemonshowdown.com/smogtours-gen7ou-1234">g1</a> replay.pokemonshowdown.com/smogtours-gen7ou-1234 x',
+    ),
+    ["smogtours-gen7ou-1234"],
+  );
 });

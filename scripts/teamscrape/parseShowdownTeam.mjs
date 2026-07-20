@@ -124,8 +124,11 @@ export function parseShowdownSet(block) {
   return set;
 }
 
-// Returns { sets, dropped } — dropped counts malformed blocks so harvest
-// telemetry can distinguish "empty paste" from "paste we failed to read".
+// Returns { sets, dropped, format } — dropped counts malformed blocks so
+// harvest telemetry can distinguish "empty paste" from "paste we failed to
+// read"; format is the id from a "=== [gen7ou] My Team ===" header when the
+// paste carries one (the reliable per-paste attribution in mixed-tier
+// tournament dump threads), else null.
 export function parseShowdownTeam(text) {
   const blocks = String(text || "")
     .replace(/\r\n/g, "\n")
@@ -134,12 +137,16 @@ export function parseShowdownTeam(text) {
     .filter(Boolean);
   const sets = [];
   let dropped = 0;
+  let format = null;
   for (const block of blocks) {
-    // Paste headers/titles ("=== [gen7ou] My Team ==="): not a set, not an error.
-    if (/^===.*===$/.test(block.split("\n")[0])) continue;
+    const header = block.split("\n")[0].match(/^===\s*(?:\[(\w+)\])?.*===$/);
+    if (header) {
+      format = format || header[1] || null;
+      continue;
+    }
     const set = parseShowdownSet(block);
     if (set) sets.push(set);
     else dropped += 1;
   }
-  return { sets, dropped };
+  return { sets, dropped, format };
 }

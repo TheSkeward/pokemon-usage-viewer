@@ -9,6 +9,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { REAL_FORMATS } from "./config.mjs";
 import { writeJson } from "./set-index/io.mjs";
+import { teamWeight } from "./teamscrape/weights.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const ARCHIVE_DIR = path.join(scriptDir, "teamscrape", "archive");
@@ -69,9 +70,7 @@ export function buildObservedSetIndex(teams) {
         set,
       };
       bucket.count += 1;
-      // Curated samples outrank RMT volume: same source-quality ladder as
-      // build-core-index (sample 3, rmt 1).
-      bucket.weight += team.source === "rmt" ? 1 : 3;
+      bucket.weight += teamWeight(team);
       buckets.set(key, bucket);
     }
   }
@@ -107,6 +106,7 @@ async function main() {
   const teams = [
     ...readArchive(ARCHIVE_DIR, "samples-"),
     ...readArchive(ARCHIVE_DIR, "rmt-"),
+    ...readArchive(ARCHIVE_DIR, "tournament-"),
   ];
   const byFamily = buildObservedSetIndex(teams);
   let written = 0;

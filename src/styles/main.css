@@ -1329,6 +1329,17 @@ input {
   margin-bottom: 0.25rem;
 }
 
+/* Fieldable real team: a whole scraped team the current pool can field,
+   reusing the set-card idiom above. */
+.team-real-team {
+  margin-top: 1rem;
+}
+
+.team-real-team .team-analysis-header p {
+  margin: 0.15rem 0 0.75rem;
+  font-size: 0.85rem;
+}
+
 .team-analysis-explanation {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

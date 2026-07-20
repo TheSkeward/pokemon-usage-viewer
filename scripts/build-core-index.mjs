@@ -13,15 +13,15 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { REAL_FORMATS } from "./config.mjs";
 import { writeJson } from "./set-index/io.mjs";
 import { readArchive } from "./build-observed-sets.mjs";
+import { replayWeight, teamWeight } from "./teamscrape/weights.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const ARCHIVE_DIR = path.join(scriptDir, "teamscrape", "archive");
 const OUT_ROOT = path.join(scriptDir, "..", "site-data", "data", "core-index");
 
-const SAMPLE_WEIGHT = 3;
-const RATED_WEIGHT = 2;
-const RATED_BAR = 1500;
-const MIN_PAIR_WEIGHT = 2; // a once-seen pair is noise, not a core
+// Two elite ladder games' worth of evidence: uncurated singletons are noise,
+// while any curated/tournament/RMT sighting clears it alone (see weights.mjs).
+const MIN_PAIR_WEIGHT = 2;
 const MAX_PARTNERS = 24; // teammate-index cap, kept for parity
 const MAX_TRIOS = 12;
 const familyOf = new Map(REAL_FORMATS.map((f) => [f.id, f.family]));
@@ -37,15 +37,14 @@ export function collectCompositions({ replays, samples }) {
     byFamily.set(family, list);
   };
   for (const replay of replays) {
-    const weight =
-      replay.rating != null && replay.rating >= RATED_BAR ? RATED_WEIGHT : 1;
+    const weight = replayWeight(replay);
     for (const side of replay.teams || []) push(replay.format, side, weight);
   }
   for (const team of samples) {
     push(
       team.format,
       (team.sets || []).map((set) => set.speciesId).filter(Boolean),
-      team.source === "rmt" ? 1 : SAMPLE_WEIGHT,
+      teamWeight(team),
     );
   }
   return byFamily;
@@ -122,6 +121,7 @@ async function main() {
   const samples = [
     ...readArchive(ARCHIVE_DIR, "samples-"),
     ...readArchive(ARCHIVE_DIR, "rmt-"),
+    ...readArchive(ARCHIVE_DIR, "tournament-"),
   ];
   const byFamily = collectCompositions({ replays, samples });
   for (const [family, compositions] of byFamily) {
