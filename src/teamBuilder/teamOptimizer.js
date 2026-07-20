@@ -196,7 +196,10 @@ const MAX_RESULT_CACHE = 400;
 // v40: delayed-evolution routes prefer the least evolutionary delay
 // (Staravia@43 over Starly@37 at cap 45) — route labels and legality
 // proofs in persisted results change.
-const RESULT_CACHE_VERSION = "40";
+// v41: breeding-donor routes obey the same least-evolutionary-delay
+// preference, so chain provenance, donor labels, and interim guides in
+// persisted results change.
+const RESULT_CACHE_VERSION = "41";
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.

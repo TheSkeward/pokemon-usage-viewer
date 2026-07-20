@@ -11,6 +11,9 @@ const { buildRebornTeamAnalysis, collectEggDonorRequests } = await import(
   "../src/reborn/teamAnalysis.js"
 );
 const { progressionAt, loadShared } = await import("./helpers/harness.mjs");
+const { buildRebornBreedingContext } = await import(
+  "../src/reborn/breeding.js"
+);
 
 test("collectEggDonorRequests keys on egg-best moves and dedupes by donor", () => {
   const eggSource = (donorName, detail, donorLevel = null) => ({
@@ -123,4 +126,35 @@ test("analysis attaches donor guides with the donor's own interim moves", async 
   for (const member of analysis.members) {
     assert.equal(member.donorInterimGuides, undefined);
   }
+});
+
+// Donor selection obeys the least-evolutionary-delay preference (shared
+// with legalMoves.js delayed routes): within one line, the least-devolved
+// form whose learn level fits under the cap fathers the egg — leveling a
+// Staravia to 43 beats carrying an unevolved Starly to 37 — and the deeper
+// devolution returns only when the cap forces it. donorLevel moves with the
+// choice, so the interim guide's working cap (donorLevel − 1) follows.
+test("donor routes prefer the least-devolved form the cap allows", async () => {
+  const { pokemonIndex } = await loadShared();
+  const braveBirdSourceAt = async (levelCap) => {
+    const context = await buildRebornBreedingContext({
+      pokemonIndex,
+      progression: {
+        ...progressionAt({ badge: 5, levelCap }),
+        daycareUnlocked: true,
+      },
+      query: "Dodrio\nStaraptor",
+    });
+    return context.byPokemonId.dodrio.sources.bravebird;
+  };
+
+  const at45 = await braveBirdSourceAt(45);
+  assert.equal(at45.donorName, "Staravia");
+  assert.equal(at45.donorLevel, 43);
+  assert.equal(at45.detail, "Staravia breeding chain (@43)");
+
+  const at40 = await braveBirdSourceAt(40);
+  assert.equal(at40.donorName, "Starly");
+  assert.equal(at40.donorLevel, 37);
+  assert.equal(at40.detail, "Starly breeding chain (@37)");
 });

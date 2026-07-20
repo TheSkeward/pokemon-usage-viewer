@@ -47,6 +47,27 @@ export async function loadRebornLegalMoveData(pokemonId) {
   return hydrated;
 }
 
+// A form's ARRIVAL: the level at which it starts existing (base forms at 1;
+// level evolutions at their evolution level; others whenever taken).
+export function arrivalLevelOf(formId) {
+  const form = GEN7_PROGRESSION_SPECIES[formId];
+  if (!form?.prevoId) return 1;
+  return (form.evoType || "") === "" && Number.isFinite(form.evoLevel)
+    ? form.evoLevel
+    : 1;
+}
+
+// Preference among leveling routes that each field a not-yet-final form: the
+// least evolutionary delay wins — the latest-arriving form places first
+// (leveling a Staravia to 43 beats carrying an unevolved Starly to 37), and
+// learn level ascends within the same form. Options are
+// {formArrivalLevel, learnLevel}; callers admit only routes whose learn
+// level fits under the level cap. Shared by the delayed-evolution sort below
+// and breeding-donor selection (breeding.js) so both obey one rule.
+export function compareEvolutionRouteOptions(a, b) {
+  return b.formArrivalLevel - a.formArrivalLevel || a.learnLevel - b.learnLevel;
+}
+
 export function getAvailableRebornMoves(legalMoveData, progression = {}) {
   const levelCap = normalizeLevelCap(progression.levelCap);
   const selectedTmIds = new Set(progression.availableTmIds || []);
@@ -119,17 +140,8 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
   const directDeparture = hopDeparture(speciesRecord);
   const departureOf = (fromId) =>
     fromId ? (departureByAncestor.get(fromId) ?? directDeparture) : directDeparture;
-  // A form's ARRIVAL: the level at which it starts existing (base forms at
-  // 1; level evolutions at their evolution level; others whenever taken).
   // An entry below a form's arrival can't be leveled through on the default
   // path — it's a candy-down route at level 2+, relearner-only at level 1.
-  const arrivalOf = (formId) => {
-    const form = GEN7_PROGRESSION_SPECIES[formId];
-    if (!form?.prevoId) return 1;
-    return (form.evoType || "") === "" && Number.isFinite(form.evoLevel)
-      ? form.evoLevel
-      : 1;
-  };
   const ancestorName = (fromId) =>
     GEN7_PROGRESSION_SPECIES[fromId]?.name || "its pre-evolution";
   const moves = [];
@@ -148,7 +160,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     // natural departure — the fielded form's OWN entries obey the same
     // arrival bound. Entries stay attributed to the form that learns them so
     // breeding-chain provenance names the real learner.
-    const ownArrival = arrivalOf(pokemonId);
+    const ownArrival = arrivalLevelOf(pokemonId);
     const naturalLevelUpSources = [
       ...allLevelUpLevels
         .filter(
@@ -164,7 +176,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       ...preEvolutionEntries
         .filter(
           (entry) =>
-            entry.level >= arrivalOf(entry.from) &&
+            entry.level >= arrivalLevelOf(entry.from) &&
             entry.level <= departureOf(entry.from),
         )
         .map((entry) => ({
@@ -176,15 +188,15 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     const delayedEntries = preEvolutionEntries
       .filter(
         (entry) =>
-          entry.level >= arrivalOf(entry.from) &&
+          entry.level >= arrivalLevelOf(entry.from) &&
           entry.level > departureOf(entry.from) &&
           entry.level <= levelCap,
       )
-      // Least evolutionary delay first: leveling a Staravia to
-      // 43 beats carrying a Starly to 37 — the later-arriving form wins even
-      // at a higher learn level, and level breaks ties within a form.
-      .sort(
-        (a, b) => arrivalOf(b.from) - arrivalOf(a.from) || a.level - b.level,
+      .sort((a, b) =>
+        compareEvolutionRouteOptions(
+          { formArrivalLevel: arrivalLevelOf(a.from), learnLevel: a.level },
+          { formArrivalLevel: arrivalLevelOf(b.from), learnLevel: b.level },
+        ),
       );
     // Below-arrival entries at level 2+ are reachable by Common Candy:
     // candy the form back below the level, then level up through it
@@ -200,12 +212,12 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       ...preEvolutionEntries.filter(
         (entry) =>
           entry.level >= 2 &&
-          entry.level < arrivalOf(entry.from) &&
-          arrivalOf(entry.from) <= levelCap,
+          entry.level < arrivalLevelOf(entry.from) &&
+          arrivalLevelOf(entry.from) <= levelCap,
       ),
     ].sort((a, b) => a.level - b.level);
     const hasLevelOnePreEvoOnly = preEvolutionEntries.some(
-      (entry) => entry.level === 1 && arrivalOf(entry.from) > 1,
+      (entry) => entry.level === 1 && arrivalLevelOf(entry.from) > 1,
     );
     // Any own-learnset entry below arrival (candied or not) is also always
     // teachable by the move relearner on this form.

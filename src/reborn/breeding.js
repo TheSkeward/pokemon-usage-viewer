@@ -2,8 +2,11 @@ import { GEN7_PROGRESSION_SPECIES } from "../generated/gen7ProgressionSpecies.ge
 import { buildInputGroups } from "../teamBuilder/inputGroups";
 import { getCurrentRebornSpecies } from "./currentSpecies.js";
 import {
+  arrivalLevelOf,
+  compareEvolutionRouteOptions,
   getAvailableRebornMoves,
   loadRebornLegalMoveData,
+  normalizeLevelCap,
 } from "./legalMoves";
 
 const BLOCKED_EGG_GROUPS = new Set(["Undiscovered", "Ditto"]);
@@ -17,6 +20,8 @@ export async function buildRebornBreedingContext({
 
   const ownedSpecies = getOwnedCurrentSpecies({ pokemonIndex, progression, query });
   if (!ownedSpecies.length) return emptyContext();
+
+  const levelCap = normalizeLevelCap(progression.levelCap);
 
   const entries = (
     await Promise.all(
@@ -60,11 +65,13 @@ export async function buildRebornBreedingContext({
     ]),
   );
 
-  // Shortest-chain relaxation: among every legal donor, prefer the SHORTEST
-  // chain first, and only then the donor that gets the move earliest (lowest
-  // acquisition level) as the tiebreak. Multi-hop chains inherit the upstream
-  // donor's level, root acquisition, and path. Costs only ever improve, so
-  // this terminates.
+  // Shortest-chain relaxation: the best donor route per move is re-picked
+  // each pass under sortDonorRoutes' order (shortest chain, then earliest
+  // acquisition, with the within-line least-delay preference). Multi-hop
+  // chains inherit the upstream donor's level, root acquisition, and path.
+  // The pick never regresses under the cost order — every leveling route is
+  // present from the hops-0 seed and later passes only add or shorten
+  // chains — so the acceptance check below terminates.
   let changed = true;
   while (changed) {
     changed = false;
@@ -75,30 +82,10 @@ export async function buildRebornBreedingContext({
         const intrinsic = target.costs.get(move.id);
         if (intrinsic && intrinsic.hops === 0) continue;
 
-        let best = null;
-        for (const donor of entries) {
-          if (donor.species.id === target.species.id) continue;
-          const donorCost = donor.costs.get(move.id);
-          if (!donorCost || !canBreed(donor.species.id, target.species.id)) {
-            continue;
-          }
-          if (!donorCanPassMove(donor, target, donorCost)) continue;
-          const candidate = {
-            hops: donorCost.hops + 1,
-            level: donorCost.level,
-            how: donorCost.how,
-            hassle: donorCost.hassle || 0,
-            sourceTitle: donorCost.sourceTitle || "",
-            // A direct donor is credited as the form that actually learns
-            // the move (Vigoroth, not the fielded Slaking) when the source
-            // names one; intermediate hops keep their species names.
-            path:
-              donorCost.hops === 0
-                ? [donorCost.learner || donor.species.name]
-                : [...donorCost.path, donor.species.name],
-          };
-          if (!best || compareBreedingCosts(candidate, best) < 0) best = candidate;
-        }
+        const best = sortDonorRoutes(
+          collectDonorRoutes(target, entries, move.id),
+          levelCap,
+        )[0];
         if (!best) continue;
 
         const current = target.costs.get(move.id);
@@ -123,27 +110,10 @@ export async function buildRebornBreedingContext({
     );
     for (const moveId of [...targetBreeding.moveIds].sort()) {
       const move = movesById.get(moveId);
-      const routes = [];
-      for (const donor of entries) {
-        if (donor.species.id === target.species.id) continue;
-        const donorCost = donor.costs.get(moveId);
-        if (!donorCost || !canBreed(donor.species.id, target.species.id)) {
-          continue;
-        }
-        if (!donorCanPassMove(donor, target, donorCost)) continue;
-        routes.push({
-          hops: donorCost.hops + 1,
-          level: donorCost.level,
-          how: donorCost.how,
-          hassle: donorCost.hassle || 0,
-          sourceTitle: donorCost.sourceTitle || "",
-          path:
-            donorCost.hops === 0
-              ? [donorCost.learner || donor.species.name]
-              : [...donorCost.path, donor.species.name],
-        });
-      }
-      routes.sort(compareBreedingCosts);
+      const routes = sortDonorRoutes(
+        collectDonorRoutes(target, entries, moveId),
+        levelCap,
+      );
       if (!routes.length) continue;
 
       // The path spells every step; the parenthetical is how the ROOT
@@ -370,10 +340,104 @@ function formatBreedingSourceTitle({
     .join("\n");
 }
 
+// Every donor's settled route for one move, ready for ranking. A direct
+// donor is credited as the form that actually learns the move (Vigoroth,
+// not the fielded Slaking) when the source names one; intermediate hops
+// keep their species names.
+function collectDonorRoutes(target, entries, moveId) {
+  const routes = [];
+  for (const donor of entries) {
+    if (donor.species.id === target.species.id) continue;
+    const donorCost = donor.costs.get(moveId);
+    if (!donorCost || !canBreed(donor.species.id, target.species.id)) {
+      continue;
+    }
+    if (!donorCanPassMove(donor, target, donorCost)) continue;
+    routes.push({
+      hops: donorCost.hops + 1,
+      level: donorCost.level,
+      how: donorCost.how,
+      hassle: donorCost.hassle || 0,
+      sourceTitle: donorCost.sourceTitle || "",
+      donorFamily: familyRootOf(donor.species.id),
+      path:
+        donorCost.hops === 0
+          ? [donorCost.learner || donor.species.name]
+          : [...donorCost.path, donor.species.name],
+    });
+  }
+  return routes;
+}
+
+// Donor routes ranked family by family: within one evolutionary line the
+// leveling routes form a block led by the shared least-evolutionary-delay
+// preference (leveling a Staravia to 43 beats carrying an unevolved Starly
+// to 37), and the block sits where its leader falls in the plain cost
+// order — so a line's teach/relearner routes and every other line still
+// compare on cost alone. Built from grouped keys rather than one pairwise
+// comparator because the least-delay preference is not transitive against
+// raw levels.
+function sortDonorRoutes(routes, levelCap) {
+  const groups = new Map();
+  for (const route of routes) {
+    const group = groups.get(route.donorFamily);
+    if (group) group.push(route);
+    else groups.set(route.donorFamily, [route]);
+  }
+  return [...groups.values()]
+    .map((group) => rankLineRoutes(group, levelCap))
+    .sort((a, b) => compareBreedingCosts(a[0], b[0]))
+    .flat();
+}
+
+function rankLineRoutes(group, levelCap) {
+  const leveled = [];
+  const others = [];
+  for (const route of group) {
+    (leveledRouteOption(route, levelCap) ? leveled : others).push(route);
+  }
+  leveled.sort(
+    (a, b) =>
+      compareEvolutionRouteOptions(
+        leveledRouteOption(a, levelCap),
+        leveledRouteOption(b, levelCap),
+      ) || compareBreedingCosts(a, b),
+  );
+  others.sort(compareBreedingCosts);
+  if (!leveled.length) return others;
+  const merged = [];
+  let placed = false;
+  for (const route of others) {
+    if (!placed && compareBreedingCosts(leveled[0], route) < 0) {
+      merged.push(...leveled);
+      placed = true;
+    }
+    merged.push(route);
+  }
+  if (!placed) merged.push(...leveled);
+  return merged;
+}
+
+// A direct donation the player levels a specific form into, as the shared
+// evolution-route shape — null otherwise. Multi-hop donors hatch already
+// knowing the move, teach/relearner routes level nothing, priced-out stone
+// routes (level pushed past any cap) must keep losing on raw level, and a
+// candy-down (level below the form's arrival) fields the form without
+// leveling through it — none of those join the least-delay preference.
+function leveledRouteOption(route, levelCap) {
+  if (route.hops !== 1 || !/^(evo)?@/.test(route.how || "")) return null;
+  if (route.level > levelCap) return null;
+  const formArrivalLevel = arrivalLevelOf(toId(route.path[0]));
+  if (route.level < formArrivalLevel) return null;
+  return { formArrivalLevel, learnLevel: route.level };
+}
+
 // The shortest possible chain wins; earliest acquisition is the tiebreak,
-// then hassle. The final tiebreaks on path/how/sourceTitle exist purely to
-// make the order TOTAL — the result must not depend on pool input order,
-// which would leak into cache signatures and tooltip text.
+// then hassle. sortDonorRoutes layers the within-line least-delay
+// preference on top of this order. The final tiebreaks on
+// path/how/sourceTitle exist purely to make the order TOTAL — the result
+// must not depend on pool input order, which would leak into cache
+// signatures and tooltip text.
 export function compareBreedingCosts(a, b) {
   if (a.hops !== b.hops) return a.hops - b.hops;
   if (a.level !== b.level) return a.level - b.level;
