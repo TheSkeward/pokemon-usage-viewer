@@ -95,7 +95,8 @@ export function groupInlineTeams(sets) {
 
 function harvestInlineTeams({ html, formatId, thread, seen, file }) {
   const threadId = /\.(\d+)\/?$/.exec(thread)?.[1] || 'unknown';
-  const { sets } = parseShowdownTeam(extractFirstPostText(html));
+  const text = extractFirstPostText(html);
+  const { sets } = parseShowdownTeam(text);
   let appended = 0;
   groupInlineTeams(sets).forEach((teamSets, index) => {
     const pasteId = `thread-${threadId}-op-${index}`;
@@ -106,12 +107,12 @@ function harvestInlineTeams({ html, formatId, thread, seen, file }) {
     seen.add(pasteId);
     appended += 1;
   });
-  return appended;
+  return { appended, opChars: text.length, opSets: sets.length };
 }
 
 async function harvestThread(formatId, thread, seen, file) {
   let appended = 0;
-  let inline = 0;
+  let inline = { appended: 0, opChars: 0, opSets: 0 };
   let title = null;
   const linked = new Set();
   for (let page = 1; page <= MAX_THREAD_PAGES; page += 1) {
@@ -126,6 +127,8 @@ async function harvestThread(formatId, thread, seen, file) {
     if (page === 1) {
       title = (/<title>([^<]*)<\/title>/.exec(html)?.[1] || '').trim() || null;
       inline = harvestInlineTeams({ html, formatId, thread, seen, file });
+      console.log(
+        `  op: ${inline.opChars} chars, ${inline.opSets} inline set(s)`);
     }
     for (const pasteId of extractPasteIds(html)) {
       linked.add(pasteId);
@@ -173,7 +176,7 @@ async function main() {
           formatId, thread, seen, file);
         console.log(
           `${formatId} ${thread}: +${appended} of ${linked} paste link(s), ` +
-            `+${inline} inline — "${title ?? 'no <title>'}" ` +
+            `+${inline.appended} inline — "${title ?? 'no <title>'}" ` +
             `(archive ${seen.size})`,
         );
       } catch (error) {

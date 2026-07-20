@@ -12,9 +12,9 @@
     ]
   },
   "rmt": {
-    "comment": "RMT forum listings to walk. Threads are attributed via their prefix label: prefixMap maps tier prefixes directly, genPrefixMap maps generation-only labels (the RMT Archive labels threads \"Gen 7\") and the tier is read from the thread title. Unmapped prefixes are reported by the scraper log so the maps can grow.",
+    "comment": "RMT forum listing to walk (rate-my-team.148 is the forum whose rows carry Gen-N labels; rmt-archive.469 is a suggestions forum). Threads are attributed via their prefix label: prefixMap maps tier prefixes directly, genPrefixMap maps generation-only labels with the tier read from the thread title — non-gen7 generations are mapped so they resolve (to untracked formats, quietly skipped) instead of reporting as unmapped every run. Truly unmapped prefixes are reported by the scraper log so the maps can grow.",
     "listings": [
-      "https://www.smogon.com/forums/forums/rmt-archive.469/"
+      "https://www.smogon.com/forums/forums/rate-my-team.148/"
     ],
     "prefixMap": {
       "SM OU": "gen7ou",
@@ -36,7 +36,14 @@
       "USM Doubles": "gen7doublesou"
     },
     "genPrefixMap": {
-      "Gen 7": "gen7"
+      "Gen 8": "gen8",
+      "Gen 7": "gen7",
+      "Gen 6": "gen6",
+      "Gen 5": "gen5",
+      "Gen 4": "gen4",
+      "Gen 3": "gen3",
+      "Gen 2": "gen2",
+      "Gen 1": "gen1"
     }
   },
   "threads": {

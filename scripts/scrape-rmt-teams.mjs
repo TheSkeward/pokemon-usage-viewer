@@ -102,7 +102,7 @@ async function harvestThread({ row, formatId, seen, file }) {
     record.source = 'rmt';
     fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
     seen.add(record.id);
-    return 1;
+    return { appended: 1, opChars: text.length };
   }
   let appended = 0;
   for (const pasteId of [...new Set(
@@ -128,7 +128,7 @@ async function harvestThread({ row, formatId, seen, file }) {
     seen.add(pasteId);
     appended += 1;
   }
-  return appended;
+  return { appended, opChars: text.length };
 }
 
 async function main() {
@@ -186,11 +186,15 @@ async function main() {
           const { file, seen } = forFormat(formatId);
           if (seen.has(`thread-${row.threadId}`)) continue;
           try {
-            const appended = await harvestThread({ row, formatId, seen, file });
+            const { appended, opChars } =
+              await harvestThread({ row, formatId, seen, file });
             if (appended) fresh += 1;
-            else {
+            else if (opChars >= 200) {
               // Persist a teamless marker so later runs never refetch it.
-              // The index builders drop empty-set records.
+              // The index builders drop empty-set records. A near-empty
+              // extraction means the post reader failed, not that the
+              // thread is teamless — leave those unmarked so a fixed
+              // reader gets another look.
               const marker = `thread-${row.threadId}`;
               fs.appendFileSync(
                 file,

@@ -48,12 +48,22 @@ export function extractThreadRows(html, baseUrl) {
   return rows;
 }
 
-/** The opening post is the first message body on page 1. */
+/**
+ * The opening post is the first message body on page 1. The article form is
+ * tried on the whole document first: the div fallback stops at the first
+ * closing div, so nested markup (spoilers) truncates it, and an
+ * earlier-positioned div must not outrank a complete article match.
+ * @return {string}
+ */
 export function extractFirstPostText(html) {
-  const match = String(html).match(
-    /<article[^>]*class="[^"]*message-body[^"]*"[^>]*>([\s\S]*?)<\/article>|<div[^>]*class="[^"]*bbWrapper[^"]*"[^>]*>([\s\S]*?)<\/div>/,
+  const article = String(html).match(
+    /<article[^>]*class="[^"]*message-body[^"]*"[^>]*>([\s\S]*?)<\/article>/,
   );
-  return match ? htmlToText(match[1] || match[2] || '') : '';
+  if (article) return htmlToText(article[1]);
+  const wrapper = String(html).match(
+    /<div[^>]*class="[^"]*bbWrapper[^"]*"[^>]*>([\s\S]*?)<\/div>/,
+  );
+  return wrapper ? htmlToText(wrapper[1]) : '';
 }
 
 /**
