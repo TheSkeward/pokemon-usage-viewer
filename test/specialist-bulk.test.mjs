@@ -5,7 +5,7 @@ import {
   currentFormFeatures,
   currentFormValue,
   defensiveTypeBalance,
-} from '../src/teamBuilder/currentFormValue.js';
+} from '../src/teamBuilder/current-form-value.js';
 
 const damagingSet = (damage = 260) => [
   {

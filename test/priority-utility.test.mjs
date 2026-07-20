@@ -6,7 +6,7 @@ import {
   currentFormValue,
   priorityUtilityValue,
   utilityTagVector,
-} from '../src/teamBuilder/currentFormValue.js';
+} from '../src/teamBuilder/current-form-value.js';
 
 const screen = (name) => ({
   name,

@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { SCORING_VERSION } from '../src/teamBuilder/scoringConstants.js';
+import { SCORING_VERSION } from '../src/teamBuilder/scoring-constants.js';
 
 const projectRoot = process.cwd();
 const dataRoot = path.join(projectRoot, 'site-data', 'data');

@@ -20,7 +20,7 @@ import {
   REBORN_TM_OPTIONS,
   REBORN_TMX_OPTIONS,
   REBORN_TUTOR_OPTIONS,
-} from '../src/reborn/progressionOptions.js';
+} from '../src/reborn/progression-options.js';
 
 const projectRoot = process.cwd();
 const dataDir = path.join(projectRoot, 'site-data', 'data');

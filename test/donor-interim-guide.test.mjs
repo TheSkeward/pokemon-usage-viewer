@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 
 globalThis.__ENV__ ??= { BASE_URL: '/' };
 const { buildRebornTeamAnalysis, collectEggDonorRequests } = await import(
-  '../src/reborn/teamAnalysis.js',
+  '../src/reborn/team-analysis.js',
 );
 const { progressionAt, loadShared } = await import('./helpers/harness.mjs');
 const {

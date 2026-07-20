@@ -14,7 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { parseShowdownTeam } from './teamscrape/parseShowdownTeam.mjs';
+import { parseShowdownTeam } from './teamscrape/parse-showdown-team.mjs';
 import { normalizeSampleTeam } from './scrape-sample-teams.mjs';
 import { readArchiveIds } from './scrape-replay-teams.mjs';
 

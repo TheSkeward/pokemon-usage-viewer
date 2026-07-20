@@ -2,16 +2,16 @@ import {
   readLocalStorage,
   removeLocalStorage,
   writeLocalStorage,
-} from '../storage/safeLocalStorage';
+} from '../storage/safe-local-storage';
 import {
   REBORN_TM_OPTIONS,
   REBORN_TMX_OPTIONS,
   REBORN_TUTOR_OPTIONS,
-} from './progressionOptions';
-import { TERRAIN_SEED_MIGRATION } from './rebornSeeds';
-import { REBORN_ANALYSIS_TYPES } from './typeChart.js';
-import { EVOLUTION_ACCESS_FIELDS } from './evolutionRequirements.js';
-import { getRebornCheckpoint } from './badgeTimeline.js';
+} from './progression-options';
+import { TERRAIN_SEED_MIGRATION } from './reborn-seeds';
+import { REBORN_ANALYSIS_TYPES } from './type-chart.js';
+import { EVOLUTION_ACCESS_FIELDS } from './evolution-requirements.js';
+import { getRebornCheckpoint } from './badge-timeline.js';
 import { getActiveGame } from '../games/registry.js';
 import { toId as normalizeSearch } from '../utils/ids.js';
 
@@ -93,7 +93,7 @@ export function clearSavedRebornProgression() {
  */
 export function normalizeRebornProgression(progression = {}) {
   return {
-    // The badge/post-game checkpoint the player selected (badgeTimeline.js).
+    // The badge/post-game checkpoint the player selected (badge-timeline.js).
     // The level cap it derives is written into levelCap, which stays the
     // single field every consumer reads.
     checkpoint: getRebornCheckpoint(progression.checkpoint)
@@ -283,7 +283,7 @@ export function setRebornProgressionOptions(progression, field, optionIds) {
 
 /**
  * Reborn's post-game raises the cap past 100 (to 150). Damage/stat math
- * still clamps levels to 100 internally (damageModel's normalizeLevel); the
+ * still clamps levels to 100 internally (damage-model's normalizeLevel); the
  * cap only widens legality and reachability. An unset cap reads as 100, the
  * main-game maximum.
  * @param {*} value Number-ish; clamped to [1, 150].

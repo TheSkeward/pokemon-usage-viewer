@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 
 await import('./helpers/harness.mjs'); // fetch → filesystem shim
 const { getAvailableRebornMoves, loadRebornLegalMoveData } = await import(
-  '../src/reborn/legalMoves.js',
+  '../src/reborn/legal-moves.js',
 );
 
 const mawile = await loadRebornLegalMoveData('mawile');

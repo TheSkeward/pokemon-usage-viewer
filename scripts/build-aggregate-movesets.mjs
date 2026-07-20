@@ -4,7 +4,7 @@
  * can show genuinely aggregated sets instead of silently falling back to the
  * latest month (which for thin formats is one player's single set at 100%).
  *
- * Aggregation matches scripts/set-index/aggregateMovesets.mjs: an entry's
+ * Aggregation matches scripts/set-index/aggregate-movesets.mjs: an entry's
  * monthly usage% is converted back to a count (usage/100 × that month's
  * rawCount for the mon), counts are summed across months, and the final
  * percentage is count / total rawCount. Output shape mirrors the monthly

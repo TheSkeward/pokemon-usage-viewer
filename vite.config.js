@@ -4,7 +4,7 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 
 // A per-deploy id so the running app can detect when a newer build is live (see
-// src/updateNotifier.js). The commit SHA changes every deploy — including the
+// src/update-notifier.js). The commit SHA changes every deploy — including the
 // daily data-refresh commit — and is stable across rebuilds of the same commit.
 // Falls back to a timestamp when git isn't available.
 function resolveBuildId() {

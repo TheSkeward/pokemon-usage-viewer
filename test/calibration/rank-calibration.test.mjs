@@ -34,7 +34,7 @@ import {
   poorAnchor,
   poorAnchorInput,
   poorAnchorLabel,
-} from '../helpers/calibrationAnchors.mjs';
+} from '../helpers/calibration-anchors.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const { buckets } = JSON.parse(
@@ -55,7 +55,7 @@ const GARBAGE = [
   poorAnchor('Unown'),
 ];
 
-// Level cap per badge, from the checkpoint schedule (badgeTimeline.js).
+// Level cap per badge, from the checkpoint schedule (badge-timeline.js).
 const CAP = {
   0: 20, 1: 25, 2: 35, 3: 40, 4: 45, 5: 50, 6: 55, 7: 60, 8: 65, 9: 70,
   10: 70, 11: 75, 12: 75, 13: 80, 14: 85, 15: 90, 16: 90, 17: 95, 18: 100,

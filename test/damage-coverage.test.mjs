@@ -3,8 +3,8 @@
 // ability that boosts the wrong moves).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { estimateMoveDamage } from '../src/reborn/damageModel.js';
-import { getTypeMultiplier } from '../src/reborn/typeChart.js';
+import { estimateMoveDamage } from '../src/reborn/damage-model.js';
+import { getTypeMultiplier } from '../src/reborn/type-chart.js';
 
 const attacker = { level: 50, atk: 120, spa: 120 };
 const waterPulse = {
@@ -108,7 +108,7 @@ test('Libero is inert (Gen-8 ability; vanilla Reborn is Gen-7)', () => {
 // (User-reported: a lvl-25 Mankey was recommended Seismic Toss because the old
 // model priced it as a 60-BP STAB attack — 90 flat at any level.)
 test("Seismic Toss / Night Shade deal exactly the user's level, no STAB", async () => {
-  const { fixedMoveDamage } = await import('../src/reborn/damageModel.js');
+  const { fixedMoveDamage } = await import('../src/reborn/damage-model.js');
   assert.equal(fixedMoveDamage('seismictoss', 25), 25);
   assert.equal(fixedMoveDamage('nightshade', 25), 25);
   const viaEstimate = estimateMoveDamage({
@@ -125,7 +125,7 @@ test("Seismic Toss / Night Shade deal exactly the user's level, no STAB", async 
 
 test('Super Fang halves a typical body at the level; flat moves stay flat', async () => {
   const { fixedMoveDamage, referenceHp } = await import(
-    '../src/reborn/damageModel.js',
+    '../src/reborn/damage-model.js',
   );
   // Reference defender at 25: floor(171*25/100) + 25 + 10 = 77 HP → 39
   // (rounded).
@@ -162,7 +162,7 @@ test('a real STAB attack outdamages Seismic Toss on a decent attacker at low cap
 
 test('fixed-damage coverage: flat into everything its type can touch, zero into immunities', async () => {
   const { coverageDamageIntoType, isFixedDamageMove } = await import(
-    '../src/reborn/damageModel.js',
+    '../src/reborn/damage-model.js',
   );
   // Seismic Toss (Fighting): never super effective, never resisted...
   assert.equal(coverageDamageIntoType('seismictoss', 'Fighting', 25, 'Normal'), 25);

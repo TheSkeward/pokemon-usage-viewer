@@ -28,7 +28,7 @@
  * of silently vanishing — a cancelling caller must record the phase it
  * stopped in ("resolve"/"search") and the elapsed ms up to the abort.
  */
-import { SCORING_VERSION } from './scoringConstants.js';
+import { SCORING_VERSION } from './scoring-constants.js';
 
 const STORE_KEY = 'teamOptimizerTelemetryV1';
 const MAX_SAMPLES = 500;

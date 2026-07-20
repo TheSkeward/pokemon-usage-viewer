@@ -4,9 +4,9 @@
  * optimizer cache keys and to show the user exactly which Reborn/data/scoring
  * versions produced a recommendation.
  */
-import { dataUrl } from './utils/dataUrl.js';
+import { dataUrl } from './utils/data-url.js';
 
-import { setDataVersionTag } from './utils/dataUrl.js';
+import { setDataVersionTag } from './utils/data-url.js';
 
 let manifestPromise = null;
 

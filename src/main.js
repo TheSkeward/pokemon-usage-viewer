@@ -13,17 +13,17 @@ import {
   loadMovesetData,
   loadPokemonIndex,
 } from './data';
-import { bindAppEvents } from './app/appEvents';
-import { renderBrowserPage } from './app/browserPage';
-import { captureFocusState, restoreFocusState } from './app/focusState';
-import { renderFatalAppError, renderAppShell } from './app/appShellView';
-import { renderResolverPage } from './app/resolverPage';
+import { bindAppEvents } from './app/app-events';
+import { renderBrowserPage } from './app/browser-page';
+import { captureFocusState, restoreFocusState } from './app/focus-state';
+import { renderFatalAppError, renderAppShell } from './app/app-shell-view';
+import { renderResolverPage } from './app/resolver-page';
 import { readStateFromUrl, writeStateToUrl } from './router';
 import { getState, replaceState, setState } from './state';
-import { mountPoolOptimizer } from './poolWidget';
+import { mountPoolOptimizer } from './pool-widget';
 import { computeResolverRepresentativeResults } from './resolver/representatives';
-import { createPrecomputedSetDetailsLoader } from './setDetails/precomputedSetDetails';
-import { startUpdateNotifier } from './updateNotifier';
+import { createPrecomputedSetDetailsLoader } from './setDetails/precomputed-set-details';
+import { startUpdateNotifier } from './update-notifier';
 
 const app = document.querySelector('#app');
 const DESC_SORT_FIELDS = new Set(['usage', 'rawCount', 'leadTendency']);

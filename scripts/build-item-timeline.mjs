@@ -65,7 +65,7 @@ const { GEN7_HELD_ITEMS_BY_ID } = await import(
   '../src/generated/gen7HeldItems.generated.js',
 );
 const { REBORN_EXTRA_INVENTORY_ITEMS } = await import(
-  '../src/reborn/itemAvailability.js',
+  '../src/reborn/item-availability.js',
 );
 
 const knownIds = new Set([

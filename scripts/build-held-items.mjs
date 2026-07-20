@@ -8,8 +8,8 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { TYPE_GEMS } from '../src/reborn/typeGems.js';
-import { REBORN_SEEDS } from '../src/reborn/rebornSeeds.js';
+import { TYPE_GEMS } from '../src/reborn/type-gems.js';
+import { REBORN_SEEDS } from '../src/reborn/reborn-seeds.js';
 
 const SET_INDEX_GLOB_ROOT = path.resolve('site-data', 'data', 'set-index');
 const OUT_PATH = path.resolve(

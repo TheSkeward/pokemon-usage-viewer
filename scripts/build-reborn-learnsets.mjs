@@ -6,7 +6,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { buildRebornLearnsets } from './reborn/extractRebornLearnsets.mjs';
+import { buildRebornLearnsets } from './reborn/extract-reborn-learnsets.mjs';
 
 const projectRoot = process.cwd();
 const monsDatPath = process.argv[2];

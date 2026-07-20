@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 const { SCORING_DEFAULTS } = await import(
-  '../src/teamBuilder/scoringConstants.js',
+  '../src/teamBuilder/scoring-constants.js',
 );
 
 test('ε·C tiebreak can never override a real quantized usage difference', () => {

@@ -1,4 +1,4 @@
-// Fieldable real team (realTeams.js): the pure buildability + ranking pieces.
+// Fieldable real team (real-teams.js): the pure buildability + ranking pieces.
 // Synthetic fixtures throughout — nothing here depends on team-index data
 // files existing.
 import test from 'node:test';
@@ -11,7 +11,7 @@ const {
   findFieldableRealTeam,
   getLineFieldableIds,
   teamItemsCovered,
-} = await import('../src/teamBuilder/realTeams.js');
+} = await import('../src/teamBuilder/real-teams.js');
 
 function makeLine(inputPokemonId, pokemonId = inputPokemonId) {
   return {

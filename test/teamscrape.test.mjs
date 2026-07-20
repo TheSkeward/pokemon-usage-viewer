@@ -5,10 +5,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 const { parseShowdownTeam, parseShowdownSet } = await import(
-  '../scripts/teamscrape/parseShowdownTeam.mjs',
+  '../scripts/teamscrape/parse-showdown-team.mjs',
 );
 const { parseReplayTeams, toTeamSheetId } = await import(
-  '../scripts/teamscrape/replayLog.mjs',
+  '../scripts/teamscrape/replay-log.mjs',
 );
 const { buildObservedSetIndex } = await import(
   '../scripts/build-observed-sets.mjs',

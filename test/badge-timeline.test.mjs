@@ -12,9 +12,9 @@ const {
   getExpectedUnlocks,
   getUnlockBadge,
   getRebornCheckpointShortLabel,
-} = await import('../src/reborn/badgeTimeline.js');
+} = await import('../src/reborn/badge-timeline.js');
 const { EVOLUTION_ACCESS_FIELDS } = await import(
-  '../src/reborn/evolutionRequirements.js',
+  '../src/reborn/evolution-requirements.js',
 );
 const {
   DEFAULT_REBORN_PROGRESSION,
@@ -25,7 +25,7 @@ const {
   REBORN_TM_OPTIONS,
   REBORN_TMX_OPTIONS,
   REBORN_TUTOR_GROUPS,
-} = await import('../src/reborn/progressionOptions.js');
+} = await import('../src/reborn/progression-options.js');
 const { GEN7_HELD_ITEMS_BY_ID } = await import(
   '../src/generated/gen7HeldItems.generated.js',
 );
@@ -134,7 +134,7 @@ test('panel ↔ timeline consistency: every TM/TMX/tutor availability names a ba
 
 test('item timeline: sheet + mining + wild-held sources merge to earliest badge', async () => {
   const { getItemUnlockBadge } = await import(
-    '../src/reborn/badgeTimeline.js',
+    '../src/reborn/badge-timeline.js',
   );
   const { REBORN_ITEM_UNLOCK_BADGES } = await import(
     '../src/generated/rebornItemTimeline.generated.js',

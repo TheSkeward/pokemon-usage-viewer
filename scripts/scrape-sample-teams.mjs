@@ -10,8 +10,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { parseShowdownTeam } from './teamscrape/parseShowdownTeam.mjs';
-import { toTeamSheetId } from './teamscrape/replayLog.mjs';
+import { parseShowdownTeam } from './teamscrape/parse-showdown-team.mjs';
+import { toTeamSheetId } from './teamscrape/replay-log.mjs';
 import { readArchiveIds } from './scrape-replay-teams.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));

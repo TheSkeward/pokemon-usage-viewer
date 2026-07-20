@@ -65,7 +65,7 @@ builds do not need network access.
 
 ```text
 index.html / src/main.js      Main app
-pool.html  / src/poolApp.js   Team Builder-only page
+pool.html  / src/pool-app.js   Team Builder-only page
 src/app/                       App shell and page wiring
 src/views/                     Shared render views
 src/teamBuilder/               Pool parsing, scoring, search, confidence, UI
@@ -87,7 +87,7 @@ Read that before changing optimizer behavior or scoring constants.
   The manifest hashes runtime data and generated modules so browser caches can
   invalidate correctly.
 - If optimizer output changes without a data-signature change, bump
-  `RESULT_CACHE_VERSION` in `src/teamBuilder/teamOptimizer.js`.
+  `RESULT_CACHE_VERSION` in `src/teamBuilder/team-optimizer.js`.
 - `npm run refresh:data` may need network access because it downloads Smogon
   stats.
 

@@ -4,7 +4,7 @@
 // hand-reviewed gender/cloak form notes.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { describeEvolutionPath } from '../src/reborn/evolutionRequirements.js';
+import { describeEvolutionPath } from '../src/reborn/evolution-requirements.js';
 
 
 

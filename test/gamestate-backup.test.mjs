@@ -4,7 +4,7 @@ import {
   buildGamestateExport,
   gamestateFileName,
   parseGamestateImport,
-} from '../src/teamBuilder/gamestateBackup.js';
+} from '../src/teamBuilder/gamestate-backup.js';
 
 test('export/import round-trips pool and progression', () => {
   const progression = {

@@ -15,7 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { REAL_FORMATS } from './config.mjs';
-import { parseReplayTeams, toTeamSheetId } from './teamscrape/replayLog.mjs';
+import { parseReplayTeams, toTeamSheetId } from './teamscrape/replay-log.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 /** Directory holding the committed JSONL archives. @type {string} */

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { currentFormValue } from '../src/teamBuilder/currentFormValue.js';
+import { currentFormValue } from '../src/teamBuilder/current-form-value.js';
 
 const moves = [
   {

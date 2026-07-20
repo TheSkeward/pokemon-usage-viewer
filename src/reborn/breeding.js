@@ -1,10 +1,10 @@
 import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
-import { buildInputGroups } from '../teamBuilder/inputGroups';
-import { getCurrentRebornSpecies } from './currentSpecies.js';
+import { buildInputGroups } from '../teamBuilder/input-groups';
+import { getCurrentRebornSpecies } from './current-species.js';
 import {
   getAvailableRebornMoves,
   loadRebornLegalMoveData,
-} from './legalMoves';
+} from './legal-moves';
 import { toId } from '../utils/ids.js';
 
 const BLOCKED_EGG_GROUPS = new Set(['Undiscovered', 'Ditto']);

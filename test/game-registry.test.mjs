@@ -10,7 +10,7 @@ import {
 import {
   buildGamestateExport,
   parseGamestateImport,
-} from '../src/teamBuilder/gamestateBackup.js';
+} from '../src/teamBuilder/gamestate-backup.js';
 
 test('reborn is the default active game with its pre-registry keys intact', () => {
   const game = getActiveGame();

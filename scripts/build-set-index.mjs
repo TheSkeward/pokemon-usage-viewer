@@ -6,14 +6,14 @@ import {
   FAMILIES,
   OUT_ROOT,
 } from './set-index/constants.mjs';
-import { aggregateCandidateSource } from './set-index/aggregateMovesets.mjs';
+import { aggregateCandidateSource } from './set-index/aggregate-movesets.mjs';
 import { getMovesetCandidates } from './set-index/candidates.mjs';
 import { readJson, readJsonIfExists, writeJson } from './set-index/io.mjs';
-import { buildSpeciesContext } from './set-index/speciesContext.mjs';
+import { buildSpeciesContext } from './set-index/species-context.mjs';
 import {
   appendRelatedSetOptions,
   stitchPokemonSetDetail,
-} from './set-index/stitchSetDetails.mjs';
+} from './set-index/stitch-set-details.mjs';
 
 async function main() {
   const [availability, formatsIndex, pokemonIndex] = await Promise.all([

@@ -7,11 +7,11 @@ import {
   BASE_SEEN_GAMES,
   SEEN_GAMES_STEP,
   gamesToLikelySee,
-} from '../src/teamBuilder/traceUsage.js';
+} from '../src/teamBuilder/trace-usage.js';
 
 globalThis.__ENV__ ??= { BASE_URL: '/' };
 const { getSortedTeam } = await import(
-  '../src/teamBuilder/teamBuilderView.js',
+  '../src/teamBuilder/team-builder-view.js',
 );
 
 test('gamesToLikelySee inverts the 50%-seen bar and steps by 5', () => {

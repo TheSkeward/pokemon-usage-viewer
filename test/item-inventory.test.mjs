@@ -8,7 +8,7 @@ import {
   addRebornOwnedItems,
   MAX_TRACKED_ITEM_COUNT,
 } from '../src/reborn/progression.js';
-import { getPurchasableShopItems } from '../src/reborn/itemAvailability.js';
+import { getPurchasableShopItems } from '../src/reborn/item-availability.js';
 import { REBORN_SHOP_ITEM_BADGES } from '../src/generated/rebornItemTimeline.generated.js';
 
 test('addRebornOwnedItems raises, clamps, and never lowers', () => {

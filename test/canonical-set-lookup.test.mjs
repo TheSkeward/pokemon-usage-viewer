@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 
 globalThis.__ENV__ ??= { BASE_URL: '/' };
 const { renderResolverResults } = await import(
-  '../src/views/resolverResultsView.js',
+  '../src/views/resolver-results-view.js',
 );
 
 const FORMATS_INDEX = [

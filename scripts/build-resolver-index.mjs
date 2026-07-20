@@ -31,7 +31,7 @@ async function main() {
 // column's first-meaningful tier, and the set-index tier sourcing all move
 // together when it changes — regenerate this index and the set index in the
 // same commit.
-import { SCORING_DEFAULTS } from '../src/teamBuilder/scoringConstants.js';
+import { SCORING_DEFAULTS } from '../src/teamBuilder/scoring-constants.js';
 const MEANINGFUL_USAGE_PERCENT = SCORING_DEFAULTS.MIN_MEANINGFUL_USAGE_PERCENT;
 
 async function buildFamilyAllIndex(availability, family) {

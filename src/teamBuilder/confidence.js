@@ -22,9 +22,9 @@
  * reproduce.
  */
 
-import { scoreCandidate } from './candidateScoring.js';
-import { choosePoolTeam } from './teamSelection.js';
-import { setScoringOverrides } from './scoringConstants.js';
+import { scoreCandidate } from './candidate-scoring.js';
+import { choosePoolTeam } from './team-selection.js';
+import { setScoringOverrides } from './scoring-constants.js';
 
 /**
  * CONSTRAINT for new settings: overrides are process-globals on THIS thread.

@@ -9,12 +9,12 @@ import assert from 'node:assert/strict';
 
 globalThis.__ENV__ ??= { BASE_URL: '/' };
 const { utilityValue, FIELD_SETTING_MOVE_IDS, currentFormFeatures } =
-  await import('../src/teamBuilder/currentFormValue.js');
+  await import('../src/teamBuilder/current-form-value.js');
 const { SCORING_DEFAULTS } = await import(
-  '../src/teamBuilder/scoringConstants.js',
+  '../src/teamBuilder/scoring-constants.js',
 );
 const { withFieldExtenderCandidate, assignTeamItems, teamMemberKey } =
-  await import('../src/teamBuilder/itemRecommendations.js');
+  await import('../src/teamBuilder/item-recommendations.js');
 
 const terrainMove = {
   id: 'electricterrain',

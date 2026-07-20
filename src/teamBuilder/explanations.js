@@ -6,7 +6,7 @@
  * lost, in the same auditable terms.
  */
 
-import { REBORN_ANALYSIS_TYPES } from '../reborn/typeChart.js';
+import { REBORN_ANALYSIS_TYPES } from '../reborn/type-chart.js';
 import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
 
 const ROLE_LABELS = {

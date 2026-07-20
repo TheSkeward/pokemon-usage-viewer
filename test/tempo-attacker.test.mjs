@@ -6,8 +6,8 @@ import {
   currentFormValue,
   hasReliableTempoRamp,
   hasSpeedBoostTempo,
-} from '../src/teamBuilder/currentFormValue.js';
-import { buildRebornTeamAnalysis } from '../src/reborn/teamAnalysis.js';
+} from '../src/teamBuilder/current-form-value.js';
+import { buildRebornTeamAnalysis } from '../src/reborn/team-analysis.js';
 import { progressionAt, runPool } from './helpers/harness.mjs';
 
 const attack = (name, estimatedDamage) => ({

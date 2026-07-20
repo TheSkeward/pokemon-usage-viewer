@@ -5,7 +5,7 @@ import {
   getUsageRanking,
   hasCompetitivePriorEvidence,
   scoreCandidate,
-} from '../src/teamBuilder/candidateScoring.js';
+} from '../src/teamBuilder/candidate-scoring.js';
 
 const formats = [
   'gen7anythinggoes',

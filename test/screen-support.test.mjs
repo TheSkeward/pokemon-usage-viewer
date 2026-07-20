@@ -6,7 +6,7 @@ import {
   currentFormValue,
   singleActionScreenSupport,
   utilityTagVector,
-} from '../src/teamBuilder/currentFormValue.js';
+} from '../src/teamBuilder/current-form-value.js';
 
 const screen = (name, axes, requiresWeather) => ({
   id: name.toLowerCase().replace(/[^a-z0-9]+/g, ''),

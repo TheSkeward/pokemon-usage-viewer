@@ -13,8 +13,8 @@
  * full future-gamestate simulation.
  */
 
-import { optimizeTeamFromPool } from './teamOptimizer.js';
-import { REBORN_PROGRESSION_CHECKPOINTS } from '../reborn/badgeTimeline.js';
+import { optimizeTeamFromPool } from './team-optimizer.js';
+import { REBORN_PROGRESSION_CHECKPOINTS } from '../reborn/badge-timeline.js';
 
 // score points at the next cap that make a mon worth tracking
 const TRAIN_SOON_GAIN = 250;
@@ -77,7 +77,7 @@ export async function computeInvestmentPlan({
   // searches: `gain` compares LINE scores, which are exact under any search
   // mode; only `seatsLater` reads the future team, and a shortlist-grade six
   // is the right price for a "worth training soon" hint. Fast runs also
-  // resolve DEFAULT-ONLY builds (teamOptimizer's fastMode trim).
+  // resolve DEFAULT-ONLY builds (team-optimizer's fastMode trim).
   const futureResults = [];
   for (const cap of caps) {
     if (shouldAbort()) return null;

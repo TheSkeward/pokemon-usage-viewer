@@ -268,12 +268,12 @@ enumeration would exceed the interactive search budget.
 
 ## Where things live
 
-- Tunable judgments and scoring version: `src/teamBuilder/scoringConstants.js`
-- Current features and roles: `src/teamBuilder/currentFormValue.js`
-- Usage rank, readiness, and final value: `src/teamBuilder/candidateScoring.js`
-- Team coverage and defensive fit: `src/teamBuilder/searchKernel.js`
-- Teammate usage synergy: `src/teamBuilder/teammateSynergy.js`
-- Search orchestration and result cache version: `src/teamBuilder/teamOptimizer.js`
+- Tunable judgments and scoring version: `src/teamBuilder/scoring-constants.js`
+- Current features and roles: `src/teamBuilder/current-form-value.js`
+- Usage rank, readiness, and final value: `src/teamBuilder/candidate-scoring.js`
+- Team coverage and defensive fit: `src/teamBuilder/search-kernel.js`
+- Teammate usage synergy: `src/teamBuilder/teammate-synergy.js`
+- Search orchestration and result cache version: `src/teamBuilder/team-optimizer.js`
 - Reborn legality and progression: `src/reborn/`
 - Badge-bucket anchors: `test/calibration/`
 
@@ -381,5 +381,5 @@ the optimizer deliberately scores the strongest satisfiable team. Result
 cache version 36 invalidates older outputs.
 
 After each scoring-output change, bump `RESULT_CACHE_VERSION` in
-`src/teamBuilder/teamOptimizer.js`. If generated data changes, regenerate the
+`src/teamBuilder/team-optimizer.js`. If generated data changes, regenerate the
 manifest before committing.

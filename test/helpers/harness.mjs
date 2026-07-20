@@ -17,7 +17,7 @@ globalThis.localStorage = {
   length: 0,
 };
 globalThis.fetch = async (url) => {
-  // Strip the ?v=<dataSignature> cache-buster (utils/dataUrl.js) like any
+  // Strip the ?v=<dataSignature> cache-buster (utils/data-url.js) like any
   // static file server would — the filesystem has no query strings.
   const rel = String(url)
     .replace(/\?.*$/, '')
@@ -38,7 +38,7 @@ globalThis.fetch = async (url) => {
 
 const { loadAvailability, loadPokemonIndex } = await import('../../src/data.js');
 const { optimizeTeamFromPool } = await import(
-  '../../src/teamBuilder/teamOptimizer.js',
+  '../../src/teamBuilder/team-optimizer.js',
 );
 // Wire the exact-search worker pool to node worker_threads, mirroring the
 // browser's Web Worker pool: each big search splits its combination range
@@ -47,10 +47,10 @@ const { optimizeTeamFromPool } = await import(
 {
   const { Worker: NodeWorker } = await import('node:worker_threads');
   const { setSearchWorkerPoolFactory } = await import(
-    '../../src/teamBuilder/parallelSearch.js',
+    '../../src/teamBuilder/parallel-search.js',
   );
   const os = await import('node:os');
-  const workerUrl = new URL('./searchWorker.node.mjs', import.meta.url);
+  const workerUrl = new URL('./search-worker.node.mjs', import.meta.url);
   const shim = () => {
     const worker = new NodeWorker(workerUrl);
     worker.unref();
@@ -85,10 +85,10 @@ const { optimizeTeamFromPool } = await import(
 }
 
 const { setScoringOverrides } = await import(
-  '../../src/teamBuilder/scoringConstants.js',
+  '../../src/teamBuilder/scoring-constants.js',
 );
 const progressionOptions = await import(
-  '../../src/reborn/progressionOptions.js',
+  '../../src/reborn/progression-options.js',
 );
 
 const shared = { availability: null, pokemonIndex: null };

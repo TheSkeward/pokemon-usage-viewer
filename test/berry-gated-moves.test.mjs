@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 await import('./helpers/harness.mjs'); // fetch → filesystem shim
-const { isUsableDamagingMove } = await import('../src/reborn/teamAnalysis.js');
+const { isUsableDamagingMove } = await import('../src/reborn/team-analysis.js');
 
 const belch = { id: 'belch', name: 'Belch', type: 'Poison', category: 'Special', basePower: 120 };
 const sludgeBomb = { id: 'sludgebomb', name: 'Sludge Bomb', type: 'Poison', category: 'Special', basePower: 90 };
