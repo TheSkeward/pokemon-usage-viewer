@@ -424,7 +424,7 @@ function getReadinessGate(profile, features) {
   ];
   let step;
   if (
-    (features?.damage_q ?? 0) < tunable('ACT_FLOOR') ||
+    (features?.damageQ ?? 0) < tunable('ACT_FLOOR') ||
     (profile?.legalDamagingMoveCount || 0) === 0
   ) {
     step = 0; // baby: can't act at this stage

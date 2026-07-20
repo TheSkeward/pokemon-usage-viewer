@@ -732,7 +732,7 @@ function explainShortlistMiss(lines, line) {
       if (multiplier === 0) matched.push(`immune to ${type}`);
       else if (multiplier < 1) matched.push(`resists ${type}`);
     });
-    if ((entry.best?.currentFeatures?.speed_q || 0) >= 0.8) matched.push('fast');
+    if ((entry.best?.currentFeatures?.speedQ || 0) >= 0.8) matched.push('fast');
     if (
       (entry.best?.legalityProfile?.recommendedMoves || []).some(
         (move) => (move.priority || 0) > 0,
@@ -740,7 +740,7 @@ function explainShortlistMiss(lines, line) {
     ) {
       matched.push('priority');
     }
-    if ((entry.best?.currentFeatures?.utility_q || 0) >= 0.6) {
+    if ((entry.best?.currentFeatures?.utilityQ || 0) >= 0.6) {
       matched.push('utility');
     }
     if ((entry.best?.online ?? 0) === 1 && (entry.best?.friction || 0) === 0) {
@@ -938,7 +938,7 @@ function buildShortlist(lines, maxSizeOverride = null) {
 
   const bySpecialty = (predicate) => scored.find(predicate);
   if (picked.size < maxSize)
-    add(bySpecialty((s) => (s.best?.currentFeatures?.speed_q || 0) >= 0.8));
+    add(bySpecialty((s) => (s.best?.currentFeatures?.speedQ || 0) >= 0.8));
   if (picked.size < maxSize)
     add(
       bySpecialty((s) =>
@@ -948,7 +948,7 @@ function buildShortlist(lines, maxSizeOverride = null) {
       ),
     );
   if (picked.size < maxSize)
-    add(bySpecialty((s) => (s.best?.currentFeatures?.utility_q || 0) >= 0.6));
+    add(bySpecialty((s) => (s.best?.currentFeatures?.utilityQ || 0) >= 0.6));
   if (picked.size < maxSize)
     add(
       bySpecialty(

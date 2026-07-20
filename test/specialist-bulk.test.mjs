@@ -55,10 +55,10 @@ test('side-specific bulk remains observable without replacing balanced bulk', ()
     100,
   );
 
-  assert.ok(features.special_bulk_q > features.physical_bulk_q);
-  assert.ok(features.bulk_q < features.special_bulk_q);
-  assert.equal(features.type_resilience_q, 0.625);
-  assert.ok(features.effective_bulk_q > features.bulk_q);
+  assert.ok(features.specialBulkQ > features.physicalBulkQ);
+  assert.ok(features.bulkQ < features.specialBulkQ);
+  assert.equal(features.typeResilienceQ, 0.625);
+  assert.ok(features.effectiveBulkQ > features.bulkQ);
 });
 
 test('neutral typing fixes effective bulk while favorable and vulnerable typing move it', () => {
@@ -75,10 +75,10 @@ test('neutral typing fixes effective bulk while favorable and vulnerable typing 
     100,
   );
 
-  assert.equal(neutral.type_resilience_q, 0.5);
-  assert.equal(neutral.effective_bulk_q, neutral.bulk_q);
-  assert.ok(favorable.effective_bulk_q > favorable.bulk_q);
-  assert.ok(vulnerable.effective_bulk_q < vulnerable.bulk_q);
+  assert.equal(neutral.typeResilienceQ, 0.5);
+  assert.equal(neutral.effectiveBulkQ, neutral.bulkQ);
+  assert.ok(favorable.effectiveBulkQ > favorable.bulkQ);
+  assert.ok(vulnerable.effectiveBulkQ < vulnerable.bulkQ);
 });
 
 test('ordinary bulky roles consume effective rather than raw bulk', () => {

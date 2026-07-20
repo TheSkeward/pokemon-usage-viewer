@@ -53,8 +53,8 @@ test('Speed Boost exposes post-turn speed and Protect completes the tempo ramp',
 
   assert.equal(hasSpeedBoostTempo(speedBoost), true);
   assert.equal(hasReliableTempoRamp(speedBoost), true);
-  assert.ok(features.tempo_speed_q > features.speed_q);
-  assert.equal(features.tempo_reliability_q, 1);
+  assert.ok(features.tempoSpeedQ > features.speedQ);
+  assert.equal(features.tempoReliabilityQ, 1);
   assert.equal(value.bestRole, 'tempo_attacker');
   assert.ok(value.value <= 2000);
 });
@@ -65,9 +65,9 @@ test('Protect alone is neither tempo nor priority utility', () => {
 
   assert.equal(hasSpeedBoostTempo(ordinary), false);
   assert.equal(hasReliableTempoRamp(ordinary), false);
-  assert.equal(value.features.tempo_speed_q, 0);
-  assert.equal(value.features.tempo_reliability_q, 0);
-  assert.equal(value.features.priority_utility_q, 0);
+  assert.equal(value.features.tempoSpeedQ, 0);
+  assert.equal(value.features.tempoReliabilityQ, 0);
+  assert.equal(value.features.priorityUtilityQ, 0);
   assert.equal(value.roles.tempo_attacker, 0);
 });
 
@@ -79,8 +79,8 @@ test('Speed Boost still has earned tempo without a protected ramp', () => {
 
   assert.equal(hasSpeedBoostTempo(unprotected), true);
   assert.equal(hasReliableTempoRamp(unprotected), false);
-  assert.ok(value.features.tempo_speed_q > value.features.speed_q);
-  assert.equal(value.features.tempo_reliability_q, 0);
+  assert.ok(value.features.tempoSpeedQ > value.features.speedQ);
+  assert.equal(value.features.tempoReliabilityQ, 0);
   assert.ok(value.roles.tempo_attacker < 1);
 });
 

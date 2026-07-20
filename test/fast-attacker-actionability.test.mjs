@@ -38,12 +38,12 @@ test('fast attackers pay only for the overlap of middling speed and frailty', ()
   );
   const neutral = currentFormValue(profile('delibird', ['Normal']), 25);
 
-  assert.ok(vulnerable.features.speed_q > 0.5);
-  assert.equal(vulnerable.features.effective_bulk_q, 0);
-  assert.ok(vulnerable.features.fast_attacker_penalty_q > 0);
+  assert.ok(vulnerable.features.speedQ > 0.5);
+  assert.equal(vulnerable.features.effectiveBulkQ, 0);
+  assert.ok(vulnerable.features.fastAttackerPenaltyQ > 0);
   assert.ok(
-    vulnerable.features.fast_attacker_penalty_q >
-      neutral.features.fast_attacker_penalty_q,
+    vulnerable.features.fastAttackerPenaltyQ >
+      neutral.features.fastAttackerPenaltyQ,
   );
   assert.ok(vulnerable.roles.fast_attacker < neutral.roles.fast_attacker);
 });
@@ -54,6 +54,6 @@ test('complete speed preserves the legitimate glass-cannon route', () => {
     100,
   );
 
-  assert.equal(value.features.speed_q, 1);
-  assert.equal(value.features.fast_attacker_penalty_q, 0);
+  assert.equal(value.features.speedQ, 1);
+  assert.equal(value.features.fastAttackerPenaltyQ, 0);
 });

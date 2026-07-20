@@ -59,74 +59,74 @@ export function explainSeatedChoice(choice, team, confidenceEntry) {
 
   const role = ROLE_LABELS[choice.currentRole] || choice.currentRole || 'pick';
   const featureBits = [];
-  if (features.damage_q != null)
-    featureBits.push(`damage ${formatPercent(features.damage_q)}`);
-  if (features.speed_q != null)
-    featureBits.push(`speed ${formatPercent(features.speed_q)}`);
+  if (features.damageQ != null)
+    featureBits.push(`damage ${formatPercent(features.damageQ)}`);
+  if (features.speedQ != null)
+    featureBits.push(`speed ${formatPercent(features.speedQ)}`);
   if (
     choice.currentRole === 'tempo_attacker' &&
-    features.tempo_speed_q != null
+    features.tempoSpeedQ != null
   ) {
     featureBits.push(
-      `after one boost ${formatPercent(features.tempo_speed_q)}`,
+      `after one boost ${formatPercent(features.tempoSpeedQ)}`,
     );
-    if (features.tempo_reliability_q) featureBits.push('protected ramp');
+    if (features.tempoReliabilityQ) featureBits.push('protected ramp');
   }
   if (
     choice.currentRole === 'screen_support' &&
-    features.screen_protection_q != null
+    features.screenProtectionQ != null
   ) {
     featureBits.push(
-      `one-action protection ${formatPercent(features.screen_protection_q)}`,
+      `one-action protection ${formatPercent(features.screenProtectionQ)}`,
     );
     featureBits.push(
-      `delivery ${formatPercent(features.screen_delivery_q || 0)}`,
+      `delivery ${formatPercent(features.screenDeliveryQ || 0)}`,
     );
   }
   if (
     choice.currentRole === 'specialist_bulky_attacker' &&
-    features.physical_bulk_q != null &&
-    features.special_bulk_q != null
+    features.physicalBulkQ != null &&
+    features.specialBulkQ != null
   ) {
     featureBits.push(
       `best-side bulk ${formatPercent(
-        Math.max(features.physical_bulk_q, features.special_bulk_q),
+        Math.max(features.physicalBulkQ, features.specialBulkQ),
       )}`,
     );
-    if (features.type_resilience_q != null) {
+    if (features.typeResilienceQ != null) {
       featureBits.push(
-        `type resilience ${formatPercent(features.type_resilience_q)}`,
+        `type resilience ${formatPercent(features.typeResilienceQ)}`,
       );
     }
   } else if (
     ['bulky_attacker', 'bulky_utility'].includes(choice.currentRole) &&
-    features.effective_bulk_q != null
+    features.effectiveBulkQ != null
   ) {
     featureBits.push(
-      `effective bulk ${formatPercent(features.effective_bulk_q)}`,
+      `effective bulk ${formatPercent(features.effectiveBulkQ)}`,
     );
     if (
-      features.bulk_q != null &&
-      features.type_resilience_q != null
+      features.bulkQ != null &&
+      features.typeResilienceQ != null
     ) {
       featureBits.push(
-        `raw bulk ${formatPercent(features.bulk_q)}, type resilience ${formatPercent(features.type_resilience_q)}`,
+        `raw bulk ${formatPercent(features.bulkQ)}, type resilience ${formatPercent(features.typeResilienceQ)}`,
       );
     }
   } else if (
     choice.currentRole === 'fast_attacker' &&
-    features.fast_attacker_penalty_q != null
+    features.fastAttackerPenaltyQ != null
   ) {
     featureBits.push(
-      `effective bulk ${formatPercent(features.effective_bulk_q || 0)}`,
+      `effective bulk ${formatPercent(features.effectiveBulkQ || 0)}`,
     );
-    if (features.fast_attacker_penalty_q >= 0.005) {
+    if (features.fastAttackerPenaltyQ >= 0.005) {
       featureBits.push(
-        `frailty discount ${formatPercent(features.fast_attacker_penalty_q)}`,
+        `frailty discount ${formatPercent(features.fastAttackerPenaltyQ)}`,
       );
     }
-  } else if (features.bulk_q != null) {
-    featureBits.push(`bulk ${formatPercent(features.bulk_q)}`);
+  } else if (features.bulkQ != null) {
+    featureBits.push(`bulk ${formatPercent(features.bulkQ)}`);
   }
   lines.push(`Seats as ${role} (${featureBits.join(', ')}).`);
 

@@ -26,9 +26,7 @@ export default [
       "@stylistic/max-len": ["warn", { code: 80, ignoreUrls: true, ignoreTemplateLiterals: true, ignoreStrings: true }],
       "no-var": "error",
       "prefer-const": "error",
-      // SCORING.md's quantile-feature notation (damage_q, bulk_q, ...) is the
-      // scoring contract's own language; the code keeps it verbatim.
-      camelcase: ["error", { properties: "never", allow: ["^[a-z][a-zA-Z]*(_[a-z]+)*_q$"] }],
+      camelcase: ["error", { properties: "never" }],
       eqeqeq: ["error", "always", { null: "ignore" }],
     },
   },

@@ -159,7 +159,7 @@ const MAX_RESULT_CACHE = 400;
 // deals zero into a non-sleeping target); mega readiness gate fixed
 // (fieldableRepresentativeId). Damage-coverage builds that leaned on a
 // phantom Dream Eater lose it, shifting sets and scores where it appeared.
-// v30: attacker offense became per-build and additive — damage_q =
+// v30: attacker offense became per-build and additive — damageQ =
 // buildPeak·(1 − w·(1 − breadth)) over the build's OWN recommended attacks,
 // replacing the profile-global peak shared across all builds.
 // v31: support moves that genuinely act at priority (intrinsic priority or
@@ -206,7 +206,10 @@ const MAX_RESULT_CACHE = 400;
 // raw learn level, changing egg-source instructions and interim guides.
 // v44: equal-hop breeding routes return to preferring the lowest acquisition
 // level, even when the learner remains unevolved longer.
-const RESULT_CACHE_VERSION = '44';
+// v45: the quantile-feature keys renamed to camelCase (damage_q → damageQ
+// et al.) in code, tests, and SCORING.md together; persisted results carry
+// the old keys in their feature vectors and would render blank breakdowns.
+const RESULT_CACHE_VERSION = '45';
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.

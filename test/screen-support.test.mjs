@@ -38,21 +38,21 @@ const hail = {
 test('single-action protection distinguishes Aurora Veil from two screen turns', () => {
   assert.deepEqual(
     singleActionScreenSupport([auroraVeil], 'Snow Cloak', 0.8),
-    { protection_q: 0, delivery_q: 0, value_q: 0 },
+    { protectionQ: 0, deliveryQ: 0, valueQ: 0 },
   );
   assert.equal(
     singleActionScreenSupport([auroraVeil], 'Snow Warning', 0.8)
-      .protection_q,
+      .protectionQ,
     1,
   );
   assert.equal(
     singleActionScreenSupport([auroraVeil, hail], 'Snow Cloak', 0.8)
-      .protection_q,
+      .protectionQ,
     1,
   );
   assert.equal(
     singleActionScreenSupport([reflect, lightScreen], 'Competitive', 0.8)
-      .protection_q,
+      .protectionQ,
     0.5,
   );
 });
@@ -60,9 +60,9 @@ test('single-action protection distinguishes Aurora Veil from two screen turns',
 test('priority completes screen delivery while ordinary screens use Speed', () => {
   const ordinary = singleActionScreenSupport([reflect], 'Competitive', 0.36);
   const prankster = singleActionScreenSupport([reflect], 'Prankster', 0.36);
-  assert.equal(ordinary.delivery_q, 0.36);
-  assert.equal(prankster.delivery_q, 1);
-  assert.ok(prankster.value_q > ordinary.value_q);
+  assert.equal(ordinary.deliveryQ, 0.36);
+  assert.equal(prankster.deliveryQ, 1);
+  assert.ok(prankster.valueQ > ordinary.valueQ);
 });
 
 test('build facts preserve single-action screen compression', () => {
@@ -94,7 +94,7 @@ test('complete executable team protection is a distinct current-value role', () 
     recommendedMoves: [attack, auroraVeil],
   };
   const features = currentFormFeatures(profile, 85);
-  assert.equal(features.screen_protection_q, 1);
-  assert.equal(features.screen_delivery_q, features.speed_q);
+  assert.equal(features.screenProtectionQ, 1);
+  assert.equal(features.screenDeliveryQ, features.speedQ);
   assert.equal(currentFormValue(profile, 85).bestRole, 'screen_support');
 });

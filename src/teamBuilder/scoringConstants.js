@@ -42,7 +42,7 @@ export const SCORING_DEFAULTS = Object.freeze({
 
   // --- C: current-form value --------------------------------------------------
   CURRENT_VALUE_SCALE: 2000, // points scale shared by C and U
-  // Attacker offense is per-build & additive: damage_q = buildPeak·(1 − w·(1 −
+  // Attacker offense is per-build & additive: damageQ = buildPeak·(1 − w·(1 −
   // breadth)). w is the THINNESS PENALTY DEPTH — a one-attack build scores
   // (1−w)·peak, a full coverage build sits at peak (see currentFormValue).
   PORTFOLIO_WEIGHT: 0.3,
@@ -59,7 +59,7 @@ export const SCORING_DEFAULTS = Object.freeze({
   // negative side mirrors it.
   TYPE_RESILIENCE_FULL_SURPLUS: 4,
   // How strongly broad defensive typing adjusts the raw two-sided bulk used
-  // by ordinary bulky roles. Neutral typing (type_resilience_q = 0.5) is
+  // by ordinary bulky roles. Neutral typing (typeResilienceQ = 0.5) is
   // unchanged; favorable/vulnerable typing moves bulk symmetrically.
   BALANCED_BULK_TYPE_WEIGHT: 0.3,
   // A fast attacker normally gets its move by acting first. When it is neither
@@ -77,16 +77,16 @@ export const SCORING_DEFAULTS = Object.freeze({
   // mainline extenders are already priced into their holders' ranks.
   FIELD_EXTENDER_UTILITY_BONUS: 0.48,
   REACHABLE_BLEND: 0.5, // speed/bulk percentiles: global vs reachable-at-cap
-  DAMAGE_SOFT_RATE: 1.2, // soft saturation rate of damage_q
-  NON_PASSIVE_FLOOR: 0.25, // peak damage_q that fully unlocks utility roles
-  UTILITY_SATURATION: 1.5, // summed utility value that reads as utility_q = 1
+  DAMAGE_SOFT_RATE: 1.2, // soft saturation rate of damageQ
+  NON_PASSIVE_FLOOR: 0.25, // peak damageQ that fully unlocks utility roles
+  UTILITY_SATURATION: 1.5, // summed utility value that reads as utilityQ = 1
 
   // --- O: readiness gate ------------------------------------------------------
   ONLINE_NEAR: 0.65,
   ONLINE_MIDEVO: 0.35,
   ONLINE_BABY: 0.1,
   ONLINE_JITTER: 0, // sweep axis: ±1 shifts every non-final gate one category
-  ACT_FLOOR: 0.15, // damage_q below this ⇒ can't act ⇒ baby
+  ACT_FLOOR: 0.15, // damageQ below this ⇒ can't act ⇒ baby
   NEAR_FINAL_RATIO: 0.85, // key stats this close to final ⇒ near-final
 
   // --- F: future value (display / investment view only, never in selection) --

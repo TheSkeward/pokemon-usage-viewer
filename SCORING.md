@@ -40,27 +40,27 @@ never added to `V`.
 It is the maximum of eight role scores:
 
 ```text
-fast_attacker_penalty_q = fast_frailty_weight
-  * (1 - speed_q) * (1 - effective_bulk_q)
-fast_attacker  = geomean(damage_q, speed_q)
-  * (1 - fast_attacker_penalty_q)
-effective_bulk_q = clamp01(
-  bulk_q + balanced_bulk_type_weight * (type_resilience_q - 0.5)
+fastAttackerPenaltyQ = fast_frailty_weight
+  * (1 - speedQ) * (1 - effectiveBulkQ)
+fast_attacker  = geomean(damageQ, speedQ)
+  * (1 - fastAttackerPenaltyQ)
+effectiveBulkQ = clamp01(
+  bulkQ + balanced_bulk_type_weight * (typeResilienceQ - 0.5)
 )
-bulky_attacker = geomean(damage_q, effective_bulk_q)
+bulky_attacker = geomean(damageQ, effectiveBulkQ)
 specialist_bulky_attacker = soft_ceiling(
-  geomean(damage_q, max(physical_bulk_q, special_bulk_q))
-  + type_resilience_q - 0.5
+  geomean(damageQ, max(physicalBulkQ, specialBulkQ))
+  + typeResilienceQ - 0.5
 )
 tempo_attacker = soft_ceiling(
-  geomean(damage_q, tempo_speed_q)
-  + tempo_reliability_bonus * tempo_reliability_q
+  geomean(damageQ, tempoSpeedQ)
+  + tempo_reliability_bonus * tempoReliabilityQ
 )
-fast_utility   = utility_weight * non_passive * geomean(speed_q, utility_q)
-bulky_utility  = utility_weight * non_passive * geomean(effective_bulk_q, utility_q)
-priority_utility = priority_utility_weight * non_passive * priority_utility_q
+fast_utility   = utility_weight * non_passive * geomean(speedQ, utilityQ)
+bulky_utility  = utility_weight * non_passive * geomean(effectiveBulkQ, utilityQ)
+priority_utility = priority_utility_weight * non_passive * priorityUtilityQ
 screen_support = non_passive
-  * geomean(screen_protection_q, screen_delivery_q)
+  * geomean(screenProtectionQ, screenDeliveryQ)
 ```
 
 Geometric means require every axis of a role to be credible. Speed and bulk are
@@ -98,7 +98,7 @@ instead use the better defensive side, but only when typing supplies broadly
 useful switch-in opportunities. Type balance sums
 `1 - incoming_multiplier` across all 18 attack types: resistance contributes
 `+0.5`, immunity `+1`, weakness `-1`, and a 4x weakness `-3`. Neutral balance
-is normalized to `type_resilience_q = 0.5`; a net four favorable equivalents
+is normalized to `typeResilienceQ = 0.5`; a net four favorable equivalents
 reaches `1.0`, with the negative side mirrored. The signed adjustment is added
 only inside this alternate role, and the soft ceiling preserves the 2000-point
 bound. This lets a real one-sided tank count without letting a broadly
@@ -107,7 +107,7 @@ vulnerable body launder one high defensive stat.
 Attacker offense is per-build and additive:
 
 ```text
-damage_q = build_peak * (1 - portfolio_weight * (1 - breadth))
+damageQ = build_peak * (1 - portfolio_weight * (1 - breadth))
 ```
 
 `build_peak` is the best attack actually carried by that build. Secondary
@@ -121,7 +121,7 @@ disruption, status, and priority. The utility roles are gated by the Pokemon's
 global best attack so a support build does not lose the fact that its body can
 still threaten something.
 
-`priority_utility_q` is the portion of that real support kit delivered by
+`priorityUtilityQ` is the portion of that real support kit delivered by
 Status moves that actually act above normal priority, either intrinsically or
 through the assumed ability (notably Prankster). It is a separate role because
 priority itself answers whether support gets a turn; base Speed or bulk should
@@ -133,7 +133,7 @@ the same non-passive guard.
 
 `screen_support` values the amount of team protection delivered by one
 executable action. Reflect or Light Screen protects one of the physical/special
-axes, so either is `screen_protection_q = 0.5`; carrying both does not union two
+axes, so either is `screenProtectionQ = 0.5`; carrying both does not union two
 turns into one action. Aurora Veil protects both axes and reaches `1.0`, but only
 when hail is supplied by Snow Warning or a carried Hail move. Delivery is
 complete when the screen genuinely acts at positive priority (including
@@ -144,7 +144,7 @@ in build dominance, so a two-axis screen is not pruned as equivalent to a
 one-axis screen.
 
 The tempo-attacker route prices the unconditional turn-by-turn speed earned
-from Speed Boost. `tempo_speed_q` is the form's +1 Speed percentile after one
+from Speed Boost. `tempoSpeedQ` is the form's +1 Speed percentile after one
 turn, measured against the same stage reference as ordinary Speed. A set with
 Speed Boost and a full-protect ramp move (Protect, Detect, King's Shield,
 Spiky Shield, or Baneful Bunker) gets the bounded reliability completion bonus.

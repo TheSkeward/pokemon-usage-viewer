@@ -8,27 +8,27 @@
  * bulk, and role). The features are observations; only a handful of role
  * combines carry any judgement:
  *
- *   damage_q   how hard it hits now, vs a stage-typical strong hit
- *   speed_q    base Speed percentile (full dex blended with reachable-at-cap)
- *   physical_bulk_q / special_bulk_q  side-specific HP x defense percentiles
- *   bulk_q     geometric mean of the two bulk sides
- *   type_resilience_q  defensive type balance, with neutral centered at 0.5
- *   effective_bulk_q  balanced bulk adjusted by broad defensive typing
- *   fast_attacker_penalty_q  bounded failure-to-act discount when both speed
+ *   damageQ   how hard it hits now, vs a stage-typical strong hit
+ *   speedQ    base Speed percentile (full dex blended with reachable-at-cap)
+ *   physicalBulkQ / specialBulkQ  side-specific HP x defense percentiles
+ *   bulkQ     geometric mean of the two bulk sides
+ *   typeResilienceQ  defensive type balance, with neutral centered at 0.5
+ *   effectiveBulkQ  balanced bulk adjusted by broad defensive typing
+ *   fastAttackerPenaltyQ  bounded failure-to-act discount when both speed
  *              and effective bulk are poor
- *   reliability_q  does it have a functional attacking kit (a few real options)
- *   utility_q  role-aware utility value — recovery / setup / hazards / speed
+ *   reliabilityQ  does it have a functional attacking kit (a few real options)
+ *   utilityQ  role-aware utility value — recovery / setup / hazards / speed
  *              control tags from the move meta, accuracy-weighted, saturating
  *              at UTILITY_SATURATION (real infrastructure counts; chip status
  *              barely does)
- *   priority_utility_q  the utility_q subset that acts with positive priority,
+ *   priorityUtilityQ  the utilityQ subset that acts with positive priority,
  *              either intrinsically or through the assumed ability
- *   screen_protection_q  physical/special axes protected by one executable
+ *   screenProtectionQ  physical/special axes protected by one executable
  *              screen action (Aurora Veil covers both; ordinary screens one)
- *   screen_delivery_q  whether that action arrives by priority or base Speed
- *   screen_support_q  geometric completion of protection and delivery
- *   tempo_speed_q  post-turn +1 Speed percentile supplied by Speed Boost
- *   tempo_reliability_q  does the set carry a full-protect ramp turn
+ *   screenDeliveryQ  whether that action arrives by priority or base Speed
+ *   screenSupportQ  geometric completion of protection and delivery
+ *   tempoSpeedQ  post-turn +1 Speed percentile supplied by Speed Boost
+ *   tempoReliabilityQ  does the set carry a full-protect ramp turn
  *
  * Then a few role scores (geometric means, so a role needs ALL its axes) and
  * C = max(role). A fast frail attacker, a bulky pivot, and a hard hitter each
@@ -36,7 +36,7 @@
  *
  * Percentiles are taken against the dex (global blended with reachable-at-cap
  * — see capRefs), never within the (possibly weak) input pool — otherwise the
- * best trash becomes king of the dump. damage_q is the stage-relative axis: it
+ * best trash becomes king of the dump. damageQ is the stage-relative axis: it
  * scales with the level cap via the damage estimate.
  */
 
@@ -171,7 +171,7 @@ function percentile(value, sorted) {
 
 /**
  * A stage-typical strong hit at this level cap, using the same core math as the
- * damage estimator (base-70 reference defender). damage_q divides the mon's best
+ * damage estimator (base-70 reference defender). damageQ divides the mon's best
  * hit by this, so "hits hard" is judged against the current stage rather than an
  * absolute bar.
  * @param {number} levelCap
@@ -181,7 +181,7 @@ export function stageReferenceDamage(levelCap) {
   const lvl = Math.max(1, Math.min(100, levelCap || 50));
   const statAt = (base) => Math.floor((2 * base * lvl) / 100) + 5;
   // A genuinely strong attacker (base-115 offense, 100-BP STAB) as the "1.0" bar,
-  // so damage_q spreads instead of clumping high — a mediocre hit reads as
+  // so damageQ spreads instead of clumping high — a mediocre hit reads as
   // mediocre, not near-max.
   const atk = statAt(115);
   const def = statAt(70);
@@ -355,17 +355,17 @@ function weatherIsAvailable(weather, recommendedMoves, assumedAbility) {
  * hail requirement is actually supplied by the set or assumed ability.
  * Priority is complete delivery; otherwise the user's measured Speed is the
  * delivery axis. Return the best executable single screen action on the set.
- * @return {{protection_q: number, delivery_q: number, value_q: number}}
+ * @return {{protectionQ: number, deliveryQ: number, valueQ: number}}
  */
 export function singleActionScreenSupport(
   recommendedMoves,
   assumedAbility = null,
-  speed_q = 0,
+  speedQ = 0,
 ) {
   let best = {
-    protection_q: 0,
-    delivery_q: 0,
-    value_q: 0,
+    protectionQ: 0,
+    deliveryQ: 0,
+    valueQ: 0,
   };
   for (const move of recommendedMoves || []) {
     const axes = new Set(
@@ -383,16 +383,16 @@ export function singleActionScreenSupport(
     ) {
       continue;
     }
-    const protection_q = clamp01(axes.size / 2);
-    const delivery_q = isPriorityUtilityMove(move, assumedAbility)
+    const protectionQ = clamp01(axes.size / 2);
+    const deliveryQ = isPriorityUtilityMove(move, assumedAbility)
       ? 1
-      : clamp01(speed_q);
-    const value_q = geomean([protection_q, delivery_q]);
+      : clamp01(speedQ);
+    const valueQ = geomean([protectionQ, deliveryQ]);
     if (
-      value_q > best.value_q ||
-      (value_q === best.value_q && protection_q > best.protection_q)
+      valueQ > best.valueQ ||
+      (valueQ === best.valueQ && protectionQ > best.protectionQ)
     ) {
-      best = { protection_q, delivery_q, value_q };
+      best = { protectionQ, deliveryQ, valueQ };
     }
   }
   return best;
@@ -419,7 +419,7 @@ export function utilityTagVector(recommendedMoves, assumedAbility = null) {
   }
   vector[UTILITY_TAGS.indexOf('screen_compression')] =
     singleActionScreenSupport(recommendedMoves, assumedAbility, 0)
-      .protection_q;
+      .protectionQ;
   return vector;
 }
 
@@ -493,7 +493,7 @@ export function currentFormFeatures(profile, levelCap) {
     profile?.bestStabMove?.estimatedDamage || 0,
     profile?.bestDamagingMove?.estimatedDamage || 0,
   );
-  const peak_damage_q = soft(peakDamage);
+  const peakDamageQ = soft(peakDamage);
 
   // Attacker-role offense is PER-BUILD and ADDITIVE. The build's OWN best
   // attack is the ceiling; its SECONDARY attacks fill a bounded breadth factor
@@ -516,31 +516,31 @@ export function currentFormFeatures(profile, levelCap) {
       ? 1 - attackQ.slice(1).reduce((p, d) => p * (1 - d), 1)
       : 0;
   const w = tunable('PORTFOLIO_WEIGHT');
-  const damage_q = buildPeak * (1 - w * (1 - breadth));
+  const damageQ = buildPeak * (1 - w * (1 - breadth));
 
   const cr = capRefs(levelCap);
-  const speed_q = stagePercentile(speedOf(currentId), SPEED_REF, cr.speed);
+  const speedQ = stagePercentile(speedOf(currentId), SPEED_REF, cr.speed);
   const speedBoostTempo = hasSpeedBoostTempo(profile);
-  const tempo_speed_q = speedBoostTempo
+  const tempoSpeedQ = speedBoostTempo
     ? stagePercentile(speedOf(currentId) * 1.5, SPEED_REF, cr.speed)
     : 0;
-  const tempo_reliability_q = hasReliableTempoRamp(profile) ? 1 : 0;
-  const physical_bulk_q = stagePercentile(
+  const tempoReliabilityQ = hasReliableTempoRamp(profile) ? 1 : 0;
+  const physicalBulkQ = stagePercentile(
     physBulkOf(currentId),
     PHYS_BULK_REF,
     cr.phys,
   );
-  const special_bulk_q = stagePercentile(
+  const specialBulkQ = stagePercentile(
     specBulkOf(currentId),
     SPEC_BULK_REF,
     cr.spec,
   );
-  const bulk_q = geomean([physical_bulk_q, special_bulk_q]);
+  const bulkQ = geomean([physicalBulkQ, specialBulkQ]);
   const typeSpan = Math.max(
     0.1,
     tunable('TYPE_RESILIENCE_FULL_SURPLUS'),
   );
-  const type_resilience_q = clamp01(
+  const typeResilienceQ = clamp01(
     0.5 +
       defensiveTypeBalance(profile?.currentTypes) / (2 * typeSpan),
   );
@@ -548,25 +548,25 @@ export function currentFormFeatures(profile, levelCap) {
   // roles also need to answer whether its actual typing exposes that body to
   // broadly stronger or weaker incoming hits. Neutral typing is the fixed
   // point; this deliberately does not replace either side-specific stat.
-  const effective_bulk_q = clamp01(
-    bulk_q +
+  const effectiveBulkQ = clamp01(
+    bulkQ +
       tunable('BALANCED_BULK_TYPE_WEIGHT') *
-        (type_resilience_q - 0.5),
+        (typeResilienceQ - 0.5),
   );
   // Moving first and surviving a reply are alternate ways for an attacker to
   // access its damage. The fast route remains fully legitimate for a true
   // glass cannon: the joint deficit vanishes as Speed approaches complete.
   // Only the overlap between "may move second" and "cannot take the hit" is
   // discounted, and even the worst overlap is bounded by the tunable weight.
-  const fast_attacker_penalty_q =
+  const fastAttackerPenaltyQ =
     tunable('FAST_ATTACKER_FRAILTY_WEIGHT') *
-    (1 - speed_q) *
-    (1 - effective_bulk_q);
+    (1 - speedQ) *
+    (1 - effectiveBulkQ);
 
   const damagingOptions = profile?.recommendedDamagingMoveCount || 0;
-  const reliability_q = clamp01((damagingOptions + 1) / 4);
+  const reliabilityQ = clamp01((damagingOptions + 1) / 4);
 
-  const utility_q = clamp01(
+  const utilityQ = clamp01(
     utilityValue(
       profile?.recommendedMoves,
       Boolean(profile?.fieldExtenderOwned),
@@ -576,7 +576,7 @@ export function currentFormFeatures(profile, levelCap) {
   // user's base Speed or bulk to stand in as a proxy for whether the move gets
   // a turn. The feature still prices the actual role quality and depth, so one
   // minor priority status move cannot masquerade as a complete support kit.
-  const priority_utility_q = softCeiling(
+  const priorityUtilityQ = softCeiling(
     priorityUtilityValue(
       profile?.recommendedMoves,
       profile?.assumedAbility,
@@ -585,27 +585,27 @@ export function currentFormFeatures(profile, levelCap) {
   const screenSupport = singleActionScreenSupport(
     profile?.recommendedMoves,
     profile?.assumedAbility,
-    speed_q,
+    speedQ,
   );
 
   return {
-    damage_q,
-    peak_damage_q,
-    speed_q,
-    physical_bulk_q,
-    special_bulk_q,
-    bulk_q,
-    type_resilience_q,
-    effective_bulk_q,
-    fast_attacker_penalty_q,
-    reliability_q,
-    utility_q,
-    priority_utility_q,
-    screen_protection_q: screenSupport.protection_q,
-    screen_delivery_q: screenSupport.delivery_q,
-    screen_support_q: screenSupport.value_q,
-    tempo_speed_q,
-    tempo_reliability_q,
+    damageQ,
+    peakDamageQ,
+    speedQ,
+    physicalBulkQ,
+    specialBulkQ,
+    bulkQ,
+    typeResilienceQ,
+    effectiveBulkQ,
+    fastAttackerPenaltyQ,
+    reliabilityQ,
+    utilityQ,
+    priorityUtilityQ,
+    screenProtectionQ: screenSupport.protectionQ,
+    screenDeliveryQ: screenSupport.deliveryQ,
+    screenSupportQ: screenSupport.valueQ,
+    tempoSpeedQ,
+    tempoReliabilityQ,
   };
 }
 
@@ -625,54 +625,54 @@ export function currentFormValue(profile, levelCap) {
   // gets walled for free. Gate the utility roles by PEAK damage (can it hurt
   // anything at all), not the portfolio-blended figure.
   const nonPassive = clamp01(
-    (f.peak_damage_q ?? f.damage_q) / tunable('NON_PASSIVE_FLOOR'),
+    (f.peakDamageQ ?? f.damageQ) / tunable('NON_PASSIVE_FLOOR'),
   );
 
-  // reliability_q is deliberately NOT a role axis: with the available move data it
+  // reliabilityQ is deliberately NOT a role axis: with the available move data it
   // saturates to ~1 for almost everyone (every mon has a few damaging moves), so
   // it only inflates every score, and accuracy — the part that would discriminate
-  // — is already folded into damage_q by the damage estimate. Kept in features for
+  // — is already folded into damageQ by the damage estimate. Kept in features for
   // display, unused here.
   const utilityWeight = tunable('UTILITY_ROLE_WEIGHT');
   const priorityUtilityWeight = tunable('PRIORITY_UTILITY_ROLE_WEIGHT');
   const specialistBulk = Math.max(
-    f.physical_bulk_q,
-    f.special_bulk_q,
+    f.physicalBulkQ,
+    f.specialBulkQ,
   );
   // The non-passive gate multiplies the utility roles OUTSIDE the geomean.
   // Keeping it outside makes the floor real instead of softening it through a
   // root. Mons at or above the floor are untouched (nonPassive clamps to 1).
   const roles = {
     fast_attacker:
-      geomean([f.damage_q, f.speed_q]) *
-      (1 - f.fast_attacker_penalty_q),
-    bulky_attacker: geomean([f.damage_q, f.effective_bulk_q]),
+      geomean([f.damageQ, f.speedQ]) *
+      (1 - f.fastAttackerPenaltyQ),
+    bulky_attacker: geomean([f.damageQ, f.effectiveBulkQ]),
     // A one-sided bulky attacker earns a separate route only when its typing
     // supplies enough broadly useful switch-in opportunities. The signed type
     // adjustment prevents a special wall with many weaknesses from laundering
     // one good stat into a complete role.
     specialist_bulky_attacker: softCeiling(
-      geomean([f.damage_q, specialistBulk]) +
-        (f.type_resilience_q - 0.5),
+      geomean([f.damageQ, specialistBulk]) +
+        (f.typeResilienceQ - 0.5),
     ),
     // Speed Boost is an earned-tempo attacker route: the mon must still hit
     // hard, and its post-turn +1 Speed is measured against the same stage
     // reference as ordinary Speed. A full-protect move makes that ramp
     // reliable enough to approach, but never exceed, the common C ceiling.
     tempo_attacker: softCeiling(
-      geomean([f.damage_q, f.tempo_speed_q]) +
-        tunable('TEMPO_RELIABILITY_BONUS') * f.tempo_reliability_q,
+      geomean([f.damageQ, f.tempoSpeedQ]) +
+        tunable('TEMPO_RELIABILITY_BONUS') * f.tempoReliabilityQ,
     ),
     bulky_utility:
       utilityWeight *
       nonPassive *
-      geomean([f.effective_bulk_q, f.utility_q]),
-    fast_utility: utilityWeight * nonPassive * geomean([f.speed_q, f.utility_q]),
+      geomean([f.effectiveBulkQ, f.utilityQ]),
+    fast_utility: utilityWeight * nonPassive * geomean([f.speedQ, f.utilityQ]),
     // May share, never exceed, the perfect-attacker ceiling (rationale at
-    // priority_utility_q).
+    // priorityUtilityQ).
     priority_utility:
-      priorityUtilityWeight * nonPassive * f.priority_utility_q,
-    screen_support: nonPassive * f.screen_support_q,
+      priorityUtilityWeight * nonPassive * f.priorityUtilityQ,
+    screen_support: nonPassive * f.screenSupportQ,
   };
 
   let bestRole = 'fast_attacker';
