@@ -1,6 +1,25 @@
 {
-  "finishedAt": "2026-07-20T20:08:34.823Z",
+  "finishedAt": "2026-07-21T12:50:33.732Z",
   "results": [
+    {
+      "script": "scrape-replay-teams.mjs",
+      "exitCode": 0,
+      "outputTail": [
+        "gen7anythinggoes: +300 (archive 600)",
+        "gen7ubers: +300 (archive 605)",
+        "gen7ou: +300 (archive 600)",
+        "gen7uu: +300 (archive 600)",
+        "gen7ru: +300 (archive 600)",
+        "gen7nu: +300 (archive 600)",
+        "gen7pu: +300 (archive 600)",
+        "gen7zu: +300 (archive 600)",
+        "gen7nfe: +300 (archive 600)",
+        "gen7lc: +300 (archive 600)",
+        "gen7doublesubers: +300 (archive 600)",
+        "gen7doublesou: +300 (archive 609)",
+        "gen7doublesuu: +300 (archive 600)"
+      ]
+    },
     {
       "script": "scrape-sample-teams.mjs",
       "exitCode": 1,
@@ -16,6 +35,25 @@
         "gen7ubers https://www.smogon.com/forums/threads/usum-ubers-sample-teams.3639330/: FAILED — 403 https://www.smogon.com/forums/threads/usum-ubers-sample-teams.3639330/",
         "gen7doublesou https://www.smogon.com/forums/threads/usum-doubles-ou-sample-teams.3645990/: FAILED — 403 https://www.smogon.com/forums/threads/usum-doubles-ou-sample-teams.3645990/",
         "every thread failed — bad URLs or no network access to smogon.com"
+      ]
+    },
+    {
+      "script": "scrape-rmt-teams.mjs",
+      "exitCode": 0,
+      "outputTail": [
+        "rmt listing https://www.smogon.com/forums/forums/past-gen-teams.319/?prefix_id=474: FAILED — 403 https://www.smogon.com/forums/forums/past-gen-teams.319/?prefix_id=474",
+        "rmt: +0 new teams this run"
+      ]
+    },
+    {
+      "script": "scrape-tournament-teams.mjs",
+      "exitCode": 0,
+      "outputTail": [
+        "tournament dump https://www.smogon.com/forums/threads/smbs-spl-x-team-dump.3650390/: FAILED — 403 https://www.smogon.com/forums/threads/smbs-spl-x-team-dump.3650390/",
+        "tournament dump https://www.smogon.com/forums/threads/upl-vii-dump.3650684/: FAILED — 403 https://www.smogon.com/forums/threads/upl-vii-dump.3650684/",
+        "tournament listing https://www.smogon.com/forums/forums/ruins-of-alph.281/: FAILED — 403 https://www.smogon.com/forums/forums/ruins-of-alph.281/",
+        "tournament listing https://www.smogon.com/forums/forums/smogon-classic.334/: FAILED — 403 https://www.smogon.com/forums/forums/smogon-classic.334/",
+        "tournament: +0 paste teams, +0 replays"
       ]
     },
     {
