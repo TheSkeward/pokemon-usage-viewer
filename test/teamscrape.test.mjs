@@ -177,12 +177,36 @@ test('rmt: listing rows carry prefixes, first post yields inline sets', () => {
   assert.equal(htmlToText('a &amp; b<br>c'), 'a & b\nc');
 });
 
+test('forum text: XenForo source newlines preserve importable boundaries',
+  () => {
+    const html = [
+      'Skuntank @ Black Sludge<br />\n',
+      'Ability: Aftermath<br />\n',
+      '- Crunch<br />\n',
+      '- Poison Jab<br />\n',
+      '<br />\n',
+      'Crobat @ Leftovers<br />\n',
+      'Ability: Infiltrator<br />\n',
+      '- Brave Bird<br />\n',
+      '- Roost<br />\n',
+    ].join('');
+    const text = htmlToText(html);
+    assert.match(text, /Poison Jab\n\nCrobat/);
+    assert.deepEqual(
+      parseShowdownTeam(text).sets.map((set) => set.speciesId),
+      ['skuntank', 'crobat'],
+    );
+  });
+
 
 const { WEIGHTS, replayWeight, teamWeight } = await import(
   '../scripts/teamscrape/weights.mjs',
 );
 const { replayLinkFormat, extractReplayIds } = await import(
   '../scripts/scrape-tournament-teams.mjs',
+);
+const { createForumFetcher, isSmogonForumUrl } = await import(
+  '../scripts/teamscrape/forum-fetch.mjs',
 );
 
 test('weight ladder: bands, tournament override, unrated-mixture inversion', () => {
@@ -211,4 +235,109 @@ test('tournament: replay-link format attribution incl. smogtours ids', () => {
     ['smogtours-gen7ou-1234'],
   );
 });
+
+test('forum fetch: HTTP mode identifies itself and requests readable text',
+  async () => {
+    const calls = [];
+    const fetcher = createForumFetcher({
+      mode: 'http',
+      requestGapMs: 0,
+      fetchImpl: async (url, options) => {
+        calls.push({ url, options });
+        return { ok: true, text: async () => 'forum html' };
+      },
+    });
+    assert.equal(
+      await fetcher.fetchText('https://www.smogon.com/forums/threads/x.1/'),
+      'forum html',
+    );
+    assert.match(calls[0].options.headers['User-Agent'], /team harvester/);
+    assert.match(calls[0].options.headers.Accept, /text\/html/);
+    await fetcher.close();
+  });
+
+test('forum fetch: browser mode reuses one Smogon session only', async () => {
+  const calls = { launches: 0, contexts: 0, pages: 0, http: 0 };
+  const page = {
+    goto: async (url) => ({
+      status: () => 200,
+      url: () => url,
+      text: async () => `<html>${url}</html>`,
+    }),
+    close: async () => {},
+  };
+  const context = {
+    route: async () => {},
+    newPage: async () => {
+      calls.pages += 1;
+      return page;
+    },
+    close: async () => {},
+  };
+  const browser = {
+    newContext: async () => {
+      calls.contexts += 1;
+      return context;
+    },
+    close: async () => {},
+  };
+  const fetcher = createForumFetcher({
+    mode: 'browser',
+    requestGapMs: 0,
+    launchBrowser: async () => {
+      calls.launches += 1;
+      return browser;
+    },
+    fetchImpl: async () => {
+      calls.http += 1;
+      return { ok: true, text: async () => 'paste' };
+    },
+  });
+  await fetcher.fetchText('https://www.smogon.com/forums/threads/a.1/');
+  await fetcher.fetchText('https://www.smogon.com/forums/threads/b.2/');
+  assert.equal(await fetcher.fetchText('https://pokepast.es/abc/raw'), 'paste');
+  assert.deepEqual(calls, { launches: 1, contexts: 1, pages: 2, http: 1 });
+  await fetcher.close();
+  assert.equal(isSmogonForumUrl('https://www.smogon.com/forums/'), true);
+  assert.equal(isSmogonForumUrl('https://www.smogon.com/dex/sm/'), false);
+});
+
+test('forum fetch: browser HTTP failures retain status and final URL',
+  async () => {
+    let pages = 0;
+    const page = {
+      goto: async () => ({
+        status: () => 403,
+        url: () => 'https://www.smogon.com/forums/blocked',
+      }),
+      close: async () => {},
+    };
+    const context = {
+      route: async () => {},
+      newPage: async () => {
+        pages += 1;
+        return page;
+      },
+      close: async () => {},
+    };
+    const browser = {
+      newContext: async () => context,
+      close: async () => {},
+    };
+    const fetcher = createForumFetcher({
+      mode: 'browser',
+      requestGapMs: 0,
+      launchBrowser: async () => browser,
+    });
+    await assert.rejects(
+      fetcher.fetchText('https://www.smogon.com/forums/threads/x.1/'),
+      /403 https:\/\/www\.smogon\.com\/forums\/blocked/,
+    );
+    await assert.rejects(
+      fetcher.fetchText('https://www.smogon.com/forums/threads/y.2/'),
+      /requests paused after 403/,
+    );
+    assert.equal(pages, 1);
+    await fetcher.close();
+  });
 

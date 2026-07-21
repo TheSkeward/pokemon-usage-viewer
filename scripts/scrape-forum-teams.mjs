@@ -26,6 +26,10 @@ import {
   listingDebugInfo,
   listingPageUrl,
 } from './teamscrape/forum-html.mjs';
+import {
+  closeTeamSourceFetcher,
+  fetchTeamSourceText as fetchText,
+} from './teamscrape/forum-fetch.mjs';
 import { tierFromTitle } from './teamscrape/tier-names.mjs';
 import { REAL_FORMATS } from './config.mjs';
 
@@ -33,24 +37,12 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
 const SOURCES_PATH = path.join(scriptDir, 'teamscrape', 'sources.json');
 
-const USER_AGENT =
-  'pokemon-usage-viewer team harvester (github.com/TheSkeward/pokemon-usage-viewer)';
-const REQUEST_GAP_MS = 900;
 const MAX_LISTING_PAGES = 10;
 const MAX_THREAD_PAGES = 5;
 const DEFAULT_MAX_NEW = 40;
 const MIN_SETS_PER_TEAM = 4;
 
 const knownFormats = new Set(REAL_FORMATS.map((format) => format.id));
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-async function fetchText(url) {
-  await sleep(REQUEST_GAP_MS);
-  const response = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
-  if (!response.ok) throw new Error(`${response.status} ${url}`);
-  return response.text();
-}
-
 /**
  * Subforum links on a forum index page: the node list's title anchors.
  * @return {!Array<{url: string, name: string}>}
@@ -217,7 +209,14 @@ async function main() {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().catch((error) => {
+  const run = async () => {
+    try {
+      await main();
+    } finally {
+      await closeTeamSourceFetcher();
+    }
+  };
+  run().catch((error) => {
     console.error(error);
     process.exitCode = 1;
   });

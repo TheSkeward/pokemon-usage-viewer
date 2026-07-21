@@ -85,6 +85,12 @@ jobs:
       - name: Run fast tests
         run: npm test
 
+      - name: Set up Chrome for forum harvest
+        id: setup-chrome
+        if: github.event_name == 'schedule' || github.event.inputs.refresh_data == 'true' || github.event.inputs.harvest_only != ''
+        continue-on-error: true
+        uses: browser-actions/setup-chrome@v2
+
       # refresh:data rewrites BOTH trees (site-data/data JSON and the
       # src/generated/*.js modules); build:manifest must run after it so the
       # committed manifest's hashes/dataSignature describe the refreshed data.
@@ -99,6 +105,10 @@ jobs:
       - name: Harvest competitive teams
         if: github.event_name == 'schedule' || github.event.inputs.refresh_data == 'true' || github.event.inputs.harvest_only != ''
         continue-on-error: true
+        env:
+          SMOGON_FETCH_MODE: browser
+          SMOGON_CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+          SMOGON_REQUEST_GAP_MS: 2000
         run: npm run scrape:teams -- --only="${{ github.event.inputs.harvest_only }}"
 
       - name: Refresh data

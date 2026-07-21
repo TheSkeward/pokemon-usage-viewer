@@ -8,7 +8,12 @@
 /** @return {string} Plain text: tags stripped, entities decoded. */
 export function htmlToText(html) {
   return String(html)
-    .replace(/<br\s*\/?>/gi, '\n')
+    // XenForo pretty-prints a source newline after every <br>. Consume that
+    // formatting whitespace with the tag: otherwise each visible line gets
+    // two newlines and the importable parser mistakes every line for a new
+    // blank-line-delimited set. Consecutive <br> tags still become the two
+    // newlines that separate Showdown sets.
+    .replace(/<br\s*\/?>\s*/gi, '\n')
     .replace(/<\/(p|div|li|blockquote)>/gi, '\n')
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<[^>]+>/g, '')
