@@ -2,8 +2,8 @@
  * @fileoverview Runs team harvesters in sequence so that one source's
  * failure cannot skip the others, and writes each scraper's exit code and
  * output tail to last-harvest.json in the committed archive.
- * --only=<names> (comma-separated: replays, samples, rmt, tournament,
- * forums) runs a subset. The harvest only
+ * --only=<names> (comma-separated: pkmn, replays, samples, rmt,
+ * tournament, forums) runs a subset. The harvest only
  * runs in CI, whose step log is impractical to retrieve after the fact, so
  * the archive itself carries the evidence of what each scraper did.
  */
@@ -21,6 +21,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
  * @type {!Array<{name: string, script: string}>}
  */
 export const SCRAPERS = [
+  { name: 'pkmn', script: path.join(scriptDir, 'scrape-pkmn-teams.mjs') },
   { name: 'replays', script: path.join(scriptDir, 'scrape-replay-teams.mjs') },
   { name: 'samples', script: path.join(scriptDir, 'scrape-sample-teams.mjs') },
   { name: 'rmt', script: path.join(scriptDir, 'scrape-rmt-teams.mjs') },

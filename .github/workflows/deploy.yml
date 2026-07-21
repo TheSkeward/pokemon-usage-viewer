@@ -29,9 +29,9 @@ on:
           - "true"
       harvest_only:
         description:
-          "Harvest only these scrapers (comma-separated: replays, samples,
-          rmt, tournament, forums; empty = all). Runs the harvest without
-          requiring refresh_data."
+          "Harvest only these scrapers (comma-separated: pkmn, replays,
+          samples, rmt, tournament, forums; empty = all). Runs the harvest
+          without requiring refresh_data."
         required: false
         default: ""
         type: string
