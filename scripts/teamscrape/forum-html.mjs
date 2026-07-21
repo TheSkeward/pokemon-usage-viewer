@@ -45,12 +45,12 @@ const THREAD_ANCHOR =
  * (other XenForo skins).
  *
  * @return {!Array<{threadId: string, url: string, prefix: ?string,
- *     title: string}>}
+ *     title: string, updatedAt: ?number}>}
  */
 export function extractThreadRows(html, baseUrl) {
   const rows = [];
   const seen = new Set();
-  const push = (threadId, href, prefix, title) => {
+  const push = (threadId, href, prefix, title, updatedAt = null) => {
     if (seen.has(threadId)) return;
     seen.add(threadId);
     rows.push({
@@ -58,6 +58,7 @@ export function extractThreadRows(html, baseUrl) {
       url: new URL(href, baseUrl).href,
       prefix: prefix ? htmlToText(prefix).trim() : null,
       title: htmlToText(title || '').trim(),
+      updatedAt,
     });
   };
 
@@ -69,11 +70,14 @@ export function extractThreadRows(html, baseUrl) {
       const labels = [...block.slice(0, anchor.index).matchAll(
         /<span[^>]*class="label[^"]*"[^>]*>([^<]+)<\/span>/g,
       )];
+      const times = [...block.matchAll(/data-time="(\d+)"/g)]
+        .map((match) => Number(match[1]));
       push(
         anchor[2],
         anchor[1],
         labels.length ? labels[labels.length - 1][1] : null,
         anchor[3],
+        times.length ? Math.max(...times) : null,
       );
     }
     return rows;
@@ -102,6 +106,23 @@ export function listingPageUrl(listing, page) {
   const [base, query] = String(listing).split('?');
   const paged = `${base.endsWith('/') ? base : `${base}/`}page-${page}`;
   return query ? `${paged}?${query}` : paged;
+}
+
+/**
+ * Whether XenForo advertises another page. This is deliberately driven by
+ * pagination markup rather than probing page N+1: oversized page requests can
+ * redirect to the final page with HTTP 200, which otherwise creates an
+ * infinite crawl once hard page ceilings are removed.
+ */
+export function hasNextPage(html, currentPage) {
+  for (const tag of String(html).match(/<(?:a|link)\b[^>]*>/gi) || []) {
+    if (/\brel="next"/i.test(tag) || /pageNav-jump--next/i.test(tag)) {
+      return true;
+    }
+    const page = /\bdata-page="(\d+)"/i.exec(tag)?.[1];
+    if (page && Number(page) > currentPage && /pageNav/i.test(tag)) return true;
+  }
+  return false;
 }
 
 /**

@@ -3,6 +3,9 @@
 // synthetic fixtures (the real archives are CI-harvested).
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 const { parseShowdownTeam, parseShowdownSet } = await import(
   '../scripts/teamscrape/parse-showdown-team.mjs',
@@ -10,8 +13,11 @@ const { parseShowdownTeam, parseShowdownSet } = await import(
 const { parseReplayTeams, toTeamSheetId } = await import(
   '../scripts/teamscrape/replay-log.mjs',
 );
-const { buildObservedSetIndex } = await import(
+const { buildObservedSetIndex, readArchive } = await import(
   '../scripts/build-observed-sets.mjs',
+);
+const { appendJsonlRecord, readJsonlLatest } = await import(
+  '../scripts/teamscrape/jsonl-records.mjs',
 );
 const { collectCompositions, buildCoreIndex } = await import(
   '../scripts/build-core-index.mjs',
@@ -120,6 +126,28 @@ test('observed-set index dedups identical sets and skips unknown formats', () =>
   assert.equal(detail.sets[0].item, 'Black Sludge');
 });
 
+test('JSONL revisions are append-only but archive consumers use the latest', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'team-jsonl-'));
+  const file = path.join(dir, 'forum-gen7ou.jsonl');
+  const latest = readJsonlLatest(file);
+  assert.equal(
+    appendJsonlRecord(file, { id: 'post-1', sets: ['old'] }, latest),
+    true,
+  );
+  assert.equal(
+    appendJsonlRecord(file, { id: 'post-1', sets: ['old'] }, latest),
+    false,
+  );
+  assert.equal(
+    appendJsonlRecord(file, { id: 'post-1', sets: ['revised'] }, latest),
+    true,
+  );
+  assert.deepEqual(readArchive(dir, 'forum-'), [
+    { id: 'post-1', sets: ['revised'] },
+  ]);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
 test('core index: symmetric lift, min pair support, quality weighting', () => {
   const replays = [
     { format: 'gen7uu', rating: 1800, teams: [['aggron', 'blissey', 'crobat'], ['aggron', 'blissey', 'crobat']] },
@@ -138,9 +166,24 @@ test('core index: symmetric lift, min pair support, quality weighting', () => {
 });
 
 
-const { htmlToText, extractThreadRows, extractFirstPostText } = await import(
+const {
+  htmlToText,
+  extractThreadRows,
+  extractFirstPostText,
+  hasNextPage,
+} = await import(
   '../scripts/teamscrape/forum-html.mjs',
 );
+const {
+  forListing,
+  importLegacyThreads,
+  nextThreadPage,
+  readCrawlState,
+  recordListingPage,
+  recordThreadPage,
+  saveCrawlState,
+  shouldScanThread,
+} = await import('../scripts/teamscrape/crawl-state.mjs');
 
 test('rmt: listing rows carry prefixes, first post yields inline sets', () => {
   // Smogon's markup: site-rooted hrefs (/forums/threads/...) inside
@@ -152,6 +195,7 @@ test('rmt: listing rows carry prefixes, first post yields inline sets', () => {
       <span class="label label--primary">Gen 7</span>
       <a href="/forums/threads/my-cool-team.3651234/" data-preview-url="/forums/threads/3651234/preview">My cool OU team</a>
     </div>
+    <time data-time="1700000000"></time>
     <a href="/forums/threads/my-cool-team.3651234/latest">jump</a>
     <div class="structItem-title">
       <a href="/threads/unlabeled-thread.999/" data-preview-url="x">No prefix</a>
@@ -162,6 +206,7 @@ test('rmt: listing rows carry prefixes, first post yields inline sets', () => {
   assert.equal(rows[0].prefix, 'Gen 7');
   assert.equal(rows[0].threadId, '3651234');
   assert.equal(rows[0].title, 'My cool OU team');
+  assert.equal(rows[0].updatedAt, 1700000000);
   assert.equal(
     rows[0].url,
     'https://www.smogon.com/forums/threads/my-cool-team.3651234/',
@@ -197,6 +242,61 @@ test('forum text: XenForo source newlines preserve importable boundaries',
       ['skuntank', 'crobat'],
     );
   });
+
+test('forum pagination follows XenForo next links without a hard ceiling', () => {
+  assert.equal(
+    hasNextPage(
+      '<a class="pageNav-jump pageNav-jump--next" href="page-13">Next</a>',
+      12,
+    ),
+    true,
+  );
+  assert.equal(
+    hasNextPage('<link rel="next" href="page-101">', 100),
+    true,
+  );
+  assert.equal(
+    hasNextPage('<a class="pageNav-page" data-page="7">7</a>', 7),
+    false,
+  );
+});
+
+test('forum crawl state resumes legacy markers and cycles listing sweeps', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'team-crawl-'));
+  const legacy = path.join(dir, 'threads.jsonl');
+  const stateFile = path.join(dir, 'state.json');
+  fs.writeFileSync(
+    legacy,
+    '{"id":"123","thread":"https://example.test/threads/x.123/"}\n',
+  );
+  const state = readCrawlState(stateFile);
+  assert.equal(importLegacyThreads(state, legacy), 1);
+  assert.equal(nextThreadPage(state.threads['123']), 1);
+
+  const row = {
+    threadId: '123',
+    url: 'https://example.test/threads/x.123/',
+    updatedAt: 50,
+  };
+  assert.equal(shouldScanThread(state.threads['123'], row, 0), true);
+  recordThreadPage(state, row, { page: 1, hasNext: true, sweep: 0 });
+  assert.equal(nextThreadPage(state.threads['123']), 2);
+  recordThreadPage(state, row, { page: 2, hasNext: false, sweep: 0 });
+  assert.equal(shouldScanThread(state.threads['123'], row, 0), false);
+  assert.equal(
+    shouldScanThread(state.threads['123'], { ...row, updatedAt: 51 }, 0),
+    true,
+  );
+
+  const listing = forListing(state, 'https://example.test/forums/x/');
+  recordListingPage(state, 'https://example.test/forums/x/', 1, true);
+  assert.equal(listing.page, 2);
+  recordListingPage(state, 'https://example.test/forums/x/', 2, false);
+  assert.deepEqual(listing, { page: 1, sweep: 1 });
+  saveCrawlState(stateFile, state);
+  assert.deepEqual(readCrawlState(stateFile), state);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
 
 
 const { WEIGHTS, replayWeight, teamWeight } = await import(

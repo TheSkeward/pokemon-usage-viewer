@@ -16,7 +16,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseShowdownTeam } from './teamscrape/parse-showdown-team.mjs';
 import { toTeamSheetId } from './teamscrape/replay-log.mjs';
 import { readArchiveIds } from './scrape-replay-teams.mjs';
-import { extractPosts } from './teamscrape/forum-html.mjs';
+import { extractPosts, hasNextPage } from './teamscrape/forum-html.mjs';
 import {
   closeTeamSourceFetcher,
   fetchTeamSourceText as fetchText,
@@ -25,8 +25,6 @@ import {
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
 const SOURCES_PATH = path.join(scriptDir, 'teamscrape', 'sources.json');
-
-const MAX_THREAD_PAGES = 12;
 
 /** @return {!Array<string>} Unique pokepast.es paste ids found in the HTML. */
 export function extractPasteIds(html) {
@@ -102,15 +100,9 @@ async function harvestThread(formatId, thread, seen, file) {
   let title = null;
   let postIndex = 0;
   const linked = new Set();
-  for (let page = 1; page <= MAX_THREAD_PAGES; page += 1) {
+  for (let page = 1; ; page += 1) {
     const url = page === 1 ? thread : `${thread}page-${page}`;
-    let html;
-    try {
-      html = await fetchText(url);
-    } catch (error) {
-      if (page === 1) throw error; // page 1 failing = thread URL is wrong
-      break; // past the last page
-    }
+    const html = await fetchText(url);
     if (page === 1) {
       title = (/<title>([^<]*)<\/title>/.exec(html)?.[1] || '').trim() || null;
     }
@@ -175,6 +167,7 @@ async function harvestThread(formatId, thread, seen, file) {
         appended += 1;
       }
     }
+    if (!hasNextPage(html, page)) break;
   }
   // With sets landing everywhere via pokepaste links but never inline, the
   // open question is whether inline text reaches the parser at all — the

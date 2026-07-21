@@ -9,22 +9,35 @@
  * are extracted. Lowest-trust source: the index builders weight rmt below
  * curated samples and rated replays.
  *
- * Same politeness contract as the other scrapers; --max-new bounds fresh
- * threads per run, and already-seen threads skip fast, so successive
- * scheduled runs walk ever deeper into the listings.
+ * Same politeness contract as the other scrapers. A durable listing cursor
+ * turns the per-run page budget into resumable work, while page 1 is checked
+ * every run for new or recently updated RMTs.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseShowdownTeam } from './teamscrape/parse-showdown-team.mjs';
 import { normalizeSampleTeam } from './scrape-sample-teams.mjs';
-import { readArchiveIds } from './scrape-replay-teams.mjs';
+import {
+  appendJsonlRecord,
+  readJsonlLatest,
+} from './teamscrape/jsonl-records.mjs';
 import {
   extractFirstPostText,
   extractThreadRows,
+  hasNextPage,
   listingDebugInfo,
   listingPageUrl,
 } from './teamscrape/forum-html.mjs';
+import {
+  forListing,
+  importLegacyThreads,
+  readCrawlState,
+  recordListingPage,
+  recordSinglePageThread,
+  saveCrawlState,
+  shouldScanThread,
+} from './teamscrape/crawl-state.mjs';
 import { tierFromTitle } from './teamscrape/tier-names.mjs';
 import {
   closeTeamSourceFetcher,
@@ -36,8 +49,8 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
 const SOURCES_PATH = path.join(scriptDir, 'teamscrape', 'sources.json');
 
-const MAX_LISTING_PAGES = 30;
 const DEFAULT_MAX_NEW_THREADS = 40;
+const DEFAULT_LISTING_PAGES_PER_RUN = 8;
 const MIN_SETS_PER_TEAM = 4; // an RMT below this is a fragment, not a team
 
 const knownFormats = new Set(REAL_FORMATS.map((format) => format.id));
@@ -60,7 +73,7 @@ function resolveFormat(row, rmt) {
   return null;
 }
 
-async function harvestThread({ row, formatId, seen, file }) {
+async function harvestThread({ row, formatId, latest, file }) {
   const html = await fetchText(row.url);
   const text = extractFirstPostText(html);
   const { sets } = parseShowdownTeam(text);
@@ -73,15 +86,17 @@ async function harvestThread({ row, formatId, seen, file }) {
       sets,
     });
     record.source = 'rmt';
-    fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
-    seen.add(record.id);
-    return { appended: 1, opChars: text.length };
+    return {
+      appended: Number(appendJsonlRecord(file, record, latest)),
+      found: 1,
+      opChars: text.length,
+    };
   }
   let appended = 0;
+  let found = 0;
   for (const pasteId of [...new Set(
     [...html.matchAll(/pokepast\.es\/([0-9a-f]{8,16})/g)].map((m) => m[1]),
   )]) {
-    if (seen.has(pasteId)) continue;
     let pasteText;
     try {
       pasteText = await fetchText(`https://pokepast.es/${pasteId}/raw`);
@@ -90,6 +105,7 @@ async function harvestThread({ row, formatId, seen, file }) {
     }
     const paste = parseShowdownTeam(pasteText);
     if (paste.sets.length < MIN_SETS_PER_TEAM) continue;
+    found += 1;
     const record = normalizeSampleTeam({
       pasteId,
       formatId,
@@ -97,11 +113,9 @@ async function harvestThread({ row, formatId, seen, file }) {
       sets: paste.sets,
     });
     record.source = 'rmt';
-    fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
-    seen.add(pasteId);
-    appended += 1;
+    appended += Number(appendJsonlRecord(file, record, latest));
   }
-  return { appended, opChars: text.length };
+  return { appended, found, opChars: text.length };
 }
 
 async function main() {
@@ -113,12 +127,23 @@ async function main() {
   const maxNew =
     Number(process.argv.find((a) => a.startsWith('--max-new='))?.split('=')[1]) ||
     DEFAULT_MAX_NEW_THREADS;
+  const listingPagesPerRun =
+    Number(process.argv.find((a) => a.startsWith('--listing-pages='))?.split('=')[1]) ||
+    DEFAULT_LISTING_PAGES_PER_RUN;
   fs.mkdirSync(ARCHIVE_DIR, { recursive: true });
-  const files = new Map(); // formatId → {file, seen}
+  const crawlFile = path.join(ARCHIVE_DIR, 'rmt-crawl-state.json');
+  const crawl = readCrawlState(crawlFile);
+  for (const name of fs.readdirSync(ARCHIVE_DIR)) {
+    if (/^rmt-.*\.jsonl$/.test(name)) {
+      importLegacyThreads(crawl, path.join(ARCHIVE_DIR, name));
+    }
+  }
+  saveCrawlState(crawlFile, crawl);
+  const files = new Map(); // formatId → {file, latest}
   const forFormat = (formatId) => {
     if (!files.has(formatId)) {
       const file = path.join(ARCHIVE_DIR, `rmt-${formatId}.jsonl`);
-      files.set(formatId, { file, seen: readArchiveIds(file) });
+      files.set(formatId, { file, latest: readJsonlLatest(file) });
     }
     return files.get(formatId);
   };
@@ -129,23 +154,26 @@ async function main() {
     try {
       let rowsSeen = 0;
       let pagesWalked = 0;
-      for (
-        let page = 1; page <= MAX_LISTING_PAGES && fresh < maxNew; page += 1) {
-        const html = await fetchText(listingPageUrl(listing, page));
+      const progress = forListing(crawl, listing);
+      const processPage = async (html, page) => {
         const rows = extractThreadRows(html, listing);
         if (!rows.length) {
           if (page === 1) {
             console.log(
               `rmt listing ${listing}: 0 rows on page 1 ` +
-                `(${listingDebugInfo(html)})`,
+              `(${listingDebugInfo(html)})`,
             );
           }
-          break;
+          return { handled: true, next: false };
         }
         pagesWalked += 1;
         rowsSeen += rows.length;
+        let handled = true;
         for (const row of rows) {
-          if (fresh >= maxNew) break;
+          if (fresh >= maxNew) {
+            handled = false;
+            break;
+          }
           const formatId = resolveFormat(row, rmt);
           if (!formatId) {
             const known =
@@ -155,28 +183,55 @@ async function main() {
                 row.prefix, (unmappedPrefixes.get(row.prefix) || 0) + 1);
             continue;
           }
-          const { file, seen } = forFormat(formatId);
-          if (seen.has(`thread-${row.threadId}`)) continue;
+          const { file, latest } = forFormat(formatId);
+          if (!shouldScanThread(
+            crawl.threads[row.threadId], row, progress.sweep)) continue;
           try {
-            const { appended, opChars } =
-              await harvestThread({ row, formatId, seen, file });
+            const { appended, found, opChars } =
+              await harvestThread({ row, formatId, latest, file });
             if (appended) fresh += 1;
-            else if (opChars >= 200) {
-              // Persist a teamless marker so later runs never refetch it.
+            else if (!found && opChars >= 200) {
+              // Persist a teamless marker so later sweeps can distinguish a
+              // processed thread from one whose post reader failed.
               // The index builders drop empty-set records. A near-empty
               // extraction means the post reader failed, not that the
               // thread is teamless — leave those unmarked so a fixed
               // reader gets another look.
               const marker = `thread-${row.threadId}`;
-              fs.appendFileSync(
-                file,
-                `${JSON.stringify({ id: marker, format: formatId, source: 'rmt', sets: [] })}\n`,
-              );
-              seen.add(marker);
+              if (!latest.has(marker)) {
+                appendJsonlRecord(
+                  file,
+                  { id: marker, format: formatId, source: 'rmt', sets: [] },
+                  latest,
+                );
+              }
             }
+            if (found || opChars >= 200) {
+              recordSinglePageThread(crawl, row, progress.sweep);
+              saveCrawlState(crawlFile, crawl);
+            } else handled = false;
           } catch (error) {
             console.warn(`  thread ${row.threadId}: ${error.message}`);
+            handled = false;
           }
+        }
+        return { handled, next: hasNextPage(html, page) };
+      };
+
+      const headHtml = await fetchText(listingPageUrl(listing, 1));
+      const head = await processPage(headHtml, 1);
+      if (head.handled && fresh < maxNew) {
+        let pages = 0;
+        while (pages < listingPagesPerRun && fresh < maxNew) {
+          const page = progress.page;
+          const html = page === 1
+            ? headHtml
+            : await fetchText(listingPageUrl(listing, page));
+          const result = page === 1 ? head : await processPage(html, page);
+          if (!result.handled) break;
+          recordListingPage(crawl, listing, page, result.next);
+          saveCrawlState(crawlFile, crawl);
+          pages += 1;
         }
       }
       if (rowsSeen) {
@@ -189,8 +244,8 @@ async function main() {
       console.warn(`rmt listing ${listing}: FAILED — ${error.message}`);
     }
   }
-  for (const [formatId, { seen }] of files) {
-    console.log(`rmt ${formatId}: archive ${seen.size}`);
+  for (const [formatId, { latest }] of files) {
+    console.log(`rmt ${formatId}: archive ${latest.size}`);
   }
   if (unmappedPrefixes.size) {
     console.log(

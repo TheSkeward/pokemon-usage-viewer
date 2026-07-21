@@ -10,8 +10,9 @@
  * Format attribution, most→least reliable: the paste's own "=== [gen7ou] ==="
  * header, the tier named in the thread title, the tier named in the
  * subforum's name — the last two combined with the config's `gen`.
- * Threads are visited once and remembered (forum-threads.jsonl), so daily
- * runs walk ever deeper under a per-run yield cap.
+ * Listing and thread cursors are durable, so polite per-run request caps pause
+ * work rather than truncating the corpus. Completed listings begin another
+ * sweep, and completed threads recheck their final page for later replies.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,13 +20,27 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseShowdownTeam } from './teamscrape/parse-showdown-team.mjs';
 import { normalizeSampleTeam, extractPasteIds, groupInlineTeams } from
   './scrape-sample-teams.mjs';
-import { readArchiveIds } from './scrape-replay-teams.mjs';
+import {
+  appendJsonlRecord,
+  readJsonlLatest,
+} from './teamscrape/jsonl-records.mjs';
 import {
   extractPosts,
   extractThreadRows,
+  hasNextPage,
   listingDebugInfo,
   listingPageUrl,
 } from './teamscrape/forum-html.mjs';
+import {
+  forListing,
+  importLegacyThreads,
+  nextThreadPage,
+  readCrawlState,
+  recordListingPage,
+  recordThreadPage,
+  saveCrawlState,
+  shouldScanThread,
+} from './teamscrape/crawl-state.mjs';
 import {
   closeTeamSourceFetcher,
   fetchTeamSourceText as fetchText,
@@ -37,9 +52,9 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const ARCHIVE_DIR = path.join(scriptDir, 'teamscrape', 'archive');
 const SOURCES_PATH = path.join(scriptDir, 'teamscrape', 'sources.json');
 
-const MAX_LISTING_PAGES = 10;
-const MAX_THREAD_PAGES = 5;
 const DEFAULT_MAX_NEW = 40;
+const DEFAULT_LISTING_PAGES_PER_RUN = 4;
+const DEFAULT_THREAD_PAGES_PER_RUN = 40;
 const MIN_SETS_PER_TEAM = 4;
 
 const knownFormats = new Set(REAL_FORMATS.map((format) => format.id));
@@ -61,35 +76,29 @@ export function extractSubforums(html, baseUrl) {
   return out;
 }
 
-const state = new Map(); // formatId → {file, seen}
+const archiveState = new Map(); // formatId → {file, latest}
 function forFormat(formatId) {
-  if (!state.has(formatId)) {
+  if (!archiveState.has(formatId)) {
     const file = path.join(ARCHIVE_DIR, `forum-${formatId}.jsonl`);
-    state.set(formatId, { file, seen: readArchiveIds(file) });
+    archiveState.set(formatId, { file, latest: readJsonlLatest(file) });
   }
-  return state.get(formatId);
+  return archiveState.get(formatId);
 }
 
 function appendTeam({ pasteId, formatId, thread, sets }) {
-  const { file, seen } = forFormat(formatId);
-  if (seen.has(pasteId)) return 0;
+  const { file, latest } = forFormat(formatId);
   const record = normalizeSampleTeam({ pasteId, formatId, thread, sets });
   record.source = 'forum';
-  fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
-  seen.add(pasteId);
-  return 1;
+  return Number(appendJsonlRecord(file, record, latest));
 }
 
-async function harvestThread({ row, fallbackFormat, counters }) {
-  for (let page = 1; page <= MAX_THREAD_PAGES; page += 1) {
-    let html;
-    try {
-      html = await fetchText(
-        page === 1 ? row.url : `${row.url}page-${page}`);
-    } catch (error) {
-      if (page === 1) throw error;
-      break; // past the last page
-    }
+async function harvestThread({ row, fallbackFormat, counters, crawl,
+  crawlFile, sweep, budget, maxThreadPages, maxNew }) {
+  let page = nextThreadPage(crawl.threads[row.threadId]);
+  while (budget.threadPages < maxThreadPages) {
+    const html = await fetchText(
+      page === 1 ? row.url : `${row.url}page-${page}`);
+    budget.threadPages += 1;
     const posts = extractPosts(html);
     let postIndex = (page - 1) * 100;
     for (const post of posts.length ? posts : [{ html, text: '' }]) {
@@ -121,19 +130,25 @@ async function harvestThread({ row, fallbackFormat, counters }) {
         });
       });
     }
+    const next = hasNextPage(html, page);
+    recordThreadPage(crawl, row, { page, hasNext: next, sweep });
+    saveCrawlState(crawlFile, crawl);
+    if (!next) return true;
+    if (counters.teams >= maxNew) return false;
+    page += 1;
   }
+  return false;
 }
 
 async function walkListing({ listing, gen, listingTier, config, counters,
-  visited, visitedFile, maxNew }) {
+  crawl, crawlFile, maxNew, budget, maxThreadPages, listingPagesPerRun }) {
   const rowFormat = (row) => {
     const tier = tierFromTitle(row.title) || listingTier;
     const formatId = tier ? gen + tier : null;
     return formatId && knownFormats.has(formatId) ? formatId : null;
   };
-  for (let page = 1; page <= MAX_LISTING_PAGES; page += 1) {
-    if (counters.teams >= maxNew) return;
-    const html = await fetchText(listingPageUrl(listing, page));
+  const progress = forListing(crawl, listing);
+  const processPage = async (html, page) => {
     if (page === 1 && config.discoverSubforums) {
       for (const sub of extractSubforums(html, listing)) {
         if (!config.walked.has(sub.url)) {
@@ -151,23 +166,59 @@ async function walkListing({ listing, gen, listingTier, config, counters,
             `(${listingDebugInfo(html)})`,
         );
       }
-      return;
+      return { handled: true, next: false };
     }
+    let handled = true;
     for (const row of rows) {
-      if (counters.teams >= maxNew) return;
-      if (visited.has(row.threadId)) continue;
+      if (counters.teams >= maxNew || budget.threadPages >= maxThreadPages) {
+        handled = false;
+        break;
+      }
+      const thread = crawl.threads[row.threadId];
+      if (!shouldScanThread(thread, row, progress.sweep)) continue;
       const fallbackFormat = rowFormat(row);
       try {
-        await harvestThread({ row, fallbackFormat, counters });
-        fs.appendFileSync(
-          visitedFile,
-          `${JSON.stringify({ id: row.threadId, thread: row.url })}\n`,
-        );
-        visited.add(row.threadId);
+        const complete = await harvestThread({
+          row,
+          fallbackFormat,
+          counters,
+          crawl,
+          crawlFile,
+          sweep: progress.sweep,
+          budget,
+          maxThreadPages,
+          maxNew,
+        });
+        if (!complete) handled = false;
       } catch (error) {
         console.warn(`  thread ${row.threadId}: ${error.message}`);
+        handled = false;
       }
     }
+    return { handled, next: hasNextPage(html, page) };
+  };
+
+  // Always inspect the live first page for newly created or recently active
+  // threads, independently of the historical backfill cursor.
+  const headHtml = await fetchText(listingPageUrl(listing, 1));
+  const head = await processPage(headHtml, 1);
+  if (!head.handled || counters.teams >= maxNew) return;
+
+  let pages = 0;
+  while (
+    pages < listingPagesPerRun &&
+    counters.teams < maxNew &&
+    budget.threadPages < maxThreadPages
+  ) {
+    const page = progress.page;
+    const html = page === 1
+      ? headHtml
+      : await fetchText(listingPageUrl(listing, page));
+    const result = page === 1 ? head : await processPage(html, page);
+    if (!result.handled) return;
+    recordListingPage(crawl, listing, page, result.next);
+    saveCrawlState(crawlFile, crawl);
+    pages += 1;
   }
 }
 
@@ -180,10 +231,22 @@ async function main() {
   const maxNew =
     Number(process.argv.find((a) => a.startsWith('--max-new='))?.split('=')[1]) ||
     DEFAULT_MAX_NEW;
+  const listingPagesPerRun =
+    Number(process.argv.find((a) => a.startsWith('--listing-pages='))?.split('=')[1]) ||
+    DEFAULT_LISTING_PAGES_PER_RUN;
+  const maxThreadPages =
+    Number(process.argv.find((a) => a.startsWith('--thread-pages='))?.split('=')[1]) ||
+    DEFAULT_THREAD_PAGES_PER_RUN;
   fs.mkdirSync(ARCHIVE_DIR, { recursive: true });
-  const visitedFile = path.join(ARCHIVE_DIR, 'forum-threads.jsonl');
-  const visited = readArchiveIds(visitedFile);
+  const crawlFile = path.join(ARCHIVE_DIR, 'forum-crawl-state.json');
+  const crawl = readCrawlState(crawlFile);
+  importLegacyThreads(
+    crawl,
+    path.join(ARCHIVE_DIR, 'forum-threads.jsonl'),
+  );
+  saveCrawlState(crawlFile, crawl);
   const counters = { teams: 0 };
+  const budget = { threadPages: 0 };
   const gen = forums.gen || 'gen7';
   const config = {
     discoverSubforums: Boolean(forums.discoverSubforums),
@@ -196,14 +259,15 @@ async function main() {
     try {
       await walkListing({
         listing, gen, listingTier: tier, config, counters,
-        visited, visitedFile, maxNew,
+        crawl, crawlFile, maxNew, budget, maxThreadPages,
+        listingPagesPerRun,
       });
     } catch (error) {
       console.warn(`forum listing ${listing}: FAILED — ${error.message}`);
     }
   }
-  for (const [formatId, { seen }] of state) {
-    console.log(`forum ${formatId}: archive ${seen.size}`);
+  for (const [formatId, { latest }] of archiveState) {
+    console.log(`forum ${formatId}: archive ${latest.size}`);
   }
   console.log(`forums: +${counters.teams} teams this run`);
 }

@@ -12,6 +12,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { REAL_FORMATS } from './config.mjs';
 import { writeJson } from './set-index/io.mjs';
 import { teamWeight } from './teamscrape/weights.mjs';
+import { readJsonlLatest } from './teamscrape/jsonl-records.mjs';
 import { STAT_KEYS } from '../src/utils/stats.js';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -30,14 +31,7 @@ export function readArchive(dir, prefix) {
   if (!fs.existsSync(dir)) return records;
   for (const file of fs.readdirSync(dir)) {
     if (!file.startsWith(prefix) || !file.endsWith('.jsonl')) continue;
-    for (const line of fs.readFileSync(path.join(dir, file), 'utf8').split('\n')) {
-      if (!line.trim()) continue;
-      try {
-        records.push(JSON.parse(line));
-      } catch {
-        // torn tail line from an interrupted append — drop it
-      }
-    }
+    records.push(...readJsonlLatest(path.join(dir, file)).values());
   }
   return records;
 }
