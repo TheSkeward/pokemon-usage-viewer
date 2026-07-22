@@ -159,7 +159,9 @@ function buildContextFromRoutes({
         .join('\n'),
       partnerId: route.partnerId,
       partnerName: route.partnerName,
+      partnerInputId: route.partnerInputId,
       partnerSource: route.partnerSource,
+      partnerLevel: route.cost.levelingLevel,
     };
   }
 
@@ -202,6 +204,8 @@ export function sketchContextSignature(sketchContext) {
       return [
         moveId,
         source.partnerId || '',
+        source.partnerInputId || '',
+        source.partnerLevel ?? '',
         partnerSource.kind || '',
         partnerSource.label || '',
         partnerSource.detail || '',
@@ -254,6 +258,7 @@ function partnerRoute(move, species, progression) {
     moveName: move.name,
     partnerId: species.id,
     partnerName: species.name,
+    partnerInputId: species.inputId,
     partnerSource,
     cost,
   };
@@ -311,6 +316,14 @@ function sourceCost(source, species, progression) {
     // acquisitionOf prices evolution moves at the real evolution level and
     // also retains scarce-item costs, rather than treating level:null as free.
     level: acquisition.level,
+    // The ranking level may include scarce-item offsets. Interim-donor
+    // guidance needs the literal level where this partner learns the move.
+    levelingLevel:
+      source.kind === 'level-up' && Number.isFinite(source.level)
+        ? source.level
+        : source.onEvolution
+          ? GEN7_PROGRESSION_SPECIES[species.id]?.evoLevel ?? null
+          : null,
     hassle: acquisition.hassle || 0,
     kind: kindOrder[source.kind] ?? 9,
   };

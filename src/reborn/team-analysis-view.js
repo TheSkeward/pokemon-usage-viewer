@@ -117,10 +117,12 @@ function wirePokepasteCopy(root, analysis) {
     ),
     'Copy team as poképaste',
   );
-  if (analysis.fieldableRealTeam) {
+  const displayedRealTeam =
+    analysis.fieldableRealTeam || analysis.closestRealTeam?.team;
+  if (displayedRealTeam) {
     wireCopyButtons(
       scope.querySelectorAll('[data-copy-real-pokepaste]'),
-      formatTeamPokepaste(realTeamPokepasteSets(analysis.fieldableRealTeam)),
+      formatTeamPokepaste(realTeamPokepasteSets(displayedRealTeam)),
       'Copy as poképaste',
     );
   }
@@ -227,16 +229,34 @@ function renderAnalysis(analysis) {
         </div>
       </div>
 
-      ${renderFieldableRealTeam(analysis.fieldableRealTeam)}
+      ${renderRealTeamPanel({
+        fieldableTeam: analysis.fieldableRealTeam,
+        closestMatch: analysis.closestRealTeam,
+        dataAvailable: analysis.realTeamDataAvailable,
+      })}
     </section>
   `;
 }
 
-// The most-seen scraped real team the current pool could actually field —
-// its members' full sets exactly as played, with provenance. Renders nothing
-// when no scraped team qualifies (or no team-index data exists).
-function renderFieldableRealTeam(team) {
-  if (!team) return '';
+// Shows the most-seen fully fieldable scraped team. If none qualifies, the
+// closest distinct-species match remains visible with an explicit receipt for
+// missing Pokémon, progression-locked moves, and tracked held items.
+export function renderRealTeamPanel({
+  fieldableTeam = null,
+  closestMatch = null,
+  dataAvailable = false,
+} = {}) {
+  const team = fieldableTeam || closestMatch?.team;
+  if (!team) {
+    return `
+      <div class="team-real-team team-real-team-empty">
+        <h3>Real-team match</h3>
+        <p class="muted">${dataAvailable
+          ? 'No valid scraped teams are available to compare.'
+          : 'No scraped real-team data is available for this format family.'}</p>
+      </div>
+    `;
+  }
 
   const provenance = [
     team.formatId,
@@ -248,16 +268,65 @@ function renderFieldableRealTeam(team) {
     <div class="team-real-team">
       <div class="team-analysis-header">
         <div>
-          <h3>Fieldable real team</h3>
+          <h3>${fieldableTeam ? 'Fieldable real team' : 'Closest real team'}</h3>
           <p class="muted">${escapeHtml(provenance.join(' · '))}</p>
         </div>
         <button type="button" class="view-tab" data-copy-real-pokepaste>Copy as poképaste</button>
       </div>
+      ${closestMatch ? renderClosestRealTeamReceipt(closestMatch) : ''}
       <div class="team-set-cards">
-        ${(team.members || []).map(renderRealTeamMember).join('')}
+        ${(team.members || [])
+          .map((member, index) =>
+            renderRealTeamMember(member, closestMatch?.members?.[index]),
+          )
+          .join('')}
       </div>
     </div>
   `;
+}
+
+function renderClosestRealTeamReceipt(match) {
+  const missingSpecies = (match.team?.members || []).filter(
+    (member, index) => !match.members?.[index]?.speciesAvailable,
+  );
+  const missingMoves = (match.team?.members || []).flatMap((member, index) =>
+    (match.members?.[index]?.missingMoves || []).map(
+      (move) => `${member.species}: ${move.name}`,
+    ),
+  );
+  const gaps = [
+    missingSpecies.length
+      ? `<li><strong>Missing Pokémon:</strong> ${escapeHtml(
+        missingSpecies.map((member) => member.species).join(', '),
+      )}</li>`
+      : null,
+    missingMoves.length
+      ? `<li><strong>Moves unavailable now:</strong> ${escapeHtml(
+        missingMoves.join(', '),
+      )}</li>`
+      : null,
+    match.missingItems?.length
+      ? `<li><strong>Held items still needed:</strong> ${escapeHtml(
+        match.missingItems.map(formatItemShortage).join(', '),
+      )}</li>`
+      : null,
+  ].filter(Boolean);
+
+  return `
+    <div class="team-real-team-receipt">
+      <p>
+        No indexed team is fully fieldable yet. Your pool can field
+        <strong>${match.matchedCount}/${match.memberCount} Pokémon</strong>
+        from this one; popularity breaks equally close ties.
+      </p>
+      ${gaps.length ? `<ul>${gaps.join('')}</ul>` : ''}
+    </div>
+  `;
+}
+
+function formatItemShortage(shortage) {
+  const count = shortage.needed > 1 ? ` ×${shortage.needed}` : '';
+  return `${shortage.item}${count} (own ${shortage.owned})`;
 }
 
 function dominantSourceKind(sources = {}) {
@@ -267,7 +336,7 @@ function dominantSourceKind(sources = {}) {
   return best ? `${best[0]} team` : null;
 }
 
-function renderRealTeamMember(member) {
+function renderRealTeamMember(member, availability = null) {
   const natureTip = member.nature ? describeNature(member.nature) : '';
   const metaParts = [
     escapeHtml(member.item || 'No item'),
@@ -278,27 +347,44 @@ function renderRealTeamMember(member) {
       : null,
   ].filter(Boolean);
   const evs = formatEvs(evsToArray(member.evs));
+  const missingMoves = availability?.missingMoves || [];
+  const missingMoveIndexes = new Set(missingMoves.map((move) => move.index));
+  const warning =
+    availability &&
+    (!availability.speciesAvailable || missingMoves.length > 0);
+  const status = !availability
+    ? null
+    : !availability.speciesAvailable
+      ? 'Missing Pokémon'
+      : missingMoves.length
+        ? `Unavailable ${missingMoves.length === 1 ? 'move' : 'moves'}: ${missingMoves.map((move) => move.name).join(', ')}`
+        : 'Pokémon and moves ready';
 
   return `
-    <div class="team-set-card">
+    <div class="team-set-card${warning ? ' warning' : ''}">
       <div class="team-set-head">
         <strong>${escapeHtml(member.species)}</strong>
+        ${status ? `<small class="team-real-team-member-status">${escapeHtml(status)}</small>` : ''}
       </div>
       <div class="team-set-meta">${metaParts.join(' · ')}</div>
       ${evs ? `<div class="team-set-evs">${escapeHtml(evs)}</div>` : ''}
       <div class="team-set-moves">
-        ${(member.moves || []).map(renderRealTeamMove).join('')}
+        ${(member.moves || [])
+          .map((name, index) =>
+            renderRealTeamMove(name, missingMoveIndexes.has(index)),
+          )
+          .join('')}
       </div>
     </div>
   `;
 }
 
-function renderRealTeamMove(name) {
+function renderRealTeamMove(name, unavailable = false) {
   const meta = getMoveMeta(name);
   const facts = describeMoveMeta(meta);
 
   return `
-    <div class="team-set-move">
+    <div class="team-set-move${unavailable ? ' unavailable' : ''}">
       ${renderTypeBadge(meta?.type || 'Normal')}
       <span class="team-set-move-name"${facts ? ` title="${escapeHtml(facts)}"` : ''}>${escapeHtml(name)}</span>
     </div>
@@ -461,10 +547,10 @@ function renderSetReadiness(readiness) {
   `;
 }
 
-// The set above leans on a breeding donor the player will field in the
-// interim (catch the donor, level it to the egg move, breed). This panel
-// answers "how do I use the donor meanwhile": its own recommended moves at
-// the current progression, from the same pipeline as every team member.
+// The set above leans on an egg or Sketch donor the player will field in the
+// interim. This panel answers "how do I use the donor meanwhile": its own
+// recommended moves at the current progression, from the same pipeline as
+// every team member.
 function renderDonorInterimGuides(guides) {
   if (!guides?.length) return '';
 

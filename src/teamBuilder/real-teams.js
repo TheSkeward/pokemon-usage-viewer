@@ -100,28 +100,65 @@ function evolutionPathIds(inputId, currentId) {
 
 /**
  * One pool line covers at most ONE team member, so seating is a bipartite
- * matching — but pools are small and candidate sets barely overlap, so a
- * greedy pass (scarcest member first, taking its first free line) stands in
- * for full augmenting-path matching, per the ratified design.
+ * matching. Pools are small, so an augmenting-path pass can find a complete
+ * assignment without letting one flexible member hide a valid team.
  * @param {Array<Array<number>>} candidateLinesByMember Per member, the line
  *     indexes that can field it.
  * @return {?Array<number>} The chosen line index per member, or null when
  *     someone is left unseated.
  */
 export function assignMembersToLines(candidateLinesByMember) {
+  const assigned = assignAvailableMembersToLines(candidateLinesByMember);
+  return assigned.every((lineIndex) => lineIndex !== null) ? assigned : null;
+}
+
+/**
+ * Maximum matching when only part of a team can be seated. Unlike the old
+ * first-free pass, the augmenting-path step can move an already-seated member
+ * to another valid line when that opens a seat for somebody else. This makes
+ * the closest-team count exact while retaining one-line-per-member semantics.
+ * @param {Array<Array<number>>} candidateLinesByMember
+ * @return {Array<?number>} The chosen line per member; null means unseated.
+ */
+export function assignAvailableMembersToLines(candidateLinesByMember) {
   const order = candidateLinesByMember
     .map((candidates, member) => ({ member, candidates }))
-    .sort((a, b) => a.candidates.length - b.candidates.length);
-  const used = new Set();
+    .sort(
+      (a, b) =>
+        a.candidates.length - b.candidates.length || a.member - b.member,
+    );
+  const memberByLine = new Map();
   const assigned = new Array(candidateLinesByMember.length).fill(null);
 
   for (const { member, candidates } of order) {
-    const lineIndex = candidates.find((index) => !used.has(index));
-    if (lineIndex === undefined) return null;
-    used.add(lineIndex);
-    assigned[member] = lineIndex;
+    seatMember(member, candidates, new Set(), new Set());
   }
   return assigned;
+
+  function seatMember(member, candidates, visitedLines, visitedMembers) {
+    if (visitedMembers.has(member)) return false;
+    visitedMembers.add(member);
+
+    for (const lineIndex of candidates) {
+      if (visitedLines.has(lineIndex)) continue;
+      visitedLines.add(lineIndex);
+      const previousMember = memberByLine.get(lineIndex);
+      if (
+        previousMember === undefined ||
+        seatMember(
+          previousMember,
+          candidateLinesByMember[previousMember],
+          visitedLines,
+          visitedMembers,
+        )
+      ) {
+        memberByLine.set(lineIndex, member);
+        assigned[member] = lineIndex;
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 /**
@@ -132,16 +169,35 @@ export function assignMembersToLines(candidateLinesByMember) {
  * @return {boolean}
  */
 export function teamItemsCovered(members, ownedItems = {}) {
+  return teamItemShortages(members, ownedItems).length === 0;
+}
+
+/**
+ * Item shortfalls with display names and counts for closest-team receipts.
+ * @param {Array<Object>} members
+ * @param {Object<string, number>} ownedItems
+ * @return {Array<{itemId: string, item: string, needed: number,
+ *     owned: number, missing: number}>}
+ */
+export function teamItemShortages(members, ownedItems = {}) {
   const needed = new Map();
   for (const member of members || []) {
     const itemId = toId(member.itemId || '');
     if (!itemId) continue;
-    needed.set(itemId, (needed.get(itemId) || 0) + 1);
+    const entry = needed.get(itemId) || {
+      itemId,
+      item: member.item || member.itemId || itemId,
+      needed: 0,
+    };
+    entry.needed += 1;
+    needed.set(itemId, entry);
   }
-  for (const [itemId, count] of needed) {
-    if ((ownedItems[itemId] || 0) < count) return false;
-  }
-  return true;
+  return [...needed.values()].flatMap((entry) => {
+    const owned = Number(ownedItems[entry.itemId]) || 0;
+    return owned >= entry.needed
+      ? []
+      : [{ ...entry, owned, missing: entry.needed - owned }];
+  });
 }
 
 /**
@@ -185,9 +241,42 @@ export async function findFieldableRealTeam({
   breedingContext = null,
   sketchContext = null,
 }) {
+  const match = await findFieldableOrClosestRealTeam({
+    teams,
+    lines,
+    progression,
+    recommendedIds,
+    breedingContext,
+    sketchContext,
+  });
+  return match?.kind === 'fieldable' ? match.team : null;
+}
+
+/**
+ * Finds the same best fieldable team as findFieldableRealTeam. When there is
+ * no exact result, returns the team with the greatest share of members that
+ * distinct pool lines can field (then greatest raw member count, then the
+ * normal popularity/recommended-team ordering), plus a blocker receipt.
+ * Teams over the six-Pokemon game limit are parser spill and are ignored.
+ *
+ * Move checks stay lazy: every plausible team gets the cheap species match,
+ * but only exact candidates and the single displayed fallback load moves.
+ * @return {Promise<?Object>}
+ */
+export async function findFieldableOrClosestRealTeam({
+  teams,
+  lines = [],
+  progression = {},
+  recommendedIds = new Set(),
+  breedingContext = null,
+  sketchContext = null,
+}) {
   const candidates = [...(teams || [])].sort((a, b) =>
     compareRealTeams(a, b, recommendedIds),
-  );
+  ).filter((team) => {
+    const count = team.members?.length || 0;
+    return count > 0 && count <= 6;
+  });
   if (!candidates.length) return null;
 
   const fieldableByLine = (lines || []).map((line) =>
@@ -201,37 +290,83 @@ export async function findFieldableRealTeam({
     sketchContext,
     availableMoveIdsCache: new Map(),
   };
+  let closest = null;
 
   for (const team of candidates) {
-    if (await isTeamFieldable(team, context)) return team;
+    const speciesMatch = teamSpeciesMatch(team, fieldableByLine);
+    if (isCloserSpeciesMatch(speciesMatch, closest)) {
+      closest = speciesMatch;
+    }
+    if (
+      speciesMatch.matchedCount === speciesMatch.memberCount &&
+      teamItemsCovered(team.members, context.ownedItems) &&
+      (await teamMovesAvailable(team, context))
+    ) {
+      return { kind: 'fieldable', team };
+    }
   }
-  return null;
+
+  if (!closest) return null;
+  const members = await Promise.all(
+    closest.team.members.map(async (member, index) => ({
+      speciesAvailable: closest.lineIndexes[index] !== null,
+      lineIndex: closest.lineIndexes[index],
+      missingMoves:
+        closest.lineIndexes[index] === null
+          ? []
+          : await unavailableMemberMoves(member, context),
+    })),
+  );
+  return {
+    kind: 'closest',
+    team: closest.team,
+    matchedCount: closest.matchedCount,
+    memberCount: closest.memberCount,
+    members,
+    missingItems: teamItemShortages(
+      closest.team.members,
+      context.ownedItems,
+    ),
+  };
 }
 
-async function isTeamFieldable(team, context) {
+function teamSpeciesMatch(team, fieldableByLine) {
   const members = team.members || [];
-  if (!members.length) return false;
-  if (!teamItemsCovered(members, context.ownedItems)) return false;
-
   const candidateLines = members.map((member) => {
     const speciesId = toId(member.speciesId);
     const indexes = [];
-    context.fieldableByLine.forEach((ids, index) => {
+    fieldableByLine.forEach((ids, index) => {
       if (ids.has(speciesId)) indexes.push(index);
     });
     return indexes;
   });
-  if (!assignMembersToLines(candidateLines)) return false;
+  const lineIndexes = assignAvailableMembersToLines(candidateLines);
+  return {
+    team,
+    lineIndexes,
+    matchedCount: lineIndexes.filter((index) => index !== null).length,
+    memberCount: members.length,
+  };
+}
 
-  for (const member of members) {
-    if (!(await memberMovesAvailable(member, context))) return false;
+function isCloserSpeciesMatch(candidate, current) {
+  if (!current) return true;
+  const candidateShare = candidate.matchedCount * current.memberCount;
+  const currentShare = current.matchedCount * candidate.memberCount;
+  if (candidateShare !== currentShare) return candidateShare > currentShare;
+  return candidate.matchedCount > current.matchedCount;
+}
+
+async function teamMovesAvailable(team, context) {
+  for (const member of team.members || []) {
+    if ((await unavailableMemberMoves(member, context)).length) return false;
   }
   return true;
 }
 
-async function memberMovesAvailable(member, context) {
+async function unavailableMemberMoves(member, context) {
   const moveIds = member.moveIds || [];
-  if (!moveIds.length) return true;
+  if (!moveIds.length) return [];
 
   const speciesId = toId(member.speciesId);
   if (!context.availableMoveIdsCache.has(speciesId)) {
@@ -262,5 +397,9 @@ async function memberMovesAvailable(member, context) {
     );
   }
   const available = await context.availableMoveIdsCache.get(speciesId);
-  return moveIds.every((id) => available.has(id));
+  return moveIds.flatMap((id, index) =>
+    available.has(id)
+      ? []
+      : [{ id, name: member.moves?.[index] || id, index }],
+  );
 }

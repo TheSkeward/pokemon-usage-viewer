@@ -134,6 +134,8 @@ test('Sketch prices evolution levels and lists distinct alternative routes',
       'aipom',
       'Aipom@11 beats Scolipede evolution@30',
     );
+    assert.equal(batonPass.partnerLevel, 11);
+    assert.equal(batonPass.partnerInputId, 'aipom');
     assert.match(batonPass.sourceTitle, /Other pool routes: Scolipede — On evolution/);
 
     const preferred = await buildRebornSketchContext({
@@ -149,6 +151,8 @@ test('Sketch prices evolution levels and lists distinct alternative routes',
     const preferredBatonPass =
       preferred.byPokemonId.smeargle.sources.batonpass;
     assert.equal(preferredBatonPass.partnerId, 'scolipede');
+    assert.equal(preferredBatonPass.partnerLevel, 30);
+    assert.equal(preferredBatonPass.partnerInputId, 'venipede');
     assert.match(preferredBatonPass.sourceTitle, /Other pool routes: Aipom — Level 11/);
   });
 
@@ -191,4 +195,51 @@ test('team analysis prefers a selected partner already carrying the move',
       'scolipede',
     );
     assert.match(batonPass.sourceTitle, /Other pool routes: Aipom — Level 11/);
+    assert.ok(
+      !(smeargle.donorInterimGuides || []).some(
+        (guide) => guide.donorId === 'scolipede',
+      ),
+      'a Sketch partner on the selected team is not an interim donor',
+    );
+  });
+
+test('off-team leveled Sketch partners receive interim donor guides',
+  async () => {
+    const { pokemonIndex } = await loadShared();
+    const analysis = await buildRebornTeamAnalysis(
+      [{
+        pokemonId: 'smeargle',
+        inputPokemonId: 'smeargle',
+        name: 'Smeargle',
+        inputName: 'Smeargle',
+      }],
+      progressionAt({ badge: 5, levelCap: 50 }),
+      {
+        family: 'singles',
+        selection: 'all',
+        pokemonIndex,
+        query: 'Smeargle\nAipom\nVenipede\nFoongus\nSurskit',
+      },
+    );
+    const smeargle = analysis.profiles.find(
+      (profile) => profile.currentId === 'smeargle',
+    );
+    const guides = smeargle.donorInterimGuides || [];
+    const aipom = guides.find((guide) => guide.donorId === 'aipom');
+    assert.ok(aipom, 'Aipom is temporary when only Smeargle makes the team');
+    assert.equal(aipom.interimLevelCap, 10);
+    assert.deepEqual(
+      aipom.forMoves.map((move) => move.name),
+      ['Baton Pass'],
+    );
+    assert.ok(
+      !aipom.moves.some((move) => move.name === 'Baton Pass'),
+      'the guide stops before Aipom learns the move it will supply',
+    );
+    assert.ok(
+      !guides.some((guide) =>
+        guide.forMoves.some((move) => move.name === 'Substitute'),
+      ),
+      'an immediately teachable TM route is not an interim leveling donor',
+    );
   });

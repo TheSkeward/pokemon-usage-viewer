@@ -1,15 +1,17 @@
-// The interim-donor guide (user story: a recommended set breeds a move from a
-// donor, so the player fields the donor for a while and needs to know how to
-// use it). End-to-end through the real analysis pipeline: a member whose
-// recommended set leans on egg moves gets donorInterimGuides naming each
-// donor with the donor's OWN recommended moves at the current progression.
+// The interim-donor guide (user story: a recommended set gets a move through
+// breeding or an off-team Sketch partner, so the player fields that donor for
+// a while and needs to know how to use it). End-to-end through the real
+// analysis pipeline, with the donor's OWN recommended moves at its working
+// cap.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
 globalThis.__ENV__ ??= { BASE_URL: '/' };
-const { buildRebornTeamAnalysis, collectEggDonorRequests } = await import(
-  '../src/reborn/team-analysis.js',
-);
+const {
+  buildRebornTeamAnalysis,
+  collectEggDonorRequests,
+  collectSketchDonorRequests,
+} = await import('../src/reborn/team-analysis.js');
 const { progressionAt, loadShared } = await import('./helpers/harness.mjs');
 const {
   buildRebornBreedingContext,
@@ -67,6 +69,60 @@ test('collectEggDonorRequests keys on egg-best moves and dedupes by donor', () =
       ['Spikes', null],
       ['Ice Shard', 8],
     ],
+  );
+});
+
+test('Sketch donors require leveling and disappear when selected', () => {
+  const sketchMove = {
+    id: 'batonpass',
+    name: 'Baton Pass',
+    availableSources: [
+      {
+        kind: 'sketch',
+        partnerId: 'aipom',
+        partnerInputId: 'aipom',
+        partnerName: 'Aipom',
+        partnerLevel: 11,
+        detail: 'Level 11',
+      },
+    ],
+  };
+  assert.deepEqual(collectSketchDonorRequests({
+    recommendedMoves: [sketchMove],
+  }), [
+    {
+      donorId: 'aipom',
+      donorName: 'Aipom',
+      donorInputId: 'aipom',
+      moves: [
+        {
+          id: 'batonpass',
+          name: 'Baton Pass',
+          detail: 'Level 11',
+          donorLevel: 11,
+        },
+      ],
+    },
+  ]);
+  assert.deepEqual(
+    collectSketchDonorRequests(
+      { recommendedMoves: [sketchMove] },
+      new Set(['aipom']),
+    ),
+    [],
+  );
+  assert.deepEqual(
+    collectSketchDonorRequests({
+      recommendedMoves: [{
+        ...sketchMove,
+        availableSources: [{
+          ...sketchMove.availableSources[0],
+          partnerLevel: null,
+        }],
+      }],
+    }),
+    [],
+    'TM/tutor/immediate partners are not interim leveling donors',
   );
 });
 

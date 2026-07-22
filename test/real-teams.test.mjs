@@ -6,12 +6,18 @@ import assert from 'node:assert/strict';
 
 await import('./helpers/harness.mjs'); // fetch → filesystem shim
 const {
+  assignAvailableMembersToLines,
   assignMembersToLines,
   compareRealTeams,
+  findFieldableOrClosestRealTeam,
   findFieldableRealTeam,
   getLineFieldableIds,
+  teamItemShortages,
   teamItemsCovered,
 } = await import('../src/teamBuilder/real-teams.js');
+const { renderRealTeamPanel } = await import(
+  '../src/reborn/team-analysis-view.js',
+);
 
 function makeLine(inputPokemonId, pokemonId = inputPokemonId) {
   return {
@@ -104,6 +110,19 @@ test('assignment: one line covers at most one member, scarcest member seats firs
   assert.equal(assignMembersToLines([[0], [0]]), null);
 });
 
+test('partial assignment finds the true maximum instead of getting stuck', () => {
+  // A first-free pass strands member 2 after seating members 0 and 1. An
+  // augmenting path moves member 0 to line 1, freeing line 0 for member 2.
+  const assigned = assignAvailableMembersToLines([
+    [0, 1],
+    [0, 2],
+    [0, 2],
+    [1, 3],
+  ]);
+  assert.equal(new Set(assigned).size, 4);
+  assert.ok(assigned.every((lineIndex) => lineIndex !== null));
+});
+
 test('item gate aggregates counts across the whole team', () => {
   const members = [
     makeMember('a', { itemId: 'leftovers' }),
@@ -114,6 +133,15 @@ test('item gate aggregates counts across the whole team', () => {
   assert.equal(teamItemsCovered(members, { leftovers: 1 }), false);
   assert.equal(teamItemsCovered(members, { leftovers: 2 }), true);
   assert.equal(teamItemsCovered([makeMember('c')], {}), true);
+  assert.deepEqual(teamItemShortages(members, { leftovers: 1 }), [
+    {
+      itemId: 'leftovers',
+      item: 'leftovers',
+      needed: 2,
+      owned: 1,
+      missing: 1,
+    },
+  ]);
 });
 
 
@@ -228,4 +256,116 @@ test('moves gate honors the breeding context for egg moves', async () => {
     },
   });
   assert.equal(picked?.key, 'eggbirds');
+});
+
+test('closest team reports distinct species, move, and item blockers', async () => {
+  const popularButFar = makeTeam('popular', 100, 10, [
+    'tauros',
+    'dragonite',
+    'pinsir',
+    'heracross',
+  ]);
+  const closest = makeTeam('closest', 5, 1, [
+    'tauros',
+    'lapras',
+    'staraptor',
+    'heracross',
+  ]);
+  closest.members[0].item = 'Leftovers';
+  closest.members[0].itemId = 'leftovers';
+  closest.members[2].moves = ['Brave Bird'];
+  closest.members[2].moveIds = ['bravebird'];
+
+  const match = await findFieldableOrClosestRealTeam({
+    teams: [popularButFar, closest],
+    lines: [makeLine('tauros'), makeLine('lapras'), makeLine('starly', 'staraptor')],
+    progression: { levelCap: '34', ownedItems: {} },
+  });
+
+  assert.equal(match.kind, 'closest');
+  assert.equal(match.team.key, 'closest', 'species proximity beats popularity');
+  assert.equal(match.matchedCount, 3);
+  assert.equal(match.memberCount, 4);
+  assert.deepEqual(
+    match.members.map((member) => member.speciesAvailable),
+    [true, true, true, false],
+  );
+  assert.deepEqual(match.members[2].missingMoves, [
+    { id: 'bravebird', name: 'Brave Bird', index: 0 },
+  ]);
+  assert.deepEqual(match.missingItems, [
+    {
+      itemId: 'leftovers',
+      item: 'Leftovers',
+      needed: 1,
+      owned: 0,
+      missing: 1,
+    },
+  ]);
+});
+
+test('closest-team search ignores parser spill beyond six members', async () => {
+  const malformed = makeTeam('spill', 999, 99, [
+    'tauros',
+    'lapras',
+    'pinsir',
+    'heracross',
+    'skarmory',
+    'dragonite',
+    'notapokemon',
+  ]);
+  const valid = makeTeam('valid', 1, 1, [
+    'tauros',
+    'lapras',
+    'pinsir',
+    'heracross',
+    'dragonite',
+    'skarmory',
+  ]);
+  const match = await findFieldableOrClosestRealTeam({
+    teams: [malformed, valid],
+    lines: [makeLine('tauros')],
+    progression: { levelCap: '100' },
+  });
+  assert.equal(match.kind, 'closest');
+  assert.equal(match.team.key, 'valid');
+});
+
+test('closest-team panel stays visible and explains every blocker type', () => {
+  const team = makeTeam('visible', 5, 2, [
+    'tauros',
+    'lapras',
+    'staraptor',
+    'heracross',
+  ]);
+  team.members[0].item = 'Leftovers';
+  team.members[2].moves = ['Brave Bird'];
+  const html = renderRealTeamPanel({
+    dataAvailable: true,
+    closestMatch: {
+      team,
+      matchedCount: 3,
+      memberCount: 4,
+      members: [
+        { speciesAvailable: true, missingMoves: [] },
+        { speciesAvailable: true, missingMoves: [] },
+        {
+          speciesAvailable: true,
+          missingMoves: [{ id: 'bravebird', name: 'Brave Bird', index: 0 }],
+        },
+        { speciesAvailable: false, missingMoves: [] },
+      ],
+      missingItems: [
+        { item: 'Leftovers', needed: 1, owned: 0, missing: 1 },
+      ],
+    },
+  });
+
+  assert.match(html, /Closest real team/);
+  assert.match(html, /3\/4 Pokémon/);
+  assert.match(html, /Missing Pokémon:<\/strong> heracross/);
+  assert.match(html, /Moves unavailable now:<\/strong> staraptor: Brave Bird/);
+  assert.match(html, /Held items still needed:<\/strong> Leftovers \(own 0\)/);
+  assert.match(html, /Missing Pokémon<\/small>/);
+  assert.match(html, /team-set-move unavailable/);
 });

@@ -1315,9 +1315,9 @@ input {
   font-size: inherit;
 }
 
-/* Interim-donor panel: the set above breeds a move from this donor, so the
-   player fields the donor for a while — collapsed by default, expands to the
-   donor's own recommended moves at the current progression. */
+/* Interim-donor panel: the set above needs this egg or Sketch donor, so the
+   player fields it for a while — collapsed by default, expands to the donor's
+   own recommended moves at the current progression. */
 .team-set-donor {
   border-top: 1px dashed #2b3645;
   margin-top: 0.25rem;
@@ -1343,6 +1343,43 @@ input {
 .team-real-team .team-analysis-header p {
   margin: 0.15rem 0 0.75rem;
   font-size: 0.85rem;
+}
+
+.team-real-team-empty {
+  border-top: 1px solid #2b3645;
+  padding-top: 0.85rem;
+}
+
+.team-real-team-empty p {
+  margin: 0.35rem 0 0;
+}
+
+.team-real-team-receipt {
+  border: 1px solid #5a3a2a;
+  border-radius: 8px;
+  background: #181712;
+  margin-bottom: 0.75rem;
+  padding: 0.7rem 0.8rem;
+}
+
+.team-real-team-receipt p {
+  margin: 0;
+}
+
+.team-real-team-receipt ul {
+  margin: 0.45rem 0 0;
+  padding-left: 1.2rem;
+  color: #c4ccd8;
+}
+
+.team-real-team-member-status {
+  max-width: 65%;
+}
+
+.team-real-team .team-set-move.unavailable .team-set-move-name {
+  color: #e58ca8;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
 }
 
 .team-analysis-explanation {

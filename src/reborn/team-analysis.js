@@ -31,7 +31,7 @@ import { computeSetReadiness } from './set-readiness.js';
 import { teamMemberKey } from '../teamBuilder/item-recommendations.js';
 import { selectObservedSet } from '../teamBuilder/observed-sets.js';
 import { loadTeamIndex } from '../teamBuilder/team-index.js';
-import { findFieldableRealTeam } from '../teamBuilder/real-teams.js';
+import { findFieldableOrClosestRealTeam } from '../teamBuilder/real-teams.js';
 import { toId } from '../utils/ids.js';
 import { STAT_LABELS } from '../utils/stats.js';
 import { MAX_OPPONENT_TYPE_BIAS } from './progression.js';
@@ -51,7 +51,8 @@ export { REBORN_ANALYSIS_TYPES };
  * real team the pool could field.
  * @return {!Promise<{members: !Array<!Object>, breeding: !Object,
  *     defensive: !Object, explanation: !Object, offensive: !Object,
- *     profiles: !Array<!Object>, fieldableRealTeam: ?Object}>}
+ *     profiles: !Array<!Object>, fieldableRealTeam: ?Object,
+ *     closestRealTeam: ?Object, realTeamDataAvailable: boolean}>}
  */
 export async function buildRebornTeamAnalysis(
   team = [],
@@ -107,10 +108,10 @@ export async function buildRebornTeamAnalysis(
     sketchContext = preferredSketch.sketchContext;
     legalMoveEntries = preferredSketch.legalMoveEntries;
   }
-  // Any recommended move whose best acquisition is breeding already names its
-  // donor; attach the donor's own current-form recommended moves so a player
-  // fielding the donor in the interim knows what to run. Display-only —
-  // nothing here feeds scoring or selection.
+  // Recommended egg moves and off-team, leveled Sketch routes name temporary
+  // donors. Attach each donor's own current-form moves so a player fielding it
+  // in the interim knows what to run. Display-only — nothing here feeds
+  // scoring or selection.
   await attachDonorInterimGuides({
     legalMoveEntries,
     progression,
@@ -123,6 +124,14 @@ export async function buildRebornTeamAnalysis(
   const defensive = analyzeDefensiveProfile(members);
   const offensive = analyzeOffensiveCoverage(legalMoveEntries);
   const profiles = legalMoveEntries.map((entry) => entry.profile);
+  const realTeamResult = await computeRealTeamResult({
+    family,
+    lines: breedingOptions.lines || [],
+    progression,
+    breedingContext,
+    sketchContext,
+    members,
+  });
 
   return {
     members,
@@ -137,14 +146,7 @@ export async function buildRebornTeamAnalysis(
     }),
     offensive,
     profiles,
-    fieldableRealTeam: await computeFieldableRealTeam({
-      family,
-      lines: breedingOptions.lines || [],
-      progression,
-      breedingContext,
-      sketchContext,
-      members,
-    }),
+    ...realTeamResult,
   };
 }
 
@@ -217,7 +219,7 @@ async function preferSelectedTeamSketchRoutes({
 // The most-seen scraped real team the current pool could field, ranked toward
 // the recommended picks. Display-only — nothing here feeds scoring — and
 // missing team-index data costs nothing (the loader resolves to []).
-async function computeFieldableRealTeam({
+async function computeRealTeamResult({
   family,
   lines,
   progression,
@@ -227,13 +229,19 @@ async function computeFieldableRealTeam({
 }) {
   try {
     const teams = await loadTeamIndex(family);
-    if (!teams.length) return null;
+    if (!teams.length) {
+      return {
+        fieldableRealTeam: null,
+        closestRealTeam: null,
+        realTeamDataAvailable: false,
+      };
+    }
     const recommendedIds = new Set(
       members
         .flatMap((member) => [member.id, member.representativeId])
         .filter(Boolean),
     );
-    return await findFieldableRealTeam({
+    const match = await findFieldableOrClosestRealTeam({
       teams,
       lines,
       progression,
@@ -241,8 +249,17 @@ async function computeFieldableRealTeam({
       breedingContext,
       sketchContext,
     });
+    return {
+      fieldableRealTeam: match?.kind === 'fieldable' ? match.team : null,
+      closestRealTeam: match?.kind === 'closest' ? match : null,
+      realTeamDataAvailable: true,
+    };
   } catch {
-    return null;
+    return {
+      fieldableRealTeam: null,
+      closestRealTeam: null,
+      realTeamDataAvailable: false,
+    };
   }
 }
 
@@ -423,6 +440,65 @@ export function collectEggDonorRequests(profile) {
   return [...byDonor.values()];
 }
 
+/**
+ * Off-team Sketch partners that must be leveled before they can supply one of
+ * Smeargle's recommended moves. Partners already represented by a selected
+ * team line are regular teammates, not interim donors.
+ * @param {Object} profile
+ * @param {Set<string>} selectedPokemonIds
+ * @return {!Array<{donorId: string, donorName: string,
+ *     moves: !Array<!Object>}>}
+ */
+export function collectSketchDonorRequests(
+  profile,
+  selectedPokemonIds = new Set(),
+) {
+  const selectedIds = new Set(
+    [...selectedPokemonIds].map((id) => toId(id)).filter(Boolean),
+  );
+  const byDonor = new Map();
+  for (const move of profile?.recommendedMoves || []) {
+    const best = [...(move.availableSources || [])].sort(
+      (a, b) => getSourcePriority(a) - getSourcePriority(b),
+    )[0];
+    if (best?.kind !== 'sketch') continue;
+    const donorName =
+      best.partnerSource?.learnerName || best.partnerName || best.partnerId;
+    const donorId = toId(donorName);
+    const partnerId = toId(best.partnerId || best.partnerName);
+    const donorLevel = Number(best.partnerLevel);
+    if (
+      !donorId ||
+      selectedIds.has(donorId) ||
+      selectedIds.has(partnerId) ||
+      !Number.isFinite(donorLevel) ||
+      donorLevel <= 1
+    ) {
+      continue;
+    }
+    if (!byDonor.has(donorId)) {
+      byDonor.set(donorId, {
+        donorId,
+        donorName,
+        // Before an on-evolution move, the partner is still its pool input
+        // (Venipede before Scolipede's evolution move). For ordinary level
+        // routes, the named learner itself is the interim fielded form.
+        donorInputId: best.partnerSource?.onEvolution
+          ? best.partnerInputId || donorId
+          : donorId,
+        moves: [],
+      });
+    }
+    byDonor.get(donorId).moves.push({
+      id: move.id,
+      name: move.name,
+      detail: best.detail || '',
+      donorLevel,
+    });
+  }
+  return [...byDonor.values()];
+}
+
 // A donor is temporary, so breeding moves ONTO it is never worth the
 // investment — its guide must not recommend pool egg moves. The one exception
 // is a chain link: a move the donor is itself passing on may reach it by
@@ -455,16 +531,32 @@ async function attachDonorInterimGuides({
 }) {
   const guideCache = new Map();
   const globalCap = Number.parseInt(progression.levelCap, 10) || 100;
+  const selectedPokemonIds = new Set(
+    legalMoveEntries.flatMap((entry) => [
+      entry.row?.inputPokemonId,
+      entry.row?.pokemonId,
+      entry.member?.id,
+      entry.member?.representativeId,
+      entry.profile?.currentId,
+      entry.profile?.fieldedId,
+    ]).filter(Boolean),
+  );
 
   const buildGuide = async ({
     donorId,
     donorName,
+    donorInputId,
     interimLevelCap,
     donatedMoveIds,
   }) => {
     try {
       const entry = await buildMemberLegalMoveEntry({
-        row: { pokemonId: donorId, name: donorName, inputName: donorName },
+        row: {
+          pokemonId: donorId,
+          inputPokemonId: donorInputId || donorId,
+          name: donorName,
+          inputName: donorName,
+        },
         // The donor's guide is evaluated at ITS working cap, not the badge
         // cap: the donor retires the moment it levels into the last move
         // it's donating, so its active life tops out one level below that —
@@ -474,6 +566,9 @@ async function attachDonorInterimGuides({
           breedingContext,
           donatedMoveIds,
         ),
+        // A temporary donor should not start another Sketch project merely
+        // to become usable while it waits to learn the move being supplied.
+        sketchContext: null,
         family,
         selection,
       });
@@ -502,7 +597,10 @@ async function attachDonorInterimGuides({
   };
 
   for (const entry of legalMoveEntries) {
-    const requests = collectEggDonorRequests(entry.profile);
+    const requests = mergeDonorRequests([
+      ...collectEggDonorRequests(entry.profile),
+      ...collectSketchDonorRequests(entry.profile, selectedPokemonIds),
+    ]);
     if (!requests.length) continue;
 
     const guides = [];
@@ -520,7 +618,7 @@ async function attachDonorInterimGuides({
       const donatedMoveIds = new Set(
         request.moves.map((move) => move.id).filter(Boolean),
       );
-      const cacheKey = `${request.donorId}@${interimLevelCap}|${[...donatedMoveIds].sort().join(',')}`;
+      const cacheKey = `${request.donorId}<-${request.donorInputId || ''}@${interimLevelCap}|${[...donatedMoveIds].sort().join(',')}`;
       if (!guideCache.has(cacheKey)) {
         guideCache.set(
           cacheKey,
@@ -532,6 +630,21 @@ async function attachDonorInterimGuides({
     }
     if (guides.length) entry.profile.donorInterimGuides = guides;
   }
+}
+
+function mergeDonorRequests(requests) {
+  const byDonor = new Map();
+  for (const request of requests) {
+    if (!byDonor.has(request.donorId)) {
+      byDonor.set(request.donorId, { ...request, moves: [] });
+    }
+    const merged = byDonor.get(request.donorId);
+    if (!merged.donorInputId && request.donorInputId) {
+      merged.donorInputId = request.donorInputId;
+    }
+    merged.moves.push(...request.moves);
+  }
+  return [...byDonor.values()];
 }
 
 /**
