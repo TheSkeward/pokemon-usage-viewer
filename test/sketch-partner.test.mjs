@@ -11,9 +11,13 @@ const {
 } = await import('../src/reborn/legal-moves.js');
 const {
   applySketchContextToProgression,
+  buildRebornSketchContext,
   buildRebornMoveTransferContexts,
 } = await import('../src/reborn/sketch.js');
-const { buildCandidateLegalityProfile } = await import(
+const {
+  buildCandidateLegalityProfile,
+  buildRebornTeamAnalysis,
+} = await import(
   '../src/reborn/team-analysis.js',
 );
 
@@ -111,3 +115,80 @@ test('partner-backed Sketch can feed a later breeding route', async () => {
     'the sketched move can then follow ordinary egg-group rules',
   );
 });
+
+test('Sketch prices evolution levels and lists distinct alternative routes',
+  async () => {
+    const { pokemonIndex } = await loadShared();
+    const progression = progressionAt({ badge: 5, levelCap: 50 });
+    const query = 'Smeargle\nAipom\nVenipede';
+    const { breedingContext, sketchContext } =
+      await buildRebornMoveTransferContexts({
+        pokemonIndex,
+        progression,
+        query,
+      });
+
+    const batonPass = sketchContext.byPokemonId.smeargle.sources.batonpass;
+    assert.equal(
+      batonPass.partnerId,
+      'aipom',
+      'Aipom@11 beats Scolipede evolution@30',
+    );
+    assert.match(batonPass.sourceTitle, /Other pool routes: Scolipede — On evolution/);
+
+    const preferred = await buildRebornSketchContext({
+      pokemonIndex,
+      progression,
+      query,
+      breedingContext,
+      preferredPartnerIds: new Set(['scolipede']),
+      preferredMoveIdsByPartnerId: new Map([
+        ['scolipede', new Set(['batonpass'])],
+      ]),
+    });
+    const preferredBatonPass =
+      preferred.byPokemonId.smeargle.sources.batonpass;
+    assert.equal(preferredBatonPass.partnerId, 'scolipede');
+    assert.match(preferredBatonPass.sourceTitle, /Other pool routes: Aipom — Level 11/);
+  });
+
+test('team analysis prefers a selected partner already carrying the move',
+  async () => {
+    const { pokemonIndex } = await loadShared();
+    const progression = progressionAt({ badge: 5, levelCap: 50 });
+    const analysis = await buildRebornTeamAnalysis(
+      [
+        {
+          pokemonId: 'smeargle',
+          inputPokemonId: 'smeargle',
+          name: 'Smeargle',
+          inputName: 'Smeargle',
+        },
+        {
+          pokemonId: 'scolipede',
+          inputPokemonId: 'venipede',
+          name: 'Scolipede',
+          inputName: 'Venipede',
+        },
+      ],
+      progression,
+      {
+        family: 'singles',
+        selection: 'all',
+        pokemonIndex,
+        query: 'Smeargle\nAipom\nVenipede',
+      },
+    );
+    const smeargle = analysis.profiles.find(
+      (profile) => profile.currentId === 'smeargle',
+    );
+    const batonPass = smeargle.recommendedMoves.find(
+      (move) => move.id === 'batonpass',
+    );
+    assert.equal(
+      batonPass.availableSources.find((source) => source.kind === 'sketch')
+        .partnerId,
+      'scolipede',
+    );
+    assert.match(batonPass.sourceTitle, /Other pool routes: Aipom — Level 11/);
+  });

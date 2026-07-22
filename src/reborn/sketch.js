@@ -1,6 +1,8 @@
 import { buildInputGroups } from '../teamBuilder/input-groups.js';
+import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
 import { toId } from '../utils/ids.js';
 import {
+  acquisitionOf,
   applyBreedingContextToProgression,
   buildRebornBreedingContext,
   canHatchLine,
@@ -51,6 +53,9 @@ export async function buildRebornSketchContext({
   progression = {},
   query = '',
   breedingContext = null,
+  preferredPartnerIds = new Set(),
+  preferredMoveIdsByPartnerId = new Map(),
+  retainRoutes = false,
 } = {}) {
   const ownedSpecies = getOwnedFieldableSpecies({
     pokemonIndex,
@@ -74,24 +79,67 @@ export async function buildRebornSketchContext({
             breedingContext,
           );
           return getAvailableRebornMoves(legalMoveData, partnerProgression)
-            .map((move) => partnerRoute(move, species))
+            .map((move) => partnerRoute(move, species, progression))
             .filter(Boolean);
         }),
     )
   ).flat();
 
-  const bestByMoveId = new Map();
+  const routesByMoveId = new Map();
   for (const route of routes) {
-    const current = bestByMoveId.get(route.moveId);
-    if (!current || comparePartnerRoutes(route, current) < 0) {
-      bestByMoveId.set(route.moveId, route);
+    if (!routesByMoveId.has(route.moveId)) {
+      routesByMoveId.set(route.moveId, []);
     }
+    routesByMoveId.get(route.moveId).push(route);
   }
 
-  const moveIds = [...bestByMoveId.keys()].sort();
+  return buildContextFromRoutes({
+    routesByMoveId,
+    ownedSpecies,
+    preferredPartnerIds,
+    preferredMoveIdsByPartnerId,
+    retainRoutes,
+  });
+}
+
+/**
+ * Re-rank an already-built context for display without loading the full pool a
+ * second time. Team analysis requests retained routes; optimizer contexts stay
+ * compact and omit them.
+ */
+export function rerankRebornSketchContext(sketchContext, {
+  preferredPartnerIds = new Set(),
+  preferredMoveIdsByPartnerId = new Map(),
+  retainRoutes = false,
+} = {}) {
+  if (!sketchContext?.routesByMoveId) return sketchContext;
+  return buildContextFromRoutes({
+    routesByMoveId: sketchContext.routesByMoveId,
+    ownedSpecies: sketchContext.ownedSpecies || [],
+    preferredPartnerIds,
+    preferredMoveIdsByPartnerId,
+    retainRoutes,
+  });
+}
+
+function buildContextFromRoutes({
+  routesByMoveId,
+  ownedSpecies,
+  preferredPartnerIds,
+  preferredMoveIdsByPartnerId,
+  retainRoutes,
+}) {
+  const moveIds = [...routesByMoveId.keys()].sort();
   const sources = {};
   for (const moveId of moveIds) {
-    const route = bestByMoveId.get(moveId);
+    const rankedRoutes = routesByMoveId.get(moveId).sort((a, b) =>
+      comparePartnerRoutes(a, b, {
+        preferredPartnerIds,
+        preferredMoveIdsByPartnerId,
+      }),
+    );
+    const route = rankedRoutes[0];
+    const alternatives = collectAlternativeRoutes(rankedRoutes);
     const partnerSourceText = formatPartnerSource(route.partnerSource);
     sources[moveId] = {
       kind: 'sketch',
@@ -103,6 +151,9 @@ export async function buildRebornSketchContext({
           ? `${route.partnerName}'s source: ${partnerSourceText}.`
           : null,
         route.partnerSource.sourceTitle || null,
+        alternatives.length
+          ? `Other pool routes: ${alternatives.map(formatPartnerRoute).join('; ')}.`
+          : null,
       ]
         .filter(Boolean)
         .join('\n'),
@@ -112,12 +163,14 @@ export async function buildRebornSketchContext({
     };
   }
 
-  return {
+  const context = {
     byPokemonId: {
       [SMEARGLE_ID]: { moveIds, sources },
     },
     ownedSpecies,
   };
+  if (retainRoutes) context.routesByMoveId = routesByMoveId;
+  return context;
 }
 
 /** Stamp one Pokemon's pool-backed Sketch moves into its progression. */
@@ -183,11 +236,16 @@ function getOwnedFieldableSpecies({ pokemonIndex, progression, query }) {
   return [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
 }
 
-function partnerRoute(move, species) {
-  const partnerSource = [...(move.availableSources || [])]
+function partnerRoute(move, species, progression) {
+  const partnerSources = [...(move.availableSources || [])]
     .filter((source) => source.kind !== 'sketch')
-    .sort(comparePartnerSources)[0];
-  if (!partnerSource) return null;
+    .map((source) => ({
+      source,
+      cost: sourceCost(source, species, progression),
+    }))
+    .sort((a, b) => compareRouteCosts(a.cost, b.cost, a.source, b.source));
+  if (!partnerSources.length) return null;
+  const { source: partnerSource, cost } = partnerSources[0];
   return {
     // Hidden Power variants are expanded only after the base move passes its
     // availability gate. One partner variant therefore unlocks the base entry;
@@ -197,31 +255,40 @@ function partnerRoute(move, species) {
     partnerId: species.id,
     partnerName: species.name,
     partnerSource,
+    cost,
   };
 }
 
-function comparePartnerRoutes(a, b) {
+function comparePartnerRoutes(a, b, preferences) {
   return (
-    comparePartnerSources(a.partnerSource, b.partnerSource) ||
+    preferenceRank(a, preferences) - preferenceRank(b, preferences) ||
+    compareRouteCosts(a.cost, b.cost, a.partnerSource, b.partnerSource) ||
     a.partnerName.localeCompare(b.partnerName) ||
     a.partnerId.localeCompare(b.partnerId)
   );
 }
 
-function comparePartnerSources(a, b) {
-  const costA = sourceCost(a);
-  const costB = sourceCost(b);
+function preferenceRank(route, {
+  preferredPartnerIds,
+  preferredMoveIdsByPartnerId,
+}) {
+  if (!preferredPartnerIds.has(route.partnerId)) return 2;
+  const moveIds = preferredMoveIdsByPartnerId.get(route.partnerId);
+  return moveIds?.has(route.moveId) ? 0 : 1;
+}
+
+function compareRouteCosts(costA, costB, sourceA, sourceB) {
   return (
     costA.transferSteps - costB.transferSteps ||
     costA.level - costB.level ||
     costA.hassle - costB.hassle ||
     costA.kind - costB.kind ||
-    String(a.label || '').localeCompare(String(b.label || '')) ||
-    String(a.detail || '').localeCompare(String(b.detail || ''))
+    String(sourceA.label || '').localeCompare(String(sourceB.label || '')) ||
+    String(sourceA.detail || '').localeCompare(String(sourceB.detail || ''))
   );
 }
 
-function sourceCost(source) {
+function sourceCost(source, species, progression) {
   const kindOrder = {
     'level-up': 0,
     tm: 1,
@@ -230,18 +297,51 @@ function sourceCost(source) {
     relearner: 4,
     egg: 5,
   };
+  const acquisition = acquisitionOf(
+    { availableSources: [source] },
+    species.id,
+    {
+      inputId: species.inputId,
+      ownedItems: progression.ownedItems || {},
+    },
+  );
   return {
     // Any direct route beats first arranging another breeding transfer.
     transferSteps: source.kind === 'egg' ? 1 : 0,
-    level:
-      source.kind === 'relearner'
-        ? 200
-        : Number.isFinite(source.level)
-          ? source.level
-          : 0,
-    hassle: source.candyDown || source.delayedEvolution ? 1 : 0,
+    // acquisitionOf prices evolution moves at the real evolution level and
+    // also retains scarce-item costs, rather than treating level:null as free.
+    level: acquisition.level,
+    hassle: acquisition.hassle || 0,
     kind: kindOrder[source.kind] ?? 9,
   };
+}
+
+function collectAlternativeRoutes(rankedRoutes) {
+  const alternatives = [];
+  const seenFamilies = new Set([familyRootId(rankedRoutes[0]?.partnerId)]);
+  for (const route of rankedRoutes.slice(1)) {
+    const family = familyRootId(route.partnerId);
+    if (seenFamilies.has(family)) continue;
+    seenFamilies.add(family);
+    alternatives.push(route);
+    if (alternatives.length >= 2) break;
+  }
+  return alternatives;
+}
+
+function familyRootId(pokemonId) {
+  let id = pokemonId;
+  const seen = new Set();
+  while (GEN7_PROGRESSION_SPECIES[id]?.prevoId && !seen.has(id)) {
+    seen.add(id);
+    id = GEN7_PROGRESSION_SPECIES[id].prevoId;
+  }
+  return id;
+}
+
+function formatPartnerRoute(route) {
+  const source = formatPartnerSource(route.partnerSource);
+  return source ? `${route.partnerName} — ${source}` : route.partnerName;
 }
 
 function formatPartnerSource(source) {

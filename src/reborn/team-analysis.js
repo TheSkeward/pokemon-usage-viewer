@@ -9,6 +9,7 @@ import {
 import {
   applySketchContextToProgression,
   buildRebornMoveTransferContexts,
+  rerankRebornSketchContext,
 } from './sketch.js';
 import {
   getTypeMultiplier,
@@ -57,13 +58,15 @@ export async function buildRebornTeamAnalysis(
   progression = {},
   breedingOptions = {},
 ) {
-  const { breedingContext, sketchContext } =
+  const { breedingContext, sketchContext: baseSketchContext } =
     await buildRebornMoveTransferContexts({
       ...breedingOptions,
       progression,
+      retainRoutes: true,
     });
+  let sketchContext = baseSketchContext;
   const { family, selection, itemAssignments } = breedingOptions;
-  const legalMoveEntries = await Promise.all(
+  let legalMoveEntries = await Promise.all(
     team.map(async (row) => {
       const assignedItem = itemAssignments?.[teamMemberKey(row)];
       const entry = await buildMemberLegalMoveEntry({
@@ -86,6 +89,24 @@ export async function buildRebornTeamAnalysis(
       return entry;
     }),
   );
+  // Eligibility is pool-wide, but the displayed receipt should use the final
+  // team when it offers a valid helper. First prefer a selected mon
+  // whose own recommended set already carries the move, then any selected mon
+  // that can learn it. Rebuild only Smeargle's display profile; move legality
+  // and therefore optimizer scoring are unchanged.
+  const preferredSketch = await preferSelectedTeamSketchRoutes({
+    legalMoveEntries,
+    progression,
+    breedingContext,
+    sketchContext,
+    itemAssignments,
+    family,
+    selection,
+  });
+  if (preferredSketch) {
+    sketchContext = preferredSketch.sketchContext;
+    legalMoveEntries = preferredSketch.legalMoveEntries;
+  }
   // Any recommended move whose best acquisition is breeding already names its
   // donor; attach the donor's own current-form recommended moves so a player
   // fielding the donor in the interim knows what to run. Display-only —
@@ -125,6 +146,72 @@ export async function buildRebornTeamAnalysis(
       members,
     }),
   };
+}
+
+async function preferSelectedTeamSketchRoutes({
+  legalMoveEntries,
+  progression,
+  breedingContext,
+  sketchContext: baseSketchContext,
+  itemAssignments,
+  family,
+  selection,
+}) {
+  const smeargleIndexes = legalMoveEntries
+    .map((entry, index) => ({ entry, index }))
+    .filter(({ entry }) => entry.member.id === 'smeargle')
+    .map(({ index }) => index);
+  if (!smeargleIndexes.length) return null;
+
+  const preferredPartnerIds = new Set();
+  const preferredMoveIdsByPartnerId = new Map();
+  for (const entry of legalMoveEntries) {
+    const partnerIds = new Set([
+      toId(entry.member.id),
+      toId(entry.profile.fieldedId),
+    ]);
+    const moveIds = (entry.profile.recommendedMoves || []).map((move) =>
+      move.id.startsWith('hiddenpower') ? 'hiddenpower' : move.id,
+    );
+    for (const partnerId of partnerIds) {
+      if (!partnerId) continue;
+      preferredPartnerIds.add(partnerId);
+      if (!preferredMoveIdsByPartnerId.has(partnerId)) {
+        preferredMoveIdsByPartnerId.set(partnerId, new Set());
+      }
+      const preferredMoves = preferredMoveIdsByPartnerId.get(partnerId);
+      for (const moveId of moveIds) preferredMoves.add(moveId);
+    }
+  }
+
+  const sketchContext = rerankRebornSketchContext(baseSketchContext, {
+    preferredPartnerIds,
+    preferredMoveIdsByPartnerId,
+  });
+  const rebuilt = [...legalMoveEntries];
+  for (const index of smeargleIndexes) {
+    const oldEntry = legalMoveEntries[index];
+    const assignedItem = itemAssignments?.[teamMemberKey(oldEntry.row)];
+    const entry = await buildMemberLegalMoveEntry({
+      row: oldEntry.row,
+      progression,
+      breedingContext,
+      sketchContext,
+      family,
+      selection,
+      assignedItem,
+      itemAware: true,
+    });
+    entry.profile.recommendedSet = buildRecommendedSet({
+      member: entry.member,
+      profile: entry.profile,
+      topSet: entry.topSet,
+      assignedItem,
+      levelCap: progression.levelCap,
+    });
+    rebuilt[index] = entry;
+  }
+  return { legalMoveEntries: rebuilt, sketchContext };
 }
 
 // The most-seen scraped real team the current pool could field, ranked toward
