@@ -229,9 +229,15 @@ async function main() {
             : await fetchText(listingPageUrl(listing, page));
           const result = page === 1 ? head : await processPage(html, page);
           if (!result.handled) break;
-          recordListingPage(crawl, listing, page, result.next);
+          const sweepContinues = recordListingPage(
+            crawl,
+            listing,
+            page,
+            result.next,
+          );
           saveCrawlState(crawlFile, crawl);
           pages += 1;
+          if (!sweepContinues) break;
         }
       }
       if (rowsSeen) {

@@ -128,14 +128,18 @@ export function recordSinglePageThread(state, row, sweep) {
  * Advance the durable listing cursor only after every row on the page was
  * handled. Reaching the real final page starts a new sweep instead of freezing
  * the crawler forever, so edits and revived old threads are eventually seen.
+ * The return value says whether the CURRENT sweep has another page; callers
+ * must stop their per-run loop on false so they do not wrap into a second
+ * sweep during the same harvest.
+ * @return {boolean}
  */
 export function recordListingPage(state, listing, page, hasNext) {
   const progress = forListing(state, listing);
-  if (page !== progress.page) return progress;
+  if (page !== progress.page) return false;
   if (hasNext) progress.page = page + 1;
   else {
     progress.page = 1;
     progress.sweep += 1;
   }
-  return progress;
+  return Boolean(hasNext);
 }

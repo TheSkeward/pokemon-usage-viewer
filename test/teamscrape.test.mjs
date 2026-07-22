@@ -289,9 +289,16 @@ test('forum crawl state resumes legacy markers and cycles listing sweeps', () =>
   );
 
   const listing = forListing(state, 'https://example.test/forums/x/');
-  recordListingPage(state, 'https://example.test/forums/x/', 1, true);
+  assert.equal(
+    recordListingPage(state, 'https://example.test/forums/x/', 1, true),
+    true,
+  );
   assert.equal(listing.page, 2);
-  recordListingPage(state, 'https://example.test/forums/x/', 2, false);
+  assert.equal(
+    recordListingPage(state, 'https://example.test/forums/x/', 2, false),
+    false,
+    'the harvest stops when the cursor wraps instead of starting sweep 2',
+  );
   assert.deepEqual(listing, { page: 1, sweep: 1 });
   saveCrawlState(stateFile, state);
   assert.deepEqual(readCrawlState(stateFile), state);

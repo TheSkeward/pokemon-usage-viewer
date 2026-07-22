@@ -114,10 +114,11 @@ export function compareEvolutionRouteOptions(a, b) {
 /**
  * The moves actually obtainable under the current progression — level cap,
  * selected TMs/TMXs/tutors, egg-move selections behind the daycare unlock,
- * move relearner — each stamped with availableSources ({kind, level,
- * learnerId, ...} records) and a delayedEvolution flag when every route
- * delays an evolution. Hidden Power is excluded until the Type Changer is
- * unlocked, then expanded into one variant per real type.
+ * pool-backed Sketch partners, move relearner — each stamped with
+ * availableSources ({kind, level, learnerId, ...} records) and a
+ * delayedEvolution flag when every route delays an evolution. Hidden Power is
+ * excluded until the Type Changer is unlocked, then expanded into one variant
+ * per real type.
  * @param {?Object} legalMoveData Output of loadRebornLegalMoveData.
  * @param {!Object=} progression
  * @return {!Array<!Object>} Sorted by best source kind, then type, then name.
@@ -137,6 +138,11 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
     progression.availableEggMoveSourcesForPokemon ||
     progression.availableEggMoveSourcesByPokemon?.[legalMoveData?.pokemonId] ||
     {};
+  const selectedSketchMoveIds = new Set(
+    progression.availableSketchMoveIdsForPokemon || [],
+  );
+  const sketchMoveSourceById =
+    progression.availableSketchMoveSourcesForPokemon || {};
   const moveRelearnerUnlocked = Boolean(progression.moveRelearnerUnlocked);
   const daycareUnlocked = Boolean(progression.daycareUnlocked);
   const pokemonId = legalMoveData?.pokemonId;
@@ -362,15 +368,15 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
       });
     }
 
-    // Sketch: Smeargle copies any move ever used in battle, so the whole
-    // move universe is legal at any level, no unlock required.
-    if (
-      move.sources?.sketch &&
-      !sources.some((source) => source.kind === 'level-up')
-    ) {
+    // Sketch is mechanically broad but not free setup: the pool-derived
+    // context names another currently fieldable Pokemon that can already use
+    // this move. It intentionally has no egg-group or daycare gate of its own.
+    if (move.sources?.sketch && selectedSketchMoveIds.has(move.id)) {
+      const sketchSource = sketchMoveSourceById[move.id] || {};
       sources.push({
-        kind: 'level-up',
-        label: 'Sketch',
+        ...sketchSource,
+        kind: 'sketch',
+        label: sketchSource.label || 'Sketch',
         level: null,
         learnerId: null,
       });
@@ -536,7 +542,8 @@ function getBestSourcePriority(move) {
     tm: 2,
     tmx: 3,
     tutor: 4,
-    egg: 5,
+    sketch: 5,
+    egg: 6,
   };
 
   return Math.min(

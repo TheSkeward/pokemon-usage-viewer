@@ -56,9 +56,10 @@ const UNIVERSAL_TM_MOVES = new Set(
 // empty in the data).
 const LEARNS_ALL_MACHINES = new Set(['mew']);
 
-// Sketch copies any move ever used in battle, so Smeargle's practical legal
-// pool is the entire Reborn move universe, at any level. Gen 7 exceptions:
-// Chatter and Struggle cannot be sketched.
+// Sketch can copy moves from a battle partner, so Smeargle's POTENTIAL legal
+// pool is the entire Reborn move universe. Runtime progression narrows this to
+// moves another currently fieldable pool Pokemon can already use. Gen 7
+// exceptions: Chatter and Struggle cannot be sketched.
 const UNSKETCHABLE_MOVES = new Set(['chatter', 'struggle']);
 
 const { learnsets } = JSON.parse(
@@ -71,8 +72,8 @@ const pokemonIndex = JSON.parse(
   readFileSync(path.join(dataDir, 'pokemon-index.json'), 'utf8'),
 );
 
-// The sketchable universe: every move that exists anywhere in Reborn's data
-// (any learnset, machine, or tutor), minus the unsketchables.
+// The potentially sketchable universe: every move that exists anywhere in
+// Reborn's data (any learnset, machine, or tutor), minus the unsketchables.
 const SKETCH_UNIVERSE = new Set([
   ...rebornTmMoveIds,
   ...rebornTmxMoveIds,

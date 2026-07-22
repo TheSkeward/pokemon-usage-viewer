@@ -17,6 +17,7 @@ import {
   getAvailableRebornMoves,
   loadRebornLegalMoveData,
 } from '../reborn/legal-moves.js';
+import { applySketchContextToProgression } from '../reborn/sketch.js';
 import { toId } from '../utils/ids.js';
 
 /**
@@ -182,6 +183,7 @@ export async function findFieldableRealTeam({
   progression = {},
   recommendedIds = new Set(),
   breedingContext = null,
+  sketchContext = null,
 }) {
   const candidates = [...(teams || [])].sort((a, b) =>
     compareRealTeams(a, b, recommendedIds),
@@ -196,6 +198,7 @@ export async function findFieldableRealTeam({
     ownedItems: progression.ownedItems || {},
     progression,
     breedingContext,
+    sketchContext,
     availableMoveIdsCache: new Map(),
   };
 
@@ -235,10 +238,14 @@ async function memberMovesAvailable(member, context) {
     // Same memberProgression pattern as buildMemberLegalMoveEntry: the
     // breeding context supplies this species' poolable egg moves, so egg-
     // move-dependent real teams qualify when the pool can breed those moves.
-    const memberProgression = applyBreedingContextToProgression(
-      context.progression,
+    const memberProgression = applySketchContextToProgression(
+      applyBreedingContextToProgression(
+        context.progression,
+        speciesId,
+        context.breedingContext,
+      ),
       speciesId,
-      context.breedingContext,
+      context.sketchContext,
     );
     context.availableMoveIdsCache.set(
       speciesId,

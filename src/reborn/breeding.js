@@ -20,6 +20,7 @@ export async function buildRebornBreedingContext({
   pokemonIndex = [],
   progression = {},
   query = '',
+  sketchContext = null,
 } = {}) {
   if (!progression.daycareUnlocked) return emptyContext();
 
@@ -40,9 +41,12 @@ export async function buildRebornBreedingContext({
         // ("@35", "evo@32", "TM42") for the chain detail. Drives donor
         // ranking below.
         const costs = new Map();
+        const sketch = sketchContext?.byPokemonId?.[species.id];
         for (const move of getAvailableRebornMoves(legalMoveData, {
           ...progression,
           availableEggMoveIdsForPokemon: [],
+          availableSketchMoveIdsForPokemon: sketch?.moveIds || [],
+          availableSketchMoveSourcesForPokemon: sketch?.sources || {},
         })) {
           costs.set(move.id, {
             ...acquisitionOf(move, species.id, {

@@ -5,8 +5,11 @@ import {
 import { getCurrentRebornSpeciesForChoice } from './current-species.js';
 import {
   applyBreedingContextToProgression,
-  buildRebornBreedingContext,
 } from './breeding.js';
+import {
+  applySketchContextToProgression,
+  buildRebornMoveTransferContexts,
+} from './sketch.js';
 import {
   getTypeMultiplier,
   REBORN_ANALYSIS_TYPES,
@@ -54,10 +57,11 @@ export async function buildRebornTeamAnalysis(
   progression = {},
   breedingOptions = {},
 ) {
-  const breedingContext = await buildRebornBreedingContext({
-    ...breedingOptions,
-    progression,
-  });
+  const { breedingContext, sketchContext } =
+    await buildRebornMoveTransferContexts({
+      ...breedingOptions,
+      progression,
+    });
   const { family, selection, itemAssignments } = breedingOptions;
   const legalMoveEntries = await Promise.all(
     team.map(async (row) => {
@@ -66,6 +70,7 @@ export async function buildRebornTeamAnalysis(
         row,
         progression,
         breedingContext,
+        sketchContext,
         family,
         selection,
         assignedItem,
@@ -101,6 +106,7 @@ export async function buildRebornTeamAnalysis(
   return {
     members,
     breeding: breedingContext,
+    sketch: sketchContext,
     defensive,
     explanation: buildTeamExplanation({
       defensive,
@@ -115,6 +121,7 @@ export async function buildRebornTeamAnalysis(
       lines: breedingOptions.lines || [],
       progression,
       breedingContext,
+      sketchContext,
       members,
     }),
   };
@@ -128,6 +135,7 @@ async function computeFieldableRealTeam({
   lines,
   progression,
   breedingContext,
+  sketchContext,
   members,
 }) {
   try {
@@ -144,6 +152,7 @@ async function computeFieldableRealTeam({
       progression,
       recommendedIds,
       breedingContext,
+      sketchContext,
     });
   } catch {
     return null;
@@ -158,6 +167,7 @@ async function buildMemberLegalMoveEntry({
   row,
   progression,
   breedingContext,
+  sketchContext,
   family,
   selection,
   assignedItem = null,
@@ -177,10 +187,15 @@ async function buildMemberLegalMoveEntry({
   const legalMoveData = await loadRebornLegalMoveData(
     battleSpeciesId,
   );
-  const memberProgression = applyBreedingContextToProgression(
-    progression,
-    currentSpecies?.id || legalMoveData?.pokemonId,
-    breedingContext,
+  const memberPokemonId = currentSpecies?.id || legalMoveData?.pokemonId;
+  const memberProgression = applySketchContextToProgression(
+    applyBreedingContextToProgression(
+      progression,
+      memberPokemonId,
+      breedingContext,
+    ),
+    memberPokemonId,
+    sketchContext,
   );
   const member = {
     id: battleSpeciesId,
@@ -448,10 +463,11 @@ export async function getTeamItemContext(
   progression = {},
   breedingOptions = {},
 ) {
-  const breedingContext = await buildRebornBreedingContext({
-    ...breedingOptions,
-    progression,
-  });
+  const { breedingContext, sketchContext } =
+    await buildRebornMoveTransferContexts({
+      ...breedingOptions,
+      progression,
+    });
   const { family, selection } = breedingOptions;
   const byMember = new Map();
 
@@ -461,6 +477,7 @@ export async function getTeamItemContext(
         row,
         progression,
         breedingContext,
+        sketchContext,
         family,
         selection,
       });
@@ -1621,7 +1638,8 @@ function getBestSourcePriority(move) {
     tm: 2,
     tmx: 3,
     tutor: 4,
-    egg: 5,
+    sketch: 5,
+    egg: 6,
   };
 
   return Math.min(
@@ -1656,7 +1674,8 @@ function getSourcePriority(source) {
     tm: 2,
     tmx: 3,
     tutor: 4,
-    egg: 5,
+    sketch: 5,
+    egg: 6,
   };
 
   return priorities[source.kind] ?? 9;

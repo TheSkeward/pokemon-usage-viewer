@@ -7,8 +7,11 @@ import {
 } from './legal-moves';
 import {
   applyBreedingContextToProgression,
-  buildRebornBreedingContext,
 } from './breeding.js';
+import {
+  applySketchContextToProgression,
+  buildRebornMoveTransferContexts,
+} from './sketch.js';
 
 const HIDDEN_MOVESET_ENTRY_KEYS = new Set(['other', 'nothing']);
 const SOURCE_TONE = {
@@ -17,6 +20,7 @@ const SOURCE_TONE = {
   tm: 'machine',
   tmx: 'machine',
   tutor: 'tutor',
+  sketch: 'sketch',
   egg: 'egg',
 };
 
@@ -37,7 +41,11 @@ export function renderRebornLegalMovesPanel(container, options) {
     options;
   const legalityPokemonId = currentSpecies?.id || pokemonId;
   const legalityPokemonName = currentSpecies?.name || pokemonName;
-  const renderKey = JSON.stringify({ pokemonId, progression });
+  const renderKey = JSON.stringify({
+    pokemonId,
+    progression,
+    poolQuery: options.poolQuery,
+  });
   container.dataset.legalMovesKey = renderKey;
   container.innerHTML = `
     <section class="panel details-panel reborn-legal-panel">
@@ -48,16 +56,17 @@ export function renderRebornLegalMovesPanel(container, options) {
 
   Promise.all([
     loadRebornLegalMoveData(legalityPokemonId),
-    buildRebornBreedingContext({
+    buildRebornMoveTransferContexts({
       pokemonIndex: options.pokemonIndex,
       progression,
       query: options.poolQuery,
     }),
   ])
-    .then(([legalMoveData, breedingContext]) => {
+    .then(([legalMoveData, { breedingContext, sketchContext }]) => {
       if (container.dataset.legalMovesKey !== renderKey) return;
       container.innerHTML = renderLoadedPanel({
         breedingContext,
+        sketchContext,
         currentSpecies,
         legalMoveData,
         legalityPokemonName,
@@ -79,6 +88,7 @@ export function renderRebornLegalMovesPanel(container, options) {
 
 function renderLoadedPanel({
   breedingContext,
+  sketchContext,
   currentSpecies,
   legalMoveData,
   legalityPokemonName,
@@ -95,18 +105,22 @@ function renderLoadedPanel({
     `;
   }
 
-  const progressionWithBreeding = applyBreedingContextToProgression(
-    progression,
+  const progressionWithMoveTransfers = applySketchContextToProgression(
+    applyBreedingContextToProgression(
+      progression,
+      legalMoveData.pokemonId,
+      breedingContext,
+    ),
     legalMoveData.pokemonId,
-    breedingContext,
+    sketchContext,
   );
   const availableMoves = getAvailableRebornMoves(
     legalMoveData,
-    progressionWithBreeding,
+    progressionWithMoveTransfers,
   );
   const availableMoveMap = getAvailableMoveMap(
     legalMoveData,
-    progressionWithBreeding,
+    progressionWithMoveTransfers,
   );
   const eggMoveCount =
     breedingContext?.byPokemonId?.[legalMoveData.pokemonId]?.moveIds?.length ||

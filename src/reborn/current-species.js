@@ -101,6 +101,25 @@ export function getCurrentRebornSpecies(pokemonId, progression = {}) {
   };
 }
 
+/**
+ * Every non-Mega form reachable from an exact owned species under the current
+ * evolution access and level cap. Unlike getCurrentRebornSpecies, this keeps
+ * all legal branches and intermediate forms; move-transfer helpers use it to
+ * model any partner the player could choose to field.
+ * @param {?string} pokemonId
+ * @param {Object=} progression
+ * @return {!Array<!Object>}
+ */
+export function getReachableRebornSpecies(pokemonId, progression = {}) {
+  const inputId = toId(pokemonId);
+  if (!inputId) return [];
+  return collectReachableSpecies(
+    inputId,
+    normalizeLevelCap(progression.levelCap),
+    progression,
+  ).reachable;
+}
+
 function getBestLevelReachableSpecies(
   { inputId, levelCap, representativeId, access = null }) {
   const input = GEN7_PROGRESSION_SPECIES[inputId];

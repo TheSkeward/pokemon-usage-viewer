@@ -2,9 +2,13 @@ import { getLineRepresentativeCandidates } from '../data';
 import { getActiveGame } from '../games/registry.js';
 import {
   applyBreedingContextToProgression,
-  buildRebornBreedingContext,
   canHatchLine,
 } from '../reborn/breeding.js';
+import {
+  applySketchContextToProgression,
+  buildRebornMoveTransferContexts,
+  sketchContextSignature,
+} from '../reborn/sketch.js';
 import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
 import {
   getCurrentRebornSpeciesForChoice,
@@ -204,7 +208,9 @@ const MAX_RESULT_CACHE = 400;
 // v45: the quantile-feature keys renamed to camelCase (damage_q → damageQ
 // et al.) in code, tests, and SCORING.md together; persisted results carry
 // the old keys in their feature vectors and would render blank breakdowns.
-const RESULT_CACHE_VERSION = '45';
+// v46: Smeargle's Sketch moves require a currently obtainable move on another
+// pool Pokemon, so its builds and source receipts now depend on its partners.
+const RESULT_CACHE_VERSION = '46';
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
@@ -260,11 +266,12 @@ export async function optimizeTeamFromPool({
 
   await ensureHydrated();
 
-  const breedingContext = await buildRebornBreedingContext({
-    pokemonIndex,
-    progression,
-    query,
-  });
+  const { breedingContext, sketchContext } =
+    await buildRebornMoveTransferContexts({
+      pokemonIndex,
+      progression,
+      query,
+    });
 
   const progressionSig = stableStringify(progression);
   // A line's egg moves can come from any current owned species via breeding,
@@ -277,6 +284,7 @@ export async function optimizeTeamFromPool({
     Object.keys(breedingContext.byPokemonId).length
       ? stableStringify(breedingContext.byPokemonId)
       : 'none';
+  const sketchSig = sketchContextSignature(sketchContext);
   // Ability annotations ("Froakie (Torrent)") change a line's builds, so they
   // are part of the score context too.
   const abilityAnnotations = parseAbilityAnnotations(query, pokemonIndex);
@@ -299,7 +307,7 @@ export async function optimizeTeamFromPool({
   // The game id leads the signature: every cache layer keyed by contextSig
   // (line cache, result cache, persisted results) is per-game, so switching
   // games can never serve one game's verdicts to another.
-  const contextSig = `${getActiveGame().id}|${family}|${selection}|${progressionSig}|${breedingSig}|${abilitySig}|${scoringOverridesSignature()}|${dataSignature}${
+  const contextSig = `${getActiveGame().id}|${family}|${selection}|${progressionSig}|${breedingSig}|${sketchSig}|${abilitySig}|${scoringOverridesSignature()}|${dataSignature}${
     fastMode ? '|search:fast2' : ''
   }`;
 
@@ -343,6 +351,7 @@ export async function optimizeTeamFromPool({
           args: {
             availability,
             breedingContext,
+            sketchContext,
             family,
             group,
             pokemonIndex,
@@ -576,6 +585,7 @@ function stableStringify(value) {
 async function resolvePoolLine({
   availability,
   breedingContext,
+  sketchContext,
   family,
   group,
   pokemonIndex,
@@ -641,6 +651,7 @@ async function resolvePoolLine({
         });
         const builds = await resolveCandidateBuilds({
           breedingContext,
+          sketchContext,
           candidate,
           family,
           input,
@@ -1085,6 +1096,7 @@ function formatLegalityNote(profile) {
 // defensive and collapsed PvE attacker offense).
 async function resolveCandidateBuilds({
   breedingContext,
+  sketchContext,
   candidate,
   family,
   input,
@@ -1126,10 +1138,15 @@ async function resolveCandidateBuilds({
   const legalMoveData = await loadRebornLegalMoveData(
     battleSpeciesId,
   );
-  const memberProgression = applyBreedingContextToProgression(
-    progression,
-    currentSpecies?.id || legalMoveData?.pokemonId,
-    breedingContext,
+  const memberPokemonId = currentSpecies?.id || legalMoveData?.pokemonId;
+  const memberProgression = applySketchContextToProgression(
+    applyBreedingContextToProgression(
+      progression,
+      memberPokemonId,
+      breedingContext,
+    ),
+    memberPokemonId,
+    sketchContext,
   );
   const member = {
     id: battleSpeciesId,
