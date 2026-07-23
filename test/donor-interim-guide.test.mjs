@@ -34,9 +34,22 @@ test('breeding cost keeps hops primary, then minimizes acquisition level', () =>
     level: 1,
     path: ['Root', 'Relay'],
   };
+  const sketchTwoHop = {
+    hops: 2,
+    sketchHops: 1,
+    level: 0,
+    path: ['Sketch partner', 'Smeargle'],
+  };
+  const breedingTwoHop = {
+    hops: 2,
+    sketchHops: 0,
+    level: 99,
+    path: ['Root', 'Relay'],
+  };
 
   assert.ok(compareBreedingCosts(lowLevelDirect, highLevelDirect) < 0);
   assert.ok(compareBreedingCosts(highLevelDirect, lowLevelTwoHop) < 0);
+  assert.ok(compareBreedingCosts(breedingTwoHop, sketchTwoHop) < 0);
 });
 
 test('collectEggDonorRequests keys on egg-best moves and dedupes by donor', () => {

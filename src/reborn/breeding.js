@@ -48,13 +48,22 @@ export async function buildRebornBreedingContext({
           availableSketchMoveIdsForPokemon: sketch?.moveIds || [],
           availableSketchMoveSourcesForPokemon: sketch?.sources || {},
         })) {
+          const acquisition = acquisitionOf(move, species.id, {
+            inputId: species.inputId,
+            ownedItems: progression.ownedItems || {},
+          });
+          const sketchHops = acquisition.sketchHops || 0;
           costs.set(move.id, {
-            ...acquisitionOf(move, species.id, {
-              inputId: species.inputId,
-              ownedItems: progression.ownedItems || {},
-            }),
-            hops: 0,
-            path: [],
+            ...acquisition,
+            // Sketch is itself a transfer onto Smeargle. Counting it here
+            // ensures Sketch→Smeargle→recipient cannot masquerade as the
+            // same one-hop route as an ordinary compatible donor.
+            hops: sketchHops,
+            sketchHops,
+            path:
+              sketchHops && acquisition.partnerName
+                ? [acquisition.partnerName]
+                : [],
           });
         }
 
@@ -77,9 +86,9 @@ export async function buildRebornBreedingContext({
   // each pass under sortDonorRoutes' order (shortest chain, then earliest
   // acquisition). Multi-hop
   // chains inherit the upstream donor's level, root acquisition, and path.
-  // The pick never regresses under the cost order — every leveling route is
-  // present from the hops-0 seed and later passes only add or shorten
-  // chains — so the acceptance check below terminates.
+  // The pick never regresses under the cost order — every ordinary intrinsic
+  // route starts at hops 0, Sketch starts at one transfer, and later passes
+  // only add or shorten chains — so the acceptance check below terminates.
   let changed = true;
   while (changed) {
     changed = false;
@@ -191,11 +200,12 @@ export async function buildRebornBreedingContext({
  * source's structured fields (kind/level/learnerId — labels are display-
  * only), as {level, how}: level-up sources cost their level ("@35");
  * evolution moves cost the species' evolution level ("evo@32" — you must
- * evolve to learn it); anything else (TM/tutor/Sketch) is teachable outright
- * at level 0, labelled by its source ("TM42"). Delayed-evolution level-ups
- * still cost their level. `leveled` marks the routes the player levels a
- * specific form through (@N / evo@N) — the ones that can cap a donor's
- * working life and join the least-delay preference.
+ * evolve to learn it); anything else (TM/tutor/Sketch) has no leveling cost
+ * and is labelled by its source ("TM42"). Sketch separately carries one
+ * transfer hop, so any intrinsic source wins before level is considered.
+ * Delayed-evolution level-ups still cost their level. `leveled` marks the
+ * routes the player levels a specific form through (@N / evo@N) — the ones
+ * that can cap a donor's working life and join the least-delay preference.
  *
  * Scarce-resource pricing: when the form that learns the move can only be
  * obtained by consuming evolution items the player doesn't renewably own —
@@ -256,6 +266,9 @@ export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
         sourceTitle,
       };
     }
+    candidate.sourceKind = source.kind || '';
+    candidate.partnerName = source.partnerName || null;
+    candidate.sketchHops = source.kind === 'sketch' ? 1 : 0;
     // Charge unspent evolution items between the player's actual form and
     // the form that learns the move. Applied per SOURCE because different
     // sources name different learners: Drapion's "Level 9 (Skorupi)" hatches
@@ -270,16 +283,19 @@ export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
       };
     }
 
-    if (
-      !best ||
-      candidate.level < best.level ||
-      (candidate.level === best.level &&
-        (candidate.hassle || 0) < (best.hassle || 0))
-    ) {
+    if (!best || compareAcquisitionCosts(candidate, best) < 0) {
       best = candidate;
     }
   }
   return best || { level: 0, how: '' };
+}
+
+function compareAcquisitionCosts(a, b) {
+  return (
+    (a.sketchHops || 0) - (b.sketchHops || 0) ||
+    a.level - b.level ||
+    (a.hassle || 0) - (b.hassle || 0)
+  );
 }
 
 // Above every real level (caps top out at 150) and the relearner's 200, so a
@@ -362,6 +378,7 @@ function collectDonorRoutes(target, entries, moveId) {
       level: donorCost.level,
       how: donorCost.how,
       leveled: Boolean(donorCost.leveled),
+      sketchHops: donorCost.sketchHops || 0,
       hassle: donorCost.hassle || 0,
       sourceTitle: donorCost.sourceTitle || '',
       path:
@@ -381,9 +398,11 @@ function sortDonorRoutes(routes) {
 }
 
 /**
- * The shortest possible chain always wins; lower acquisition level is the
- * next priority, even when that means carrying an NFE donor longer. The
- * final tiebreaks on
+ * The shortest possible transfer chain always wins. At equal length, an
+ * all-breeding chain beats one containing Sketch because arranging a Double
+ * Battle copy is more work than an ordinary daycare transfer. Lower
+ * acquisition level is next, even when that means carrying an NFE donor
+ * longer. The final tiebreaks on
  * path/how/sourceTitle exist purely to make the order TOTAL — the result
  * must not depend on pool input order, which would leak into cache
  * signatures and tooltip text.
@@ -391,6 +410,9 @@ function sortDonorRoutes(routes) {
  */
 export function compareBreedingCosts(a, b) {
   if (a.hops !== b.hops) return a.hops - b.hops;
+  if ((a.sketchHops || 0) !== (b.sketchHops || 0)) {
+    return (a.sketchHops || 0) - (b.sketchHops || 0);
+  }
   if (a.level !== b.level) return a.level - b.level;
   return (
     (a.hassle || 0) - (b.hassle || 0) ||

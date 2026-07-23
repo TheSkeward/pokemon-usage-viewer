@@ -116,6 +116,30 @@ test('partner-backed Sketch can feed a later breeding route', async () => {
   );
 });
 
+test('a compatible donor beats the extra, costlier Smeargle transfer',
+  async () => {
+    const { pokemonIndex } = await loadShared();
+    const progression = {
+      ...progressionAt({ badge: 5, levelCap: 50 }),
+      daycareUnlocked: true,
+    };
+    const { breedingContext } = await buildRebornMoveTransferContexts({
+      pokemonIndex,
+      progression,
+      query: 'Eevee\nSmeargle\nNatu\nMunna',
+    });
+
+    const synchronoise =
+      breedingContext.byPokemonId.eevee.sources.synchronoise;
+    assert.equal(synchronoise.donorName, 'Munna');
+    assert.equal(synchronoise.detail, 'Munna breeding chain (@25)');
+    assert.equal(
+      breedingContext.byPokemonId.eevee.sources.wish.donorName,
+      'Smeargle',
+      'Smeargle remains valid when the source cannot breed with Eevee',
+    );
+  });
+
 test('Sketch prices evolution levels and lists distinct alternative routes',
   async () => {
     const { pokemonIndex } = await loadShared();
