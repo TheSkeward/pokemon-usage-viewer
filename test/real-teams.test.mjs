@@ -15,6 +15,9 @@ const {
   teamItemShortages,
   teamItemsCovered,
 } = await import('../src/teamBuilder/real-teams.js');
+const { buildFieldablePoolLines } = await import(
+  '../src/teamBuilder/line-reachability.js',
+);
 const { renderRealTeamPanel } = await import(
   '../src/reborn/team-analysis-view.js',
 );
@@ -99,6 +102,41 @@ test('daycare + hatchable line fields any family form (v21 rule)', () => {
   assert.ok(capped.has('starly'));
   assert.ok(capped.has('staravia'), 'input form itself is always fieldable');
   assert.ok(!capped.has('staraptor'), 'level 34 evolution is out of cap reach');
+});
+
+test('unscored pool inputs remain available to usage-team matching', async () => {
+  const pokemonIndex = [
+    { id: 'tauros', name: 'Tauros' },
+    { id: 'lapras', name: 'Lapras' },
+  ];
+  const fullPoolLines = buildFieldablePoolLines({
+    query: 'Tauros, Lapras',
+    pokemonIndex,
+    progression: { levelCap: '100' },
+  });
+  const laprasTeam = makeTeam('lapras-team', 1, 1, ['lapras']);
+
+  assert.equal(fullPoolLines.length, 2);
+  assert.equal(
+    await findFieldableRealTeam({
+      teams: [laprasTeam],
+      lines: fullPoolLines.slice(0, 1),
+      progression: { levelCap: '100' },
+    }),
+    null,
+    'a capped scored subset cannot see Lapras',
+  );
+  assert.equal(
+    (
+      await findFieldableRealTeam({
+        teams: [laprasTeam],
+        lines: fullPoolLines,
+        progression: { levelCap: '100' },
+      })
+    )?.key,
+    'lapras-team',
+    'the lightweight full-query pool can see Lapras without scoring it',
+  );
 });
 
 test('assignment: one line covers at most one member, scarcest member seats first', () => {

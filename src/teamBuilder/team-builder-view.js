@@ -374,8 +374,14 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
 
 function renderScoringPoolNote(result) {
   const selection = result.poolSelection;
-  if (!selection?.donorOnlyLines) return '';
-  return `<p class="muted">Scored the top ${selection.scoredLines} of ${selection.recognizedLines} recognized pool lines in numbered-bench usage order. The other ${selection.donorOnlyLines} remain available to breeding, Sketch, and interim-donor routes.</p>`;
+  if (!selection?.donorOnlyLines && !selection?.duplicateLines) return '';
+  const duplicateNote = selection.duplicateLines
+    ? ` ${selection.duplicateLines} repeated evolution route${selection.duplicateLines === 1 ? '' : 's'} share${selection.duplicateLines === 1 ? 's' : ''} a bench entry.`
+    : '';
+  const tailNote = selection.donorOnlyLines
+    ? ` The other ${selection.donorOnlyLines} remain listed below and available to breeding, Sketch, interim-donor routes, and usage-team matching.`
+    : '';
+  return `<p class="muted">Scored ${selection.scoredLines} distinct pool lines in numbered-bench usage order.${duplicateNote}${tailNote}</p>`;
 }
 
 function renderPostAnalysisSkippedSection(state) {
@@ -769,30 +775,71 @@ const SHORT_FORMAT = {
 // reaches real usage. So a wall of identical 0.0% headline scores becomes a
 // readable "AG 1500 — Ekans 0.1%, … · AG 0 — Patrat 0.1%", and the weakest
 // (deepest-tier, or no-signal-anywhere) lines are flagged.
-function renderBenchLine(result) {
+export function renderBenchLine(result) {
   const selectedInputIds = new Set(
     result.team.map((choice) => choice.inputPokemonId),
   );
-  const seenInputIds = new Set();
-  const bench = [];
+  const scoredEntries = [];
+  const scoredEntryByInputId = new Map();
 
   for (const line of result.lines || []) {
     const representative = line.best || line.bestNonMega;
     if (!representative) continue;
-    if (selectedInputIds.has(representative.inputPokemonId)) continue;
-    if (seenInputIds.has(representative.inputPokemonId)) continue;
-
-    seenInputIds.add(representative.inputPokemonId);
     const ceiling = getLineCeilingRanking(line.candidates);
-    bench.push({
+    const trace = ceiling ? null : getLineTraceRanking(line.candidates);
+    const entry = {
       representative,
       ceiling,
       // Only lines with no meaningful tier anywhere get a trace label — the
       // ceiling keeps sole authority over everything above the bar.
-      trace: ceiling ? null : getLineTraceRanking(line.candidates),
-    });
+      trace,
+      displayKey:
+        ceiling?.pokemonId ||
+        trace?.pokemonId ||
+        representative.pokemonId ||
+        representative.inputPokemonId,
+      scored: true,
+    };
+    scoredEntries.push(entry);
+    scoredEntryByInputId.set(representative.inputPokemonId, entry);
   }
 
+  const selectedDisplayKeys = new Set(
+    [...selectedInputIds]
+      .map((inputId) => scoredEntryByInputId.get(inputId)?.displayKey)
+      .filter(Boolean),
+  );
+  const benchByDisplayKey = new Map();
+  for (const entry of scoredEntries) {
+    if (selectedInputIds.has(entry.representative.inputPokemonId)) continue;
+    if (selectedDisplayKeys.has(entry.displayKey)) continue;
+    const current = benchByDisplayKey.get(entry.displayKey);
+    if (!current || preferBenchEntry(entry, current)) {
+      benchByDisplayKey.set(entry.displayKey, entry);
+    }
+  }
+
+  // Large-pool selection retains a compact usage receipt for every unscored
+  // entry. Merge that tail back into the visible list without resolving its
+  // builds or feeding it to the team search.
+  for (const poolEntry of result.poolUsageEntries || []) {
+    if (poolEntry.scored) continue;
+    if (selectedDisplayKeys.has(poolEntry.displayKey)) continue;
+    if (benchByDisplayKey.has(poolEntry.displayKey)) continue;
+    benchByDisplayKey.set(poolEntry.displayKey, {
+      representative: {
+        inputPokemonId: poolEntry.inputPokemonId,
+        inputName: poolEntry.inputName,
+        pokemonId: poolEntry.displayPokemonId,
+        name: poolEntry.displayName,
+      },
+      ceiling: poolEntry.ceiling,
+      trace: poolEntry.trace,
+      displayKey: poolEntry.displayKey,
+      scored: false,
+    });
+  }
+  const bench = [...benchByDisplayKey.values()];
   if (!bench.length) return '';
 
   // Worst = worst fit RIGHT NOW: the bottom 10% (rounded up) by best
@@ -804,7 +851,10 @@ function renderBenchLine(result) {
   // coverage-aware swap signal (a unique-coverage mon — your only Water
   // answer — isn't flagged just for low usage); falls back to the usage-tier
   // ranking when there's no optimal team to swap against.
-  const worstInputIds = pickWorstBench(bench, result.benchSwapScores);
+  const worstInputIds = pickWorstBench(
+    bench.filter((entry) => entry.scored),
+    result.benchSwapScores,
+  );
 
   // The chip names the form that EARNED the group's tier and usage — the
   // line's best-ranked form — not the representative you'd field (a Rattata
@@ -860,7 +910,7 @@ function renderBenchLine(result) {
   // re-deriving the order, and the box a chip lands in is visible at a glance.
   const BOX_SIZE = 30;
   const MAX_BENCH_INDEX = BOX_SIZE * 4;
-  let benchPosition = 0;
+  let numberedBenchPosition = 0;
 
   // Ordering: meaningful tiers shallow → deep first; then the trace tail by
   // games ascending (fewer games to 50%-see one = stronger signal), and
@@ -895,10 +945,10 @@ function renderBenchLine(result) {
       const chips = group.entries
         .map((entry) => {
           const { representative, ceiling } = entry;
-          benchPosition += 1;
+          if (entry.scored) numberedBenchPosition += 1;
           const boxIndex =
-            benchPosition <= MAX_BENCH_INDEX
-              ? `<span class="bench-index bench-index--box${Math.floor((benchPosition - 1) / BOX_SIZE)}">${benchPosition}.</span> `
+            entry.scored && numberedBenchPosition <= MAX_BENCH_INDEX
+              ? `<span class="bench-index bench-index--box${Math.floor((numberedBenchPosition - 1) / BOX_SIZE)}">${numberedBenchPosition}.</span> `
               : '';
           const isWorst = worstInputIds.has(representative.inputPokemonId);
           const formName = chipFormName(entry);
@@ -920,7 +970,10 @@ function renderBenchLine(result) {
           const worstNote = isWorst
             ? ' · flagged: worst fit for the current team right now (bottom 10% by best swap-in score at this level cap — not a judgement of eventual value)'
             : '';
-          return `<span class="${classes}" title="from input ${escapeHtml(representative.inputName)}${escapeHtml(fieldsAs)}${escapeHtml(worstNote)}">${boxIndex}${escapeHtml(chipName)}${usage}</span>`;
+          const unscoredNote = entry.scored
+            ? ''
+            : ' · outside the 126-line scored working set; still available for donors and usage-team matching';
+          return `<span class="${classes}" title="from input ${escapeHtml(representative.inputName)}${escapeHtml(fieldsAs)}${escapeHtml(worstNote)}${escapeHtml(unscoredNote)}">${boxIndex}${escapeHtml(chipName)}${usage}</span>`;
         })
         .join('');
 
@@ -941,6 +994,17 @@ function renderBenchLine(result) {
       <span class="bench-items">${segments}</span>
     </div>
   `;
+}
+
+function preferBenchEntry(candidate, current) {
+  const candidateExact =
+    candidate.representative.inputPokemonId === candidate.displayKey;
+  const currentExact =
+    current.representative.inputPokemonId === current.displayKey;
+  if (candidateExact !== currentExact) return candidateExact;
+  return candidate.representative.inputName.localeCompare(
+    current.representative.inputName,
+  ) < 0;
 }
 
 // Usage is truncated, not rounded, so the displayed figure never overstates

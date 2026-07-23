@@ -23,6 +23,7 @@ export function getLineCeilingRanking(candidates = []) {
       value: ranking.value,
       formatId: ranking.formatId,
       cutoff: ranking.cutoff,
+      pokemonId: row.candidate?.id,
       name: row.candidate?.name,
     };
     if (
@@ -57,6 +58,7 @@ export function getLineTraceRanking(candidates = []) {
         value: trace.value,
         formatId: trace.formatId,
         cutoff: trace.cutoff,
+        pokemonId: row.candidate?.id,
         name: trace.name || row.candidate?.name,
       };
     }
@@ -93,13 +95,24 @@ export function getLineUsageOrder(candidates, fallbackName = '') {
  * @return {number}
  */
 export function compareLineUsageBestFirst(a, b) {
+  const strength = compareLineUsageStrength(a, b);
+  if (strength) return strength;
+  return (
+    signalName(a).localeCompare(signalName(b)) ||
+    a.fallbackName.localeCompare(b.fallbackName)
+  );
+}
+
+/**
+ * Same ordering without display-name tie breakers. This is used to choose one
+ * owned input when several resolve to the same bench entry.
+ */
+export function compareLineUsageStrength(a, b) {
   if (Boolean(a.ceiling) !== Boolean(b.ceiling)) return a.ceiling ? -1 : 1;
   if (a.ceiling && b.ceiling) {
     return (
       a.ceiling.tierRank - b.ceiling.tierRank ||
-      b.ceiling.value - a.ceiling.value ||
-      signalName(a).localeCompare(signalName(b)) ||
-      a.fallbackName.localeCompare(b.fallbackName)
+      b.ceiling.value - a.ceiling.value
     );
   }
 
@@ -108,13 +121,11 @@ export function compareLineUsageBestFirst(a, b) {
     return (
       a.trace.games - b.trace.games ||
       a.trace.tierRank - b.trace.tierRank ||
-      b.trace.value - a.trace.value ||
-      signalName(a).localeCompare(signalName(b)) ||
-      a.fallbackName.localeCompare(b.fallbackName)
+      b.trace.value - a.trace.value
     );
   }
 
-  return a.fallbackName.localeCompare(b.fallbackName);
+  return 0;
 }
 
 /**
@@ -130,6 +141,38 @@ export function takeTopUsageEntries(entries, limit = SCORED_POOL_LIMIT) {
       compareLineUsageBestFirst(a.usageOrder, b.usageOrder),
     )
     .slice(0, Math.max(0, limit));
+}
+
+/**
+ * Collapses raw inputs that would occupy the same visible bench slot. The
+ * strongest usage signal wins; exact ownership of the displayed form and then
+ * the more-evolved input break true ties (Swanna over Ducklett, for example).
+ */
+export function deduplicateUsageEntries(entries = []) {
+  const bestByDisplayKey = new Map();
+  for (const entry of entries) {
+    const current = bestByDisplayKey.get(entry.displayKey);
+    if (!current || compareDuplicateRepresentatives(entry, current) < 0) {
+      bestByDisplayKey.set(entry.displayKey, entry);
+    }
+  }
+  return [...bestByDisplayKey.values()].sort((a, b) =>
+    compareLineUsageBestFirst(a.usageOrder, b.usageOrder),
+  );
+}
+
+function compareDuplicateRepresentatives(a, b) {
+  const strength = compareLineUsageStrength(a.usageOrder, b.usageOrder);
+  if (strength) return strength;
+
+  const aExact = a.inputPokemonId === a.displayKey;
+  const bExact = b.inputPokemonId === b.displayKey;
+  if (aExact !== bExact) return aExact ? -1 : 1;
+
+  return (
+    (b.inputEvolutionDepth || 0) - (a.inputEvolutionDepth || 0) ||
+    compareLineUsageBestFirst(a.usageOrder, b.usageOrder)
+  );
 }
 
 function signalName(order) {

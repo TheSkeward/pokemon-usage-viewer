@@ -1,8 +1,6 @@
-import { getLineRepresentativeCandidates } from '../data';
 import { getActiveGame } from '../games/registry.js';
 import {
   applyBreedingContextToProgression,
-  canHatchLine,
 } from '../reborn/breeding.js';
 import {
   applySketchContextToProgression,
@@ -12,7 +10,6 @@ import {
 import { GEN7_PROGRESSION_SPECIES } from '../generated/gen7ProgressionSpecies.generated.js';
 import {
   getCurrentRebornSpeciesForChoice,
-  isStrictPreEvolutionOf,
 } from '../reborn/current-species.js';
 import {
   getAvailableRebornMoves,
@@ -47,9 +44,15 @@ import { loadPersistedResults, persistResult } from './result-cache-store.js';
 import { getDataSignature } from '../manifest.js';
 import {
   SCORED_POOL_LIMIT,
+  deduplicateUsageEntries,
   getLineUsageOrder,
   takeTopUsageEntries,
 } from './usage-line-ranking.js';
+import {
+  getEvolutionDepth,
+  getReachableLineCandidates,
+  getReachableLineFallbackKey,
+} from './line-reachability.js';
 
 // --- Incremental caches ----------------------------------------------------
 // In a playthrough you mostly grow the pool one mon at a time at a fixed game
@@ -217,7 +220,9 @@ const MAX_RESULT_CACHE = 400;
 // pool Pokemon, so its builds and source receipts now depend on its partners.
 // v47: pools above 126 recognized lines score only their top usage-ranked
 // subset, while every listed line remains in the breeding/Sketch donor graph.
-const RESULT_CACHE_VERSION = '47';
+// v48: repeated inputs that resolve to the same bench form share one scored
+// slot, and results retain the usage-ranked unscored tail for display.
+const RESULT_CACHE_VERSION = '48';
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
@@ -461,6 +466,7 @@ export async function optimizeTeamFromPool({
     searchMs: Date.now() - searchStart,
   };
   result.poolSelection = scoringPool.selection;
+  result.poolUsageEntries = scoringPool.poolUsageEntries;
   // Warm = anything short of from-scratch: line-cache hits and/or an
   // incremental (grown) search. Cold = every line resolved fresh AND a full
   // search.
@@ -621,19 +627,21 @@ async function selectScoringGroups({
   limit,
 }) {
   const recognized = allGroups.filter((group) => !group.unresolved);
-  const scoredLines = Math.min(recognized.length, limit);
-  const selectionSummary = {
-    limit: Number.isFinite(limit) ? limit : null,
-    recognizedLines: recognized.length,
-    scoredLines,
-    donorOnlyLines: Math.max(0, recognized.length - scoredLines),
-  };
 
   if (recognized.length <= limit) {
+    const selectionSummary = {
+      limit: Number.isFinite(limit) ? limit : null,
+      inputLines: recognized.length,
+      recognizedLines: recognized.length,
+      duplicateLines: 0,
+      scoredLines: recognized.length,
+      donorOnlyLines: 0,
+    };
     return {
       groups: allGroups,
       candidateBundlesByGroup: new Map(),
       selection: selectionSummary,
+      poolUsageEntries: [],
     };
   }
 
@@ -660,21 +668,40 @@ async function selectScoringGroups({
       );
       completed += 1;
       onProgress?.({ phase: 'rank', completed, total: recognized.length });
+      const usageOrder = getLineUsageOrder(rows, group.input.name);
       return {
         group,
+        inputPokemonId: group.input.id,
+        inputEvolutionDepth: getEvolutionDepth(group.input.id),
         candidateBundles: new Map(
           rows.map((row) => [row.candidate.id, row.bundle]),
         ),
-        usageOrder: getLineUsageOrder(rows, group.input.name),
+        usageOrder,
+        displayKey:
+          usageOrder.ceiling?.pokemonId ||
+          usageOrder.trace?.pokemonId ||
+          getReachableLineFallbackKey(candidates, group.input.id),
       };
     }),
   );
 
-  const selectedEntries = takeTopUsageEntries(ranked, limit);
+  const uniqueRanked = deduplicateUsageEntries(ranked);
+  const selectedEntries = takeTopUsageEntries(uniqueRanked, limit);
   const selectedGroups = new Set(selectedEntries.map((entry) => entry.group));
   const candidateBundlesByGroup = new Map(
     selectedEntries.map((entry) => [entry.group, entry.candidateBundles]),
   );
+  const scoredInputIds = new Set(
+    selectedEntries.map((entry) => entry.inputPokemonId),
+  );
+  const selectionSummary = {
+    limit: Number.isFinite(limit) ? limit : null,
+    inputLines: recognized.length,
+    recognizedLines: uniqueRanked.length,
+    duplicateLines: recognized.length - uniqueRanked.length,
+    scoredLines: selectedEntries.length,
+    donorOnlyLines: Math.max(0, uniqueRanked.length - selectedEntries.length),
+  };
 
   return {
     // Usage rank chooses membership, not enumeration order. Keeping query order
@@ -684,6 +711,22 @@ async function selectScoringGroups({
     ),
     candidateBundlesByGroup,
     selection: selectionSummary,
+    poolUsageEntries: uniqueRanked.map((entry) => ({
+      displayKey: entry.displayKey,
+      inputPokemonId: entry.inputPokemonId,
+      inputName: entry.group.input.name,
+      displayPokemonId:
+        entry.usageOrder.ceiling?.pokemonId ||
+        entry.usageOrder.trace?.pokemonId ||
+        entry.inputPokemonId,
+      displayName:
+        entry.usageOrder.ceiling?.name ||
+        entry.usageOrder.trace?.name ||
+        entry.group.input.name,
+      ceiling: entry.usageOrder.ceiling,
+      trace: entry.usageOrder.trace,
+      scored: scoredInputIds.has(entry.inputPokemonId),
+    })),
   };
 }
 
@@ -700,34 +743,6 @@ function stableStringify(value) {
       .join(',')}}`;
   }
   return JSON.stringify(value);
-}
-
-// Which family forms can this input actually become? Descendants and their
-// Megas always qualify. Strict pre-evolutions and sibling branches require the
-// daycare on a hatchable line, because hatching is the route back down/across.
-function getReachableLineCandidates(group, pokemonIndex, progression) {
-  const input = group.input;
-  if (group.unresolved || !input) return [];
-
-  const inputBaseId =
-    GEN7_PROGRESSION_SPECIES[input.id]?.baseSpeciesId || input.id;
-  const daycareReach =
-    Boolean(progression?.daycareUnlocked) && canHatchLine(input.id);
-  return getLineRepresentativeCandidates(input.id, pokemonIndex).filter(
-    (candidate) => {
-      if (daycareReach) return true;
-      const candidateBaseId = candidate.isMega
-        ? GEN7_PROGRESSION_SPECIES[candidate.id]?.baseSpeciesId || candidate.id
-        : candidate.id;
-      return (
-        candidateBaseId === input.id ||
-        isStrictPreEvolutionOf(input.id, candidateBaseId) ||
-        (inputBaseId !== input.id &&
-          (candidateBaseId === inputBaseId ||
-            isStrictPreEvolutionOf(inputBaseId, candidateBaseId)))
-      );
-    },
-  );
 }
 
 async function resolvePoolLine({

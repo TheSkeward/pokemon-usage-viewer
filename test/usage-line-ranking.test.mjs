@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   SCORED_POOL_LIMIT,
   compareLineUsageBestFirst,
+  deduplicateUsageEntries,
   getLineUsageOrder,
   takeTopUsageEntries,
 } from '../src/teamBuilder/usage-line-ranking.js';
@@ -84,4 +85,31 @@ test('an evolutionary line ranks by its best reachable form bundle', () => {
 
   assert.equal(order.ceiling.name, 'Eventual evolution');
   assert.equal(order.ceiling.tierRank, 1);
+});
+
+test('duplicate bench identities consume one slot and prefer the exact form', () => {
+  const usageOrder = getLineUsageOrder([
+    {
+      candidate: { id: 'swanna', name: 'Swanna' },
+      bundle: { ranking: { tierRank: 5, value: 4.1 } },
+    },
+  ], 'Ducklett');
+  const entries = [
+    {
+      inputPokemonId: 'ducklett',
+      inputEvolutionDepth: 0,
+      displayKey: 'swanna',
+      usageOrder,
+    },
+    {
+      inputPokemonId: 'swanna',
+      inputEvolutionDepth: 1,
+      displayKey: 'swanna',
+      usageOrder: { ...usageOrder, fallbackName: 'Swanna' },
+    },
+  ];
+
+  const unique = deduplicateUsageEntries(entries);
+  assert.equal(unique.length, 1);
+  assert.equal(unique[0].inputPokemonId, 'swanna');
 });

@@ -32,6 +32,7 @@ import { teamMemberKey } from '../teamBuilder/item-recommendations.js';
 import { selectObservedSet } from '../teamBuilder/observed-sets.js';
 import { loadTeamIndex } from '../teamBuilder/team-index.js';
 import { findFieldableOrClosestRealTeam } from '../teamBuilder/real-teams.js';
+import { buildFieldablePoolLines } from '../teamBuilder/line-reachability.js';
 import { toId } from '../utils/ids.js';
 import { STAT_LABELS } from '../utils/stats.js';
 import { MAX_OPPONENT_TYPE_BIAS } from './progression.js';
@@ -124,9 +125,16 @@ export async function buildRebornTeamAnalysis(
   const defensive = analyzeDefensiveProfile(members);
   const offensive = analyzeOffensiveCoverage(legalMoveEntries);
   const profiles = legalMoveEntries.map((entry) => entry.profile);
+  const fullPoolLines = buildFieldablePoolLines({
+    query: breedingOptions.query,
+    pokemonIndex: breedingOptions.pokemonIndex,
+    progression,
+  });
   const realTeamResult = await computeRealTeamResult({
     family,
-    lines: breedingOptions.lines || [],
+    lines: fullPoolLines.length
+      ? fullPoolLines
+      : breedingOptions.lines || [],
     progression,
     breedingContext,
     sketchContext,
