@@ -452,6 +452,7 @@ export function getAvailableRebornMoves(legalMoveData, progression = {}) {
         // — the analysis page's interim-donor guide keys on these.
         donorName: eggSource.donorName || null,
         donorLevel: eggSource.donorLevel ?? null,
+        interimDonor: eggSource.interimDonor || null,
       });
     }
 

@@ -109,11 +109,18 @@ test('partner-backed Sketch can feed a later breeding route', async () => {
     'Sketch crosses the incompatible Water/Field egg-group boundary',
   );
   assert.ok(breedingContext.byPokemonId.eevee.moveIds.includes('wish'));
+  const wish = breedingContext.byPokemonId.eevee.sources.wish;
   assert.equal(
-    breedingContext.byPokemonId.eevee.sources.wish.donorName,
+    wish.donorName,
     'Smeargle',
     'the sketched move can then follow ordinary egg-group rules',
   );
+  assert.deepEqual(wish.interimDonor, {
+    donorId: 'alomomola',
+    donorName: 'Alomomola',
+    donorInputId: 'alomomola',
+    donorLevel: 37,
+  });
 });
 
 test('a compatible donor beats the extra, costlier Smeargle transfer',
@@ -133,10 +140,63 @@ test('a compatible donor beats the extra, costlier Smeargle transfer',
       breedingContext.byPokemonId.eevee.sources.synchronoise;
     assert.equal(synchronoise.donorName, 'Munna');
     assert.equal(synchronoise.detail, 'Munna breeding chain (@25)');
+    assert.deepEqual(synchronoise.interimDonor, {
+      donorId: 'munna',
+      donorName: 'Munna',
+      donorInputId: 'munna',
+      donorLevel: 25,
+    });
+    const wish = breedingContext.byPokemonId.eevee.sources.wish;
     assert.equal(
-      breedingContext.byPokemonId.eevee.sources.wish.donorName,
+      wish.donorName,
       'Smeargle',
       'Smeargle remains valid when the source cannot breed with Eevee',
+    );
+    assert.deepEqual(wish.interimDonor, {
+      donorId: 'natu',
+      donorName: 'Natu',
+      donorInputId: 'natu',
+      donorLevel: 28,
+    });
+  });
+
+test('a Sketch breeding relay guides the root learner, not Smeargle',
+  async () => {
+    const { pokemonIndex } = await loadShared();
+    const progression = {
+      ...progressionAt({ badge: 5, levelCap: 50 }),
+      daycareUnlocked: true,
+    };
+    const analysis = await buildRebornTeamAnalysis(
+      [{
+        pokemonId: 'sylveon',
+        inputPokemonId: 'eevee',
+        name: 'Sylveon',
+        inputName: 'Eevee',
+      }],
+      progression,
+      {
+        family: 'singles',
+        selection: 'all',
+        pokemonIndex,
+        query: 'Eevee\nSmeargle\nNatu\nMunna',
+      },
+    );
+    const sylveon = analysis.profiles.find(
+      (profile) => profile.currentId === 'sylveon',
+    );
+    const guides = sylveon.donorInterimGuides || [];
+    assert.ok(!guides.some((guide) => guide.donorId === 'smeargle'));
+    assert.deepEqual(
+      guides.map((guide) => ({
+        donorId: guide.donorId,
+        interimLevelCap: guide.interimLevelCap,
+        forMoves: guide.forMoves.map((move) => move.name),
+      })),
+      [
+        { donorId: 'natu', interimLevelCap: 27, forMoves: ['Wish'] },
+        { donorId: 'munna', interimLevelCap: 24, forMoves: ['Synchronoise'] },
+      ],
     );
   });
 

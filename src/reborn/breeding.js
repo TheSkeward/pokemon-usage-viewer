@@ -53,6 +53,7 @@ export async function buildRebornBreedingContext({
             ownedItems: progression.ownedItems || {},
           });
           const sketchHops = acquisition.sketchHops || 0;
+          const interimDonor = rootInterimDonor(acquisition, species);
           costs.set(move.id, {
             ...acquisition,
             // Sketch is itself a transfer onto Smeargle. Counting it here
@@ -60,6 +61,7 @@ export async function buildRebornBreedingContext({
             // same one-hop route as an ordinary compatible donor.
             hops: sketchHops,
             sketchHops,
+            interimDonor,
             path:
               sketchHops && acquisition.partnerName
                 ? [acquisition.partnerName]
@@ -158,18 +160,20 @@ export async function buildRebornBreedingContext({
         label: 'Egg',
         detail,
         donorName: best.path[best.path.length - 1],
-        // The level the DIRECT donor must reach before it can pass this move
-        // on — present only for one-hop chains where the fielded donor is the
-        // root learner via a leveling route. Multi-hop donors hatch already
-        // holding the move, and TM routes have no leveling window, so neither
-        // caps the donor's working life. Drives the interim-donor guide.
+        // Legacy direct-donor level retained for consumers that only know the
+        // one-hop shape. The structured interimDonor below handles every
+        // route, including multi-hop breeding and Sketch relays.
         donorLevel:
           best.hops === 1 &&
-          best.leveled &&
-          Number.isFinite(best.level) &&
-          best.level > 1
-            ? best.level
+          Number.isFinite(best.interimDonor?.donorLevel) &&
+          best.interimDonor.donorLevel > 1
+            ? best.interimDonor.donorLevel
             : null,
+        // The first route participant that actually needs raising. This is
+        // the direct donor for Dwebble→Pineco, the root learner for ordinary
+        // multi-hop chains, and Natu rather than Smeargle for
+        // Natu→Sketch→Smeargle→Eevee.
+        interimDonor: best.interimDonor || null,
         sourceTitle: formatBreedingSourceTitle({
           detail,
           moveName: move?.name || moveId,
@@ -269,6 +273,12 @@ export function acquisitionOf(move, speciesId, { inputId, ownedItems } = {}) {
     candidate.sourceKind = source.kind || '';
     candidate.partnerName = source.partnerName || null;
     candidate.sketchHops = source.kind === 'sketch' ? 1 : 0;
+    candidate.onEvolution = Boolean(source.onEvolution);
+    candidate.levelingLevel = candidate.leveled ? candidate.level : null;
+    candidate.partnerId = source.partnerId || null;
+    candidate.partnerInputId = source.partnerInputId || null;
+    candidate.partnerLevel = source.partnerLevel ?? null;
+    candidate.partnerSource = source.partnerSource || null;
     // Charge unspent evolution items between the player's actual form and
     // the form that learns the move. Applied per SOURCE because different
     // sources name different learners: Drapion's "Level 9 (Skorupi)" hatches
@@ -296,6 +306,39 @@ function compareAcquisitionCosts(a, b) {
     a.level - b.level ||
     (a.hassle || 0) - (b.hassle || 0)
   );
+}
+
+function rootInterimDonor(acquisition, species) {
+  if (acquisition.sourceKind === 'sketch') {
+    const donorLevel = Number(acquisition.partnerLevel);
+    if (!Number.isFinite(donorLevel) || donorLevel <= 1) return null;
+    const donorName =
+      acquisition.partnerSource?.learnerName || acquisition.partnerName;
+    const donorId = toId(donorName || acquisition.partnerId);
+    if (!donorId) return null;
+    return {
+      donorId,
+      donorName: donorName || acquisition.partnerName || donorId,
+      donorInputId: acquisition.partnerSource?.onEvolution
+        ? acquisition.partnerInputId || donorId
+        : donorId,
+      donorLevel,
+    };
+  }
+
+  const donorLevel = Number(acquisition.levelingLevel);
+  if (!Number.isFinite(donorLevel) || donorLevel <= 1) return null;
+  const donorName = acquisition.learner || species.name;
+  const donorId = toId(donorName || species.id);
+  if (!donorId) return null;
+  return {
+    donorId,
+    donorName: donorName || species.name || donorId,
+    donorInputId: acquisition.onEvolution
+      ? species.inputId || donorId
+      : donorId,
+    donorLevel,
+  };
 }
 
 // Above every real level (caps top out at 150) and the relearner's 200, so a
@@ -379,6 +422,7 @@ function collectDonorRoutes(target, entries, moveId) {
       how: donorCost.how,
       leveled: Boolean(donorCost.leveled),
       sketchHops: donorCost.sketchHops || 0,
+      interimDonor: donorCost.interimDonor || null,
       hassle: donorCost.hassle || 0,
       sourceTitle: donorCost.sourceTitle || '',
       path:

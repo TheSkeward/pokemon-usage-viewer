@@ -408,9 +408,10 @@ async function buildMemberLegalMoveEntry({
 }
 
 /**
- * Which breeding donors a member's recommended set actually leans on: every
- * recommended move whose BEST acquisition (same priority order the source
- * chips use) is an egg source carrying a donor name. Exported for tests.
+ * Which root leveling donors a member's recommended egg moves actually lean
+ * on. A relay is not an interim donor: Natu is the useful guide for
+ * Natu→Sketch→Smeargle→Eevee, while Smeargle merely passes the move along.
+ * Exported for tests.
  * @return {!Array<{donorId: string, donorName: string,
  *     moves: !Array<!Object>}>}
  */
@@ -420,13 +421,16 @@ export function collectEggDonorRequests(profile) {
     const best = [...(move.availableSources || [])].sort(
       (a, b) => getSourcePriority(a) - getSourcePriority(b),
     )[0];
-    if (!best || best.kind !== 'egg' || !best.donorName) continue;
-    const donorId = toId(best.donorName);
+    if (!best || best.kind !== 'egg') continue;
+    const interim = best.interimDonor || {};
+    const donorName = interim.donorName || best.donorName;
+    const donorId = toId(interim.donorId || donorName);
     if (!donorId) continue;
     if (!byDonor.has(donorId)) {
       byDonor.set(donorId, {
         donorId,
-        donorName: best.donorName,
+        donorName,
+        donorInputId: interim.donorInputId || donorId,
         moves: [],
       });
     }
@@ -434,10 +438,18 @@ export function collectEggDonorRequests(profile) {
       id: move.id,
       name: move.name,
       detail: best.detail || '',
-      donorLevel: Number.isFinite(best.donorLevel) ? best.donorLevel : null,
+      donorLevel: Number.isFinite(interim.donorLevel)
+        ? interim.donorLevel
+        : Number.isFinite(best.donorLevel)
+          ? best.donorLevel
+          : null,
     });
   }
-  return [...byDonor.values()];
+  return [...byDonor.values()].filter((request) =>
+    request.moves.some(
+      (move) => Number.isFinite(move.donorLevel) && move.donorLevel > 1,
+    ),
+  );
 }
 
 /**
