@@ -11,6 +11,7 @@ import {
   optimizeTeamFromPool,
   persistPostAnalysis,
 } from './teamBuilder/team-optimizer';
+import { SCORED_POOL_LIMIT } from './teamBuilder/usage-line-ranking.js';
 import { computeTeamConfidence } from './teamBuilder/confidence.js';
 import { computeInvestmentPlan } from './teamBuilder/investment.js';
 import { setScoringOverrides } from './teamBuilder/scoring-constants.js';
@@ -180,7 +181,12 @@ export function mountPoolOptimizer(container, options = {}) {
     state.postAnalysisSkipped = null;
     state.postAnalysisDeferred = false;
     render();
-    startOptimizeProgress(getPoolStats(state.query, pokemonIndex).uniqueCount);
+    startOptimizeProgress(
+      Math.min(
+        getPoolStats(state.query, pokemonIndex).uniqueCount,
+        SCORED_POOL_LIMIT,
+      ),
+    );
     await waitForPaint();
     if (runToken !== optimizeRunToken) return;
 
@@ -1259,7 +1265,14 @@ export function mountPoolOptimizer(container, options = {}) {
     const phaseElapsed = now - model.phaseStart;
     const budget = model.budget;
     let remaining;
-    if (model.phase === 'resolve') {
+    if (model.phase === 'rank') {
+      const fraction = model.total ? model.completed / model.total : 0;
+      remaining =
+        500 * (1 - fraction) +
+        budget.resolveMs +
+        budget.searchMs +
+        budget.tailMs;
+    } else if (model.phase === 'resolve') {
       const fraction = model.total ? model.completed / model.total : 0;
       remaining =
         budget.resolveMs * (1 - fraction) + budget.searchMs + budget.tailMs;
@@ -1306,9 +1319,13 @@ export function mountPoolOptimizer(container, options = {}) {
   function updateOptimizeProgress({ phase = 'resolve', completed, total, stage, detail }) {
     const label = app.querySelector('[data-optimize-progress-label]');
     if (label) {
-      label.textContent =
-        phase === 'search'
-          ? stage === 'synergy'
+      if (phase === 'rank') {
+        label.textContent = total
+          ? `Ranking ${completed}/${total} pool lines by usage...`
+          : 'Ranking pool lines by usage...';
+      } else if (phase === 'search') {
+        label.textContent =
+          stage === 'synergy'
             ? 'Search prep — loading teammate synergy...'
             : stage === 'polish'
               ? `Search done — auditing shortlist swaps (round ${detail?.round || 1})...`
@@ -1318,12 +1335,14 @@ export function mountPoolOptimizer(container, options = {}) {
                   ? 'Search done — ranking bench swaps...'
                   : total
                     ? `Searching team combinations — ${Math.min(99, Math.floor((100 * (completed || 0)) / total))}% of ${formatComboCount(total)}...`
-                    : 'Searching team combinations...'
-          : phase === 'items'
-            ? 'Loading item usage for the team...'
-            : total
-              ? `Scoring ${completed}/${total} Pokémon...`
-              : 'Optimizing pool...';
+                    : 'Searching team combinations...';
+      } else if (phase === 'items') {
+        label.textContent = 'Loading item usage for the team...';
+      } else {
+        label.textContent = total
+          ? `Scoring ${completed}/${total} Pokémon...`
+          : 'Optimizing pool...';
+      }
     }
     if (optimizeProgress) {
       if (phase !== optimizeProgress.phase) {
@@ -1331,7 +1350,7 @@ export function mountPoolOptimizer(container, options = {}) {
         optimizeProgress.phaseStart = Date.now();
         optimizeProgress.searchFraction = 0;
       }
-      if (phase === 'resolve') {
+      if (phase === 'resolve' || phase === 'rank') {
         optimizeProgress.completed = completed || 0;
         if (total) optimizeProgress.total = total;
       }

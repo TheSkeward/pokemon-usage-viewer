@@ -346,19 +346,28 @@ async function loadResolverIndex(family, selection) {
   const key = `${family}:${selection}`;
   if (resolverIndexCache.has(key)) return resolverIndexCache.get(key);
 
-  const response = await fetch(dataUrl(`resolver-index/${family}/${selection}.json`));
-  if (response.status === 404) {
-    resolverIndexCache.set(key, null);
-    return null;
+  // Cache the in-flight load, not only its resolved value. A large scoring pool
+  // asks for hundreds of summaries concurrently; without promise sharing every
+  // caller fetched and parsed the same complete resolver index.
+  const promise = (async () => {
+    const response = await fetch(
+      dataUrl(`resolver-index/${family}/${selection}.json`),
+    );
+    if (response.status === 404) return null;
+    if (!response.ok) {
+      throw new Error(
+        `Failed to load resolver index for ${family}/${selection}`,
+      );
+    }
+    return response.json();
+  })();
+  resolverIndexCache.set(key, promise);
+  try {
+    return await promise;
+  } catch (error) {
+    resolverIndexCache.delete(key);
+    throw error;
   }
-
-  if (!response.ok) {
-    throw new Error(`Failed to load resolver index for ${family}/${selection}`);
-  }
-
-  const index = await response.json();
-  resolverIndexCache.set(key, index);
-  return index;
 }
 
 /**

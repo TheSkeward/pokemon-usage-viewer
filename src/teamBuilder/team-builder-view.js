@@ -21,6 +21,10 @@ import { getCurrentRebornSpeciesForChoice } from '../reborn/current-species.js';
 import { describeEvolutionPath } from '../reborn/evolution-requirements.js';
 import { teamMemberKey } from './item-recommendations';
 import {
+  getLineCeilingRanking,
+  getLineTraceRanking,
+} from './usage-line-ranking.js';
+import {
   explainSeatedChoice,
   explainExcludedChoice,
 } from './explanations.js';
@@ -295,6 +299,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
       <section class="panel">
         <h2>Recommended ${escapeHtml(familyLabel)} Team</h2>
         <p class="muted">No viable team picks found from ${result.linesConsidered} resolved input lines.</p>
+        ${renderScoringPoolNote(result)}
       </section>
 
       ${renderUnresolved(result.unresolved)}
@@ -319,6 +324,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
         <div>
           <h2>Recommended ${escapeHtml(familyLabel)} Team</h2>
           <p>${result.team.length} picks from ${result.linesConsidered} resolved input lines. ${megaText}.</p>
+          ${renderScoringPoolNote(result)}
           <p>Scored at level cap ${escapeHtml(String(state.progression?.levelCap || '?'))}: each pick's current-form value plus a readiness-gated competitive ceiling, minus build friction (evolution requirements are shown as information, never priced); the team is chosen with damage-aware coverage and shared-weakness fit, at most one Mega, one build realized per line. Displayed by ${escapeHtml(getSortLabel(state.teamSort, state.teamSortDir))}. Click a row to inspect its set.</p>
           <p class="muted" data-progression-stale-warning ${progressionStale ? '' : 'hidden'}>Progression changed after this team was optimized. Re-optimize before trusting row scores or legal move notes.</p>
         </div>
@@ -364,6 +370,12 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
 
     ${renderUnresolved(result.unresolved)}
   `;
+}
+
+function renderScoringPoolNote(result) {
+  const selection = result.poolSelection;
+  if (!selection?.donorOnlyLines) return '';
+  return `<p class="muted">Scored the top ${selection.scoredLines} of ${selection.recognizedLines} recognized pool lines in numbered-bench usage order. The other ${selection.donorOnlyLines} remain available to breeding, Sketch, and interim-donor routes.</p>`;
 }
 
 function renderPostAnalysisSkippedSection(state) {
@@ -771,13 +783,13 @@ function renderBenchLine(result) {
     if (seenInputIds.has(representative.inputPokemonId)) continue;
 
     seenInputIds.add(representative.inputPokemonId);
-    const ceiling = lineCeilingRanking(line);
+    const ceiling = getLineCeilingRanking(line.candidates);
     bench.push({
       representative,
       ceiling,
       // Only lines with no meaningful tier anywhere get a trace label — the
       // ceiling keeps sole authority over everything above the bar.
-      trace: ceiling ? null : lineTraceTier(line),
+      trace: ceiling ? null : getLineTraceRanking(line.candidates),
     });
   }
 
@@ -935,62 +947,6 @@ function renderBenchLine(result) {
 // the underlying usage.
 function truncatePercent(value) {
   return `${(Math.floor((value || 0) * 10) / 10).toFixed(1)}%`;
-}
-
-// The line's best TRACE row for the bench tail (only consulted when no form
-// is meaningful anywhere): across the line's forms, the resolver index's
-// display-only `trace` row with the highest usage — the row that qualifies
-// first as the seen-within-N-games bar relaxes — stamped with that N. Null
-// when no form has any usage at all (stays "no usage data").
-function lineTraceTier(line) {
-  let best = null;
-  for (const candidate of line.candidates || []) {
-    const trace = candidate.bundle?.trace;
-    if (!trace || !(trace.value > 0)) continue;
-    if (
-      !best ||
-      trace.value > best.value ||
-      (trace.value === best.value && trace.tierRank < best.tierRank)
-    ) {
-      best = {
-        tierRank: trace.tierRank,
-        value: trace.value,
-        formatId: trace.formatId,
-        cutoff: trace.cutoff,
-        name: trace.name || candidate.candidate?.name,
-      };
-    }
-  }
-  if (!best) return null;
-  const games = gamesToLikelySee(best.value);
-  return games == null ? null : { ...best, games };
-}
-
-// The line's best form by ranking: the shallowest meaningful tier, then highest
-// usage there — ignoring the level-cap form-readiness discount, so a stuck pre-
-// evolution is judged by what it becomes. null if no form is meaningful
-// anywhere.
-function lineCeilingRanking(line) {
-  let best = null;
-  for (const candidate of line.candidates || []) {
-    const ranking = candidate.bundle?.ranking;
-    if (!ranking) continue;
-    const next = {
-      tierRank: ranking.tierRank,
-      value: ranking.value,
-      formatId: ranking.formatId,
-      cutoff: ranking.cutoff,
-      name: candidate.candidate?.name,
-    };
-    if (
-      !best ||
-      next.tierRank < best.tierRank ||
-      (next.tierRank === best.tierRank && next.value > best.value)
-    ) {
-      best = next;
-    }
-  }
-  return best;
 }
 
 // The set of bench inputPokemonIds to flag as "worst FIT RIGHT NOW": the

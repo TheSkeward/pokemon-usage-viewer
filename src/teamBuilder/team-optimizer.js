@@ -45,6 +45,11 @@ import { choosePoolTeam } from './team-selection';
 import { attachTeammateLift } from './teammate-synergy.js';
 import { loadPersistedResults, persistResult } from './result-cache-store.js';
 import { getDataSignature } from '../manifest.js';
+import {
+  SCORED_POOL_LIMIT,
+  getLineUsageOrder,
+  takeTopUsageEntries,
+} from './usage-line-ranking.js';
 
 // --- Incremental caches ----------------------------------------------------
 // In a playthrough you mostly grow the pool one mon at a time at a fixed game
@@ -210,7 +215,9 @@ const MAX_RESULT_CACHE = 400;
 // the old keys in their feature vectors and would render blank breakdowns.
 // v46: Smeargle's Sketch moves require a currently obtainable move on another
 // pool Pokemon, so its builds and source receipts now depend on its partners.
-const RESULT_CACHE_VERSION = '46';
+// v47: pools above 126 recognized lines score only their top usage-ranked
+// subset, while every listed line remains in the breeding/Sketch donor graph.
+const RESULT_CACHE_VERSION = '47';
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
@@ -259,8 +266,16 @@ export async function optimizeTeamFromPool({
 }) {
   const fastMode = searchMode === 'fast';
   const setupStart = Date.now();
-  const groups = buildInputGroups(query, pokemonIndex);
-  const total = groups.length;
+  const allGroups = buildInputGroups(query, pokemonIndex);
+  const recognizedPoolSize = allGroups.filter(
+    (group) => !group.unresolved,
+  ).length;
+  const unresolvedPoolSize = allGroups.length - recognizedPoolSize;
+  const initialScoredPoolSize = Math.min(
+    recognizedPoolSize,
+    SCORED_POOL_LIMIT,
+  );
+  let total = initialScoredPoolSize + unresolvedPoolSize;
   let completed = 0;
   onProgress?.({ phase: 'resolve', completed, total });
 
@@ -315,7 +330,7 @@ export async function optimizeTeamFromPool({
   // input mons, so memoize by both. A hit short-circuits line resolution and
   // the search entirely; re-seed the incremental search from it so a later
   // addition still grows rather than re-enumerates.
-  const poolKey = `${contextSig}|${groups
+  const poolKey = `${contextSig}|${allGroups
     .map((group) => group.input?.id ?? group.token)
     .sort()
     .join(',')}`;
@@ -331,7 +346,8 @@ export async function optimizeTeamFromPool({
     // DESCRIBES the run; it never records). Overwritten fresh on every hit.
     memoized.telemetryMeta = {
       cache: 'result',
-      poolSize: total,
+      poolSize:
+        memoized.poolSelection?.scoredLines ?? initialScoredPoolSize,
       builds: countKeptBuilds(memoized.lines),
       dataSignature,
       setupMs: Date.now() - setupStart,
@@ -340,6 +356,20 @@ export async function optimizeTeamFromPool({
     };
     return memoized;
   }
+
+  const scoringPool = await selectScoringGroups({
+    allGroups,
+    availability,
+    family,
+    pokemonIndex,
+    progression,
+    selection,
+    onProgress,
+  });
+  const groups = scoringPool.groups;
+  total = groups.length;
+  completed = 0;
+  onProgress?.({ phase: 'resolve', completed, total });
 
   const hitLineKeys = new Set();
   const resolveStart = Date.now();
@@ -359,6 +389,7 @@ export async function optimizeTeamFromPool({
             selection,
             abilityAnnotations,
             fastMode,
+            candidateBundles: scoringPool.candidateBundlesByGroup.get(group),
           },
           contextSig,
           hitLineKeys,
@@ -423,12 +454,13 @@ export async function optimizeTeamFromPool({
     resolveMs: searchStart - resolveStart,
     searchMs: Date.now() - searchStart,
   };
+  result.poolSelection = scoringPool.selection;
   // Warm = anything short of from-scratch: line-cache hits and/or an
   // incremental (grown) search. Cold = every line resolved fresh AND a full
   // search.
   result.telemetryMeta = {
     cache: hitLineKeys.size > 0 || incremental ? 'warm' : 'cold',
-    poolSize: lines.length,
+    poolSize: scoringPool.selection.scoredLines,
     builds: countKeptBuilds(lines),
     dataSignature,
     setupMs: resolveStart - setupStart,
@@ -567,6 +599,87 @@ function lineIsDegraded(line) {
   return Boolean(line?.degraded);
 }
 
+/**
+ * Every recognized query line has already entered the breeding and Sketch
+ * contexts before this runs. Only the best 126 by the numbered-bench usage
+ * order continue into expensive build resolution and team search.
+ */
+async function selectScoringGroups({
+  allGroups,
+  availability,
+  family,
+  pokemonIndex,
+  progression,
+  selection,
+  onProgress,
+}) {
+  const recognized = allGroups.filter((group) => !group.unresolved);
+  const scoredLines = Math.min(recognized.length, SCORED_POOL_LIMIT);
+  const selectionSummary = {
+    limit: SCORED_POOL_LIMIT,
+    recognizedLines: recognized.length,
+    scoredLines,
+    donorOnlyLines: Math.max(0, recognized.length - scoredLines),
+  };
+
+  if (recognized.length <= SCORED_POOL_LIMIT) {
+    return {
+      groups: allGroups,
+      candidateBundlesByGroup: new Map(),
+      selection: selectionSummary,
+    };
+  }
+
+  let completed = 0;
+  onProgress?.({ phase: 'rank', completed, total: recognized.length });
+  const ranked = await Promise.all(
+    recognized.map(async (group) => {
+      const candidates = getReachableLineCandidates(
+        group,
+        pokemonIndex,
+        progression,
+      );
+      const rows = await Promise.all(
+        candidates.map(async (candidate) => ({
+          candidate,
+          bundle: await resolveRepresentativeLightBundle({
+            availability,
+            family,
+            minMeaningfulUsagePercent: MIN_MEANINGFUL_USAGE_PERCENT,
+            pokemonId: candidate.id,
+            selection,
+          }),
+        })),
+      );
+      completed += 1;
+      onProgress?.({ phase: 'rank', completed, total: recognized.length });
+      return {
+        group,
+        candidateBundles: new Map(
+          rows.map((row) => [row.candidate.id, row.bundle]),
+        ),
+        usageOrder: getLineUsageOrder(rows, group.input.name),
+      };
+    }),
+  );
+
+  const selectedEntries = takeTopUsageEntries(ranked, SCORED_POOL_LIMIT);
+  const selectedGroups = new Set(selectedEntries.map((entry) => entry.group));
+  const candidateBundlesByGroup = new Map(
+    selectedEntries.map((entry) => [entry.group, entry.candidateBundles]),
+  );
+
+  return {
+    // Usage rank chooses membership, not enumeration order. Keeping query order
+    // preserves deterministic search ties and incremental-cache behavior.
+    groups: allGroups.filter(
+      (group) => group.unresolved || selectedGroups.has(group),
+    ),
+    candidateBundlesByGroup,
+    selection: selectionSummary,
+  };
+}
+
 // Stable, order-independent stringify for cache keys: object keys are sorted
 // and array elements (which here are set-like — owned items, TM ids, bias) too.
 function stableStringify(value) {
@@ -582,6 +695,34 @@ function stableStringify(value) {
   return JSON.stringify(value);
 }
 
+// Which family forms can this input actually become? Descendants and their
+// Megas always qualify. Strict pre-evolutions and sibling branches require the
+// daycare on a hatchable line, because hatching is the route back down/across.
+function getReachableLineCandidates(group, pokemonIndex, progression) {
+  const input = group.input;
+  if (group.unresolved || !input) return [];
+
+  const inputBaseId =
+    GEN7_PROGRESSION_SPECIES[input.id]?.baseSpeciesId || input.id;
+  const daycareReach =
+    Boolean(progression?.daycareUnlocked) && canHatchLine(input.id);
+  return getLineRepresentativeCandidates(input.id, pokemonIndex).filter(
+    (candidate) => {
+      if (daycareReach) return true;
+      const candidateBaseId = candidate.isMega
+        ? GEN7_PROGRESSION_SPECIES[candidate.id]?.baseSpeciesId || candidate.id
+        : candidate.id;
+      return (
+        candidateBaseId === input.id ||
+        isStrictPreEvolutionOf(input.id, candidateBaseId) ||
+        (inputBaseId !== input.id &&
+          (candidateBaseId === inputBaseId ||
+            isStrictPreEvolutionOf(inputBaseId, candidateBaseId)))
+      );
+    },
+  );
+}
+
 async function resolvePoolLine({
   availability,
   breedingContext,
@@ -593,6 +734,7 @@ async function resolvePoolLine({
   selection,
   fastMode = false,
   abilityAnnotations = null,
+  candidateBundles = null,
 }) {
   if (group.unresolved || !group.entries.length) {
     return {
@@ -606,49 +748,26 @@ async function resolvePoolLine({
   }
 
   const input = group.input;
-  // Which family forms can this input actually BECOME? Descendants and their
-  // megas always (evolving up is a real future). Everything else — strict
-  // pre-evolutions AND sibling branches — needs the daycare on a hatchable
-  // line (hatching more of the base form is the only route back down or
-  // across). Without the daycare, an owned Mantine can never be a Mantyke
-  // again, so Mantyke's LC usage must not name, set-source, or ceiling-boost
-  // the line — and an owned Mothim has no path to a female Burmy, so the
-  // Wormadams are off the table. Form-variant inputs fall back to their base
-  // species for the descendant walk (a Burmy-Sandy's cloak is mutable
-  // in-game, so every Burmy evolution is its descendant).
-  const inputBaseId =
-    GEN7_PROGRESSION_SPECIES[input.id]?.baseSpeciesId || input.id;
-  const daycareReach =
-    Boolean(progression?.daycareUnlocked) && canHatchLine(input.id);
-  const candidates = getLineRepresentativeCandidates(
-    input.id,
+  const candidates = getReachableLineCandidates(
+    group,
     pokemonIndex,
-  ).filter((candidate) => {
-    if (daycareReach) return true;
-    const candidateBaseId = candidate.isMega
-      ? GEN7_PROGRESSION_SPECIES[candidate.id]?.baseSpeciesId || candidate.id
-      : candidate.id;
-    return (
-      candidateBaseId === input.id ||
-      isStrictPreEvolutionOf(input.id, candidateBaseId) ||
-      (inputBaseId !== input.id &&
-        (candidateBaseId === inputBaseId ||
-          isStrictPreEvolutionOf(inputBaseId, candidateBaseId)))
-    );
-  });
+    progression,
+  );
   const abilityOverride =
     abilityAnnotations?.get(normalizeName(input.name)) || null;
 
   const prepared = await Promise.all(
     candidates.map(async (candidate) => {
       try {
-        const bundle = await resolveRepresentativeLightBundle({
-          availability,
-          family,
-          minMeaningfulUsagePercent: MIN_MEANINGFUL_USAGE_PERCENT,
-          pokemonId: candidate.id,
-          selection,
-        });
+        const bundle =
+          candidateBundles?.get(candidate.id) ||
+          await resolveRepresentativeLightBundle({
+            availability,
+            family,
+            minMeaningfulUsagePercent: MIN_MEANINGFUL_USAGE_PERCENT,
+            pokemonId: candidate.id,
+            selection,
+          });
         const builds = await resolveCandidateBuilds({
           breedingContext,
           sketchContext,
