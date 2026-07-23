@@ -263,8 +263,13 @@ export async function optimizeTeamFromPool({
   // Fast results DO memoize and persist (under their tagged keys): the
   // investment plan depends on their cross-session warmth.
   searchMode = 'full',
+  // Diagnostics that compare every member of a reference population need all
+  // lines scored. The interactive app never sets this: its bounded 126-line
+  // working set remains the production default.
+  scoreAllLines = false,
 }) {
   const fastMode = searchMode === 'fast';
+  const scoringPoolLimit = scoreAllLines ? Infinity : SCORED_POOL_LIMIT;
   const setupStart = Date.now();
   const allGroups = buildInputGroups(query, pokemonIndex);
   const recognizedPoolSize = allGroups.filter(
@@ -273,7 +278,7 @@ export async function optimizeTeamFromPool({
   const unresolvedPoolSize = allGroups.length - recognizedPoolSize;
   const initialScoredPoolSize = Math.min(
     recognizedPoolSize,
-    SCORED_POOL_LIMIT,
+    scoringPoolLimit,
   );
   let total = initialScoredPoolSize + unresolvedPoolSize;
   let completed = 0;
@@ -324,7 +329,7 @@ export async function optimizeTeamFromPool({
   // games can never serve one game's verdicts to another.
   const contextSig = `${getActiveGame().id}|${family}|${selection}|${progressionSig}|${breedingSig}|${sketchSig}|${abilitySig}|${scoringOverridesSignature()}|${dataSignature}${
     fastMode ? '|search:fast2' : ''
-  }`;
+  }${scoreAllLines ? '|pool:all' : ''}`;
 
   // Layer 3: the result is a pure function of the score context and the set of
   // input mons, so memoize by both. A hit short-circuits line resolution and
@@ -365,6 +370,7 @@ export async function optimizeTeamFromPool({
     progression,
     selection,
     onProgress,
+    limit: scoringPoolLimit,
   });
   const groups = scoringPool.groups;
   total = groups.length;
@@ -601,8 +607,8 @@ function lineIsDegraded(line) {
 
 /**
  * Every recognized query line has already entered the breeding and Sketch
- * contexts before this runs. Only the best 126 by the numbered-bench usage
- * order continue into expensive build resolution and team search.
+ * contexts before this runs. Production keeps the best 126 by numbered-bench
+ * usage order; explicit diagnostics may request every line.
  */
 async function selectScoringGroups({
   allGroups,
@@ -612,17 +618,18 @@ async function selectScoringGroups({
   progression,
   selection,
   onProgress,
+  limit,
 }) {
   const recognized = allGroups.filter((group) => !group.unresolved);
-  const scoredLines = Math.min(recognized.length, SCORED_POOL_LIMIT);
+  const scoredLines = Math.min(recognized.length, limit);
   const selectionSummary = {
-    limit: SCORED_POOL_LIMIT,
+    limit: Number.isFinite(limit) ? limit : null,
     recognizedLines: recognized.length,
     scoredLines,
     donorOnlyLines: Math.max(0, recognized.length - scoredLines),
   };
 
-  if (recognized.length <= SCORED_POOL_LIMIT) {
+  if (recognized.length <= limit) {
     return {
       groups: allGroups,
       candidateBundlesByGroup: new Map(),
@@ -663,7 +670,7 @@ async function selectScoringGroups({
     }),
   );
 
-  const selectedEntries = takeTopUsageEntries(ranked, SCORED_POOL_LIMIT);
+  const selectedEntries = takeTopUsageEntries(ranked, limit);
   const selectedGroups = new Set(selectedEntries.map((entry) => entry.group));
   const candidateBundlesByGroup = new Map(
     selectedEntries.map((entry) => [entry.group, entry.candidateBundles]),

@@ -76,7 +76,16 @@ for (const badgeKey of Object.keys(buckets)) {
   test(`badge ${badge} bucket (cap ${CAP[badge]}): amazing top-quartile, garbage bottom-quartile`, async () => {
     const injected = AMAZING.filter((name) => !bucket.includes(name));
     const pool = [...bucket, ...injected];
-    const result = await runPool({ pool, badge, levelCap: CAP[badge] });
+    // Calibration measures the entire reference population, including its
+    // deliberately weak tail. The interactive app's 126-line performance cap
+    // would otherwise turn the lowest-usage rows into donor-only entries and
+    // make q25—and the poor-anchor assertions—undefined.
+    const result = await runPool({
+      pool,
+      badge,
+      levelCap: CAP[badge],
+      scoreAllLines: true,
+    });
 
     // Resolution completeness: a bucket name the app can't resolve is a
     // data/conversion bug that would silently shrink the pool.

@@ -147,6 +147,7 @@ export async function runPool({
   opponentTypeBias = {},
   overrides = null,
   progression = null,
+  scoreAllLines = false,
 }) {
   const { availability, pokemonIndex } = await loadShared();
   if (overrides) setScoringOverrides(overrides);
@@ -159,6 +160,7 @@ export async function runPool({
         progression || progressionAt({ badge, levelCap, opponentTypeBias }),
       query: pool.join('\n'),
       selection: 'all',
+      scoreAllLines,
     });
   } finally {
     if (overrides) setScoringOverrides(null);
