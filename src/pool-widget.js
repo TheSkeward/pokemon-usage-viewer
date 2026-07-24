@@ -45,7 +45,7 @@ import { GEN7_HELD_ITEMS_BY_ID } from './generated/gen7HeldItems.generated.js';
 import {
   REBORN_EXTRA_INVENTORY_ITEMS,
   getEvolutionItemIds,
-  getPurchasableShopItems,
+  getRenewablyObtainableItems,
 } from './reborn/item-availability.js';
 import { HIDDEN_INVENTORY_ITEM_IDS } from './reborn/reborn-seeds';
 import { buildPoolAvailabilityText } from './teamBuilder/availability-export';
@@ -856,23 +856,23 @@ export function mountPoolOptimizer(container, options = {}) {
       });
 
     app
-      .querySelector('[data-shop-sync-button]')
+      .querySelector('[data-renewable-sync-button]')
       ?.addEventListener('click', () => {
         const badges =
           getRebornCheckpoint(state.progression.checkpoint)?.badges ?? null;
-        const purchasable = getPurchasableShopItems(
+        const renewable = getRenewablyObtainableItems(
           badges,
           state.progression.ownedItems || {},
         );
-        if (!purchasable.length) return;
+        if (!renewable.length) return;
         state.progression = addRebornOwnedItems(
           state.progression,
           Object.fromEntries(
-            purchasable.map((item) => [item.id, MAX_TRACKED_ITEM_COUNT]),
+            renewable.map((item) => [item.id, MAX_TRACKED_ITEM_COUNT]),
           ),
         );
         finishOwnedItemsEdit(
-          `Added ${purchasable.length} purchasable item${purchasable.length === 1 ? '' : 's'} at 6+.`,
+          `Added ${renewable.length} renewable item${renewable.length === 1 ? '' : 's'} at 6+.`,
         );
       });
 

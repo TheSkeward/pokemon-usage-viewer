@@ -1,6 +1,6 @@
-// Item inventory UX (the shop-haul flow): sticky 6+ picker, Enter-to-add
+// Item inventory UX (the renewable-haul flow): sticky 6+ picker, Enter-to-add
 // with focus retention, row flash, never-lower re-adds, and the one-click
-// "purchasable at your badge" sync.
+// "renewably obtainable at your badge" sync.
 import {
   launchBrowser,
   openPoolPage,
@@ -46,14 +46,14 @@ try {
 
   await setBadgeCheckpoint(page);
   await openAllDetails(page);
-  const syncButton = await page.$('[data-shop-sync-button]');
-  check('shop sync block appears with a badge set', Boolean(syncButton));
+  const syncButton = await page.$('[data-renewable-sync-button]');
+  check('renewable sync block appears with a badge set', Boolean(syncButton));
   const beforeRows = await page.$$eval('.item-inventory-row', (rows) => rows.length);
   await syncButton.click();
   await page.waitForTimeout(400);
   const afterRows = await page.$$eval('.item-inventory-row', (rows) => rows.length);
   check(
-    'sync adds the purchasable stock in one click',
+    'sync adds the renewable stock in one click',
     afterRows > beforeRows + 5,
     `${beforeRows} -> ${afterRows}`,
   );

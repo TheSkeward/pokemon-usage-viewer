@@ -1,15 +1,23 @@
 // Inventory bulk-merge + shop-sync semantics (progression panel UX):
 // addRebornOwnedItems raises counts without ever lowering one, and
-// getPurchasableShopItems lists exactly the badge-reachable shop stock the
-// player isn't tracking yet.
+// renewable-item helpers list exactly the badge-reachable stock and mining
+// rewards the player isn't tracking yet.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   addRebornOwnedItems,
+  DEFAULT_REBORN_PROGRESSION,
   MAX_TRACKED_ITEM_COUNT,
 } from '../src/reborn/progression.js';
-import { getPurchasableShopItems } from '../src/reborn/item-availability.js';
-import { REBORN_SHOP_ITEM_BADGES } from '../src/generated/rebornItemTimeline.generated.js';
+import { renderRebornProgressionPanel } from '../src/reborn/progression-view.js';
+import {
+  getPurchasableShopItems,
+  getRenewablyObtainableItems,
+} from '../src/reborn/item-availability.js';
+import {
+  REBORN_MINING_ITEM_BADGES,
+  REBORN_SHOP_ITEM_BADGES,
+} from '../src/generated/rebornItemTimeline.generated.js';
 
 test('addRebornOwnedItems raises, clamps, and never lowers', () => {
   const base = { ownedItems: { leftovers: 2, choiceband: 6 } };
@@ -51,6 +59,58 @@ test('getPurchasableShopItems: badge-gated, owned-filtered, stable order', () =>
 
   // No badge selected -> nothing offered (never guess the gamestate).
   assert.equal(getPurchasableShopItems(null, {}).length, 0);
+});
+
+test('mining items join the renewable 6+ list at badge 3', () => {
+  assert.ok(
+    Object.keys(REBORN_MINING_ITEM_BADGES).length >= 40,
+    'expected the full tracked mining-item catalog',
+  );
+
+  const atTwo =
+    new Set(getRenewablyObtainableItems(2, {}).map((item) => item.id));
+  const atThree = getRenewablyObtainableItems(3, {});
+  const atThreeIds = new Set(atThree.map((item) => item.id));
+
+  for (const id of Object.keys(REBORN_MINING_ITEM_BADGES)) {
+    if ((REBORN_SHOP_ITEM_BADGES[id] ?? Infinity) > 2) {
+      assert.ok(!atTwo.has(id), `${id} must not be renewable before badge 3`);
+    }
+    assert.ok(atThreeIds.has(id), `${id} must be renewable at badge 3`);
+  }
+  assert.equal(
+    atThreeIds.size,
+    atThree.length,
+    'items with both shop and mining sources must be deduplicated',
+  );
+
+  const ownedMining = Object.fromEntries(
+    Object.keys(REBORN_MINING_ITEM_BADGES).map((id) => [id, 6]),
+  );
+  const afterSync =
+    new Set(getRenewablyObtainableItems(3, ownedMining).map((item) => item.id));
+  for (const id of Object.keys(REBORN_MINING_ITEM_BADGES)) {
+    assert.ok(!afterSync.has(id), `${id} must disappear once tracked`);
+  }
+});
+
+test('badge-3 inventory panel offers the renewable mining haul at 6+', () => {
+  globalThis.localStorage = { getItem: () => null };
+  let html;
+  try {
+    html = renderRebornProgressionPanel({
+      ...DEFAULT_REBORN_PROGRESSION,
+      checkpoint: 'badge-3',
+      levelCap: '45',
+    });
+  } finally {
+    delete globalThis.localStorage;
+  }
+
+  assert.match(html, /data-renewable-sync-button/);
+  assert.match(html, /Renewably obtainable at your badge/);
+  assert.match(html, /Hard Stone/);
+  assert.match(html, /Add all \d+ as 6\+/);
 });
 
 test('badge-1 shop stock includes the user-verified Obsidia berry floor', () => {

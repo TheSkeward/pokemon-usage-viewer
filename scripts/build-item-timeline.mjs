@@ -65,7 +65,7 @@ const { GEN7_HELD_ITEMS_BY_ID } = await import(
   '../src/generated/gen7HeldItems.generated.js',
 );
 const { REBORN_EXTRA_INVENTORY_ITEMS } = await import(
-  '../src/reborn/item-availability.js',
+  '../src/reborn/extra-inventory-items.js',
 );
 
 const knownIds = new Set([
@@ -95,6 +95,20 @@ const lines = sorted.map(
   ([id, { badge, via }]) =>
     `  ${id}: { badge: ${badge}, via: ${JSON.stringify(via)} },`,
 );
+
+// Preserve the mining source independently of the earliest-obtainable table:
+// a mineable item may have an earlier one-off pickup, but it is still renewable
+// once the Mining Kit is available.
+const miningTable = new Map();
+for (const name of extracted.miningItems) {
+  const id = toId(name);
+  if (knownIds.has(id)) miningTable.set(id, MINING_KIT_BADGE);
+}
+const miningSorted = [...miningTable.entries()].sort(([a], [b]) =>
+  a.localeCompare(b),
+);
+const miningLines =
+  miningSorted.map(([id, badge]) => `  ${id}: ${badge},`);
 
 // Shop-sourced held items (renewable: buy as many as needed once the shop is
 // reachable), from the extraction's shopItems map — built from the Shops tab
@@ -141,6 +155,13 @@ export const REBORN_ITEM_UNLOCK_BADGES = {
 ${lines.join('\n')}
 };
 
+// Mineable inventory items (renewable by mining-rock resets), by the badge at
+// which the Mining Kit becomes available. Kept separate from earliest unlocks
+// so an earlier one-off copy does not hide the later renewable source.
+export const REBORN_MINING_ITEM_BADGES = {
+${miningLines.join('\n')}
+};
+
 // Held items purchasable from shops (renewable), by the badge the shop
 // opens at. Drives the inventory panel's one-click "purchasable now" sync.
 export const REBORN_SHOP_ITEM_BADGES = {
@@ -150,6 +171,7 @@ ${shopLines.join('\n')}
 );
 
 console.log(`[item-timeline] ${shopSorted.length} shop items marked renewable`);
+console.log(`[item-timeline] ${miningSorted.length} mining items marked renewable`);
 
 console.log(
   `[item-timeline] ${sorted.length} held items timed (of ${knownIds.size} known ids)`,

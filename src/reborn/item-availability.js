@@ -1,7 +1,13 @@
-import { REBORN_SHOP_ITEM_BADGES } from '../generated/rebornItemTimeline.generated.js';
+import {
+  REBORN_MINING_ITEM_BADGES,
+  REBORN_SHOP_ITEM_BADGES,
+} from '../generated/rebornItemTimeline.generated.js';
 import { GEN7_HELD_ITEMS_BY_ID } from '../generated/gen7HeldItems.generated.js';
-import { HIDDEN_INVENTORY_ITEM_IDS } from './reborn-seeds';
+import { HIDDEN_INVENTORY_ITEM_IDS } from './reborn-seeds.js';
+import { REBORN_EXTRA_INVENTORY_ITEMS } from './extra-inventory-items.js';
 import { toId } from '../utils/ids.js';
+
+export { REBORN_EXTRA_INVENTORY_ITEMS };
 // Curated evolution-item availability for Pokémon Reborn.
 //
 // This is a small, SOURCED table — not scraped data and not guesswork dressed
@@ -54,21 +60,6 @@ const ITEM_AVAILABILITY = {
 };
 
 /**
- * Reborn-only inventory items that aren't in the Gen 7 held-items list but
- * belong in the owned-items tracker (owning one zeroes the matching evolution
- * friction and overrides its access gate).
- * @type {Array<{id: string, name: string}>}
- */
-export const REBORN_EXTRA_INVENTORY_ITEMS = Object.freeze([
-  { id: 'linkstone', name: 'Link Stone' },
-  // Reborn-original (E16+): the holder's area-altering moves last 8 turns
-  // instead of 5 — the fangame's generalized Terrain Extender. Outside the
-  // usage prior's universe, so its scoring signal is the borrowed-prior
-  // field-extender bonus (see scoringConstants FIELD_EXTENDER_UTILITY_BONUS).
-  { id: 'amplifieldrock', name: 'Amplifield Rock' },
-]);
-
-/**
  * Every item id that participates in evolution requirements — owning one of
  * THESE changes optimization results (friction/access), unlike ordinary held
  * items, so progression-staleness checks must watch them.
@@ -109,12 +100,52 @@ export function getItemAvailability(itemName) {
  * @return {Array<{id: string, name: string, badge: number}>}
  */
 export function getPurchasableShopItems(badges, ownedItems = {}, minCount = 1) {
+  return getAvailableInventoryItems(
+    REBORN_SHOP_ITEM_BADGES,
+    badges,
+    ownedItems,
+    minCount,
+  );
+}
+
+/**
+ * Renewable inventory items reachable at the player's badge count, merging
+ * shop stock with mining-rock rewards. When an item has both sources, the
+ * earlier renewable source wins and the item appears only once.
+ * @param {number} badges
+ * @param {Object<string, number>=} ownedItems id -> owned count.
+ * @param {number=} minCount Owned count at which an item stops qualifying.
+ * @return {Array<{id: string, name: string, badge: number}>}
+ */
+export function getRenewablyObtainableItems(
+  badges,
+  ownedItems = {},
+  minCount = 1,
+) {
+  const renewableBadges = { ...REBORN_SHOP_ITEM_BADGES };
+  for (const [id, badge] of Object.entries(REBORN_MINING_ITEM_BADGES)) {
+    renewableBadges[id] = Math.min(renewableBadges[id] ?? Infinity, badge);
+  }
+  return getAvailableInventoryItems(
+    renewableBadges,
+    badges,
+    ownedItems,
+    minCount,
+  );
+}
+
+function getAvailableInventoryItems(
+  itemBadges,
+  badges,
+  ownedItems,
+  minCount,
+) {
   if (!Number.isFinite(badges)) return [];
   const extrasById = Object.fromEntries(
     REBORN_EXTRA_INVENTORY_ITEMS.map((item) => [item.id, item]),
   );
   const results = [];
-  for (const [id, badge] of Object.entries(REBORN_SHOP_ITEM_BADGES)) {
+  for (const [id, badge] of Object.entries(itemBadges)) {
     if (badge > badges) continue;
     if (HIDDEN_INVENTORY_ITEM_IDS.has(id)) continue;
     const item = GEN7_HELD_ITEMS_BY_ID[id] || extrasById[id];

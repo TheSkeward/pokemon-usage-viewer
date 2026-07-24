@@ -21,7 +21,7 @@ import {
 } from './badge-timeline.js';
 import {
   REBORN_EXTRA_INVENTORY_ITEMS,
-  getPurchasableShopItems,
+  getRenewablyObtainableItems,
 } from './item-availability.js';
 import { MAX_TRACKED_ITEM_COUNT, MAX_OPPONENT_TYPE_BIAS } from './progression';
 import { HIDDEN_INVENTORY_ITEM_IDS } from './reborn-seeds';
@@ -306,36 +306,35 @@ function renderItemInventory(ownedItems, badges) {
         <button type="button" data-item-add-button>Add</button>
       </div>
 
-      ${renderPurchasableShopItems(ownedItems, badges)}
+      ${renderRenewablyObtainableItems(ownedItems, badges)}
 
       <div class="item-inventory-list">${ownedRows}</div>
     </details>
   `;
 }
 
-// One-click shop sync: lists what the badge-timed shop schedule says is
-// purchasable now but untracked, with a single "add all as 6+" (renewable
-// stock: buy as many as you need).
-function renderPurchasableShopItems(ownedItems, badges) {
-  const purchasable = getPurchasableShopItems(badges, ownedItems);
-  if (!purchasable.length) return '';
+// One-click renewable-item sync: badge-timed shops and mining rewards that are
+// reachable now but untracked, with a single "add all as 6+".
+function renderRenewablyObtainableItems(ownedItems, badges) {
+  const renewable = getRenewablyObtainableItems(badges, ownedItems);
+  if (!renewable.length) return '';
 
-  const names = purchasable
+  const names = renewable
     .map((item) => `<span class="item-shop-name">${escapeHtml(item.name)}</span>`)
     .join(', ');
 
   return `
-    <details class="item-shop-sync" ${detailsStateAttrs('shop-sync', false)}>
+    <details class="item-shop-sync" ${detailsStateAttrs('renewable-sync', false)}>
       <summary>
-        <span>Purchasable at your badge, not tracked yet</span>
-        <span class="progression-option-count">${purchasable.length}</span>
+        <span>Renewably obtainable at your badge, not tracked yet</span>
+        <span class="progression-option-count">${renewable.length}</span>
       </summary>
       <p class="muted item-shop-hint">
-        Shop stock timed by the community item guide. Renewable — adding at
-        6+ means "I can buy as many as I need".
+        Shop stock and mining rewards timed by the community item guide.
+        Adding at 6+ means "I can obtain as many as I need".
       </p>
-      <button type="button" data-shop-sync-button>
-        Add all ${purchasable.length} as 6+
+      <button type="button" data-renewable-sync-button>
+        Add all ${renewable.length} as 6+
       </button>
       <p class="item-shop-list">${names}</p>
     </details>
