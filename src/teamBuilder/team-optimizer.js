@@ -224,7 +224,9 @@ const MAX_RESULT_CACHE = 400;
 // slot, and results retain the usage-ranked unscored tail for display.
 // v49: reusable TM/TMX and tutor routes display ahead of the Heart
 // Scale-consuming move relearner when the same move has several legal sources.
-const RESULT_CACHE_VERSION = '49';
+// v50: Rollout/Ice Ball escalation accounts for each miss ending the chain,
+// reducing their effective damage and potentially changing recommended sets.
+const RESULT_CACHE_VERSION = '50';
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.

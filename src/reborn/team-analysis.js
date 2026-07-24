@@ -1475,15 +1475,14 @@ function getMovePower(move) {
 }
 
 // Escalating multi-turn moves whose effective power isn't a simple multi-hit or
-// recharge. Rollout/Ice Ball double their power each consecutive turn (up to 5)
-// but rarely complete the sequence, so we weight each turn at half the
-// previous: with power doubling and weight halving, every turn contributes its
-// base power, so the weighted-average power is 5·BP / (1 + 1/2 + 1/4 + 1/8 +
-// 1/16) ≈ 2.58·BP.
-const ESCALATING_HIT_MULTIPLIER = {
-  rollout: 2.58,
-  iceball: 2.58,
-};
+// recharge. Rollout/Ice Ball double their power each consecutive turn (up to
+// five), while we value each later turn at half the previous one. Those two
+// factors cancel, so each REACHED turn contributes one base-power unit. A miss
+// ends the chain: conditional on turn 1 hitting (the ordinary accuracy factor
+// is applied later), turns 2–5 are reached with probability p, p², p³, p⁴.
+const ESCALATING_MOVE_IDS = new Set(['rollout', 'iceball']);
+const ESCALATING_TURNS = 5;
+const LATER_TURN_WEIGHT = 0.5;
 
 // Semi-invulnerable charge moves, split by punch-through:
 //   - No punch-through → full power. Phantom Force / Shadow Force vanish
@@ -1525,9 +1524,20 @@ const FAILS_IF_DISRUPTED = new Set(['focuspunch', 'shelltrap']);
 //   - escalating: a curated weighting (Rollout/Ice Ball).
 // Single-hit moves — and no-punch-through charge moves (Phantom Force/Shadow
 // Force vanish outright; Sky Drop steals the target's turn) — keep full power.
-function getEffectiveHitMultiplier(move, ability = null) {
-  const escalating = ESCALATING_HIT_MULTIPLIER[move.id];
-  if (escalating) return escalating;
+export function getEffectiveHitMultiplier(move, ability = null) {
+  if (ESCALATING_MOVE_IDS.has(move.id)) {
+    const hitChance = getAccuracyFactor(move);
+    let weightedPower = 0;
+    let totalWeight = 0;
+    for (let turn = 0; turn < ESCALATING_TURNS; turn += 1) {
+      const turnWeight = LATER_TURN_WEIGHT ** turn;
+      const turnPower = 2 ** turn;
+      const reachChance = hitChance ** turn;
+      weightedPower += turnWeight * turnPower * reachChance;
+      totalWeight += turnWeight;
+    }
+    return weightedPower / totalWeight;
+  }
 
   const multihit = move.multihit;
   if (typeof multihit === 'number') return multihit;
