@@ -11,6 +11,7 @@ import {
 import { getReachableRebornSpecies } from './current-species.js';
 import {
   getAvailableRebornMoves,
+  getRebornMoveSourcePriority,
   loadRebornLegalMoveData,
 } from './legal-moves.js';
 
@@ -294,14 +295,6 @@ function compareRouteCosts(costA, costB, sourceA, sourceB) {
 }
 
 function sourceCost(source, species, progression) {
-  const kindOrder = {
-    'level-up': 0,
-    tm: 1,
-    tmx: 2,
-    tutor: 3,
-    relearner: 4,
-    egg: 5,
-  };
   const acquisition = acquisitionOf(
     { availableSources: [source] },
     species.id,
@@ -325,7 +318,7 @@ function sourceCost(source, species, progression) {
           ? GEN7_PROGRESSION_SPECIES[species.id]?.evoLevel ?? null
           : null,
     hassle: acquisition.hassle || 0,
-    kind: kindOrder[source.kind] ?? 9,
+    kind: getRebornMoveSourcePriority(source),
   };
 }
 

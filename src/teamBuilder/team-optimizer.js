@@ -222,7 +222,9 @@ const MAX_RESULT_CACHE = 400;
 // subset, while every listed line remains in the breeding/Sketch donor graph.
 // v48: repeated inputs that resolve to the same bench form share one scored
 // slot, and results retain the usage-ranked unscored tail for display.
-const RESULT_CACHE_VERSION = '48';
+// v49: reusable TM/TMX and tutor routes display ahead of the Heart
+// Scale-consuming move relearner when the same move has several legal sources.
+const RESULT_CACHE_VERSION = '49';
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.

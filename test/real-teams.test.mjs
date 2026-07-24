@@ -407,3 +407,22 @@ test('closest-team panel stays visible and explains every blocker type', () => {
   assert.match(html, /Missing Pokémon<\/small>/);
   assert.match(html, /team-set-move unavailable/);
 });
+
+test('real-team cards render bracketed Hidden Power with its elemental type', () => {
+  const team = makeTeam('hidden-power', 1, 1, ['oddish']);
+  team.members[0].moves = ['Hidden Power [Grass]', 'Hidden Power [Fire]'];
+
+  const html = renderRealTeamPanel({
+    dataAvailable: true,
+    fieldableTeam: team,
+  });
+
+  assert.match(
+    html,
+    /background:#7AC74C[^>]*>\s*Grass\s*<\/span>[\s\S]*Hidden Power \[Grass\]/,
+  );
+  assert.match(
+    html,
+    /background:#EE8130[^>]*>\s*Fire\s*<\/span>[\s\S]*Hidden Power \[Fire\]/,
+  );
+});

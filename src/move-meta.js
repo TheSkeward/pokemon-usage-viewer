@@ -1,5 +1,5 @@
 import { MOVE_META } from './generated/gen7MoveMeta.generated.js';
-import { toId as moveId } from './utils/ids.js';
+import { toId } from './utils/ids.js';
 
 const TYPE_COLORS = {
   Normal: '#A8A77A',
@@ -38,21 +38,20 @@ const cache = new Map();
  */
 export function getMoveMeta(name) {
   const rawName = String(name || '').trim();
-  const id = moveId(rawName);
+  const id = toId(rawName);
   if (!id) return null;
   if (cache.has(id)) return cache.get(id);
 
-  // Hidden Power's elemental type lives in the move name ("Hidden Power Ice"),
-  // not in the base dex entry, so the generated table only has a single
-  // "hiddenpower" key. Resolve the variant type from the name suffix; in Gen 7
-  // Hidden Power is always Special regardless of type.
+  // Hidden Power's elemental type lives in the move name, not in the base dex
+  // entry. Accept every representation used across the app and scraped teams:
+  // "Hidden Power Ice", "Hidden Power [Ice]", and "hiddenpowerice".
   const meta = resolveHiddenPower(rawName) || MOVE_META[id] || null;
   cache.set(id, meta);
   return meta;
 }
 
 function resolveHiddenPower(name) {
-  const match = /^hidden\s*power\s+([a-z]+)$/i.exec(name);
+  const match = /^hiddenpower([a-z]+)$/.exec(toId(name));
   if (!match) return null;
 
   const type = match[1][0].toUpperCase() + match[1].slice(1).toLowerCase();
@@ -73,7 +72,7 @@ function resolveHiddenPower(name) {
  * @return {?Object}
  */
 export function getMoveMetaById(id) {
-  return MOVE_META[id] || null;
+  return getMoveMeta(id);
 }
 
 /**
@@ -83,7 +82,7 @@ export function getMoveMetaById(id) {
  * defaults so a missing entry can't crash a render.
  */
 export function hydrateLegalMove(rawMove) {
-  const meta = MOVE_META[rawMove.id] || null;
+  const meta = getMoveMetaById(rawMove.id);
   return {
     id: rawMove.id,
     name: meta?.name ?? rawMove.id,

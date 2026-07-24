@@ -537,19 +537,34 @@ function compareSourcePriority(a, b) {
 }
 
 function getBestSourcePriority(move) {
+  return Math.min(
+    ...move.availableSources.map(getRebornMoveSourcePriority),
+  );
+}
+
+/**
+ * Practical preference when several currently legal routes teach one move.
+ * Natural level-up remains free; reusable machines come next, then the
+ * one-time tutor unlock, then the Heart Scale-consuming relearner.
+ */
+export function getRebornMoveSourcePriority(source) {
   const priorities = {
     'level-up': 0,
-    relearner: 1,
-    tm: 2,
-    tmx: 3,
-    tutor: 4,
+    tm: 1,
+    tmx: 2,
+    tutor: 3,
+    relearner: 4,
     sketch: 5,
     egg: 6,
   };
+  return priorities[source?.kind] ?? 9;
+}
 
-  return Math.min(
-    ...move.availableSources.map((source) => priorities[source.kind] ?? 9),
-  );
+export function getPreferredRebornMoveSource(move) {
+  return [...(move?.availableSources || [])].sort(
+    (a, b) =>
+      getRebornMoveSourcePriority(a) - getRebornMoveSourcePriority(b),
+  )[0] || null;
 }
 
 function mapOptionsByMoveId(options) {

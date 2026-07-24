@@ -1,5 +1,7 @@
 import {
   getAvailableRebornMoves,
+  getPreferredRebornMoveSource,
+  getRebornMoveSourcePriority,
   loadRebornLegalMoveData,
 } from './legal-moves';
 import { getCurrentRebornSpeciesForChoice } from './current-species.js';
@@ -426,9 +428,7 @@ async function buildMemberLegalMoveEntry({
 export function collectEggDonorRequests(profile) {
   const byDonor = new Map();
   for (const move of profile?.recommendedMoves || []) {
-    const best = [...(move.availableSources || [])].sort(
-      (a, b) => getSourcePriority(a) - getSourcePriority(b),
-    )[0];
+    const best = getPreferredRebornMoveSource(move);
     if (!best || best.kind !== 'egg') continue;
     const interim = best.interimDonor || {};
     const donorName = interim.donorName || best.donorName;
@@ -478,9 +478,7 @@ export function collectSketchDonorRequests(
   );
   const byDonor = new Map();
   for (const move of profile?.recommendedMoves || []) {
-    const best = [...(move.availableSources || [])].sort(
-      (a, b) => getSourcePriority(a) - getSourcePriority(b),
-    )[0];
+    const best = getPreferredRebornMoveSource(move);
     if (best?.kind !== 'sketch') continue;
     const donorName =
       best.partnerSource?.learnerName || best.partnerName || best.partnerId;
@@ -1852,53 +1850,22 @@ function countSuperEffectiveTargets(attackType) {
 }
 
 function getBestSourcePriority(move) {
-  const priorities = {
-    'level-up': 0,
-    relearner: 1,
-    tm: 2,
-    tmx: 3,
-    tutor: 4,
-    sketch: 5,
-    egg: 6,
-  };
-
-  return Math.min(
-    ...(move.availableSources || []).map(
-      (source) => priorities[source.kind] ?? 9),
-    9,
-  );
+  const source = getPreferredRebornMoveSource(move);
+  return source ? getRebornMoveSourcePriority(source) : 9;
 }
 
 function formatBestSource(move) {
-  const source = [...(move.availableSources || [])].sort(
-    (a, b) => getSourcePriority(a) - getSourcePriority(b),
-  )[0];
+  const source = getPreferredRebornMoveSource(move);
 
   if (!source) return 'Legal';
   return source.detail ? `${source.label}: ${source.detail}` : source.label;
 }
 
 function formatBestSourceTitle(move) {
-  const source = [...(move.availableSources || [])].sort(
-    (a, b) => getSourcePriority(a) - getSourcePriority(b),
-  )[0];
+  const source = getPreferredRebornMoveSource(move);
 
   if (!source) return '';
   return source.sourceTitle || source.detail || source.label || '';
-}
-
-function getSourcePriority(source) {
-  const priorities = {
-    'level-up': 0,
-    relearner: 1,
-    tm: 2,
-    tmx: 3,
-    tutor: 4,
-    sketch: 5,
-    egg: 6,
-  };
-
-  return priorities[source.kind] ?? 9;
 }
 
 const UTILITY_MOVE_WEIGHTS = {
