@@ -863,6 +863,7 @@ export function mountPoolOptimizer(container, options = {}) {
         const renewable = getRenewablyObtainableItems(
           badges,
           state.progression.ownedItems || {},
+          MAX_TRACKED_ITEM_COUNT,
         );
         if (!renewable.length) return;
         state.progression = addRebornOwnedItems(

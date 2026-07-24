@@ -316,7 +316,11 @@ function renderItemInventory(ownedItems, badges) {
 // One-click renewable-item sync: badge-timed shops and mining rewards that are
 // reachable now but untracked, with a single "add all as 6+".
 function renderRenewablyObtainableItems(ownedItems, badges) {
-  const renewable = getRenewablyObtainableItems(badges, ownedItems);
+  const renewable = getRenewablyObtainableItems(
+    badges,
+    ownedItems,
+    MAX_TRACKED_ITEM_COUNT,
+  );
   if (!renewable.length) return '';
 
   const names = renewable
@@ -326,12 +330,13 @@ function renderRenewablyObtainableItems(ownedItems, badges) {
   return `
     <details class="item-shop-sync" ${detailsStateAttrs('renewable-sync', false)}>
       <summary>
-        <span>Renewably obtainable at your badge, not tracked yet</span>
+        <span>Renewably obtainable at your badge, below 6+</span>
         <span class="progression-option-count">${renewable.length}</span>
       </summary>
       <p class="muted item-shop-hint">
         Shop stock and mining rewards timed by the community item guide.
-        Adding at 6+ means "I can obtain as many as I need".
+        Untracked and partially stocked items are included; adding at 6+ means
+        "I can obtain as many as I need".
       </p>
       <button type="button" data-renewable-sync-button>
         Add all ${renewable.length} as 6+

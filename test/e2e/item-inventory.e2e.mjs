@@ -44,7 +44,13 @@ try {
     (await page.inputValue('[data-owned-item-count][data-item-id="leftovers"]')) === '6',
   );
 
-  await setBadgeCheckpoint(page);
+  for (const name of ['Pixie Plate', 'Fire Gem']) {
+    await page.fill('[data-item-add-input]', name);
+    await page.press('[data-item-add-input]', 'Enter');
+    await page.waitForTimeout(150);
+  }
+
+  await setBadgeCheckpoint(page, 7);
   await openAllDetails(page);
   const syncButton = await page.$('[data-renewable-sync-button]');
   check('renewable sync block appears with a badge set', Boolean(syncButton));
@@ -57,6 +63,14 @@ try {
     afterRows > beforeRows + 5,
     `${beforeRows} -> ${afterRows}`,
   );
+  for (const id of ['pixieplate', 'firegem']) {
+    check(
+      `${id} is raised from 1 to 6`,
+      (await page.inputValue(
+        `[data-owned-item-count][data-item-id="${id}"]`,
+      )) === '6',
+    );
+  }
 } finally {
   await browser.close();
 }

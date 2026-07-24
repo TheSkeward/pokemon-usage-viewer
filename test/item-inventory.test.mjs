@@ -94,22 +94,58 @@ test('mining items join the renewable 6+ list at badge 3', () => {
   }
 });
 
-test('badge-3 inventory panel offers the renewable mining haul at 6+', () => {
+test('renewable 6+ sync retains partially stocked mining items and gems', () => {
+  const partial = getRenewablyObtainableItems(
+    6,
+    { pixieplate: 1, firegem: 1 },
+    MAX_TRACKED_ITEM_COUNT,
+  );
+  const partialIds = new Set(partial.map((item) => item.id));
+  assert.ok(partialIds.has('pixieplate'));
+  assert.ok(partialIds.has('firegem'));
+
+  const full = getRenewablyObtainableItems(
+    6,
+    {
+      pixieplate: MAX_TRACKED_ITEM_COUNT,
+      firegem: MAX_TRACKED_ITEM_COUNT,
+    },
+    MAX_TRACKED_ITEM_COUNT,
+  );
+  const fullIds = new Set(full.map((item) => item.id));
+  assert.ok(!fullIds.has('pixieplate'));
+  assert.ok(!fullIds.has('firegem'));
+
+  const raised = addRebornOwnedItems(
+    { ownedItems: { pixieplate: 1, firegem: 1 } },
+    Object.fromEntries(
+      partial.map((item) => [item.id, MAX_TRACKED_ITEM_COUNT]),
+    ),
+  );
+  assert.equal(raised.ownedItems.pixieplate, MAX_TRACKED_ITEM_COUNT);
+  assert.equal(raised.ownedItems.firegem, MAX_TRACKED_ITEM_COUNT);
+});
+
+test('badge-6 inventory panel offers partial mining items and gems at 6+', () => {
   globalThis.localStorage = { getItem: () => null };
   let html;
   try {
     html = renderRebornProgressionPanel({
       ...DEFAULT_REBORN_PROGRESSION,
-      checkpoint: 'badge-3',
-      levelCap: '45',
+      checkpoint: 'badge-6',
+      levelCap: '55',
+      ownedItems: { pixieplate: 1, firegem: 1 },
     });
   } finally {
     delete globalThis.localStorage;
   }
 
+  const renewablePanel =
+    html.match(/<details class="item-shop-sync"[\s\S]*?<\/details>/)?.[0] || '';
   assert.match(html, /data-renewable-sync-button/);
-  assert.match(html, /Renewably obtainable at your badge/);
-  assert.match(html, /Hard Stone/);
+  assert.match(html, /Renewably obtainable at your badge, below 6\+/);
+  assert.match(renewablePanel, /Pixie Plate/);
+  assert.match(renewablePanel, /Fire Gem/);
   assert.match(html, /Add all \d+ as 6\+/);
 });
 
