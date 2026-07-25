@@ -226,7 +226,10 @@ const MAX_RESULT_CACHE = 400;
 // Scale-consuming move relearner when the same move has several legal sources.
 // v50: Rollout/Ice Ball escalation accounts for each miss ending the chain,
 // reducing their effective damage and potentially changing recommended sets.
-const RESULT_CACHE_VERSION = '50';
+// v51: bench dedup keys on the ability annotation too — an annotated
+// input (Froakie (Protean)) is never a duplicate of a differently-
+// annotated line on the same bench form, so both stay in the scored pool.
+const RESULT_CACHE_VERSION = '51';
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
@@ -372,6 +375,7 @@ export async function optimizeTeamFromPool({
   }
 
   const scoringPool = await selectScoringGroups({
+    abilityAnnotations,
     allGroups,
     availability,
     family,
@@ -621,6 +625,7 @@ function lineIsDegraded(line) {
  * usage order; explicit diagnostics may request every line.
  */
 async function selectScoringGroups({
+  abilityAnnotations,
   allGroups,
   availability,
   family,
@@ -667,6 +672,13 @@ async function selectScoringGroups({
             minMeaningfulUsagePercent: MIN_MEANINGFUL_USAGE_PERCENT,
             pokemonId: candidate.id,
             selection,
+          }).catch((error) => {
+            // Same containment as resolvePoolLine: a transient fetch failure
+            // degrades one candidate's rank signal (the null bundle is
+            // skipped by the ranking readers), never the whole optimize.
+            console.warn(
+              'Failed to rank team-builder candidate', candidate.id, error);
+            return null;
           }),
         })),
       );
@@ -681,6 +693,8 @@ async function selectScoringGroups({
           rows.map((row) => [row.candidate.id, row.bundle]),
         ),
         usageOrder,
+        abilityAnnotation:
+          abilityAnnotations?.get(normalizeName(group.input.name)) || null,
         displayKey:
           usageOrder.ceiling?.pokemonId ||
           usageOrder.trace?.pokemonId ||

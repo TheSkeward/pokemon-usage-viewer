@@ -151,9 +151,14 @@ export function takeTopUsageEntries(entries, limit = SCORED_POOL_LIMIT) {
 export function deduplicateUsageEntries(entries = []) {
   const bestByDisplayKey = new Map();
   for (const entry of entries) {
-    const current = bestByDisplayKey.get(entry.displayKey);
+    // Ability annotations change a line's builds, so an annotated input is
+    // never a duplicate of a differently-annotated one, even on the same
+    // bench form (Froakie (Protean) beside a plain Greninja).
+    const key =
+      `${entry.displayKey}|${entry.abilityAnnotation || ''}`;
+    const current = bestByDisplayKey.get(key);
     if (!current || compareDuplicateRepresentatives(entry, current) < 0) {
-      bestByDisplayKey.set(entry.displayKey, entry);
+      bestByDisplayKey.set(key, entry);
     }
   }
   return [...bestByDisplayKey.values()].sort((a, b) =>

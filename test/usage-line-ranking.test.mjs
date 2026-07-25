@@ -113,3 +113,18 @@ test('duplicate bench identities consume one slot and prefer the exact form', ()
   assert.equal(unique.length, 1);
   assert.equal(unique[0].inputPokemonId, 'swanna');
 });
+
+test('ability-annotated inputs never merge with differently annotated ones', () => {
+  // Regression: dedup once keyed on displayKey alone, so Froakie (Protein)
+  // and a plain Greninja input merged onto one bench slot and the annotated
+  // line silently vanished from the scored pool.
+  const order = { ceiling: { pokemonId: 'greninja', name: 'Greninja', tierRank: 1, value: 9 }, fallbackName: '' };
+  const entries = [
+    { displayKey: 'greninja', abilityAnnotation: 'Protean',
+      inputPokemonId: 'froakie', inputEvolutionDepth: 0, usageOrder: order },
+    { displayKey: 'greninja', abilityAnnotation: null,
+      inputPokemonId: 'greninja', inputEvolutionDepth: 2, usageOrder: order },
+  ];
+  const unique = deduplicateUsageEntries(entries);
+  assert.equal(unique.length, 2);
+});
