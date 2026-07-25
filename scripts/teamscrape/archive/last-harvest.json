@@ -1,5 +1,5 @@
 {
-  "finishedAt": "2026-07-24T12:54:39.954Z",
+  "finishedAt": "2026-07-25T12:17:46.697Z",
   "results": [
     {
       "script": "scrape-pkmn-teams.mjs",
@@ -24,50 +24,44 @@
       "script": "scrape-replay-teams.mjs",
       "exitCode": 0,
       "outputTail": [
-        "gen7anythinggoes: +300 (archive 1500)",
-        "gen7ubers: +300 (archive 1505)",
-        "gen7ou: +300 (archive 1500)",
-        "gen7uu: +300 (archive 1500)",
-        "gen7ru: +300 (archive 1500)",
-        "gen7nu: +300 (archive 1500)",
-        "gen7pu: +300 (archive 1500)",
-        "gen7zu: +300 (archive 1500)",
-        "gen7nfe: +168 (archive 1368)",
-        "gen7lc: +300 (archive 1500)",
-        "gen7doublesubers: +300 (archive 1500)",
+        "gen7anythinggoes: +300 (archive 1800)",
+        "gen7ubers: +300 (archive 1805)",
+        "gen7ou: +300 (archive 1800)",
+        "gen7uu: +300 (archive 1800)",
+        "gen7ru: +300 (archive 1800)",
+        "gen7nu: +300 (archive 1800)",
+        "gen7pu: +300 (archive 1800)",
+        "gen7zu: +300 (archive 1800)",
+        "gen7nfe: +0 (archive 1368)",
+        "gen7lc: +300 (archive 1800)",
+        "gen7doublesubers: +300 (archive 1800)",
         "  skip gen7doublesou-2560475408: 404 https://replay.pokemonshowdown.com/gen7doublesou-2560475408.json",
-        "gen7doublesou: +300 (archive 1509)",
-        "gen7doublesuu: +300 (archive 1500)"
+        "gen7doublesou: +300 (archive 1809)",
+        "gen7doublesuu: +300 (archive 1800)"
       ]
     },
     {
       "script": "scrape-sample-teams.mjs",
-      "exitCode": 0,
+      "exitCode": 1,
       "outputTail": [
-        "gen7ou https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/: +0 of 0 paste link(s), +0 inline (7 author post(s), 108 sets) — \"Resource - USM OU Sample Teams | Smogon Forums\" (archive 144)",
-        "gen7ou https://www.smogon.com/forums/threads/usm-ou-sample-teams-v2-up.3638845/: +0 of 0 paste link(s), +0 inline (16 author post(s), 66 sets) — \"Resource - USM OU Sample Teams v2 (up) | Smogon Forums\" (archive 144)",
-        "  skip paste 938f74ad7bd815a: 404 https://pokepast.es/938f74ad7bd815a/raw",
-        "  scanned 5 post(s), 11940 chars, 0 sets — no \" @ \" anywhere; starts \"\\n\\t\\t\\t\\n\\t\\t\\t\\t\\n\\t\\t\\t\\n\\n\\t\\t\\t\\n\\t\\t\\t\\t\\n\\t\\t\\t\\t\\tHi! With the end of SPL XIII and SMPL I in its early stages, I'm here to submit some teams \"",
-        "gen7ou https://www.smogon.com/forums/threads/sm-ou-sample-teams.3695427/: +0 of 54 paste link(s), +0 inline (5 author post(s), 0 sets) — \"Resource - SM OU Sample Teams | Smogon Forums\" (archive 144)",
-        "gen7uu https://www.smogon.com/forums/threads/usum-uu-sample-teams.3621217/: +0 of 14 paste link(s), +0 inline (13 author post(s), 101 sets) — \"USUM Sample Teams | Smogon Forums\" (archive 68)",
-        "gen7ru https://www.smogon.com/forums/threads/usm-ru-sample-teams-thread.3622057/: +0 of 0 paste link(s), +0 inline (5 author post(s), 42 sets) — \"Resource - USM RU Sample Teams Thread | Smogon Forums\" (archive 15)",
-        "gen7nu https://www.smogon.com/forums/threads/usum-nu-sample-teams.3641525/: +0 of 0 paste link(s), +0 inline (3 author post(s), 42 sets) — \"Resource - USUM NU Sample Teams v2.0 | Smogon Forums\" (archive 14)",
-        "gen7pu https://www.smogon.com/forums/threads/usum-pu-sample-teams.3611496/: +0 of 0 paste link(s), +0 inline (6 author post(s), 60 sets) — \"Resource - PU Sample Teams and Resources Thread | Smogon Forums\" (archive 21)",
-        "gen7lc https://www.smogon.com/forums/threads/usum-lc-sample-teams.3639319/: +0 of 3 paste link(s), +0 inline (7 author post(s), 78 sets) — \"Resource - Multigen LC Sample Teams | Smogon Forums\" (archive 173)",
-        "gen7ubers https://www.smogon.com/forums/threads/usum-ubers-sample-teams.3639330/: +0 of 33 paste link(s), +0 inline (25 author post(s), 199 sets) — \"Resource - USM Sample Teams [Submissions closed] | Smogon Forums\" (archive 103)",
-        "gen7doublesou https://www.smogon.com/forums/threads/usum-doubles-ou-sample-teams.3645990/: +0 of 0 paste link(s), +0 inline (7 author post(s), 162 sets) — \"Resource - Doubles OU Sample Teams and Team Showcase | Smogon Forums\" (archive 333)"
+        "gen7ou https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/: FAILED — 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
+        "gen7ou https://www.smogon.com/forums/threads/usm-ou-sample-teams-v2-up.3638845/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
+        "gen7ou https://www.smogon.com/forums/threads/sm-ou-sample-teams.3695427/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
+        "gen7uu https://www.smogon.com/forums/threads/usum-uu-sample-teams.3621217/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
+        "gen7ru https://www.smogon.com/forums/threads/usm-ru-sample-teams-thread.3622057/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
+        "gen7nu https://www.smogon.com/forums/threads/usum-nu-sample-teams.3641525/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
+        "gen7pu https://www.smogon.com/forums/threads/usum-pu-sample-teams.3611496/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
+        "gen7lc https://www.smogon.com/forums/threads/usum-lc-sample-teams.3639319/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
+        "gen7ubers https://www.smogon.com/forums/threads/usum-ubers-sample-teams.3639330/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
+        "gen7doublesou https://www.smogon.com/forums/threads/usum-doubles-ou-sample-teams.3645990/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
+        "every thread failed — bad URLs or no network access to smogon.com"
       ]
     },
     {
       "script": "scrape-rmt-teams.mjs",
       "exitCode": 0,
       "outputTail": [
-        "rmt listing https://www.smogon.com/forums/forums/past-gen-teams.319/?prefix_id=474: 79 row(s) across 2 page(s)",
-        "rmt gen7anythinggoes: archive 11",
-        "rmt gen7doublesou: archive 20",
-        "rmt gen7ou: archive 38",
-        "rmt gen7uu: archive 11",
-        "rmt gen7ubers: archive 4",
+        "rmt listing https://www.smogon.com/forums/forums/past-gen-teams.319/?prefix_id=474: FAILED — 403 https://www.smogon.com/forums/forums/past-gen-teams.319/?prefix_id=474",
         "rmt: +0 new teams this run"
       ]
     },
@@ -75,6 +69,10 @@
       "script": "scrape-tournament-teams.mjs",
       "exitCode": 0,
       "outputTail": [
+        "tournament dump https://www.smogon.com/forums/threads/smbs-spl-x-team-dump.3650390/: FAILED — 403 https://www.smogon.com/forums/threads/smbs-spl-x-team-dump.3650390/",
+        "tournament dump https://www.smogon.com/forums/threads/upl-vii-dump.3650684/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/smbs-spl-x-team-dump.3650390/",
+        "tournament listing https://www.smogon.com/forums/forums/ruins-of-alph.281/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/smbs-spl-x-team-dump.3650390/",
+        "tournament listing https://www.smogon.com/forums/forums/smogon-classic.334/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/smbs-spl-x-team-dump.3650390/",
         "tournament: +0 paste teams, +0 replays"
       ]
     },
@@ -82,9 +80,7 @@
       "script": "scrape-forum-teams.mjs",
       "exitCode": 0,
       "outputTail": [
-        "forum listing https://www.smogon.com/forums/forums/sm-om-submissions.398/: 0 rows on page 1 (len 31399, thread hrefs 1, preview attrs 0, labels 0)",
-        "forum listing https://www.smogon.com/forums/forums/vgc-2019-ultra-series-analyses.514/: 0 rows on page 1 (len 29909, thread hrefs 1, preview attrs 0, labels 0)",
-        "forum listing https://www.smogon.com/forums/forums/sm-closed-submissions.407/: 0 rows on page 1 (len 30396, thread hrefs 1, preview attrs 0, labels 0)",
+        "forum listing https://www.smogon.com/forums/forums/gen-7-competitive-discussion.249/: FAILED — 403 https://www.smogon.com/forums/forums/gen-7-competitive-discussion.249/",
         "forums: +0 teams this run"
       ]
     }
