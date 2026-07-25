@@ -65,7 +65,6 @@ test('top-usage selection caps scoring at six team plus 120 bench slots', () => 
   );
 
   const selected = takeTopUsageEntries(entries);
-  assert.equal(SCORED_POOL_LIMIT, 126);
   assert.equal(selected.length, 126);
   assert.deepEqual(
     selected.map((entry) => entry.id),

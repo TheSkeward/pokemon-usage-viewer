@@ -113,10 +113,10 @@ export function assignMembersToLines(candidateLinesByMember) {
 }
 
 /**
- * Maximum matching when only part of a team can be seated. Unlike the old
- * first-free pass, the augmenting-path step can move an already-seated member
- * to another valid line when that opens a seat for somebody else. This makes
- * the closest-team count exact while retaining one-line-per-member semantics.
+ * Maximum matching when only part of a team can be seated. The
+ * augmenting-path step can move an already-seated member to another valid
+ * line when that opens a seat for somebody else, which keeps the
+ * closest-team count exact while retaining one-line-per-member semantics.
  * @param {Array<Array<number>>} candidateLinesByMember
  * @return {Array<?number>} The chosen line per member; null means unseated.
  */
@@ -230,31 +230,9 @@ export function compareRealTeams(a, b, recommendedIds = new Set()) {
 }
 
 /**
- * @return {Promise<?Object>} The best-ranked team whose members, moves, and
- *     items the pool can all field; null when none qualifies.
- */
-export async function findFieldableRealTeam({
-  teams,
-  lines = [],
-  progression = {},
-  recommendedIds = new Set(),
-  breedingContext = null,
-  sketchContext = null,
-}) {
-  const match = await findFieldableOrClosestRealTeam({
-    teams,
-    lines,
-    progression,
-    recommendedIds,
-    breedingContext,
-    sketchContext,
-  });
-  return match?.kind === 'fieldable' ? match.team : null;
-}
-
-/**
- * Finds the same best fieldable team as findFieldableRealTeam. When there is
- * no exact result, returns the team with the greatest share of members that
+ * Finds the best-ranked team whose members, moves, and items the pool can
+ * all field. When there is no exact result, returns the team with the
+ * greatest share of members that
  * distinct pool lines can field (then greatest raw member count, then the
  * normal popularity/recommended-team ordering), plus a blocker receipt.
  * Teams over the six-Pokemon game limit are parser spill and are ignored.

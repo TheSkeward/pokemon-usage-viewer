@@ -1,8 +1,10 @@
 import { gamesToLikelySee } from './trace-usage.js';
 
-// Six team slots plus four numbered 30-slot bench boxes. Pool entries beyond
-// this limit still participate in move-transfer contexts; they simply skip the
-// expensive build-resolution and team-search path.
+/**
+ * Six team slots plus four numbered 30-slot bench boxes. Pool entries beyond
+ * this limit still participate in move-transfer contexts; they simply skip
+ * the expensive build-resolution and team-search path.
+ */
 export const SCORED_POOL_LIMIT = 126;
 
 /**

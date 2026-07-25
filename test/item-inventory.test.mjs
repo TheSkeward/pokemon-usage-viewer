@@ -11,7 +11,6 @@ import {
 } from '../src/reborn/progression.js';
 import { renderRebornProgressionPanel } from '../src/reborn/progression-view.js';
 import {
-  getPurchasableShopItems,
   getRenewablyObtainableItems,
 } from '../src/reborn/item-availability.js';
 import {
@@ -37,14 +36,14 @@ test('addRebornOwnedItems raises, clamps, and never lowers', () => {
   assert.equal(base.ownedItems.leftovers, 2);
 });
 
-test('getPurchasableShopItems: badge-gated, owned-filtered, stable order', () => {
+test('getRenewablyObtainableItems: badge-gated, owned-filtered, stable order', () => {
   assert.ok(
     Object.keys(REBORN_SHOP_ITEM_BADGES).length >= 150,
     "the generated shop map should cover the guide's full shop stock",
   );
 
-  const atFour = getPurchasableShopItems(4, {});
-  assert.ok(atFour.length > 0, 'shops exist by badge 4');
+  const atFour = getRenewablyObtainableItems(4, {});
+  assert.ok(atFour.length > 0, 'renewable stock exists by badge 4');
   assert.ok(
     atFour.every((item) => item.badge <= 4),
     'nothing beyond the current badge',
@@ -54,13 +53,16 @@ test('getPurchasableShopItems: badge-gated, owned-filtered, stable order', () =>
 
   // Tracking an item removes it from the sync list; a later badge offers more.
   const owned = Object.fromEntries(atFour.map((item) => [item.id, 6]));
-  assert.equal(getPurchasableShopItems(4, owned).length, 0);
-  assert.ok(getPurchasableShopItems(18, owned).length > 0);
+  assert.equal(getRenewablyObtainableItems(4, owned).length, 0);
+  assert.ok(getRenewablyObtainableItems(18, owned).length > 0);
 
   // No badge selected -> nothing offered (never guess the gamestate).
-  assert.equal(getPurchasableShopItems(null, {}).length, 0);
+  assert.equal(getRenewablyObtainableItems(null, {}).length, 0);
 });
 
+// Pins the generated mining catalog on purpose: every mining reward is
+// renewable once the Underground opens at badge 3, so a data refresh adding
+// a later-badge mining item is a requirement change, not churn.
 test('mining items join the renewable 6+ list at badge 3', () => {
   assert.ok(
     Object.keys(REBORN_MINING_ITEM_BADGES).length >= 40,
@@ -167,9 +169,9 @@ test('badge-1 shop stock includes the user-verified Obsidia berry floor', () => 
     );
   }
   const offered =
-    new Set(getPurchasableShopItems(1, {}).map((item) => item.id));
+    new Set(getRenewablyObtainableItems(1, {}).map((item) => item.id));
   for (const id of VERIFIED_BADGE_1_BERRIES) {
-    assert.ok(offered.has(id), `${id} must appear in the badge-1 shop sync`);
+    assert.ok(offered.has(id), `${id} must appear in the badge-1 sync list`);
   }
 });
 

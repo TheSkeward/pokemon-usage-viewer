@@ -62,6 +62,12 @@ export function getReachableLineFallbackKey(candidates = [], fallbackId = '') {
     .join('|') || fallbackId;
 }
 
+/**
+ * How many evolution steps separate a form from its family root (0 for a
+ * basic form). Cycle-safe against malformed prevo data.
+ * @param {string} pokemonId
+ * @return {number}
+ */
 export function getEvolutionDepth(pokemonId) {
   let depth = 0;
   let cursor = GEN7_PROGRESSION_SPECIES[pokemonId];

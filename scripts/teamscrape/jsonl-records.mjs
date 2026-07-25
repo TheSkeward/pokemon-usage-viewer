@@ -5,6 +5,7 @@
  * complete occurrence.
  */
 import fs from 'node:fs';
+import path from 'node:path';
 
 /** @return {!Map<string, !Object>} Latest complete record for each id. */
 export function readJsonlLatest(file) {
@@ -48,4 +49,32 @@ export function appendJsonlRecord(file, record, latest) {
   fs.appendFileSync(file, `${prefix}${serialized}\n`);
   latest.set(id, record);
   return true;
+}
+
+/**
+ * Per-format archive files under one filename prefix
+ * (`<prefix><formatId>.jsonl`), each opened lazily with its latest-record
+ * map on first use.
+ * @param {string} archiveDir Directory holding the archive files.
+ * @param {string} prefix Filename prefix, e.g. 'forum-'.
+ * @return {{
+ *   forFormat: function(string):
+ *       {file: string, latest: !Map<string, !Object>},
+ *   entries: function():
+ *       !IterableIterator<!Array<string|{file: string, latest: !Map}>>,
+ * }} forFormat opens (or reuses) a format's archive; entries iterates the
+ *     archives opened so far.
+ */
+export function createFormatArchives(archiveDir, prefix) {
+  const byFormat = new Map();
+  return {
+    forFormat(formatId) {
+      if (!byFormat.has(formatId)) {
+        const file = path.join(archiveDir, `${prefix}${formatId}.jsonl`);
+        byFormat.set(formatId, { file, latest: readJsonlLatest(file) });
+      }
+      return byFormat.get(formatId);
+    },
+    entries: () => byFormat.entries(),
+  };
 }

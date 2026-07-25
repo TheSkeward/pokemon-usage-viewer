@@ -10,7 +10,6 @@ const {
   assignMembersToLines,
   compareRealTeams,
   findFieldableOrClosestRealTeam,
-  findFieldableRealTeam,
   getLineFieldableIds,
   teamItemShortages,
   teamItemsCovered,
@@ -117,23 +116,24 @@ test('unscored pool inputs remain available to usage-team matching', async () =>
   const laprasTeam = makeTeam('lapras-team', 1, 1, ['lapras']);
 
   assert.equal(fullPoolLines.length, 2);
-  assert.equal(
-    await findFieldableRealTeam({
-      teams: [laprasTeam],
-      lines: fullPoolLines.slice(0, 1),
-      progression: { levelCap: '100' },
-    }),
-    null,
+  const cappedMatch = await findFieldableOrClosestRealTeam({
+    teams: [laprasTeam],
+    lines: fullPoolLines.slice(0, 1),
+    progression: { levelCap: '100' },
+  });
+  assert.notEqual(
+    cappedMatch?.kind,
+    'fieldable',
     'a capped scored subset cannot see Lapras',
   );
+  const fullMatch = await findFieldableOrClosestRealTeam({
+    teams: [laprasTeam],
+    lines: fullPoolLines,
+    progression: { levelCap: '100' },
+  });
+  assert.equal(fullMatch?.kind, 'fieldable');
   assert.equal(
-    (
-      await findFieldableRealTeam({
-        teams: [laprasTeam],
-        lines: fullPoolLines,
-        progression: { levelCap: '100' },
-      })
-    )?.key,
+    fullMatch.team.key,
     'lapras-team',
     'the lightweight full-query pool can see Lapras without scoring it',
   );
@@ -183,7 +183,7 @@ test('item gate aggregates counts across the whole team', () => {
 });
 
 
-test('findFieldableRealTeam returns the best FIELDABLE team, or null', async () => {
+test('the fieldable match is the best FIELDABLE team, or absent', async () => {
   const lines = [
     makeLine('tauros'),
     makeLine('lapras'),
@@ -212,39 +212,45 @@ test('findFieldableRealTeam returns the best FIELDABLE team, or null', async () 
     'skarmory',
   ]);
 
-  const picked = await findFieldableRealTeam({
+  const picked = await findFieldableOrClosestRealTeam({
     teams: [light, unfieldable, heavy],
     lines,
     progression,
     recommendedIds: new Set(['skarmory']),
   });
-  assert.equal(picked.key, 'heavy', 'weight wins among fieldable teams');
+  assert.equal(picked.kind, 'fieldable');
+  assert.equal(picked.team.key, 'heavy', 'weight wins among fieldable teams');
 
   // Weight/count tie: similarity to the recommended team decides.
   const tieA = makeTeam('aaa', 5, 4, ['tauros', 'lapras', 'pinsir', 'heracross']);
   const tieB = makeTeam('bbb', 5, 4, ['tauros', 'lapras', 'pinsir', 'skarmory']);
-  const pickedTie = await findFieldableRealTeam({
+  const pickedTie = await findFieldableOrClosestRealTeam({
     teams: [tieA, tieB],
     lines,
     progression,
     recommendedIds: new Set(['skarmory']),
   });
-  assert.equal(pickedTie.key, 'bbb');
+  assert.equal(pickedTie.kind, 'fieldable');
+  assert.equal(pickedTie.team.key, 'bbb');
 
   // An unmet item requirement blocks fielding outright.
   const needsItems = makeTeam('items', 50, 5, ['tauros', 'lapras', 'pinsir', 'heracross']);
   needsItems.members[0].itemId = 'leftovers';
   needsItems.members[1].itemId = 'leftovers';
-  const pickedItems = await findFieldableRealTeam({
+  const pickedItems = await findFieldableOrClosestRealTeam({
     teams: [needsItems],
     lines,
     progression: { ...progression, ownedItems: { leftovers: 1 } },
     recommendedIds: new Set(),
   });
-  assert.equal(pickedItems, null, '1 owned Leftovers cannot cover 2 members');
+  assert.notEqual(
+    pickedItems?.kind,
+    'fieldable',
+    '1 owned Leftovers cannot cover 2 members',
+  );
 
   assert.equal(
-    await findFieldableRealTeam({ teams: [], lines, progression }),
+    await findFieldableOrClosestRealTeam({ teams: [], lines, progression }),
     null,
   );
 });
@@ -256,16 +262,19 @@ test('moves gate: every listed move must be obtainable under the progression', a
 
   // Brave Bird's earliest route is Starly@37 (delayed evolution), so at cap
   // 34 Staraptor is fieldable but the move is not obtainable yet.
-  assert.equal(
-    await findFieldableRealTeam({ teams: [team], lines, progression: { levelCap: '34' } }),
-    null,
-  );
-  const picked = await findFieldableRealTeam({
+  const blocked = await findFieldableOrClosestRealTeam({
+    teams: [team],
+    lines,
+    progression: { levelCap: '34' },
+  });
+  assert.notEqual(blocked?.kind, 'fieldable');
+  const picked = await findFieldableOrClosestRealTeam({
     teams: [team],
     lines,
     progression: { levelCap: '45' },
   });
-  assert.equal(picked?.key, 'birds');
+  assert.equal(picked?.kind, 'fieldable');
+  assert.equal(picked.team.key, 'birds');
 });
 
 test('moves gate honors the breeding context for egg moves', async () => {
@@ -274,13 +283,18 @@ test('moves gate honors the breeding context for egg moves', async () => {
   team.members[0].moveIds = ['doubleedge']; // egg-only on Staraptor
   const progression = { levelCap: '100', daycareUnlocked: true };
 
-  assert.equal(
-    await findFieldableRealTeam({ teams: [team], lines, progression }),
-    null,
+  const withoutContext = await findFieldableOrClosestRealTeam({
+    teams: [team],
+    lines,
+    progression,
+  });
+  assert.notEqual(
+    withoutContext?.kind,
+    'fieldable',
     'no breeding context: egg-only moves are not obtainable',
   );
 
-  const picked = await findFieldableRealTeam({
+  const picked = await findFieldableOrClosestRealTeam({
     teams: [team],
     lines,
     progression,
@@ -293,7 +307,8 @@ test('moves gate honors the breeding context for egg moves', async () => {
       },
     },
   });
-  assert.equal(picked?.key, 'eggbirds');
+  assert.equal(picked?.kind, 'fieldable');
+  assert.equal(picked.team.key, 'eggbirds');
 });
 
 test('closest team reports distinct species, move, and item blockers', async () => {

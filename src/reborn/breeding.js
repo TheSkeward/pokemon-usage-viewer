@@ -160,9 +160,10 @@ export async function buildRebornBreedingContext({
         label: 'Egg',
         detail,
         donorName: best.path[best.path.length - 1],
-        // Legacy direct-donor level retained for consumers that only know the
-        // one-hop shape. The structured interimDonor below handles every
-        // route, including multi-hop breeding and Sketch relays.
+        // The level the direct donor itself must reach to learn the move;
+        // null for multi-hop and non-leveling routes. The structured
+        // interimDonor below covers every route, including multi-hop
+        // breeding and Sketch relays.
         donorLevel:
           best.hops === 1 &&
           Number.isFinite(best.interimDonor?.donorLevel) &&

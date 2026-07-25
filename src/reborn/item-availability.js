@@ -86,32 +86,16 @@ export function getItemAvailability(itemName) {
 }
 
 /**
- * The shop-purchasable held items the player could stock RIGHT NOW but isn't
+ * The renewable held items the player could stock RIGHT NOW but isn't
  * tracking yet: reachable at their badge count, in the held-item catalog,
  * not a hidden/replaced id, and absent from (or under-stocked in) the owned
- * list. Drives the inventory panel's one-click "purchasable now" sync — the
- * data already knows what the shops sell, so discovering shops shouldn't
- * mean transcribing them. Sorted by name for a stable display list.
+ * list. Merges shop stock with mining-rock rewards; when an item has both
+ * sources, the earlier renewable source wins and the item appears only
+ * once. Drives the inventory panel's one-click sync — the data already
+ * knows what the shops and rocks yield, so discovering them shouldn't mean
+ * transcribing them. Sorted by name for a stable display list.
  * `badges` and `ownedItems` arrive as plain values (not the progression
  * object) to keep this module import-cycle-free.
- * @param {number} badges
- * @param {Object<string, number>=} ownedItems id -> owned count.
- * @param {number=} minCount Owned count at which an item stops qualifying.
- * @return {Array<{id: string, name: string, badge: number}>}
- */
-export function getPurchasableShopItems(badges, ownedItems = {}, minCount = 1) {
-  return getAvailableInventoryItems(
-    REBORN_SHOP_ITEM_BADGES,
-    badges,
-    ownedItems,
-    minCount,
-  );
-}
-
-/**
- * Renewable inventory items reachable at the player's badge count, merging
- * shop stock with mining-rock rewards. When an item has both sources, the
- * earlier renewable source wins and the item appears only once.
  * @param {number} badges
  * @param {Object<string, number>=} ownedItems id -> owned count.
  * @param {number=} minCount Owned count at which an item stops qualifying.

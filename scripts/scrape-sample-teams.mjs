@@ -13,7 +13,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { parseShowdownTeam } from './teamscrape/parse-showdown-team.mjs';
+import {
+  MIN_SETS_PER_TEAM,
+  parseShowdownTeam,
+} from './teamscrape/parse-showdown-team.mjs';
 import { toTeamSheetId } from './teamscrape/replay-log.mjs';
 import { readArchiveIds } from './scrape-replay-teams.mjs';
 import { extractPosts, hasNextPage } from './teamscrape/forum-html.mjs';
@@ -66,7 +69,6 @@ export function normalizeSampleTeam({ pasteId, formatId, thread, sets }) {
 }
 
 const TEAM_SIZE = 6;
-const MIN_TEAM_SETS = 4;
 
 /**
  * Splits one post's flat run of parsed sets into whole teams. Sample-thread
@@ -81,7 +83,7 @@ export function groupInlineTeams(sets) {
   const teams = [];
   for (let i = 0; i < sets.length; i += TEAM_SIZE) {
     const group = sets.slice(i, i + TEAM_SIZE);
-    if (group.length >= MIN_TEAM_SETS) teams.push(group);
+    if (group.length >= MIN_SETS_PER_TEAM) teams.push(group);
   }
   return teams;
 }

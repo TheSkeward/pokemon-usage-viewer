@@ -16,29 +16,35 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { parseShowdownTeam } from './teamscrape/parse-showdown-team.mjs';
-import { normalizeSampleTeam } from './scrape-sample-teams.mjs';
+import {
+  MIN_SETS_PER_TEAM,
+  parseShowdownTeam,
+} from './teamscrape/parse-showdown-team.mjs';
+import { extractPasteIds, normalizeSampleTeam } from
+  './scrape-sample-teams.mjs';
 import {
   appendJsonlRecord,
-  readJsonlLatest,
+  createFormatArchives,
 } from './teamscrape/jsonl-records.mjs';
 import {
   extractFirstPostText,
   extractThreadRows,
   hasNextPage,
   listingDebugInfo,
-  listingPageUrl,
 } from './teamscrape/forum-html.mjs';
 import {
   forListing,
   importLegacyThreads,
   readCrawlState,
-  recordListingPage,
   recordDeferredThread,
   recordSinglePageThread,
   saveCrawlState,
   shouldScanThread,
 } from './teamscrape/crawl-state.mjs';
+import {
+  parseBudget,
+  walkListingPages,
+} from './teamscrape/listing-walk.mjs';
 import { tierFromTitle } from './teamscrape/tier-names.mjs';
 import {
   closeTeamSourceFetcher,
@@ -52,7 +58,6 @@ const SOURCES_PATH = path.join(scriptDir, 'teamscrape', 'sources.json');
 
 const DEFAULT_MAX_NEW_THREADS = 40;
 const DEFAULT_LISTING_PAGES_PER_RUN = 8;
-const MIN_SETS_PER_TEAM = 4; // an RMT below this is a fragment, not a team
 
 const knownFormats = new Set(REAL_FORMATS.map((format) => format.id));
 
@@ -95,9 +100,7 @@ async function harvestThread({ row, formatId, latest, file }) {
   }
   let appended = 0;
   let found = 0;
-  for (const pasteId of [...new Set(
-    [...html.matchAll(/pokepast\.es\/([0-9a-f]{8,16})/g)].map((m) => m[1]),
-  )]) {
+  for (const pasteId of extractPasteIds(html)) {
     let pasteText;
     try {
       pasteText = await fetchText(`https://pokepast.es/${pasteId}/raw`);
@@ -125,12 +128,9 @@ async function main() {
     console.log('rmt: no listings configured');
     return;
   }
-  const maxNew =
-    Number(process.argv.find((a) => a.startsWith('--max-new='))?.split('=')[1]) ||
-    DEFAULT_MAX_NEW_THREADS;
+  const maxNew = parseBudget(process.argv, 'max-new', DEFAULT_MAX_NEW_THREADS);
   const listingPagesPerRun =
-    Number(process.argv.find((a) => a.startsWith('--listing-pages='))?.split('=')[1]) ||
-    DEFAULT_LISTING_PAGES_PER_RUN;
+    parseBudget(process.argv, 'listing-pages', DEFAULT_LISTING_PAGES_PER_RUN);
   fs.mkdirSync(ARCHIVE_DIR, { recursive: true });
   const crawlFile = path.join(ARCHIVE_DIR, 'rmt-crawl-state.json');
   const crawl = readCrawlState(crawlFile);
@@ -140,14 +140,7 @@ async function main() {
     }
   }
   saveCrawlState(crawlFile, crawl);
-  const files = new Map(); // formatId → {file, latest}
-  const forFormat = (formatId) => {
-    if (!files.has(formatId)) {
-      const file = path.join(ARCHIVE_DIR, `rmt-${formatId}.jsonl`);
-      files.set(formatId, { file, latest: readJsonlLatest(file) });
-    }
-    return files.get(formatId);
-  };
+  const archives = createFormatArchives(ARCHIVE_DIR, 'rmt-');
 
   let fresh = 0;
   const unmappedPrefixes = new Map();
@@ -184,7 +177,7 @@ async function main() {
                 row.prefix, (unmappedPrefixes.get(row.prefix) || 0) + 1);
             continue;
           }
-          const { file, latest } = forFormat(formatId);
+          const { file, latest } = archives.forFormat(formatId);
           if (!shouldScanThread(
             crawl.threads[row.threadId], row, progress.sweep)) continue;
           try {
@@ -226,28 +219,15 @@ async function main() {
         return { handled, next: hasNextPage(html, page) };
       };
 
-      const headHtml = await fetchText(listingPageUrl(listing, 1));
-      const head = await processPage(headHtml, 1);
-      if (head.handled && fresh < maxNew) {
-        let pages = 0;
-        while (pages < listingPagesPerRun && fresh < maxNew) {
-          const page = progress.page;
-          const html = page === 1
-            ? headHtml
-            : await fetchText(listingPageUrl(listing, page));
-          const result = page === 1 ? head : await processPage(html, page);
-          if (!result.handled) break;
-          const sweepContinues = recordListingPage(
-            crawl,
-            listing,
-            page,
-            result.next,
-          );
-          saveCrawlState(crawlFile, crawl);
-          pages += 1;
-          if (!sweepContinues) break;
-        }
-      }
+      await walkListingPages({
+        listing,
+        fetchText,
+        processPage,
+        crawl,
+        crawlFile,
+        listingPagesPerRun,
+        outOfBudget: () => fresh >= maxNew,
+      });
       if (rowsSeen) {
         console.log(
           `rmt listing ${listing}: ${rowsSeen} row(s) across ` +
@@ -258,7 +238,7 @@ async function main() {
       console.warn(`rmt listing ${listing}: FAILED — ${error.message}`);
     }
   }
-  for (const [formatId, { latest }] of files) {
+  for (const [formatId, { latest }] of archives.entries()) {
     console.log(`rmt ${formatId}: archive ${latest.size}`);
   }
   if (unmappedPrefixes.size) {

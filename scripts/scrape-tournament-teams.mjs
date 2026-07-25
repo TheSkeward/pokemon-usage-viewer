@@ -12,11 +12,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { parseShowdownTeam } from './teamscrape/parse-showdown-team.mjs';
-import { normalizeSampleTeam } from './scrape-sample-teams.mjs';
+import {
+  MIN_SETS_PER_TEAM,
+  parseShowdownTeam,
+} from './teamscrape/parse-showdown-team.mjs';
+import { extractPasteIds, normalizeSampleTeam } from
+  './scrape-sample-teams.mjs';
 import {
   appendJsonlRecord,
-  readJsonlLatest,
+  createFormatArchives,
 } from './teamscrape/jsonl-records.mjs';
 import {
   archivePath,
@@ -26,9 +30,7 @@ import {
 import {
   extractThreadRows,
   hasNextPage,
-  htmlToText,
   listingDebugInfo,
-  listingPageUrl,
 } from './teamscrape/forum-html.mjs';
 import {
   forListing,
@@ -45,6 +47,10 @@ import {
   closeTeamSourceFetcher,
   fetchTeamSourceText as fetchText,
 } from './teamscrape/forum-fetch.mjs';
+import {
+  parseBudget,
+  walkListingPages,
+} from './teamscrape/listing-walk.mjs';
 import { REAL_FORMATS } from './config.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -54,7 +60,6 @@ const SOURCES_PATH = path.join(scriptDir, 'teamscrape', 'sources.json');
 const DEFAULT_MAX_NEW = 40;
 const DEFAULT_LISTING_PAGES_PER_RUN = 4;
 const DEFAULT_THREAD_PAGES_PER_RUN = 40;
-const MIN_SETS_PER_TEAM = 4;
 
 const knownFormats = new Set(REAL_FORMATS.map((f) => f.id));
 /**
@@ -79,19 +84,10 @@ export function extractReplayIds(html) {
   ];
 }
 
-const pasteState = new Map(); // formatId → {file, latest}
-function forFormat(formatId) {
-  if (!pasteState.has(formatId)) {
-    const file = path.join(ARCHIVE_DIR, `tournament-${formatId}.jsonl`);
-    pasteState.set(formatId, { file, latest: readJsonlLatest(file) });
-  }
-  return pasteState.get(formatId);
-}
+const archives = createFormatArchives(ARCHIVE_DIR, 'tournament-');
 
 async function harvestThreadPage(html, { fallbackFormat, thread, counters }) {
-  for (const pasteId of [...new Set(
-    [...html.matchAll(/pokepast\.es\/([0-9a-f]{8,16})/g)].map((m) => m[1]),
-  )]) {
+  for (const pasteId of extractPasteIds(html)) {
     let parsed;
     try {
       parsed = parseShowdownTeam(await fetchText(`https://pokepast.es/${pasteId}/raw`));
@@ -103,7 +99,7 @@ async function harvestThreadPage(html, { fallbackFormat, thread, counters }) {
         ? parsed.format
         : fallbackFormat;
     if (!formatId || parsed.sets.length < MIN_SETS_PER_TEAM) continue;
-    const { file, latest } = forFormat(formatId);
+    const { file, latest } = archives.forFormat(formatId);
     const record =
       normalizeSampleTeam({ pasteId, formatId, thread, sets: parsed.sets });
     record.source = 'tournament';
@@ -162,15 +158,11 @@ async function main() {
   const tournament = config.tournament || {};
   const prefixMap =
     { ...(config.rmt?.prefixMap || {}), ...(tournament.prefixMap || {}) };
-  const maxNew =
-    Number(process.argv.find((a) => a.startsWith('--max-new='))?.split('=')[1]) ||
-    DEFAULT_MAX_NEW;
+  const maxNew = parseBudget(process.argv, 'max-new', DEFAULT_MAX_NEW);
   const listingPagesPerRun =
-    Number(process.argv.find((a) => a.startsWith('--listing-pages='))?.split('=')[1]) ||
-    DEFAULT_LISTING_PAGES_PER_RUN;
+    parseBudget(process.argv, 'listing-pages', DEFAULT_LISTING_PAGES_PER_RUN);
   const maxThreadPages =
-    Number(process.argv.find((a) => a.startsWith('--thread-pages='))?.split('=')[1]) ||
-    DEFAULT_THREAD_PAGES_PER_RUN;
+    parseBudget(process.argv, 'thread-pages', DEFAULT_THREAD_PAGES_PER_RUN);
   fs.mkdirSync(ARCHIVE_DIR, { recursive: true });
   const counters = { pastes: 0, replays: 0, replaySeen: new Map() };
   const budget = { threadPages: 0 };
@@ -273,31 +265,17 @@ async function main() {
         return { handled, next: hasNextPage(html, page) };
       };
 
-      const headHtml = await fetchText(listingPageUrl(listing, 1));
-      const head = await processPage(headHtml, 1);
-      if (!head.handled) continue;
-      let pages = 0;
-      while (
-        pages < listingPagesPerRun &&
-        counters.pastes + counters.replays < maxNew &&
-        budget.threadPages < maxThreadPages
-      ) {
-        const page = progress.page;
-        const html = page === 1
-          ? headHtml
-          : await fetchText(listingPageUrl(listing, page));
-        const result = page === 1 ? head : await processPage(html, page);
-        if (!result.handled) break;
-        const sweepContinues = recordListingPage(
-          crawl,
-          listing,
-          page,
-          result.next,
-        );
-        saveCrawlState(crawlFile, crawl);
-        pages += 1;
-        if (!sweepContinues) break;
-      }
+      await walkListingPages({
+        listing,
+        fetchText,
+        processPage,
+        crawl,
+        crawlFile,
+        listingPagesPerRun,
+        outOfBudget: () =>
+          counters.pastes + counters.replays >= maxNew ||
+          budget.threadPages >= maxThreadPages,
+      });
     } catch (error) {
       console.warn(`tournament listing ${listing}: FAILED — ${error.message}`);
     }

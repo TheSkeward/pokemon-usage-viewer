@@ -17,19 +17,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { parseShowdownTeam } from './teamscrape/parse-showdown-team.mjs';
+import {
+  MIN_SETS_PER_TEAM,
+  parseShowdownTeam,
+} from './teamscrape/parse-showdown-team.mjs';
 import { normalizeSampleTeam, extractPasteIds, groupInlineTeams } from
   './scrape-sample-teams.mjs';
 import {
   appendJsonlRecord,
-  readJsonlLatest,
+  createFormatArchives,
 } from './teamscrape/jsonl-records.mjs';
 import {
   extractPosts,
   extractThreadRows,
   hasNextPage,
   listingDebugInfo,
-  listingPageUrl,
 } from './teamscrape/forum-html.mjs';
 import {
   forListing,
@@ -37,11 +39,14 @@ import {
   nextThreadPage,
   readCrawlState,
   recordDeferredThread,
-  recordListingPage,
   recordThreadPage,
   saveCrawlState,
   shouldScanThread,
 } from './teamscrape/crawl-state.mjs';
+import {
+  parseBudget,
+  walkListingPages,
+} from './teamscrape/listing-walk.mjs';
 import {
   closeTeamSourceFetcher,
   fetchTeamSourceText as fetchText,
@@ -56,7 +61,6 @@ const SOURCES_PATH = path.join(scriptDir, 'teamscrape', 'sources.json');
 const DEFAULT_MAX_NEW = 40;
 const DEFAULT_LISTING_PAGES_PER_RUN = 4;
 const DEFAULT_THREAD_PAGES_PER_RUN = 40;
-const MIN_SETS_PER_TEAM = 4;
 
 const knownFormats = new Set(REAL_FORMATS.map((format) => format.id));
 /**
@@ -77,17 +81,10 @@ export function extractSubforums(html, baseUrl) {
   return out;
 }
 
-const archiveState = new Map(); // formatId → {file, latest}
-function forFormat(formatId) {
-  if (!archiveState.has(formatId)) {
-    const file = path.join(ARCHIVE_DIR, `forum-${formatId}.jsonl`);
-    archiveState.set(formatId, { file, latest: readJsonlLatest(file) });
-  }
-  return archiveState.get(formatId);
-}
+const archives = createFormatArchives(ARCHIVE_DIR, 'forum-');
 
 function appendTeam({ pasteId, formatId, thread, sets }) {
-  const { file, latest } = forFormat(formatId);
+  const { file, latest } = archives.forFormat(formatId);
   const record = normalizeSampleTeam({ pasteId, formatId, thread, sets });
   record.source = 'forum';
   return Number(appendJsonlRecord(file, record, latest));
@@ -208,34 +205,16 @@ async function walkListing({ listing, gen, listingTier, config, counters,
     return { handled, next: hasNextPage(html, page) };
   };
 
-  // Always inspect the live first page for newly created or recently active
-  // threads, independently of the historical backfill cursor.
-  const headHtml = await fetchText(listingPageUrl(listing, 1));
-  const head = await processPage(headHtml, 1);
-  if (!head.handled || counters.teams >= maxNew) return;
-
-  let pages = 0;
-  while (
-    pages < listingPagesPerRun &&
-    counters.teams < maxNew &&
-    budget.threadPages < maxThreadPages
-  ) {
-    const page = progress.page;
-    const html = page === 1
-      ? headHtml
-      : await fetchText(listingPageUrl(listing, page));
-    const result = page === 1 ? head : await processPage(html, page);
-    if (!result.handled) return;
-    const sweepContinues = recordListingPage(
-      crawl,
-      listing,
-      page,
-      result.next,
-    );
-    saveCrawlState(crawlFile, crawl);
-    pages += 1;
-    if (!sweepContinues) break;
-  }
+  await walkListingPages({
+    listing,
+    fetchText,
+    processPage,
+    crawl,
+    crawlFile,
+    listingPagesPerRun,
+    outOfBudget: () =>
+      counters.teams >= maxNew || budget.threadPages >= maxThreadPages,
+  });
 }
 
 async function main() {
@@ -244,15 +223,11 @@ async function main() {
     console.log('forums: no listings configured');
     return;
   }
-  const maxNew =
-    Number(process.argv.find((a) => a.startsWith('--max-new='))?.split('=')[1]) ||
-    DEFAULT_MAX_NEW;
+  const maxNew = parseBudget(process.argv, 'max-new', DEFAULT_MAX_NEW);
   const listingPagesPerRun =
-    Number(process.argv.find((a) => a.startsWith('--listing-pages='))?.split('=')[1]) ||
-    DEFAULT_LISTING_PAGES_PER_RUN;
+    parseBudget(process.argv, 'listing-pages', DEFAULT_LISTING_PAGES_PER_RUN);
   const maxThreadPages =
-    Number(process.argv.find((a) => a.startsWith('--thread-pages='))?.split('=')[1]) ||
-    DEFAULT_THREAD_PAGES_PER_RUN;
+    parseBudget(process.argv, 'thread-pages', DEFAULT_THREAD_PAGES_PER_RUN);
   fs.mkdirSync(ARCHIVE_DIR, { recursive: true });
   const crawlFile = path.join(ARCHIVE_DIR, 'forum-crawl-state.json');
   const crawl = readCrawlState(crawlFile);
@@ -282,7 +257,7 @@ async function main() {
       console.warn(`forum listing ${listing}: FAILED — ${error.message}`);
     }
   }
-  for (const [formatId, { latest }] of archiveState) {
+  for (const [formatId, { latest }] of archives.entries()) {
     console.log(`forum ${formatId}: archive ${latest.size}`);
   }
   console.log(`forums: +${counters.teams} teams this run`);

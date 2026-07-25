@@ -16,6 +16,13 @@
 
 import { toId } from '../../src/utils/ids.js';
 
+/**
+ * Minimum parsed sets for a scraped paste or post to count as a whole team;
+ * anything shorter is a fragment or stray example sets.
+ * @type {number}
+ */
+export const MIN_SETS_PER_TEAM = 4;
+
 const STAT_KEYS = { hp: 'hp', atk: 'atk', def: 'def', spa: 'spa', spd: 'spd', spe: 'spe' };
 const GENDER_TOKENS = new Set(['M', 'F', 'N']);
 

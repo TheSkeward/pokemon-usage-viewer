@@ -560,6 +560,12 @@ export function getRebornMoveSourcePriority(source) {
   return priorities[source?.kind] ?? 9;
 }
 
+/**
+ * The move's cheapest currently legal source under the
+ * getRebornMoveSourcePriority ordering.
+ * @param {?Object} move A move row carrying availableSources.
+ * @return {?Object} The preferred source, or null when none is available.
+ */
 export function getPreferredRebornMoveSource(move) {
   return [...(move?.availableSources || [])].sort(
     (a, b) =>

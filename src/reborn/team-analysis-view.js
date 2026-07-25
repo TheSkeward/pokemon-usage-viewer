@@ -238,9 +238,15 @@ function renderAnalysis(analysis) {
   `;
 }
 
-// Shows the most-seen fully fieldable scraped team. If none qualifies, the
-// closest distinct-species match remains visible with an explicit receipt for
-// missing Pokémon, progression-locked moves, and tracked held items.
+/**
+ * Shows the most-seen fully fieldable scraped team. If none qualifies, the
+ * closest distinct-species match remains visible with an explicit receipt
+ * for missing Pokémon, progression-locked moves, and tracked held items.
+ * @param {{fieldableTeam: (?Object|undefined),
+ *     closestMatch: (?Object|undefined),
+ *     dataAvailable: (boolean|undefined)}=} options
+ * @return {string} The panel's HTML.
+ */
 export function renderRealTeamPanel({
   fieldableTeam = null,
   closestMatch = null,

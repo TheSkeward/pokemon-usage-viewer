@@ -26,5 +26,7 @@ test('a perfectly accurate escalating chain retains the five-turn weighting', ()
     accuracy: 100,
   });
 
-  assert.equal(multiplier, 5 / (1 + 1 / 2 + 1 / 4 + 1 / 8 + 1 / 16));
+  // Continuity pin: at 100% accuracy the multiplier equals the historical
+  // 2.5806… constant the escalating model was calibrated around.
+  assert.equal(multiplier, 2.5806451612903225);
 });

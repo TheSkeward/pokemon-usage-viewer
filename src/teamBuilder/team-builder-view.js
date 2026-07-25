@@ -770,11 +770,15 @@ const SHORT_FORMAT = {
   gen7doublesuu: 'DUU',
 };
 
-// One compact line under the team table listing the resolved input lines that
-// did NOT make the team, grouped by the tier where each line's best form first
-// reaches real usage. So a wall of identical 0.0% headline scores becomes a
-// readable "AG 1500 — Ekans 0.1%, … · AG 0 — Patrat 0.1%", and the weakest
-// (deepest-tier, or no-signal-anywhere) lines are flagged.
+/**
+ * One compact line under the team table listing the resolved input lines
+ * that did NOT make the team, grouped by the tier where each line's best
+ * form first reaches real usage. So a wall of identical 0.0% headline scores
+ * becomes a readable "AG 1500 — Ekans 0.1%, … · AG 0 — Patrat 0.1%", and the
+ * weakest (deepest-tier, or no-signal-anywhere) lines are flagged.
+ * @param {!Object} result An optimizer result carrying team and lines.
+ * @return {string} The bench line's HTML.
+ */
 export function renderBenchLine(result) {
   const selectedInputIds = new Set(
     result.team.map((choice) => choice.inputPokemonId),

@@ -16,6 +16,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { REAL_FORMATS } from './config.mjs';
 import { parseReplayTeams, toTeamSheetId } from './teamscrape/replay-log.mjs';
+import { parseBudget } from './teamscrape/listing-walk.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 /** Directory holding the committed JSONL archives. @type {string} */
@@ -115,8 +116,7 @@ async function harvestFormat(formatId, { maxNew }) {
 
 async function main() {
   const maxNew =
-    Number(process.argv.find((a) => a.startsWith('--max-new='))?.split('=')[1]) ||
-    DEFAULT_MAX_NEW_PER_FORMAT;
+    parseBudget(process.argv, 'max-new', DEFAULT_MAX_NEW_PER_FORMAT);
   let failures = 0;
   for (const { id } of REAL_FORMATS) {
     try {

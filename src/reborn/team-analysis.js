@@ -1507,23 +1507,30 @@ const LEAKY_DODGE_CHARGE = new Set(['fly', 'bounce', 'dig', 'dive']);
 // power; Counter/Mirror Coat are BP 0 and never enter this model.
 const FAILS_IF_DISRUPTED = new Set(['focuspunch', 'shelltrap']);
 
-// How many "hits' worth" of base power a move lands per commitment, used to
-// scale the damage estimate so multi-hit and multi-turn moves are ranked by
-// real output:
-//   - multi-hit: a fixed count (Double Kick → 2) or the EXPECTED count of its
-//     [min,max] range — 2–5-hit moves roll 35%/35%/15%/15% for 2/3/4/5 hits
-//     (Gen 5+), so Fury Swipes [2,5] → 3.1, not the naive midpoint 3.5;
-//   - recharge: hit, then a lost turn. Double-weighting the earlier (hit) turn
-//     gives (2·1 + 1·0)/3 = 2/3 of a single hit (Hyper Beam);
-// - exposed charge: a lost turn, then hit. Same double-weight-the-earlier-turn
-//     rule, but now the dead turn is first: (2·0 + 1·1)/3 = 1/3 (Solar Beam);
-//   - leaky-dodge charge: the dodge turn is worth HALF a turn (punch-through
-//     at 2x, telegraphed lock-in): (2·½ + 1·1)/3 = 2/3 (Fly/Bounce/Dig/Dive);
-//   - fails-if-disrupted (Focus Punch/Shell Trap): exposed like Solar Beam's
-//     charge turn → 1/3;
-//   - escalating: a curated weighting (Rollout/Ice Ball).
-// Single-hit moves — and no-punch-through charge moves (Phantom Force/Shadow
-// Force vanish outright; Sky Drop steals the target's turn) — keep full power.
+/**
+ * How many "hits' worth" of base power a move lands per commitment, used to
+ * scale the damage estimate so multi-hit and multi-turn moves are ranked by
+ * real output:
+ *   - multi-hit: a fixed count (Double Kick → 2) or the EXPECTED count of its
+ *     [min,max] range — 2–5-hit moves roll 35%/35%/15%/15% for 2/3/4/5 hits
+ *     (Gen 5+), so Fury Swipes [2,5] → 3.1, not the naive midpoint 3.5;
+ *   - recharge: hit, then a lost turn. Double-weighting the earlier (hit)
+ *     turn gives (2·1 + 1·0)/3 = 2/3 of a single hit (Hyper Beam);
+ *   - exposed charge: a lost turn, then hit. Same double-weight-the-earlier-
+ *     turn rule, but now the dead turn is first: (2·0 + 1·1)/3 = 1/3 (Solar
+ *     Beam);
+ *   - leaky-dodge charge: the dodge turn is worth HALF a turn (punch-through
+ *     at 2x, telegraphed lock-in): (2·½ + 1·1)/3 = 2/3 (Fly/Bounce/Dig/Dive);
+ *   - fails-if-disrupted (Focus Punch/Shell Trap): exposed like Solar Beam's
+ *     charge turn → 1/3;
+ *   - escalating: a curated weighting (Rollout/Ice Ball).
+ * Single-hit moves — and no-punch-through charge moves (Phantom Force/Shadow
+ * Force vanish outright; Sky Drop steals the target's turn) — keep full
+ * power.
+ * @param {!Object} move
+ * @param {?string=} ability Skill Link maxes out ranged multi-hit counts.
+ * @return {number}
+ */
 export function getEffectiveHitMultiplier(move, ability = null) {
   if (ESCALATING_MOVE_IDS.has(move.id)) {
     const hitChance = getAccuracyFactor(move);
