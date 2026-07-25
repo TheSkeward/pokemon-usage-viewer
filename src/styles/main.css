@@ -1,4 +1,37 @@
+/* Design tokens. Invariant: surfaces restyled to the token aesthetic take
+   every color, size, and shape from these — no raw values at use sites.
+   Saturated color is reserved for Pokémon type accents. */
 :root {
+  /* Palette: warm-dark charcoal shell, hairline separations. */
+  --bg-base: #17161a;
+  --bg-surface: #1d1b20;
+  --hairline: #39353c;
+  --text: #e4e0da;
+  --text-muted: #9b958c;
+
+  /* Semantic trio: fieldable/on-track, caution, blocked/fragile. */
+  --state-ok: #93b48b;
+  --state-warn: #c2ad72;
+  --state-blocked: #c08279;
+
+  /* Type scale plus one display size. */
+  --type-s: 13px;
+  --type-m: 15px;
+  --type-l: 18px;
+  --type-xl: 24px;
+  --type-display: 32px;
+
+  /* Spacing: 4px base. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Shape: the rounded rectangle is banned. */
+  --radius: 0;
+
   font-family:
     Inter,
     system-ui,
@@ -6,8 +39,8 @@
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  color: #e8ecf3;
-  background: #11161d;
+  color: var(--text);
+  background: var(--bg-base);
   line-height: 1.4;
   font-weight: 400;
 }
@@ -17,8 +50,8 @@
 body {
   margin: 0;
   min-width: 320px;
-  background: #11161d;
-  color: #e8ecf3;
+  background: var(--bg-base);
+  color: var(--text);
 }
 button,
 select,
@@ -841,7 +874,7 @@ input {
 
 /* Hover marker for controls whose explanation lives in a title tooltip. */
 .info-tip {
-  color: var(--muted);
+  color: var(--text-muted);
   cursor: help;
   font-size: 0.85em;
 }
@@ -1645,4 +1678,147 @@ input {
 .audit-callout--warn {
   border-color: #c9974f;
   background: color-mix(in srgb, #c9974f 14%, transparent);
+}
+
+/* Team-builder results surface, restyled to the token aesthetic: charcoal
+   panel, 1px hairlines, radius 0, dense striped table with tabular
+   right-aligned numerics, small-caps column labels. */
+.team-results-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+}
+
+.team-results-panel .panel-header {
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.team-results-panel .panel-header h2 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--type-xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.team-results-panel .panel-header p {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+  font-size: var(--type-s);
+}
+
+.team-results-panel .view-tab {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  color: var(--text);
+  font-size: var(--type-s);
+  padding: var(--space-2) var(--space-3);
+}
+
+.team-results-panel .view-tab:hover {
+  background: color-mix(in srgb, var(--hairline) 45%, var(--bg-surface));
+}
+
+.team-results-panel .usage-table {
+  font-size: var(--type-m);
+  font-variant-numeric: tabular-nums;
+}
+
+.team-results-panel .usage-table th,
+.team-results-panel .usage-table td {
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--hairline);
+}
+
+.team-results-panel .usage-table thead th {
+  border-top: none;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--text-muted);
+  font-size: var(--type-m);
+  font-variant-caps: all-small-caps;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.team-results-panel .usage-table td:nth-child(4) {
+  white-space: nowrap;
+}
+
+.team-results-panel .usage-table th:nth-child(1),
+.team-results-panel .usage-table td:nth-child(1),
+.team-results-panel .usage-table th:nth-child(5),
+.team-results-panel .usage-table td:nth-child(5),
+.team-results-panel .usage-table th:nth-child(6),
+.team-results-panel .usage-table td:nth-child(6) {
+  text-align: right;
+}
+
+.team-results-panel .usage-table td:nth-child(1) {
+  color: var(--text-muted);
+}
+
+.team-results-panel .usage-table td:nth-child(7) {
+  color: var(--text-muted);
+  font-size: var(--type-s);
+}
+
+.team-results-panel .usage-table tbody tr.team-pick-row:nth-child(odd) {
+  background: color-mix(in srgb, var(--hairline) 18%, transparent);
+}
+
+.team-results-panel .usage-table tbody tr.team-pick-row:hover {
+  background: color-mix(in srgb, var(--hairline) 45%, transparent);
+  filter: none;
+}
+
+.team-results-panel .selected-row {
+  outline: 1px solid var(--text-muted);
+}
+
+.team-results-panel .set-card-jump {
+  color: var(--text-muted);
+  font-size: var(--type-s);
+  text-decoration: underline;
+}
+
+.team-results-panel .set-card-jump:hover {
+  color: var(--text);
+}
+
+.team-results-panel .item-rec-note {
+  color: var(--state-ok);
+}
+
+.team-results-panel .audit-callout {
+  border-radius: var(--radius);
+}
+
+.team-results-panel .audit-callout--warn {
+  border-color: var(--state-warn);
+  background: color-mix(in srgb, var(--state-warn) 14%, transparent);
+}
+
+.team-results-panel .bench-line {
+  border-top: 1px solid var(--hairline);
+  font-size: var(--type-s);
+}
+
+.team-results-panel .bench-label,
+.team-results-panel .bench-tier {
+  color: var(--text-muted);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+
+.team-results-panel .bench-chip.worst {
+  color: var(--state-blocked);
+  border-bottom: 1px dashed var(--state-blocked);
+}
+
+.team-results-panel .bench-chip.worst em {
+  color: var(--state-blocked);
 }

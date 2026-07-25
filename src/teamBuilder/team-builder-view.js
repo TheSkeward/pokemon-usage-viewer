@@ -296,7 +296,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
 
   if (!result.team.length) {
     return `
-      <section class="panel">
+      <section class="panel team-results-panel">
         <h2>Recommended ${escapeHtml(familyLabel)} Team</h2>
         <p class="muted">No viable team picks found from ${result.linesConsidered} resolved input lines.</p>
         ${renderScoringPoolNote(result)}
@@ -319,7 +319,7 @@ function renderResult({ familyLabel, formatsIndex, setDetails, state }) {
   const progressionStale = Boolean(state.resultProgressionStale);
 
   const teamPanel = `
-    <section class="panel">
+    <section class="panel team-results-panel">
       <div class="panel-header">
         <div>
           <h2>Recommended ${escapeHtml(familyLabel)} Team</h2>
