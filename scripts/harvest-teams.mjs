@@ -17,19 +17,24 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Harvesters in run order. Names are the selection vocabulary for --only and
- * match the archive filename prefixes.
+ * match the archive filename prefixes. Smogon's tolerance is spent
+ * cumulatively within a run — late walkers hit 403s the early ones did not —
+ * so the smogon.com walkers run in source-weight order: the sources worth
+ * 1000 draw on the freshest allowance and RMT (weight 5) drinks last. The
+ * non-Smogon fetchers (pkmn, replays) cost no forum goodwill; replays runs
+ * last only because it is the slowest.
  * @type {!Array<{name: string, script: string}>}
  */
 export const SCRAPERS = [
   { name: 'pkmn', script: path.join(scriptDir, 'scrape-pkmn-teams.mjs') },
-  { name: 'replays', script: path.join(scriptDir, 'scrape-replay-teams.mjs') },
   { name: 'samples', script: path.join(scriptDir, 'scrape-sample-teams.mjs') },
-  { name: 'rmt', script: path.join(scriptDir, 'scrape-rmt-teams.mjs') },
   {
     name: 'tournament',
     script: path.join(scriptDir, 'scrape-tournament-teams.mjs'),
   },
   { name: 'forums', script: path.join(scriptDir, 'scrape-forum-teams.mjs') },
+  { name: 'rmt', script: path.join(scriptDir, 'scrape-rmt-teams.mjs') },
+  { name: 'replays', script: path.join(scriptDir, 'scrape-replay-teams.mjs') },
 ];
 
 /**
