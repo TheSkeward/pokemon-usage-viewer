@@ -7,7 +7,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-/** @return {!Map<string, !Object>} Latest complete record for each id. */
+/**
+ * @param {string} file
+ * @return {!Map<string, !Object>} Latest complete record for each id.
+ */
 export function readJsonlLatest(file) {
   const latest = new Map();
   if (!fs.existsSync(file)) return latest;
@@ -25,6 +28,9 @@ export function readJsonlLatest(file) {
 
 /**
  * Append a new or revised record. Exact repeats are no-ops.
+ * @param {string} file
+ * @param {!Object} record
+ * @param {!Map<string, !Object>} latest
  * @return {boolean} Whether the file changed.
  */
 export function appendJsonlRecord(file, record, latest) {

@@ -113,6 +113,9 @@ export function listingPageUrl(listing, page) {
  * pagination markup rather than probing page N+1: oversized page requests can
  * redirect to the final page with HTTP 200, which otherwise creates an
  * infinite crawl once hard page ceilings are removed.
+ * @param {string} html
+ * @param {number} currentPage
+ * @return {boolean}
  */
 export function hasNextPage(html, currentPage) {
   for (const tag of String(html).match(/<(?:a|link)\b[^>]*>/gi) || []) {

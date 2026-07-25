@@ -8,7 +8,10 @@ import path from 'node:path';
 
 const VERSION = 1;
 
-/** @return {{version: number, listings: !Object, threads: !Object}} */
+/**
+ * @param {string} file
+ * @return {{version: number, listings: !Object, threads: !Object}}
+ */
 export function readCrawlState(file) {
   if (!fs.existsSync(file)) {
     return { version: VERSION, listings: {}, threads: {} };
@@ -31,7 +34,11 @@ export function readCrawlState(file) {
   }
 }
 
-/** Persist a compact snapshot after each completed unit of crawl work. */
+/**
+ * Persist a compact snapshot after each completed unit of crawl work.
+ * @param {string} file
+ * @param {!Object} state
+ */
 export function saveCrawlState(file, state) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, `${JSON.stringify(state, null, 2)}\n`);
@@ -43,6 +50,9 @@ export function saveCrawlState(file, state) {
  * recheck page 1 and let normal end-of-pagination detection settle it.
  * RMT archives use thread-<id> record ids, while forum marker logs use bare
  * numeric ids, so both forms are accepted.
+ * @param {!Object} state
+ * @param {string} file
+ * @return {number} Threads imported.
  */
 export function importLegacyThreads(state, file) {
   if (!fs.existsSync(file)) return 0;
@@ -69,7 +79,11 @@ export function importLegacyThreads(state, file) {
   return imported;
 }
 
-/** @return {{page: number, sweep: number}} */
+/**
+ * @param {!Object} state
+ * @param {string} listing
+ * @return {{page: number, sweep: number}}
+ */
 export function forListing(state, listing) {
   if (!state.listings[listing]) state.listings[listing] = { page: 1, sweep: 0 };
   return state.listings[listing];
@@ -78,6 +92,8 @@ export function forListing(state, listing) {
 /**
  * The first encounter scans page 1. Interrupted threads resume at nextPage;
  * completed threads recheck their final page, where later replies land.
+ * @param {?Object} thread
+ * @return {number}
  */
 export function nextThreadPage(thread) {
   if (!thread) return 1;
@@ -89,6 +105,10 @@ export function nextThreadPage(thread) {
  * Recheck incomplete/new threads immediately. Completed threads are revisited
  * when the listing says they changed, or once per full listing sweep as a
  * fallback for markup that exposes no reliable update timestamp.
+ * @param {?Object} thread
+ * @param {!Object} row
+ * @param {number} sweep
+ * @return {boolean}
  */
 export function shouldScanThread(thread, row, sweep) {
   if (!thread || !thread.complete) return true;
@@ -98,7 +118,13 @@ export function shouldScanThread(thread, row, sweep) {
   return Number(thread.lastSweep) !== Number(sweep);
 }
 
-/** Record one successfully parsed thread page. */
+/**
+ * Record one successfully parsed thread page.
+ * @param {!Object} state
+ * @param {!Object} row
+ * @param {{page: number, hasNext: boolean, sweep: number}} progress
+ * @return {!Object} The stored thread state.
+ */
 export function recordThreadPage(
   state,
   row,
@@ -121,6 +147,9 @@ export function recordThreadPage(
  * Kept incomplete so every later run retries it (page 1), while the listing
  * cursor moves on: one stubborn thread must not freeze the sweep for every
  * page behind it.
+ * @param {!Object} state
+ * @param {!Object} row
+ * @param {number} sweep
  * @return {!Object} The stored thread state.
  */
 export function recordDeferredThread(state, row, sweep) {
@@ -135,7 +164,13 @@ export function recordDeferredThread(state, row, sweep) {
   return state.threads[row.threadId];
 }
 
-/** Record a single-page source such as an RMT opening post. */
+/**
+ * Record a single-page source such as an RMT opening post.
+ * @param {!Object} state
+ * @param {!Object} row
+ * @param {number} sweep
+ * @return {!Object} The stored thread state.
+ */
 export function recordSinglePageThread(state, row, sweep) {
   return recordThreadPage(
     state,
@@ -151,6 +186,10 @@ export function recordSinglePageThread(state, row, sweep) {
  * The return value says whether the CURRENT sweep has another page; callers
  * must stop their per-run loop on false so they do not wrap into a second
  * sweep during the same harvest.
+ * @param {!Object} state
+ * @param {string} listing
+ * @param {number} page
+ * @param {boolean} hasNext
  * @return {boolean}
  */
 export function recordListingPage(state, listing, page, hasNext) {
