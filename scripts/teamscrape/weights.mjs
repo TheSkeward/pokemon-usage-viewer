@@ -15,9 +15,8 @@ export const WEIGHTS = {
   rated_1630_1759: 0.2,
   rated_1760_plus: 1.0,
   rmt: 5.0,
-  // Community-shared forum teams (bazaars, teambuilding competitions):
-  // uncurated like RMT, so provisionally priced at RMT's tier pending an
-  // explicit ruling.
+  // Community-shared forum teams: the ratified floor for any thread without
+  // its own entry in FORUM_THREAD_WEIGHTS below.
   forum_team: 5.0,
   tournament_team: 60.0,
   sample_team: 1000.0,
@@ -68,13 +67,30 @@ export function replayWeight(record) {
 }
 
 /**
- * Paste-sourced team records (samples / tournament dumps / RMT).
- * @param {{source: string}} record
+ * Forum threads weighted individually, keyed by the thread's numeric id.
+ * Forum teams arrive slowly enough that a per-thread ruling beats pattern
+ * rules; a thread absent here prices at the forum_team floor.
+ * @type {!Object<string, number>}
+ */
+export const FORUM_THREAD_WEIGHTS = {
+  // Snake Draft 2019 OU discussion: tour teams shared by the players,
+  // mixed with rebuilds - below a player's own verified dump (60).
+  '3653598': 40,
+  // Your favorite teams of the generation: self-selected proven showcases.
+  '3654503': 20,
+};
+
+/**
+ * Paste-sourced team records (samples / tournament dumps / RMT / forum).
+ * @param {{source: string, thread: (string|undefined)}} record
  * @return {number}
  */
 export function teamWeight(record) {
   if (record.source === 'tournament') return WEIGHTS.tournament_team;
   if (record.source === 'rmt') return WEIGHTS.rmt;
-  if (record.source === 'forum') return WEIGHTS.forum_team;
+  if (record.source === 'forum') {
+    const threadId = /\.(\d+)\/?$/.exec(record.thread || '')?.[1];
+    return FORUM_THREAD_WEIGHTS[threadId] ?? WEIGHTS.forum_team;
+  }
   return WEIGHTS.sample_team;
 }

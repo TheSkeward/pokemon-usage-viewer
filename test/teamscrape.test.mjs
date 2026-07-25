@@ -328,6 +328,27 @@ test('weight ladder: bands, tournament override, unrated-mixture inversion', () 
   assert.equal(replayWeight({ rating: null, id: 'rom-gen7nfe-852496' }), WEIGHTS.unrated_replay);
   assert.equal(teamWeight({ source: 'rmt' }), 5);
   assert.equal(teamWeight({ source: 'forum' }), WEIGHTS.forum_team);
+  assert.equal(
+    teamWeight({
+      source: 'forum',
+      thread: 'https://www.smogon.com/forums/threads/smogon-snake-draft-2019-ou-discussion.3653598/',
+    }),
+    40,
+  );
+  assert.equal(
+    teamWeight({
+      source: 'forum',
+      thread: 'https://www.smogon.com/forums/threads/your-favorite-teams-of-the-generation.3654503/',
+    }),
+    20,
+  );
+  assert.equal(
+    teamWeight({
+      source: 'forum',
+      thread: 'https://www.smogon.com/forums/threads/ask-the-mods.3655050/',
+    }),
+    WEIGHTS.forum_team,
+  );
   assert.equal(teamWeight({ source: 'tournament' }), 60);
   assert.equal(teamWeight({}), 1000);
 });
