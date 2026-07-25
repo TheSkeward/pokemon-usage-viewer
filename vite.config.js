@@ -45,7 +45,11 @@ function localDataMiddleware() {
 
       server.middlewares.use('/data', async (req, res, next) => {
         try {
-          const requestPath = decodeURIComponent(req.url || '/');
+          // req.url carries the ?v=<dataSignature> cache-buster; the file on
+          // disk does not.
+          const requestPath = decodeURIComponent(
+            (req.url || '/').split('?')[0],
+          );
           const relativePath = requestPath.replace(/^\/+/, '');
           const filePath = path.resolve(dataRoot, relativePath);
 
