@@ -115,6 +115,26 @@ export function recordThreadPage(
   return state.threads[row.threadId];
 }
 
+/**
+ * Record a thread whose scan deterministically produced nothing usable this
+ * run — a bare or unreadable opening post, or a permanently refused fetch.
+ * Kept incomplete so every later run retries it (page 1), while the listing
+ * cursor moves on: one stubborn thread must not freeze the sweep for every
+ * page behind it.
+ * @return {!Object} The stored thread state.
+ */
+export function recordDeferredThread(state, row, sweep) {
+  state.threads[row.threadId] = {
+    url: row.url,
+    lastPage: 1,
+    nextPage: 1,
+    complete: false,
+    lastSweep: sweep,
+    listingUpdatedAt: row.updatedAt ?? null,
+  };
+  return state.threads[row.threadId];
+}
+
 /** Record a single-page source such as an RMT opening post. */
 export function recordSinglePageThread(state, row, sweep) {
   return recordThreadPage(

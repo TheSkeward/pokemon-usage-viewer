@@ -31,7 +31,21 @@ export function appendJsonlRecord(file, record, latest) {
   const serialized = JSON.stringify(record);
   const previous = latest.get(id);
   if (previous && JSON.stringify(previous) === serialized) return false;
-  fs.appendFileSync(file, `${serialized}\n`);
+  // A kill mid-append can leave the file without a trailing newline; an
+  // unguarded append would weld this record onto the torn tail, producing
+  // one unparsable line that drops BOTH records for every future reader.
+  let prefix = '';
+  if (fs.existsSync(file)) {
+    const stat = fs.statSync(file);
+    if (stat.size > 0) {
+      const tail = Buffer.alloc(1);
+      const fd = fs.openSync(file, 'r');
+      fs.readSync(fd, tail, 0, 1, stat.size - 1);
+      fs.closeSync(fd);
+      if (tail.toString() !== '\n') prefix = '\n';
+    }
+  }
+  fs.appendFileSync(file, `${prefix}${serialized}\n`);
   latest.set(id, record);
   return true;
 }

@@ -177,6 +177,7 @@ const {
 const {
   forListing,
   importLegacyThreads,
+  recordDeferredThread,
   nextThreadPage,
   readCrawlState,
   recordListingPage,
@@ -448,3 +449,31 @@ test('forum fetch: browser HTTP failures retain status and final URL',
     await fetcher.close();
   });
 
+
+test('a torn tail cannot weld the next append into one lost line', () => {
+  // A kill mid-append left no trailing newline; the re-append after restart
+  // used to merge with the torn tail, silently losing the record for every
+  // future reader.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'team-jsonl-torn-'));
+  const file = path.join(dir, 'rmt-gen7ou.jsonl');
+  fs.writeFileSync(file, '{"id":"a","sets":["ok"]}\n{"id":"b","se');
+  const latest = readJsonlLatest(file);
+  assert.equal(appendJsonlRecord(file, { id: 'b', sets: ['ok'] }, latest), true);
+  assert.deepEqual(readJsonlLatest(file).get('b'), { id: 'b', sets: ['ok'] });
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('a deterministically teamless thread defers without freezing the cursor', () => {
+  // An image-only RMT (short OP, no qualifying paste) used to leave the
+  // thread unrecorded and break the walk before the listing cursor advanced,
+  // wedging the backfill on that page forever.
+  const state = readCrawlState(path.join(os.tmpdir(), 'no-such-state.json'));
+  const listing = 'https://example.test/forums/x.1/';
+  const progress = forListing(state, listing);
+  const row = { threadId: '42', url: 'https://example.test/threads/img.42/', updatedAt: 7 };
+  recordDeferredThread(state, row, progress.sweep);
+  assert.equal(recordListingPage(state, listing, 1, true), true);
+  assert.equal(forListing(state, listing).page, 2);
+  // Deferred threads stay eligible for a retry on every later run.
+  assert.equal(shouldScanThread(state.threads['42'], row, progress.sweep), true);
+});

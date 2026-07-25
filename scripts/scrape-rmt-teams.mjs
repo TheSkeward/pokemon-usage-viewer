@@ -34,6 +34,7 @@ import {
   importLegacyThreads,
   readCrawlState,
   recordListingPage,
+  recordDeferredThread,
   recordSinglePageThread,
   saveCrawlState,
   shouldScanThread,
@@ -208,8 +209,15 @@ async function main() {
             }
             if (found || opChars >= 200) {
               recordSinglePageThread(crawl, row, progress.sweep);
-              saveCrawlState(crawlFile, crawl);
-            } else handled = false;
+            } else {
+              // A short OP with no qualifying paste is a deterministic
+              // non-result (image-only RMTs are common). Defer the thread —
+              // retried every run in case the reader was at fault — but let
+              // the cursor advance: one such thread must not freeze the
+              // sweep for every page behind it.
+              recordDeferredThread(crawl, row, progress.sweep);
+            }
+            saveCrawlState(crawlFile, crawl);
           } catch (error) {
             console.warn(`  thread ${row.threadId}: ${error.message}`);
             handled = false;

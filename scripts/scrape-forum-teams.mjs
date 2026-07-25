@@ -36,6 +36,7 @@ import {
   importLegacyThreads,
   nextThreadPage,
   readCrawlState,
+  recordDeferredThread,
   recordListingPage,
   recordThreadPage,
   saveCrawlState,
@@ -192,7 +193,16 @@ async function walkListing({ listing, gen, listingTier, config, counters,
         if (!complete) handled = false;
       } catch (error) {
         console.warn(`  thread ${row.threadId}: ${error.message}`);
-        handled = false;
+        // A per-thread 4xx (locked or deleted thread) never resolves;
+        // defer it so the cursor advances. Anything else may be
+        // transient and must block the cursor for a retry next run.
+        if (error.status >= 400 && error.status < 500 &&
+            error.status !== 429) {
+          recordDeferredThread(crawl, row, progress.sweep);
+          saveCrawlState(crawlFile, crawl);
+        } else {
+          handled = false;
+        }
       }
     }
     return { handled, next: hasNextPage(html, page) };
