@@ -147,6 +147,7 @@ async function walkListing({ listing, gen, listingTier, config, counters,
   };
   const progress = forListing(crawl, listing);
   const processPage = async (html, page) => {
+    budget.spend.listingPages += 1;
     if (page === 1 && config.discoverSubforums) {
       for (const sub of extractSubforums(html, listing)) {
         if (!config.walked.has(sub.url)) {
@@ -175,6 +176,14 @@ async function walkListing({ listing, gen, listingTier, config, counters,
       const thread = crawl.threads[row.threadId];
       if (!shouldScanThread(thread, row, progress.sweep)) continue;
       const fallbackFormat = rowFormat(row);
+      // Where the page budget goes decides whether the walker can ever
+      // reach new rows; the spend ledger is the evidence.
+      const kind = !thread
+        ? 'newPages'
+        : thread.complete
+          ? 'recheckPages'
+          : 'resumePages';
+      const spentBefore = budget.threadPages;
       try {
         const complete = await harvestThread({
           row,
@@ -200,6 +209,8 @@ async function walkListing({ listing, gen, listingTier, config, counters,
         } else {
           handled = false;
         }
+      } finally {
+        budget.spend[kind] += budget.threadPages - spentBefore;
       }
     }
     return { handled, next: hasNextPage(html, page) };
@@ -237,7 +248,10 @@ async function main() {
   );
   saveCrawlState(crawlFile, crawl);
   const counters = { teams: 0 };
-  const budget = { threadPages: 0 };
+  const budget = {
+    threadPages: 0,
+    spend: { listingPages: 0, newPages: 0, resumePages: 0, recheckPages: 0 },
+  };
   const gen = forums.gen || 'gen7';
   const config = {
     discoverSubforums: Boolean(forums.discoverSubforums),
@@ -260,6 +274,13 @@ async function main() {
   for (const [formatId, { latest }] of archives.entries()) {
     console.log(`forum ${formatId}: archive ${latest.size}`);
   }
+  const { listingPages, newPages, resumePages, recheckPages } =
+    budget.spend;
+  console.log(
+    `forums: page budget — ${listingPages} listing, ${newPages} new-thread, ` +
+      `${resumePages} resume, ${recheckPages} recheck ` +
+      `(thread cap ${maxThreadPages})`,
+  );
   console.log(`forums: +${counters.teams} teams this run`);
 }
 
