@@ -98,10 +98,10 @@ function showUpdateBanner() {
     'align-items:center',
     'gap:12px',
     'padding:12px 14px',
-    'border-radius:10px',
-    'background:#1f2937',
-    'color:#f9fafb',
-    'box-shadow:0 6px 24px rgba(0,0,0,0.28)',
+    'border:1px solid var(--hairline)',
+    'border-radius:var(--radius)',
+    'background:var(--bg-surface)',
+    'color:var(--text)',
     'font:14px/1.35 system-ui, sans-serif',
   ].join(';');
 
@@ -115,10 +115,10 @@ function showUpdateBanner() {
   reload.style.cssText = [
     'flex:none',
     'padding:6px 12px',
-    'border:0',
-    'border-radius:6px',
-    'background:#3b82f6',
-    'color:#fff',
+    'border:1px solid var(--hairline)',
+    'border-radius:var(--radius)',
+    'background:var(--bg-base)',
+    'color:var(--text)',
     'font:inherit',
     'font-weight:600',
     'cursor:pointer',
@@ -134,7 +134,7 @@ function showUpdateBanner() {
     'padding:0 4px',
     'border:0',
     'background:transparent',
-    'color:#9ca3af',
+    'color:var(--text-muted)',
     'font:20px/1 system-ui, sans-serif',
     'cursor:pointer',
   ].join(';');
