@@ -17,10 +17,11 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Harvesters in run order. Names are the selection vocabulary for --only and
- * match the archive filename prefixes. Smogon's tolerance is spent
- * cumulatively within a run — late walkers hit 403s the early ones did not —
- * so the smogon.com walkers run in source-weight order: the sources worth
- * 1000 draw on the freshest allowance and RMT (weight 5) drinks last. The
+ * match the archive filename prefixes. Observed Smogon blocks are day-level
+ * — a blocked day 403s from the very first request — but a block can begin
+ * mid-run (July 21 did), and the fetcher's block latch then silences every
+ * later walker, so the smogon.com walkers run in source-weight order: the
+ * sources worth 1000 draw first and RMT (weight 5) drinks last. The
  * non-Smogon fetchers (pkmn, replays) cost no forum goodwill; replays runs
  * last only because it is the slowest.
  * @type {!Array<{name: string, script: string}>}
@@ -114,12 +115,32 @@ export async function runHarvest(scripts, recordPath) {
   return { failures: results.filter((r) => r.exitCode !== 0).length, results };
 }
 
+// Near-dead sources knock weekly: the gen-7 sample threads are closed
+// archives and the RMT well is largely drained, so daily visits spend
+// Smogon goodwill the yielding sources (tournament, forums) could use.
+// An explicit --only naming them always runs them.
+const WEEKLY_SCRAPERS = new Set(['samples', 'rmt']);
+const WEEKLY_RUN_UTC_DAY = 0; // Sunday
+
+/**
+ * @param {string} only The --only selection, empty for all.
+ * @param {!Date} today
+ * @return {!Array<string>} Script paths after the weekly-cadence filter.
+ */
+export function scheduledScrapers(only, today) {
+  if (only) return selectScrapers(only);
+  const weeklyDay = today.getUTCDay() === WEEKLY_RUN_UTC_DAY;
+  return SCRAPERS.filter(
+    ({ name }) => weeklyDay || !WEEKLY_SCRAPERS.has(name),
+  ).map(({ script }) => script);
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const only =
     process.argv.find((a) => a.startsWith('--only='))?.slice('--only='.length) ??
     '';
   const { failures } = await runHarvest(
-    selectScrapers(only),
+    scheduledScrapers(only, new Date()),
     path.join(ARCHIVE_DIR, 'last-harvest.json'),
   );
   if (failures) process.exitCode = 1;

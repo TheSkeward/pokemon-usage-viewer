@@ -80,8 +80,14 @@ export function createForumFetcher(options = {}) {
         await context.route('**/*', async (route) => {
           const request = route.request();
           const hostname = new URL(request.url()).hostname;
-          if (hostname === 'www.smogon.com') await route.continue();
-          else await route.abort();
+          if (hostname !== 'www.smogon.com') return route.abort();
+          // Bandwidth courtesy: the parser reads documents only. CSS/JS
+          // still load so the session stays browser-shaped; images, media,
+          // and fonts are the fan-out bulk and feed nothing.
+          if (['image', 'media', 'font'].includes(request.resourceType())) {
+            return route.abort();
+          }
+          return route.continue();
         });
         return context;
       });

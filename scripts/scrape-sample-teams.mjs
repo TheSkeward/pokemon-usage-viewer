@@ -10,6 +10,7 @@
  *
  * Same politeness contract as scrape-replay-teams.mjs.
  */
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -90,8 +91,23 @@ export function groupInlineTeams(sets) {
 
 const EARLY_POSTS = 5;
 
-async function harvestThread(formatId, thread, seen, file) {
+// Sample threads grow by their hosts EDITING posts, which never bumps
+// XenForo's last-post ordering — so change detection hashes page 1's
+// CONTENT (the curated collection lives there). A weekly full walk is
+// the backstop for edits buried on later pages of these closed archives.
+const FULL_WALK_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
+
+function pageOneHash(html, posts) {
+  return crypto
+    .createHash('sha1')
+    .update(JSON.stringify([extractPasteIds(html), posts.map((p) => p.text)]))
+    .digest('hex');
+}
+
+async function harvestThread(formatId, thread, seen, file, threadState) {
   const threadId = /\.(\d+)\/?$/.exec(thread)?.[1] || 'unknown';
+  let walkAll = true;
+  let pagesFetched = 0;
   let appended = 0;
   let inline = 0;
   let inlineSets = 0;
@@ -109,7 +125,16 @@ async function harvestThread(formatId, thread, seen, file) {
       title = (/<title>([^<]*)<\/title>/.exec(html)?.[1] || '').trim() || null;
     }
     const posts = extractPosts(html);
-    if (page === 1) opAuthor = posts[0]?.author ?? null;
+    pagesFetched = page;
+    if (page === 1) {
+      opAuthor = posts[0]?.author ?? null;
+      const hash = pageOneHash(html, posts);
+      const fresh =
+        Date.now() - (threadState.fullWalkAt || 0) < FULL_WALK_INTERVAL_MS;
+      walkAll = hash !== threadState.pageOneHash || !fresh;
+      threadState.pageOneHash = hash;
+      if (walkAll) threadState.fullWalkAt = Date.now();
+    }
     // The curated collection lives at the TOP of the thread — the opening
     // post plus reserved posts, which are not always by the same account
     // (NU keeps its teams in the first reply) — and in the thread author's
@@ -169,6 +194,7 @@ async function harvestThread(formatId, thread, seen, file) {
         appended += 1;
       }
     }
+    if (!walkAll) break;
     if (!hasNextPage(html, page)) break;
   }
   // With sets landing everywhere via pokepaste links but never inline, the
@@ -190,12 +216,21 @@ async function harvestThread(formatId, thread, seen, file) {
   }
   return {
     appended, inline, inlineSets, authorPosts, linked: linked.size, title,
+    pagesFetched, walkAll,
   };
 }
 
 async function main() {
   const { threads } = JSON.parse(fs.readFileSync(SOURCES_PATH, 'utf8'));
   fs.mkdirSync(ARCHIVE_DIR, { recursive: true });
+  const statePath = path.join(ARCHIVE_DIR, 'samples-crawl-state.json');
+  let state = { threads: {} };
+  try {
+    state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+    if (!state.threads) state = { threads: {} };
+  } catch {
+    // A torn state file only costs one full re-walk; appends dedupe it.
+  }
   let failures = 0;
   let attempts = 0;
   for (const [formatId, urls] of Object.entries(threads)) {
@@ -204,12 +239,18 @@ async function main() {
     for (const thread of urls) {
       attempts += 1;
       try {
-        const { appended, inline, inlineSets, authorPosts, linked, title } =
-          await harvestThread(formatId, thread, seen, file);
+        if (!state.threads[thread]) state.threads[thread] = {};
+        const {
+          appended, inline, inlineSets, authorPosts, linked, title,
+          pagesFetched, walkAll,
+        } = await harvestThread(formatId, thread, seen, file,
+          state.threads[thread]);
+        fs.writeFileSync(statePath, `${JSON.stringify(state, null, 2)}\n`);
         console.log(
           `${formatId} ${thread}: +${appended} of ${linked} paste link(s), ` +
             `+${inline} inline (${authorPosts} author post(s), ` +
-            `${inlineSets} sets) — "${title ?? 'no <title>'}" ` +
+            `${inlineSets} sets, ${pagesFetched} page(s)` +
+            `${walkAll ? '' : ', unchanged'}) — "${title ?? 'no <title>'}" ` +
             `(archive ${seen.size})`,
         );
       } catch (error) {
