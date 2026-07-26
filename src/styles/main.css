@@ -1265,8 +1265,9 @@ button:hover {
   gap: 0.35rem;
 }
 
-/* Square source chips: the label carries the source kind; color only marks
-   the semantic state (unavailable). */
+/* Square source chips: the relic gems mark the four acquisition families —
+   leveling (level, relearner) emerald, machines sapphire, tutoring (tutor,
+   sketch) amethyst, breeding ruby. Unavailable overrides them all. */
 .legal-source-pill {
   border: 1px solid var(--hairline);
   border-radius: var(--radius);
@@ -1276,6 +1277,28 @@ button:hover {
   line-height: 1.2;
   padding: 0.2rem 0.5rem;
   white-space: nowrap;
+}
+
+.legal-source-pill.level,
+.legal-source-pill.relearner {
+  border-color: var(--gem-emerald);
+  color: var(--gem-emerald);
+}
+
+.legal-source-pill.machine {
+  border-color: var(--gem-sapphire);
+  color: var(--gem-sapphire);
+}
+
+.legal-source-pill.tutor,
+.legal-source-pill.sketch {
+  border-color: var(--gem-amethyst);
+  color: var(--gem-amethyst);
+}
+
+.legal-source-pill.egg {
+  border-color: var(--gem-ruby);
+  color: var(--gem-ruby);
 }
 
 .legal-source-pill.unavailable {
