@@ -54,6 +54,14 @@ const { optimizeTeamFromPool } = await import(
   const shim = () => {
     const worker = new NodeWorker(workerUrl);
     worker.unref();
+    // A worker that cannot spawn must kill the suite. parallel-search
+    // degrades gracefully on worker failure — right for the browser, but
+    // here it would silently swap the parallel path under test for the
+    // fallback path, at worker-timeout speed.
+    worker.on('error', (error) => {
+      console.error('search worker failed:', error);
+      process.exit(1);
+    });
     const wrapped = new Map();
     return {
       addEventListener(type, fn) {
