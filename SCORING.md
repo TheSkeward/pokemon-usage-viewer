@@ -242,12 +242,50 @@ Team selection starts with the sum of member values and adds team-fit terms:
 - damage-aware offensive coverage, combined with a saturating noisy-OR;
 - defensive shared-weakness and immunity value;
 - usage-derived teammate synergy, phased in by pair readiness;
+- a bounded core-completion bonus from real-team pair evidence;
 - explicit opponent-type bias when the user supplies it.
 
 Chip damage contributes little coverage, the first real answer to a type is
 worth more than duplicates, and future value never chooses the current six.
 Large pools may use a coverage-preserving shortlist and swap polish when exact
 enumeration would exceed the interactive search budget.
+
+### Core completion
+
+Real full teams are direct evidence about which pairs belong together. The
+core index (`site-data/data/core-index/<family>/`, built by
+`scripts/build-core-index.mjs` from ~500 real teams plus tournament and rated
+replays, weighted by source quality) records symmetrized pairwise co-use lift
+in percentage points with a quality-weighted evidence count. Team fit adds a
+saturating completion bonus over the six's pairs:
+
+```text
+credit = Σ_pairs trust · count / (count + CORE_EVIDENCE_HALF) · max(lift, 0)
+core   = CORE_COMPLETION_SCALE
+  · (1 − exp(−credit / CORE_COMPLETION_SATURATION))
+```
+
+`trust` is the same min-member pair readiness the synergy term phases in by,
+and `CORE_EVIDENCE_HALF = 60` half-trusts a single tournament sighting while
+near-fully trusting curated samples. The bonus is bounded below
+`CORE_COMPLETION_SCALE = 120` fit points (60 total after `COVERAGE_WEIGHT`),
+so it can never dominate coverage, the defensive terms, or a usage tier step.
+A pair with no core-index record contributes exactly zero — absence of
+evidence never penalizes — and negative lift earns nothing: the term only
+rewards completing cores real teams run. The index also carries trio counts;
+the ratified term consumes pairs only.
+
+The term was ratified by a preregistered ablation
+(`scripts/validate-core-term.mjs`, seeded and reproducible): whole real
+six-mon rosters from the team index against 200 pseudo-random within-format
+recombinations of each format's own member population, scored by the term
+alone, with a pooled AUC ≥ 0.60 and coverage ≥ 50% pass bar. Measured: pooled
+AUC 0.787 at 100% core-index coverage (484 real vs 1800 shuffled rosters);
+per-format AUC 0.65 (Anything Goes, 8 rosters) through 0.99 (LC/NU/ZU), with
+OU 0.82 over the largest population (240 rosters). Median evidence-weighted
+credit: real 305pp, shuffles 157pp — `CORE_COMPLETION_SATURATION = 300` puts
+a genuine core near 63% of the bound and incidental same-tier pair mass near
+41%.
 
 ## Product invariants
 
@@ -273,6 +311,7 @@ enumeration would exceed the interactive search budget.
 - Usage rank, readiness, and final value: `src/teamBuilder/candidate-scoring.js`
 - Team coverage and defensive fit: `src/teamBuilder/search-kernel.js`
 - Teammate usage synergy: `src/teamBuilder/teammate-synergy.js`
+- Real-team core completion: `src/teamBuilder/core-completion.js`
 - Search orchestration and result cache version: `src/teamBuilder/team-optimizer.js`
 - Reborn legality and progression: `src/reborn/`
 - Badge-bucket anchors: `test/calibration/`

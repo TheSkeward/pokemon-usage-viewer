@@ -162,6 +162,32 @@ export const SCORING_DEFAULTS = Object.freeze({
   // endgame A/B (12-mon UU pool, badge 18): the core seats at 4, not at ≤3.5.
   SYNERGY_SCALE: 4,
 
+  // --- Core completion (real-team pair evidence: core-index/<family>) --------
+  // Bounded bonus for pairs that real full teams actually run together
+  // (searchKernel + core-completion.js). Per pair with a core-index record:
+  // pair trust × count/(count + CORE_EVIDENCE_HALF) × max(lift, 0), summed
+  // over the six and saturated below CORE_COMPLETION_SCALE fit points
+  // (COVERAGE_WEIGHT halves it in the total). A pair without a record
+  // contributes exactly 0 — absence of evidence never penalizes — and
+  // negative lift earns nothing: the term is a completion reward only.
+  // RATIFIED by the preregistered ablation (scripts/validate-core-term.mjs,
+  // real rosters vs seeded within-format shuffles): pooled AUC 0.787 with
+  // 100% core-index coverage against the 0.60/50% bar.
+  // At 120, the bound is 60 total points — comparable to one strong synergy
+  // pair and well under the shared-weakness penalties or a usage tier step,
+  // so real-core evidence wins marginal seats without overruling the
+  // mechanical terms.
+  CORE_COMPLETION_SCALE: 120,
+  // ≈ the ablation's pooled real-team median credit (305pp vs shuffle
+  // 157pp), so a genuine core sits near 63% of the bound while incidental
+  // same-tier pair mass stays near 41%.
+  CORE_COMPLETION_SATURATION: 300,
+  // Evidence count at half weight: counts are source-quality weights
+  // (scripts/teamscrape/weights.mjs), so one tournament-team sighting (60)
+  // is half-trusted, a curated sample (1000) ≈ 0.94, and two elite ladder
+  // games (2) ≈ 0.03.
+  CORE_EVIDENCE_HALF: 60,
+
   // --- Search ----------------------------------------------------------------
   SHORTLIST_MAX: 28,
   SHORTLIST_CORE: 14,

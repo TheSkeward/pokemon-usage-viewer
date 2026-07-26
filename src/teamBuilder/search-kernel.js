@@ -10,6 +10,7 @@
 
 import { getTypeMultiplier, REBORN_ANALYSIS_TYPES } from '../reborn/type-chart.js';
 import { MAX_OPPONENT_TYPE_BIAS } from '../reborn/progression';
+import { coreCompletionFit, corePairCredit } from './core-completion.js';
 import { tunable } from './scoring-constants.js';
 
 export { REBORN_ANALYSIS_TYPES, getTypeMultiplier };
@@ -36,6 +37,9 @@ function snapshotFitTunables() {
     uncoveredWeakPenalty: tunable('UNCOVERED_WEAK_PENALTY'),
     resistStackBonus: tunable('RESIST_STACK_BONUS'),
     synergyScale: tunable('SYNERGY_SCALE'),
+    coreCompletionScale: tunable('CORE_COMPLETION_SCALE'),
+    coreCompletionSaturation: tunable('CORE_COMPLETION_SATURATION'),
+    coreEvidenceHalf: tunable('CORE_EVIDENCE_HALF'),
   };
 }
 
@@ -80,6 +84,7 @@ function precomputeFit(choice, opponentTypeBias) {
     // Phase 3: line-anchored usage trust + competitive co-use lift (id -> %).
     trust: Math.max(0, Math.min(1, choice.usageWeight || 0)),
     teammates: choice._teammates || null,
+    corePartners: choice._corePartners || null,
     repId: choice.pokemonId || null,
   };
 }
@@ -124,7 +129,13 @@ function fastTeamFit(team) {
   // the Reborn-specific insurance no ladder prior covers).
   // All trusts 0 (V0 model, incomplete sets, no data) ⇒ exactly the
   // original formula.
+  // Core completion rides the same pair loop but is a SEPARATE bounded bonus
+  // (never part of the fade): evidence-weighted positive co-use lift from
+  // real full teams, phased in by the same pair trust and saturated below
+  // CORE_COMPLETION_SCALE. A pair without a core-index record contributes
+  // exactly 0.
   let synergy = 0;
+  let coreCredit = 0;
   let pairTrustSum = 0;
   let pairCount = 0;
   for (let a = 0; a < team.length; a++) {
@@ -134,6 +145,7 @@ function fastTeamFit(team) {
       const fb = team[b]._fit;
       if (!fb) return null;
       pairCount += 1;
+      const t = fa.trust < fb.trust ? fa.trust : fb.trust;
       const lift =
         (fa.teammates && fb.repId != null
           ? fa.teammates[fb.repId]
@@ -142,9 +154,19 @@ function fastTeamFit(team) {
           ? fb.teammates[fa.repId]
           : undefined);
       if (lift !== undefined) {
-        const t = fa.trust < fb.trust ? fa.trust : fb.trust;
         pairTrustSum += t;
         synergy += t * lift;
+      }
+      const core =
+        (fa.corePartners && fb.repId != null
+          ? fa.corePartners[fb.repId]
+          : undefined) ??
+        (fb.corePartners && fa.repId != null
+          ? fb.corePartners[fa.repId]
+          : undefined);
+      if (core !== undefined) {
+        coreCredit +=
+          corePairCredit(core.lift, core.count, t, ACTIVE.coreEvidenceHalf);
       }
     }
   }
@@ -159,7 +181,13 @@ function fastTeamFit(team) {
     const cv = choice._fit.coverageVector;
     for (let j = 0; j < TYPE_COUNT; j++) MISS_SCRATCH[j] *= 1 - cv[j];
   }
-  let score = synergy * ACTIVE.synergyScale;
+  let score =
+    synergy * ACTIVE.synergyScale +
+    coreCompletionFit(
+      coreCredit,
+      ACTIVE.coreCompletionScale,
+      ACTIVE.coreCompletionSaturation,
+    );
   for (let j = 0; j < TYPE_COUNT; j++) {
     // weights[j] = 1 + biasExtra: the base 1 fades with trust, biasExtra stays.
     const blendedWeight = handBuilt + (weights[j] - 1);
@@ -230,29 +258,45 @@ function scoreTeamFit(team, opponentTypeBias = {}) {
   const uncoveredWeakPenalty = tunable('UNCOVERED_WEAK_PENALTY');
   const resistStackBonus = tunable('RESIST_STACK_BONUS');
   const synergyScale = tunable('SYNERGY_SCALE');
+  const coreEvidenceHalf = tunable('CORE_EVIDENCE_HALF');
 
-  // Same Phase 3 blend as fastTeamFit — kept in lockstep.
+  // Same Phase 3 blend and core-completion bonus as fastTeamFit — kept in
+  // lockstep.
   let synergy = 0;
+  let coreCredit = 0;
   let pairTrustSum = 0;
   let pairCount = 0;
   for (let a = 0; a < team.length; a++) {
     for (let b = a + 1; b < team.length; b++) {
       pairCount += 1;
+      const t = Math.min(
+        Math.max(0, Math.min(1, team[a].usageWeight || 0)),
+        Math.max(0, Math.min(1, team[b].usageWeight || 0)),
+      );
       const lift =
         team[a]._teammates?.[team[b].pokemonId] ??
         team[b]._teammates?.[team[a].pokemonId];
       if (lift !== undefined) {
-        const t = Math.min(
-          Math.max(0, Math.min(1, team[a].usageWeight || 0)),
-          Math.max(0, Math.min(1, team[b].usageWeight || 0)),
-        );
         pairTrustSum += t;
         synergy += t * lift;
+      }
+      const core =
+        team[a]._corePartners?.[team[b].pokemonId] ??
+        team[b]._corePartners?.[team[a].pokemonId];
+      if (core !== undefined) {
+        coreCredit +=
+          corePairCredit(core.lift, core.count, t, coreEvidenceHalf);
       }
     }
   }
   const handBuilt = 1 - (pairCount ? pairTrustSum / pairCount : 0);
-  let score = synergy * synergyScale;
+  let score =
+    synergy * synergyScale +
+    coreCompletionFit(
+      coreCredit,
+      tunable('CORE_COMPLETION_SCALE'),
+      tunable('CORE_COMPLETION_SATURATION'),
+    );
 
   // This exact path scores the members' REAL coverage vectors (their concrete
   // builds), not the optimistic selection relaxation.

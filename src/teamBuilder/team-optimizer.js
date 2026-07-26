@@ -39,6 +39,7 @@ import {
 } from './candidate-scoring';
 import { resolveRepresentativeLightBundle } from './representative-bundle';
 import { choosePoolTeam } from './team-selection';
+import { attachCoreLift } from './core-completion.js';
 import { attachTeammateLift } from './teammate-synergy.js';
 import { loadPersistedResults, persistResult } from './result-cache-store.js';
 import { getDataSignature } from '../manifest.js';
@@ -229,7 +230,9 @@ const MAX_RESULT_CACHE = 400;
 // v51: bench dedup keys on the ability annotation too — an annotated
 // input (Froakie (Protean)) is never a duplicate of a differently-
 // annotated line on the same bench form, so both stay in the scored pool.
-const RESULT_CACHE_VERSION = '51';
+// v52: team fit adds the bounded core-completion bonus from real-team pair
+// evidence (core-index), so persisted team selections can change.
+const RESULT_CACHE_VERSION = '52';
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
@@ -444,10 +447,14 @@ export async function optimizeTeamFromPool({
       : null;
 
   const searchStart = Date.now();
-  // Teammate-lift attachment fetches per-line index files, so on a cold load
-  // it is a visible slice of the "search" phase — captioned as its own stage.
+  // Pair-evidence attachment (teammate lift + core index) fetches per-line
+  // index files, so on a cold load it is a visible slice of the "search"
+  // phase — captioned as its own stage.
   onProgress?.({ phase: 'search', stage: 'synergy' });
-  await attachTeammateLift(lines, family);
+  await Promise.all([
+    attachTeammateLift(lines, family),
+    attachCoreLift(lines, family),
+  ]);
   onProgress?.({ phase: 'search' });
   const result = await choosePoolTeam(lines, progression.opponentTypeBias, {
     exhaustive: exhaustive && !fastMode,

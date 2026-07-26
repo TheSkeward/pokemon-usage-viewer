@@ -42,12 +42,17 @@ export async function loadTeammateLift({ family, pokemonId }) {
   }
 }
 
-// The search kernel scores the makeChoice clones (line.best / bestNonMega /
-// choiceOptions and their buildAlternatives) — NOT the raw scored rows in
-// line.candidates — so the lift must land on exactly those objects. A choice
-// can appear in several of the collections; the seen-set makes the walk (and
-// the mutation) visit each object once.
-function* lineChoices(line, seen = new Set()) {
+/**
+ * The search kernel scores the makeChoice clones (line.best / bestNonMega /
+ * choiceOptions and their buildAlternatives) — NOT the raw scored rows in
+ * line.candidates — so attached data must land on exactly those objects. A
+ * choice can appear in several of the collections; the seen-set makes the
+ * walk (and any mutation) visit each object once.
+ * @param {Object} line
+ * @param {Set<Object>=} seen
+ * @return {!Generator<!Object>}
+ */
+export function* lineChoices(line, seen = new Set()) {
   const stack = [line.best, line.bestNonMega, ...(line.choiceOptions || [])];
   while (stack.length) {
     const choice = stack.pop();

@@ -569,10 +569,12 @@ function buildCompactLines(lines) {
       pokemonId: choice.pokemonId,
       isMega: !!choice.isMega,
       teamScore: choice.teamScore ?? choice.score ?? 0,
-      // Phase 3 synergy inputs — the worker's fastTeamFit needs the line's
-      // usage trust and the co-use lift map (top-24 entries, still tiny).
+      // Phase 3 synergy + core-completion inputs — the worker's fastTeamFit
+      // needs the line's usage trust and both pair-evidence maps (top-24
+      // entries each, still tiny).
       usageWeight: choice.usageWeight ?? 0,
       _teammates: choice._teammates || null,
+      _corePartners: choice._corePartners || null,
       legalityProfile: {
         attackTypes: choice.legalityProfile?.attackTypes || [],
         currentTypes: choice.legalityProfile?.currentTypes || [],
