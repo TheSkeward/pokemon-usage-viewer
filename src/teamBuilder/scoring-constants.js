@@ -173,10 +173,13 @@ export const SCORING_DEFAULTS = Object.freeze({
   // RATIFIED by the preregistered ablation (scripts/validate-core-term.mjs,
   // real rosters vs seeded within-format shuffles): pooled AUC 0.787 with
   // 100% core-index coverage against the 0.60/50% bar.
-  // At 120, the bound is 60 total points — comparable to one strong synergy
-  // pair and well under the shared-weakness penalties or a usage tier step,
-  // so real-core evidence wins marginal seats without overruling the
-  // mechanical terms.
+  // At 120, the bound is 60 total points: comparable to a usage tier step
+  // (~50) only at full saturation, with the real-team median credit near 38
+  // — so real-core evidence wins marginal seats and typically stays under a
+  // tier step. INVARIANT: this bound is held by this contract alone. The
+  // rank calibration suite pins per-line rank, not team seating, and passes
+  // 19/19 at every scale swept up to 10,000x this value — it exerts no
+  // pressure on team-fit terms.
   CORE_COMPLETION_SCALE: 120,
   // ≈ the ablation's pooled real-team median credit (305pp vs shuffle
   // 157pp), so a genuine core sits near 63% of the bound while incidental
