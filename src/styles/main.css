@@ -2,6 +2,9 @@
    these — no raw values at use sites. Saturated color is reserved for Pokémon
    type accents. */
 :root {
+  /* Native widgets (select popups, scrollbars, spinners) render in the UA's
+     dark forms palette — the one surface tokens cannot reach. */
+  color-scheme: dark;
   /* Palette: warm-dark charcoal shell, hairline separations. */
   --bg-base: #17161a;
   --bg-surface: #1d1b20;
