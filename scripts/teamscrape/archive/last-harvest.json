@@ -1,5 +1,5 @@
 {
-  "finishedAt": "2026-07-26T12:23:36.790Z",
+  "finishedAt": "2026-07-27T14:10:11.171Z",
   "results": [
     {
       "script": "scrape-pkmn-teams.mjs",
@@ -18,23 +18,6 @@
         "gen7doublesubers: no teams file upstream",
         "gen7doublesou: +0 of 9 (archive 333)",
         "gen7doublesuu: no teams file upstream"
-      ]
-    },
-    {
-      "script": "scrape-sample-teams.mjs",
-      "exitCode": 1,
-      "outputTail": [
-        "gen7ou https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/: FAILED — 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
-        "gen7ou https://www.smogon.com/forums/threads/usm-ou-sample-teams-v2-up.3638845/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
-        "gen7ou https://www.smogon.com/forums/threads/sm-ou-sample-teams.3695427/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
-        "gen7uu https://www.smogon.com/forums/threads/usum-uu-sample-teams.3621217/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
-        "gen7ru https://www.smogon.com/forums/threads/usm-ru-sample-teams-thread.3622057/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
-        "gen7nu https://www.smogon.com/forums/threads/usum-nu-sample-teams.3641525/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
-        "gen7pu https://www.smogon.com/forums/threads/usum-pu-sample-teams.3611496/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
-        "gen7lc https://www.smogon.com/forums/threads/usum-lc-sample-teams.3639319/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
-        "gen7ubers https://www.smogon.com/forums/threads/usum-ubers-sample-teams.3639330/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
-        "gen7doublesou https://www.smogon.com/forums/threads/usum-doubles-ou-sample-teams.3645990/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/usm-ou-sample-teams.3626219/",
-        "every thread failed — bad URLs or no network access to smogon.com"
       ]
     },
     {
@@ -58,31 +41,23 @@
       ]
     },
     {
-      "script": "scrape-rmt-teams.mjs",
-      "exitCode": 0,
-      "outputTail": [
-        "rmt listing https://www.smogon.com/forums/forums/past-gen-teams.319/?prefix_id=474: FAILED — 403 https://www.smogon.com/forums/forums/past-gen-teams.319/?prefix_id=474",
-        "rmt: +0 new teams this run"
-      ]
-    },
-    {
       "script": "scrape-replay-teams.mjs",
       "exitCode": 0,
       "outputTail": [
-        "gen7anythinggoes: +300 (archive 2100)",
-        "gen7ubers: +300 (archive 2105)",
-        "gen7ou: +300 (archive 2100)",
-        "gen7uu: +300 (archive 2100)",
-        "gen7ru: +300 (archive 2100)",
-        "gen7nu: +300 (archive 2100)",
-        "gen7pu: +300 (archive 2100)",
-        "gen7zu: +300 (archive 2100)",
+        "gen7anythinggoes: +300 (archive 2400)",
+        "gen7ubers: +300 (archive 2405)",
+        "gen7ou: +300 (archive 2400)",
+        "gen7uu: +300 (archive 2400)",
+        "gen7ru: +300 (archive 2400)",
+        "gen7nu: +300 (archive 2400)",
+        "gen7pu: +300 (archive 2400)",
+        "gen7zu: +300 (archive 2400)",
         "gen7nfe: +0 (archive 1368)",
-        "gen7lc: +300 (archive 2100)",
-        "gen7doublesubers: +300 (archive 2100)",
+        "gen7lc: +300 (archive 2400)",
+        "gen7doublesubers: +300 (archive 2400)",
         "  skip gen7doublesou-2560475408: 404 https://replay.pokemonshowdown.com/gen7doublesou-2560475408.json",
-        "gen7doublesou: +300 (archive 2109)",
-        "gen7doublesuu: +300 (archive 2100)"
+        "gen7doublesou: +300 (archive 2409)",
+        "gen7doublesuu: +300 (archive 2400)"
       ]
     }
   ]
