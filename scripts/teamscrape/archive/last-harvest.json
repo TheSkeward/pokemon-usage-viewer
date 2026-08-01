@@ -1,5 +1,5 @@
 {
-  "finishedAt": "2026-07-31T13:16:25.713Z",
+  "finishedAt": "2026-08-01T12:37:20.768Z",
   "results": [
     {
       "script": "scrape-pkmn-teams.mjs",
@@ -60,33 +60,32 @@
       "script": "scrape-forum-teams.mjs",
       "exitCode": 0,
       "outputTail": [
+        "  thread 3591776: 502 https://www.smogon.com/forums/threads/official-smogon-university-usage-statistics-discussion-thread-mk-3.3591776/page-11",
         "forum listing https://www.smogon.com/forums/forums/sm-om-submissions.398/: 0 rows on page 1 (len 31380, thread hrefs 1, preview attrs 0, labels 0)",
         "forum listing https://www.smogon.com/forums/forums/vgc-2019-ultra-series-analyses.514/: 0 rows on page 1 (len 29890, thread hrefs 1, preview attrs 0, labels 0)",
         "forum listing https://www.smogon.com/forums/forums/sm-closed-submissions.407/: 0 rows on page 1 (len 30377, thread hrefs 1, preview attrs 0, labels 0)",
-        "forum gen7ou: archive 105",
-        "forums: page budget — 26 listing, 0 new-thread, 19 resume, 21 recheck (thread cap 40)",
-        "forums: +4 teams this run"
+        "forums: page budget — 26 listing, 0 new-thread, 20 resume, 20 recheck (thread cap 40)",
+        "forums: +0 teams this run"
       ]
     },
     {
       "script": "scrape-replay-teams.mjs",
       "exitCode": 0,
       "outputTail": [
-        "gen7anythinggoes: +300 (archive 3600)",
-        "gen7ubers: +300 (archive 3605)",
-        "gen7ou: +300 (archive 3600)",
-        "gen7uu: +300 (archive 3600)",
-        "gen7ru: +300 (archive 3600)",
-        "gen7nu: +300 (archive 3600)",
-        "gen7pu: +300 (archive 3600)",
-        "gen7zu: +300 (archive 3600)",
+        "gen7anythinggoes: +300 (archive 3900)",
+        "gen7ubers: +300 (archive 3905)",
+        "gen7ou: +300 (archive 3900)",
+        "gen7uu: +300 (archive 3900)",
+        "gen7ru: +300 (archive 3900)",
+        "gen7nu: +300 (archive 3900)",
+        "gen7pu: +300 (archive 3900)",
+        "gen7zu: +300 (archive 3900)",
         "gen7nfe: +0 (archive 1368)",
-        "gen7lc: +300 (archive 3600)",
-        "gen7doublesubers: +300 (archive 3600)",
+        "gen7lc: +300 (archive 3900)",
+        "gen7doublesubers: +300 (archive 3900)",
         "  skip gen7doublesou-2560475408: 404 https://replay.pokemonshowdown.com/gen7doublesou-2560475408.json",
-        "  skip gen7doublesou-2288836462: 522 https://replay.pokemonshowdown.com/gen7doublesou-2288836462.json",
-        "gen7doublesou: +300 (archive 3609)",
-        "gen7doublesuu: +300 (archive 3600)"
+        "gen7doublesou: +300 (archive 3909)",
+        "gen7doublesuu: +300 (archive 3900)"
       ]
     }
   ]
