@@ -219,12 +219,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Black Belt"
   },
   {
-    "id": "damprock",
-    "name": "Damp Rock"
-  },
-  {
     "id": "groundiumz",
     "name": "Groundium Z"
+  },
+  {
+    "id": "damprock",
+    "name": "Damp Rock"
   },
   {
     "id": "firiumz",
@@ -323,12 +323,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Steelium Z"
   },
   {
-    "id": "marangaberry",
-    "name": "Maranga Berry"
-  },
-  {
     "id": "cellbattery",
     "name": "Cell Battery"
+  },
+  {
+    "id": "marangaberry",
+    "name": "Maranga Berry"
   },
   {
     "id": "stickybarb",
@@ -1135,6 +1135,10 @@ export const GEN7_HELD_ITEMS = [
     "name": "Lopunnite"
   },
   {
+    "id": "salamencite",
+    "name": "Salamencite"
+  },
+  {
     "id": "pomegberry",
     "name": "Pomeg Berry"
   },
@@ -1157,10 +1161,6 @@ export const GEN7_HELD_ITEMS = [
   {
     "id": "ovalstone",
     "name": "Oval Stone"
-  },
-  {
-    "id": "salamencite",
-    "name": "Salamencite"
   },
   {
     "id": "ultranecroziumz",
@@ -1271,6 +1271,10 @@ export const GEN7_HELD_ITEMS = [
     "name": "Chill Drive"
   },
   {
+    "id": "bignugget",
+    "name": "Big Nugget"
+  },
+  {
     "id": "mimikiumz",
     "name": "Mimikium Z"
   },
@@ -1289,10 +1293,6 @@ export const GEN7_HELD_ITEMS = [
   {
     "id": "qualotberry",
     "name": "Qualot Berry"
-  },
-  {
-    "id": "bignugget",
-    "name": "Big Nugget"
   },
   {
     "id": "lunaliumz",
