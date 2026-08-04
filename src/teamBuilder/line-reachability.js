@@ -43,11 +43,16 @@ export function getReachableLineCandidates(
 }
 
 /**
- * A stable fallback identity for lines without a usage signal. Simple
- * pre-evolution/evolution duplicates share their reachable terminal form;
- * branching families retain their distinct terminal sets.
+ * The asset identity of an input: its reachable TERMINAL forms under the
+ * current progression. Stages of one line share their terminal form
+ * (Bulbasaur and Ivysaur are both a future Venusaur); branching families
+ * retain their distinct terminal sets — except under daycare closure, where
+ * any hatchable-family member can breed back and re-evolve across branches,
+ * so every member shares the family's full terminal set (a Vaporeon's best
+ * reachable form may be Espeon). Two inputs with equal keys are one
+ * fieldable asset.
  */
-export function getReachableLineFallbackKey(candidates = [], fallbackId = '') {
+export function getReachableAssetKey(candidates = [], fallbackId = '') {
   const nonMega = candidates.filter((candidate) => !candidate.isMega);
   const rows = nonMega.length ? nonMega : candidates;
   const ids = new Set(rows.map((candidate) => candidate.id));

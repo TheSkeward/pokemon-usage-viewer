@@ -146,24 +146,27 @@ export function takeTopUsageEntries(entries, limit = SCORED_POOL_LIMIT) {
 }
 
 /**
- * Collapses raw inputs that would occupy the same visible bench slot. The
- * strongest usage signal wins; exact ownership of the displayed form and then
- * the more-evolved input break true ties (Swanna over Ducklett, for example).
+ * Collapses raw inputs that are the same fieldable asset — equal reachable
+ * terminal forms under the current progression (entry.assetKey), so a
+ * pre-evolution with its own usage rows never holds a second slot for the
+ * asset its evolution already occupies. The strongest usage signal wins;
+ * exact ownership of the displayed form and then the more-evolved input
+ * break true ties (Swanna over Ducklett, for example).
  */
 export function deduplicateUsageEntries(entries = []) {
-  const bestByDisplayKey = new Map();
+  const bestByAsset = new Map();
   for (const entry of entries) {
     // Ability annotations change a line's builds, so an annotated input is
     // never a duplicate of a differently-annotated one, even on the same
-    // bench form (Froakie (Protean) beside a plain Greninja).
+    // asset (Froakie (Protean) beside a plain Greninja).
     const key =
-      `${entry.displayKey}|${entry.abilityAnnotation || ''}`;
-    const current = bestByDisplayKey.get(key);
+      `${entry.assetKey || entry.displayKey}|${entry.abilityAnnotation || ''}`;
+    const current = bestByAsset.get(key);
     if (!current || compareDuplicateRepresentatives(entry, current) < 0) {
-      bestByDisplayKey.set(key, entry);
+      bestByAsset.set(key, entry);
     }
   }
-  return [...bestByDisplayKey.values()].sort((a, b) =>
+  return [...bestByAsset.values()].sort((a, b) =>
     compareLineUsageBestFirst(a.usageOrder, b.usageOrder),
   );
 }

@@ -52,7 +52,7 @@ import {
 import {
   getEvolutionDepth,
   getReachableLineCandidates,
-  getReachableLineFallbackKey,
+  getReachableAssetKey,
 } from './line-reachability.js';
 
 // --- Incremental caches ----------------------------------------------------
@@ -234,7 +234,12 @@ const MAX_RESULT_CACHE = 400;
 // evidence (core-index), so persisted team selections can change.
 // v53: PRIOR_DRAG_CAP rises to the measured calibration frontier (0.19), so
 // converged mons scoring above their usage prior drag slightly lower.
-const RESULT_CACHE_VERSION = '53';
+// v54: scored-slot dedup keys on the reachable-asset identity (terminal
+// forms under current progression) instead of the usage form, so a
+// pre-evolution with its own ladder rows no longer spends a second working-
+// set slot on the asset its evolution already fills; with daycare, family
+// branches merge (any hatchable member can breed back and re-evolve).
+const RESULT_CACHE_VERSION = '54';
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.
@@ -704,10 +709,11 @@ async function selectScoringGroups({
         usageOrder,
         abilityAnnotation:
           abilityAnnotations?.get(normalizeName(group.input.name)) || null,
+        assetKey: getReachableAssetKey(candidates, group.input.id),
         displayKey:
           usageOrder.ceiling?.pokemonId ||
           usageOrder.trace?.pokemonId ||
-          getReachableLineFallbackKey(candidates, group.input.id),
+          getReachableAssetKey(candidates, group.input.id),
       };
     }),
   );
