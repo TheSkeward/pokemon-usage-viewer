@@ -8,6 +8,16 @@
 //     that, not quietly evaluate Drilbur — and must clear the rolling
 //     bucket's top-quartile score. Injected probes receive scores but never
 //     move that reference bar.
+//   - PRODUCTION semantics throughout: no scoreAllLines bypass. Pools above
+//     the 126-line working set relegate their lowest-usage lines to
+//     donor-only, exactly as the app does — and an anchor that fails to hold
+//     a scored seat FAILS the suite. What the suite certifies is what a user
+//     with this box would actually see.
+//   - The window is 4 buckets: the widest at which every anchor holds a
+//     working-set seat in every bucket (at 5, the big early waves push the
+//     lowest-usage anchor out of the 126). The intended reference is
+//     everything-available-so-far; the width is bounded by the working-set
+//     contract, not by runtime.
 //   - GARBAGE mons (community-consensus duds) are logged as findings
 //     wherever attainable but NOT gated: bottom-quartile membership in
 //     small buckets proved knife-edge, and holding the floor is not worth
@@ -17,17 +27,13 @@
 //     is not run: post-game seating is outside the progression-optimization
 //     contract, and its staple-heavy population was the binding constraint
 //     on PRIOR_DRAG_CAP without describing play the app optimizes for.
-//   - Pools are ROLLING deltas (user refinement): badge N's pool is the mons
-//     newly available at badge N plus those new at badge N−1 — big enough
-//     that the tiny buckets (6, 15, 17) still mean something, small enough
-//     that 18 optimizer runs stay affordable.
 //
 // Assertions are on SCORE RANK (score is sovereign), never on seating —
 // seating is coverage/team-context-dependent and three injected water types
 // can't all take chairs. This badge-bucket corpus is the scoring calibration
 // contract; failures are findings to understand against the user's anchors.
 //
-// Run separately from the fast mechanical/correctness suite (19 optimizer
+// Run separately from the fast mechanical/correctness suite (18 optimizer
 // runs):
 //   npm run validate:calibration
 import test from 'node:test';
@@ -62,10 +68,12 @@ const GARBAGE = [
   poorAnchor('Unown'),
 ];
 
+const WINDOW_BUCKETS = 4;
+
 // Level cap per badge, from the checkpoint schedule (badge-timeline.js).
 const CAP = {
   0: 20, 1: 25, 2: 35, 3: 40, 4: 45, 5: 50, 6: 55, 7: 60, 8: 65, 9: 70,
-  10: 70, 11: 75, 12: 75, 13: 80, 14: 85, 15: 90, 16: 90, 17: 95, 18: 100,
+  10: 70, 11: 75, 12: 75, 13: 80, 14: 85, 15: 90, 16: 90, 17: 95,
 };
 
 // Value at the q-th fraction of the ascending-sorted scores (nearest rank).
@@ -78,57 +86,69 @@ const GATED_BUCKETS = Object.keys(buckets).filter((key) => key !== '18');
 
 for (const badgeKey of GATED_BUCKETS) {
   const badge = Number(badgeKey);
-  const bucket = [
-    ...(buckets[String(badge - 1)] || []),
-    ...buckets[badgeKey],
-  ];
+  const bucket = [];
+  for (let b = Math.max(0, badge - WINDOW_BUCKETS + 1); b <= badge; b++) {
+    bucket.push(...(buckets[String(b)] || []));
+  }
   test(`badge ${badge} bucket (cap ${CAP[badge]}): amazing top-quartile`, async () => {
     const injected = AMAZING.filter((name) => !bucket.includes(name));
     const pool = [...bucket, ...injected];
-    // Calibration measures the entire reference population, including its
-    // deliberately weak tail. The interactive app's 126-line performance cap
-    // would otherwise turn the lowest-usage rows into donor-only entries and
-    // make q25—and the poor-anchor assertions—undefined.
-    const result = await runPool({
-      pool,
-      badge,
-      levelCap: CAP[badge],
-      scoreAllLines: true,
-    });
+    const result = await runPool({ pool, badge, levelCap: CAP[badge] });
 
-    // Resolution completeness: a bucket name the app can't resolve is a
-    // data/conversion bug that would silently shrink the pool.
-    const unresolved = pool.filter((name) => !bestChoice(result, name));
-    assert.deepEqual(
-      unresolved,
-      [],
-      `badge ${badge}: unresolved pool names`,
+    const scoreOf = (name) => bestChoice(result, name)?.score;
+
+    // Resolution completeness: a bucket name the app can't RECOGNIZE is a
+    // data/conversion bug that would silently shrink the pool. The
+    // recognized-input count covers every path; unscored names are only
+    // individually diagnosable when nothing was merged (same-line inputs
+    // share one scored slot) or relegated to donor-only by the 126 cap.
+    const selection = result.poolSelection || {};
+    assert.equal(
+      selection.inputLines,
+      pool.length,
+      `badge ${badge}: ${pool.length - selection.inputLines} unrecognized pool name(s)`,
     );
-
-    const scoreOf = (name) => bestChoice(result, name).score;
-    // The rolling bucket is the reference population. The amazing mons are
-    // injected probes: including them in the quantile would let the test
-    // subjects move their own bar and crowd one another out of a small
-    // bucket's top quartile. They still share this optimizer run, so excluding
-    // them from q75/q25 costs no extra resolution work. Poor anchors are never
-    // injected; when attainable they remain part of the bucket and its q25.
-    const referenceScores = bucket.map(scoreOf).sort((a, b) => a - b);
+    if (
+      !(selection.donorOnlyLines > 0) &&
+      !(selection.duplicateLines > 0)
+    ) {
+      assert.deepEqual(
+        pool.filter((name) => scoreOf(name) == null),
+        [],
+        `badge ${badge}: recognized names missing scores`,
+      );
+    }
+    // The rolling bucket is the reference population — its SCORED members
+    // only, because donor-only lines have no score to rank and the app never
+    // shows them one. The amazing mons are injected probes: including them
+    // in the quantile would let the test subjects move their own bar and
+    // crowd one another out of a small bucket's top quartile. Poor anchors
+    // are never injected; when attainable and scored they remain part of
+    // the bucket and its q25.
+    const scoredReference = bucket.filter((name) => scoreOf(name) != null);
+    const referenceScores =
+      scoredReference.map(scoreOf).sort((a, b) => a - b);
     const q75 = quantile(referenceScores, 0.75);
     const q25 = quantile(referenceScores, 0.25);
 
     const rankOf = (name) =>
-      1 + pool.filter((other) => scoreOf(other) > scoreOf(name)).length;
+      1 + pool.filter((other) => (scoreOf(other) ?? -Infinity) > scoreOf(name))
+        .length;
     const describe = (name) =>
-      `${name} score ${Math.round(scoreOf(name))} rank ${rankOf(name)}/${pool.length}`;
+      scoreOf(name) == null
+        ? `${name} UNSCORED (outside the working set)`
+        : `${name} score ${Math.round(scoreOf(name))} rank ${rankOf(name)}/${pool.length}`;
     const activeGarbage = activePoorAnchors(GARBAGE, bucket);
     const describePoor = (anchor) => {
       const input = poorAnchorInput(anchor);
-      return `${poorAnchorLabel(anchor)} score ${Math.round(scoreOf(input))} rank ${rankOf(input)}/${pool.length}`;
+      return scoreOf(input) == null
+        ? `${poorAnchorLabel(anchor)} unscored`
+        : `${poorAnchorLabel(anchor)} score ${Math.round(scoreOf(input))} rank ${rankOf(input)}/${pool.length}`;
     };
 
     // Readable findings record, pass or fail.
     console.log(
-      `badge ${badge} (cap ${CAP[badge]}, ${bucket.length} reference + ${injected.length} probes) q75=${Math.round(q75)} q25=${Math.round(q25)}\n` +
+      `badge ${badge} (cap ${CAP[badge]}, ${bucket.length} reference [${scoredReference.length} scored, ${selection.donorOnlyLines ?? 0} donor-only] + ${injected.length} probes) q75=${Math.round(q75)} q25=${Math.round(q25)}\n` +
         `  amazing: ${AMAZING.map(describe).join('; ')}\n` +
         (activeGarbage.length
           ? `  garbage: ${activeGarbage.map(describePoor).join('; ')}\n`
@@ -140,6 +160,12 @@ for (const badgeKey of GATED_BUCKETS) {
     // Garbage anchors are findings only (see header) — never violations.
     const violations = [];
     for (const name of AMAZING) {
+      if (scoreOf(name) == null) {
+        violations.push(
+          `${name} — not in the scored working set (usage rank below the 126-line cut)`,
+        );
+        continue;
+      }
       if (!(scoreOf(name) >= q75)) {
         violations.push(`${describe(name)} — must be in the top score quartile (q75 ${Math.round(q75)})`);
       }

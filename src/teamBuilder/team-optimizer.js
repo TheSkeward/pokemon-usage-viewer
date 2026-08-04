@@ -232,7 +232,9 @@ const MAX_RESULT_CACHE = 400;
 // annotated line on the same bench form, so both stay in the scored pool.
 // v52: team fit adds the bounded core-completion bonus from real-team pair
 // evidence (core-index), so persisted team selections can change.
-const RESULT_CACHE_VERSION = '52';
+// v53: PRIOR_DRAG_CAP rises to the measured calibration frontier (0.16), so
+// converged mons scoring above their usage prior drag slightly lower.
+const RESULT_CACHE_VERSION = '53';
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.

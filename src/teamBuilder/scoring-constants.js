@@ -133,10 +133,10 @@ export const SCORING_DEFAULTS = Object.freeze({
   // Bounded-trust law saturation (see candidate-scoring's model header): the
   // prior may claim at most this fraction of the mon's measured excess over
   // it, however converged.
-  // Calibration bracket (offline sweep): the Meowstic-class assertions cap
-  // it from above (fails materialize as it approaches ~0.3); the value sits
-  // low in the band pending the full calibration pass.
-  PRIOR_DRAG_CAP: 0.15,
+  // Set at the measured calibration frontier: the badge-bucket suite passes
+  // at 0.16 and fails at 0.17, where the lowest-usage anchor drops below the
+  // endgame buckets' top-quartile bar.
+  PRIOR_DRAG_CAP: 0.16,
   // Tier dominance: strictly greater than any possible usage % (100), so a
   // shallower first-meaningful tier ALWAYS outranks any within-tier usage
   // (100 would tie against a mon at exactly 100% usage — 101 is airtight).
