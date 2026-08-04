@@ -462,11 +462,25 @@ test('forum fetch: browser HTTP failures retain status and final URL',
       fetcher.fetchText('https://www.smogon.com/forums/threads/x.1/'),
       /403 https:\/\/www\.smogon\.com\/forums\/blocked/,
     );
+    // A single URL's 403 is its own permission wall, not a block: retrying
+    // it, and trying one other URL, both really fetch.
+    await assert.rejects(
+      fetcher.fetchText('https://www.smogon.com/forums/threads/x.1/'),
+      /403 https:\/\/www\.smogon\.com\/forums\/blocked/,
+    );
+    assert.equal(pages, 2);
     await assert.rejects(
       fetcher.fetchText('https://www.smogon.com/forums/threads/y.2/'),
+      /403 https:\/\/www\.smogon\.com\/forums\/blocked/,
+    );
+    assert.equal(pages, 3);
+    // The second DISTINCT 403ing URL confirms a real block; from here the
+    // latch pauses every Smogon request without fetching.
+    await assert.rejects(
+      fetcher.fetchText('https://www.smogon.com/forums/threads/z.3/'),
       /requests paused after 403/,
     );
-    assert.equal(pages, 1);
+    assert.equal(pages, 3);
     await fetcher.close();
   });
 
