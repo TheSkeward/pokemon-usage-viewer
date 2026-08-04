@@ -78,6 +78,15 @@ export const FORUM_THREAD_WEIGHTS = {
   '3653598': 40,
   // Your favorite teams of the generation: self-selected proven showcases.
   '3654503': 20,
+  // USUM Metagame Discussion: teams shared as what's-working meta reports —
+  // substantially above an unvetted RMT, below a self-selected showcase.
+  '3646999': 15,
+  // Simple Questions, Simple Answers: help-desk Q&A — mostly pre-help teams
+  // posted because they are NOT working, plus answerer fixes. Priced at the
+  // floor deliberately, not by default.
+  '3587186': 5,
+  // Ask the Mods: same help-desk provenance as SQSA.
+  '3655050': 5,
 };
 
 /**
