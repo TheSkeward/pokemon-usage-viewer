@@ -12,7 +12,9 @@
  * subforum's name — the last two combined with the config's `gen`.
  * Listing and thread cursors are durable, so polite per-run request caps pause
  * work rather than truncating the corpus. Completed listings begin another
- * sweep, and completed threads recheck their final page for later replies.
+ * sweep. Completed threads rescan promptly when the listing row shows new
+ * activity; without such a signal they are paranoia rechecks (edits never
+ * bump a row) that spend only budget left over after fresh work.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -60,7 +62,7 @@ const SOURCES_PATH = path.join(scriptDir, 'teamscrape', 'sources.json');
 
 const DEFAULT_MAX_NEW = 40;
 const DEFAULT_LISTING_PAGES_PER_RUN = 4;
-const DEFAULT_THREAD_PAGES_PER_RUN = 40;
+const DEFAULT_THREAD_PAGES_PER_RUN = 50;
 
 const knownFormats = new Set(REAL_FORMATS.map((format) => format.id));
 /**
@@ -176,12 +178,23 @@ async function walkListing({ listing, gen, listingTier, config, counters,
       const thread = crawl.threads[row.threadId];
       if (!shouldScanThread(thread, row, progress.sweep)) continue;
       const fallbackFormat = rowFormat(row);
+      // A completed thread with no listing-activity signal is a paranoia
+      // recheck (guarding against edits that never bump the row). Those
+      // must not spend budget ahead of fresh work — the maintenance tier
+      // otherwise outgrows the whole allowance as completions accumulate —
+      // so they queue for whatever budget survives the walk. Skipped
+      // leftovers stay unmarked and surface again next run.
+      if (thread?.complete && row.updatedAt == null) {
+        budget.recheckQueue.push(
+          { row, fallbackFormat, sweep: progress.sweep });
+        continue;
+      }
       // Where the page budget goes decides whether the walker can ever
       // reach new rows; the spend ledger is the evidence.
       const kind = !thread
         ? 'newPages'
         : thread.complete
-          ? 'recheckPages'
+          ? 'bumpedPages'
           : 'resumePages';
       const spentBefore = budget.threadPages;
       try {
@@ -250,7 +263,14 @@ async function main() {
   const counters = { teams: 0 };
   const budget = {
     threadPages: 0,
-    spend: { listingPages: 0, newPages: 0, resumePages: 0, recheckPages: 0 },
+    recheckQueue: [],
+    spend: {
+      listingPages: 0,
+      newPages: 0,
+      resumePages: 0,
+      bumpedPages: 0,
+      recheckPages: 0,
+    },
   };
   const gen = forums.gen || 'gen7';
   const config = {
@@ -271,15 +291,41 @@ async function main() {
       console.warn(`forum listing ${listing}: FAILED — ${error.message}`);
     }
   }
+  // Paranoia rechecks drink last: whatever thread budget the fresh walk
+  // left over. Unreached entries stay unmarked and re-queue next run.
+  let recheckSkipped = 0;
+  for (const { row, fallbackFormat, sweep } of budget.recheckQueue) {
+    if (budget.threadPages >= maxThreadPages || counters.teams >= maxNew) {
+      recheckSkipped += 1;
+      continue;
+    }
+    const spentBefore = budget.threadPages;
+    try {
+      await harvestThread({
+        row, fallbackFormat, counters, crawl, crawlFile, sweep,
+        budget, maxThreadPages, maxNew,
+      });
+    } catch (error) {
+      console.warn(`  recheck ${row.threadId}: ${error.message}`);
+      if (error.status >= 400 && error.status < 500 &&
+          error.status !== 429) {
+        recordDeferredThread(crawl, row, sweep);
+        saveCrawlState(crawlFile, crawl);
+      }
+    } finally {
+      budget.spend.recheckPages += budget.threadPages - spentBefore;
+    }
+  }
   for (const [formatId, { latest }] of archives.entries()) {
     console.log(`forum ${formatId}: archive ${latest.size}`);
   }
-  const { listingPages, newPages, resumePages, recheckPages } =
+  const { listingPages, newPages, resumePages, bumpedPages, recheckPages } =
     budget.spend;
   console.log(
     `forums: page budget — ${listingPages} listing, ${newPages} new-thread, ` +
-      `${resumePages} resume, ${recheckPages} recheck ` +
-      `(thread cap ${maxThreadPages})`,
+      `${resumePages} resume, ${bumpedPages} bumped, ` +
+      `${recheckPages} recheck (${recheckSkipped} deferred to next run, ` +
+      `thread cap ${maxThreadPages})`,
   );
   console.log(`forums: +${counters.teams} teams this run`);
 }
