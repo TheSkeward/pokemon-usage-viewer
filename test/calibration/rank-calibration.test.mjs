@@ -120,14 +120,25 @@ for (const badgeKey of GATED_BUCKETS) {
     }
     // The rolling bucket is the reference population — its SCORED members
     // only, because donor-only lines have no score to rank and the app never
-    // shows them one. The amazing mons are injected probes: including them
-    // in the quantile would let the test subjects move their own bar and
-    // crowd one another out of a small bucket's top quartile. Poor anchors
-    // are never injected; when attainable and scored they remain part of
-    // the bucket and its q25.
-    const scoredReference = bucket.filter((name) => scoreOf(name) != null);
-    const referenceScores =
-      scoredReference.map(scoreOf).sort((a, b) => a - b);
+    // shows them one. Percentile bodies are FIELDED FORMS, not list entries:
+    // Snivy, Servine, and Serperior are one asset (one serperior body at the
+    // line's best score), while true form variants (Lycanroc vs Midnight)
+    // field distinctly and stay distinct bodies. Without this, one line's
+    // stages stack identical scores and prop up the quartile bar. The
+    // amazing mons are injected probes: including them in the quantile would
+    // let the test subjects move their own bar and crowd one another out of
+    // a small bucket's top quartile. Poor anchors are never injected; when
+    // attainable and scored they remain part of the bucket and its q25.
+    const bodies = new Map();
+    for (const name of bucket) {
+      const choice = bestChoice(result, name);
+      if (!choice) continue;
+      const form = choice.legalityProfile?.fieldedId || choice.pokemonId;
+      bodies.set(form, Math.max(bodies.get(form) ?? -Infinity, choice.score));
+    }
+    const scoredNameCount = bucket.filter((name) => scoreOf(name) != null)
+      .length;
+    const referenceScores = [...bodies.values()].sort((a, b) => a - b);
     const q75 = quantile(referenceScores, 0.75);
     const q25 = quantile(referenceScores, 0.25);
 
@@ -148,7 +159,7 @@ for (const badgeKey of GATED_BUCKETS) {
 
     // Readable findings record, pass or fail.
     console.log(
-      `badge ${badge} (cap ${CAP[badge]}, ${bucket.length} reference [${scoredReference.length} scored, ${selection.donorOnlyLines ?? 0} donor-only] + ${injected.length} probes) q75=${Math.round(q75)} q25=${Math.round(q25)}\n` +
+      `badge ${badge} (cap ${CAP[badge]}, ${bucket.length} reference [${scoredNameCount} scored, ${bodies.size} bodies, ${selection.donorOnlyLines ?? 0} donor-only] + ${injected.length} probes) q75=${Math.round(q75)} q25=${Math.round(q25)}\n` +
         `  amazing: ${AMAZING.map(describe).join('; ')}\n` +
         (activeGarbage.length
           ? `  garbage: ${activeGarbage.map(describePoor).join('; ')}\n`

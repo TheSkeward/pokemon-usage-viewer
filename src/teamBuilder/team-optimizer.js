@@ -232,7 +232,7 @@ const MAX_RESULT_CACHE = 400;
 // annotated line on the same bench form, so both stay in the scored pool.
 // v52: team fit adds the bounded core-completion bonus from real-team pair
 // evidence (core-index), so persisted team selections can change.
-// v53: PRIOR_DRAG_CAP rises to the measured calibration frontier (0.16), so
+// v53: PRIOR_DRAG_CAP rises to the measured calibration frontier (0.19), so
 // converged mons scoring above their usage prior drag slightly lower.
 const RESULT_CACHE_VERSION = '53';
 

@@ -134,9 +134,10 @@ export const SCORING_DEFAULTS = Object.freeze({
   // prior may claim at most this fraction of the mon's measured excess over
   // it, however converged.
   // Set at the measured calibration frontier: the badge-bucket suite passes
-  // at 0.16 and fails at 0.17, where the lowest-usage anchor drops below the
-  // endgame buckets' top-quartile bar.
-  PRIOR_DRAG_CAP: 0.16,
+  // at 0.19 and fails at 0.20, where the lowest-usage anchor drops below the
+  // endgame buckets' top-quartile bar (percentile bodies deduped by fielded
+  // form).
+  PRIOR_DRAG_CAP: 0.19,
   // Tier dominance: strictly greater than any possible usage % (100), so a
   // shallower first-meaningful tier ALWAYS outranks any within-tier usage
   // (100 would tie against a mon at exactly 100% usage — 101 is airtight).
