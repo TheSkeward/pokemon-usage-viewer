@@ -54,10 +54,45 @@ const { buckets } = JSON.parse(
   readFileSync(path.join(HERE, 'badge-buckets.json'), 'utf8'),
 );
 
-const AMAZING = [
-  'Excadrill', 'Scizor', 'Blaziken', 'Sharpedo', 'Aegislash', 'Primarina',
-  'Meowstic',
-];
+// Anchor lines: each anchor with every family member the availability
+// buckets could name, so its first-gainable badge is derived from the
+// corpus rather than asserted counterfactually where no player can own the
+// line.
+const ANCHOR_LINES = {
+  Excadrill: ['Drilbur', 'Excadrill'],
+  Scizor: ['Scyther', 'Scizor'],
+  Blaziken: ['Torchic', 'Combusken', 'Blaziken'],
+  Sharpedo: ['Carvanha', 'Sharpedo'],
+  Aegislash: ['Honedge', 'Doublade', 'Aegislash'],
+  Primarina: ['Popplio', 'Brionne', 'Primarina'],
+  Meowstic: ['Espurr', 'Meowstic'],
+};
+const AMAZING = Object.keys(ANCHOR_LINES);
+
+// An anchor is asserted from its first-gainable badge for at most this many
+// consecutive buckets. The community claim behind each anchor is stage-
+// scoped: "cracked when you get it and for the stretch that follows", not
+// "top-quartile against every population the whole game produces". All
+// anchors are still injected and logged everywhere.
+const ANCHOR_MAX_BUCKETS = 16;
+
+const firstGainableBadge = (anchor) => {
+  let first = Infinity;
+  for (const [badgeKey, mons] of Object.entries(buckets)) {
+    if (ANCHOR_LINES[anchor].some((name) => mons.includes(name))) {
+      first = Math.min(first, Number(badgeKey));
+    }
+  }
+  return first;
+};
+const ANCHOR_FIRST_BADGE = Object.fromEntries(
+  AMAZING.map((anchor) => [anchor, firstGainableBadge(anchor)]),
+);
+
+const anchorAssertedAt = (anchor, badge) => {
+  const first = ANCHOR_FIRST_BADGE[anchor];
+  return badge >= first && badge < first + ANCHOR_MAX_BUCKETS;
+};
 const GARBAGE = [
   poorAnchor('Tropius'),
   poorAnchor('Dunsparce'),
@@ -145,10 +180,12 @@ for (const badgeKey of GATED_BUCKETS) {
     const rankOf = (name) =>
       1 + pool.filter((other) => (scoreOf(other) ?? -Infinity) > scoreOf(name))
         .length;
-    const describe = (name) =>
-      scoreOf(name) == null
-        ? `${name} UNSCORED (outside the working set)`
-        : `${name} score ${Math.round(scoreOf(name))} rank ${rankOf(name)}/${pool.length}`;
+    const describe = (name) => {
+      const tag = anchorAssertedAt(name, badge) ? '' : ' [unasserted]';
+      return scoreOf(name) == null
+        ? `${name} UNSCORED (outside the working set)${tag}`
+        : `${name} score ${Math.round(scoreOf(name))} rank ${rankOf(name)}/${pool.length}${tag}`;
+    };
     const activeGarbage = activePoorAnchors(GARBAGE, bucket);
     const describePoor = (anchor) => {
       const input = poorAnchorInput(anchor);
@@ -170,7 +207,7 @@ for (const badgeKey of GATED_BUCKETS) {
     // constraint on the model, and a hidden failure is a lost finding.
     // Garbage anchors are findings only (see header) — never violations.
     const violations = [];
-    for (const name of AMAZING) {
+    for (const name of AMAZING.filter((n) => anchorAssertedAt(n, badge))) {
       if (scoreOf(name) == null) {
         violations.push(
           `${name} — not in the scored working set (usage rank below the 126-line cut)`,
