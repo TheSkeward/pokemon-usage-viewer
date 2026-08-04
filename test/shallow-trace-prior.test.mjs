@@ -6,6 +6,9 @@ import {
   hasCompetitivePriorEvidence,
   scoreCandidate,
 } from '../src/teamBuilder/candidate-scoring.js';
+import {
+  setScoringOverrides,
+} from '../src/teamBuilder/scoring-constants.js';
 
 const formats = [
   'gen7anythinggoes',
@@ -77,15 +80,23 @@ test('shallow trace changes only the downward-trust law', () => {
     levelCap: 85,
     lineRamp: 1,
   };
-  const dead = scoreCandidate({
-    ...common,
-    bundle: traced('gen7ou', 0.99),
-  });
-  const present = scoreCandidate({
-    ...common,
-    bundle: traced('gen7ou', 1),
-  });
-  assert.equal(dead.tierRank, present.tierRank);
-  assert.equal(dead.ceiling, present.ceiling);
-  assert.ok(present.score > dead.score);
+  // At the production PRIOR_DRAG_CAP of 1.0 the two convergence clauses
+  // coincide, so the clause-selection machinery is pinned under an explicit
+  // sub-unity cap — the lever this law exists to preserve.
+  setScoringOverrides({ PRIOR_DRAG_CAP: 0.15 });
+  try {
+    const dead = scoreCandidate({
+      ...common,
+      bundle: traced('gen7ou', 0.99),
+    });
+    const present = scoreCandidate({
+      ...common,
+      bundle: traced('gen7ou', 1),
+    });
+    assert.equal(dead.tierRank, present.tierRank);
+    assert.equal(dead.ceiling, present.ceiling);
+    assert.ok(present.score > dead.score);
+  } finally {
+    setScoringOverrides(null);
+  }
 });

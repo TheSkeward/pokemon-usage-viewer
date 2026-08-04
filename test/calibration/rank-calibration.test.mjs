@@ -72,9 +72,12 @@ const AMAZING = Object.keys(ANCHOR_LINES);
 // An anchor is asserted from its first-gainable badge for at most this many
 // consecutive buckets. The community claim behind each anchor is stage-
 // scoped: "cracked when you get it and for the stretch that follows", not
-// "top-quartile against every population the whole game produces". All
-// anchors are still injected and logged everywhere.
-const ANCHOR_MAX_BUCKETS = 16;
+// "top-quartile against every population the whole game produces". Three
+// buckets is the widest persistence at which the suite passes under FULL
+// converged usage trust (PRIOR_DRAG_CAP 1.0) — the corpus guards the
+// acquisition window and cedes converged endgame judgment to the ladder.
+// All anchors are still injected and logged everywhere.
+const ANCHOR_MAX_BUCKETS = 3;
 
 const firstGainableBadge = (anchor) => {
   let first = Infinity;

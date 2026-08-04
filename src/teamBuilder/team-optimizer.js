@@ -239,7 +239,11 @@ const MAX_RESULT_CACHE = 400;
 // pre-evolution with its own ladder rows no longer spends a second working-
 // set slot on the asset its evolution already fills; with daycare, family
 // branches merge (any hatchable member can breed back and re-evolve).
-const RESULT_CACHE_VERSION = '54';
+// v55: converged downward trust goes to full (PRIOR_DRAG_CAP 1.0): the
+// anchor corpus scopes its claims to acquisition windows, so nothing caps
+// endgame drag — a converged mon with a competitive prior scores at its
+// usage rank, and late-game orderings change accordingly.
+const RESULT_CACHE_VERSION = '55';
 
 // Hydrate the in-memory memo from persisted results once, lazily. optimize()
 // awaits this before consulting the memo so a reload-then-same-pool is a hit.

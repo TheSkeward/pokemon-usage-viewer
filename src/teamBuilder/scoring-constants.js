@@ -132,12 +132,14 @@ export const SCORING_DEFAULTS = Object.freeze({
   USAGE_RAMP_EXPONENT: 2, // w ramps as (cap/L*)^k — back-loaded handoff
   // Bounded-trust law saturation (see candidate-scoring's model header): the
   // prior may claim at most this fraction of the mon's measured excess over
-  // it, however converged.
-  // Set at the measured calibration frontier: the badge-bucket suite passes
-  // at 0.19 and fails at 0.20, where the lowest-usage anchor drops below the
-  // endgame buckets' top-quartile bar (percentile bodies deduped by fielded
-  // form).
-  PRIOR_DRAG_CAP: 0.19,
+  // it, however converged. At 1.0 the cap never binds: a converged mon with
+  // a competitive prior lands at its usage rank, because the anchor corpus
+  // scopes its claims to the acquisition window (three buckets from first
+  // availability) and asserts nothing about converged endgame ordering —
+  // the ladder's verdict owns fully-converged disagreements. This constant
+  // remains the lever for reintroducing bounded trust; the calibration
+  // suite passes at every value up to and including 1.0.
+  PRIOR_DRAG_CAP: 1.0,
   // Tier dominance: strictly greater than any possible usage % (100), so a
   // shallower first-meaningful tier ALWAYS outranks any within-tier usage
   // (100 would tie against a mon at exactly 100% usage — 101 is airtight).

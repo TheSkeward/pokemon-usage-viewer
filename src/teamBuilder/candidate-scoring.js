@@ -39,9 +39,12 @@ export const MIN_MEANINGFUL_USAGE_PERCENT = tunable(
 //           - BOUNDED-TRUST law (present priors): a line with real
 //             competitive presence anywhere has its downward trust capped —
 //             w_down = min(ramp, PRIOR_DRAG_CAP) — so the prior may claim at
-//             most that fraction of the mon's measured excess, no matter how
-//             converged. The MAGNITUDE of a deep prior is meta-confounded
-//             for PvE; set-completion cannot shrink that domain error.
+//             most that fraction of the mon's measured excess. At the
+//             current PRIOR_DRAG_CAP of 1.0 the cap never binds and the two
+//             clauses coincide: converged endgame ordering belongs to the
+//             ladder, while the calibration anchor corpus guards the
+//             acquisition-window judgments the ladder cannot see. The
+//             clause stays as the lever for reintroducing bounded trust.
 //           At ramp = 0 both clauses reduce to:
 //           C + α·O·[U − C]₊ + bias − K.
 //   O       online/readiness gate in [0,1]: how much the fielded form

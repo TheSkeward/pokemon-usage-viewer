@@ -189,9 +189,16 @@ The split encodes two decisions:
 
 - **Absence law:** no meaningful presence in any tier is transferable negative
   evidence, so a dead line may converge fully downward.
-- **Bounded-trust law:** presence somewhere proves that the body functions, but
-  the magnitude of a deep PvP prior is meta-confounded for PvE. Downward drag is
-  capped; upward convergence remains available.
+- **Bounded-trust law:** presence somewhere proves that the body functions, and
+  `prior_drag_cap` bounds how much of a converged mon's excess over its prior
+  the ladder may claim. With `prior_drag_cap = 1.0` (the current setting) the
+  cap never binds and both clauses coincide: a fully-converged line lands at
+  its usage rank in either direction. The division of authority behind that
+  setting: the anchor corpus asserts community judgment for the three buckets
+  after a line first becomes gainable — the window where local knowledge beats
+  the ladder — and cedes converged endgame ordering to the ladder entirely.
+  The clause structure and constant remain the lever for reintroducing
+  bounded trust; the calibration suite passes at every value up to 1.0.
 
 Prior presence normally means a first-meaningful-tier ranking. A sustained
 trace of at least `1%` in one of the ordered ladder's first three formats also
