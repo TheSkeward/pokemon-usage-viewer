@@ -62,6 +62,7 @@ export function createForumFetcher(options = {}) {
   let browserPromise = null;
   let contextPromise = null;
   let smogonBlocked = null;
+  let first403Url = null;
 
   async function throttle() {
     const remaining = lastRequestAt + requestGapMs - now();
@@ -137,10 +138,17 @@ export function createForumFetcher(options = {}) {
       if (mode === 'browser' && smogon) return await fetchWithBrowser(url);
       return await fetchWithHttp(url);
     } catch (error) {
-      // A blanket 403 should stop this process from hammering every configured
-      // thread. The next scheduled run starts with a fresh session and may
-      // try once again.
-      if (smogon && error.status === 403) smogonBlocked = error;
+      // A blanket 403 should stop this process from hammering every
+      // configured thread — but real blocks are day-level and 403 every
+      // URL, so the second DISTINCT 403ing URL confirms one just as fast.
+      // A single URL's 403 is that thread's own permission wall (locked
+      // and staff-only threads 403 guests on otherwise open days) and must
+      // not pause the walk: callers defer such threads and move on. The
+      // next scheduled run starts with a fresh session and may try again.
+      if (smogon && error.status === 403) {
+        if (first403Url && first403Url !== url) smogonBlocked = error;
+        else first403Url = url;
+      }
       throw error;
     }
   }
