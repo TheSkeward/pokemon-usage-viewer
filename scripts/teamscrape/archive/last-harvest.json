@@ -1,5 +1,5 @@
 {
-  "finishedAt": "2026-08-05T13:16:04.418Z",
+  "finishedAt": "2026-08-06T13:12:16.929Z",
   "results": [
     {
       "script": "scrape-pkmn-teams.mjs",
@@ -24,7 +24,10 @@
       "script": "scrape-tournament-teams.mjs",
       "exitCode": 0,
       "outputTail": [
-        "  thread 3611697: 403 https://www.smogon.com/forums/threads/oras-ou-role-compendium-v2.3541745/",
+        "tournament dump https://www.smogon.com/forums/threads/smbs-spl-x-team-dump.3650390/: FAILED — 403 https://www.smogon.com/forums/threads/smbs-spl-x-team-dump.3650390/",
+        "tournament dump https://www.smogon.com/forums/threads/upl-vii-dump.3650684/: FAILED — 403 https://www.smogon.com/forums/threads/upl-vii-dump.3650684/",
+        "tournament listing https://www.smogon.com/forums/forums/ruins-of-alph.281/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/upl-vii-dump.3650684/",
+        "tournament listing https://www.smogon.com/forums/forums/smogon-classic.334/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/upl-vii-dump.3650684/",
         "tournament: +0 paste teams, +0 replays"
       ]
     },
@@ -32,32 +35,29 @@
       "script": "scrape-forum-teams.mjs",
       "exitCode": 0,
       "outputTail": [
-        "forum listing https://www.smogon.com/forums/forums/sm-om-submissions.398/: 0 rows on page 1 (len 31380, thread hrefs 1, preview attrs 0, labels 0)",
-        "forum listing https://www.smogon.com/forums/forums/vgc-2019-ultra-series-analyses.514/: 0 rows on page 1 (len 29890, thread hrefs 1, preview attrs 0, labels 0)",
-        "forum listing https://www.smogon.com/forums/forums/sm-closed-submissions.407/: 0 rows on page 1 (len 30377, thread hrefs 1, preview attrs 0, labels 0)",
-        "forum gen7ou: archive 137",
-        "forums: page budget — 26 listing, 0 new-thread, 50 resume, 0 bumped, 0 recheck (21 deferred to next run, thread cap 50)",
-        "forums: +16 teams this run"
+        "forum listing https://www.smogon.com/forums/forums/gen-7-competitive-discussion.249/: FAILED — 403 https://www.smogon.com/forums/forums/gen-7-competitive-discussion.249/",
+        "forums: page budget — 0 listing, 0 new-thread, 0 resume, 0 bumped, 0 recheck (0 deferred to next run, thread cap 50)",
+        "forums: +0 teams this run"
       ]
     },
     {
       "script": "scrape-replay-teams.mjs",
       "exitCode": 0,
       "outputTail": [
-        "gen7anythinggoes: +300 (archive 5100)",
-        "gen7ubers: +300 (archive 5105)",
-        "gen7ou: +300 (archive 5100)",
-        "gen7uu: +300 (archive 5100)",
-        "gen7ru: +300 (archive 5100)",
-        "gen7nu: +300 (archive 5100)",
-        "gen7pu: +300 (archive 5100)",
-        "gen7zu: +300 (archive 5100)",
+        "gen7anythinggoes: +300 (archive 5400)",
+        "gen7ubers: +300 (archive 5405)",
+        "gen7ou: +300 (archive 5400)",
+        "gen7uu: +300 (archive 5400)",
+        "gen7ru: +300 (archive 5400)",
+        "gen7nu: +300 (archive 5400)",
+        "gen7pu: +300 (archive 5400)",
+        "gen7zu: +300 (archive 5400)",
         "gen7nfe: +0 (archive 1368)",
-        "gen7lc: +300 (archive 5100)",
-        "gen7doublesubers: +300 (archive 5100)",
+        "gen7lc: +300 (archive 5400)",
+        "gen7doublesubers: +300 (archive 5400)",
         "  skip gen7doublesou-2560475408: 404 https://replay.pokemonshowdown.com/gen7doublesou-2560475408.json",
-        "gen7doublesou: +300 (archive 5109)",
-        "gen7doublesuu: +300 (archive 5100)"
+        "gen7doublesou: +300 (archive 5409)",
+        "gen7doublesuu: +300 (archive 5400)"
       ]
     }
   ]
