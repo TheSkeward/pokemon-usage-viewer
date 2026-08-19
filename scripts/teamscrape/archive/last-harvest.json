@@ -1,5 +1,5 @@
 {
-  "finishedAt": "2026-08-18T11:57:00.122Z",
+  "finishedAt": "2026-08-19T12:04:19.942Z",
   "results": [
     {
       "script": "scrape-pkmn-teams.mjs",
@@ -32,29 +32,29 @@
       "script": "scrape-forum-teams.mjs",
       "exitCode": 0,
       "outputTail": [
-        "forum gen7ou: archive 542",
+        "forum gen7ou: archive 600",
         "forums: page budget — 2 listing, 0 new-thread, 3 resume, 0 bumped, 0 recheck (21 deferred to next run, thread cap 50)",
-        "forums: +56 teams this run"
+        "forums: +58 teams this run"
       ]
     },
     {
       "script": "scrape-replay-teams.mjs",
       "exitCode": 0,
       "outputTail": [
-        "gen7anythinggoes: +300 (archive 9000)",
-        "gen7ubers: +300 (archive 9005)",
-        "gen7ou: +300 (archive 9000)",
-        "gen7uu: +300 (archive 9000)",
-        "gen7ru: +300 (archive 9000)",
-        "gen7nu: +300 (archive 9000)",
-        "gen7pu: +300 (archive 9000)",
-        "gen7zu: +300 (archive 9000)",
+        "gen7anythinggoes: +300 (archive 9300)",
+        "gen7ubers: +300 (archive 9305)",
+        "gen7ou: +300 (archive 9300)",
+        "gen7uu: +300 (archive 9300)",
+        "gen7ru: +300 (archive 9300)",
+        "gen7nu: +300 (archive 9300)",
+        "gen7pu: +300 (archive 9300)",
+        "gen7zu: +300 (archive 9300)",
         "gen7nfe: +0 (archive 1368)",
-        "gen7lc: +300 (archive 9000)",
-        "gen7doublesubers: +300 (archive 9000)",
+        "gen7lc: +300 (archive 9300)",
+        "gen7doublesubers: +300 (archive 9300)",
         "  skip gen7doublesou-2560475408: 404 https://replay.pokemonshowdown.com/gen7doublesou-2560475408.json",
-        "gen7doublesou: +300 (archive 9009)",
-        "gen7doublesuu: +300 (archive 9000)"
+        "gen7doublesou: +300 (archive 9309)",
+        "gen7doublesuu: +300 (archive 9300)"
       ]
     }
   ]
