@@ -107,12 +107,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Salac Berry"
   },
   {
-    "id": "shellbell",
-    "name": "Shell Bell"
-  },
-  {
     "id": "flameorb",
     "name": "Flame Orb"
+  },
+  {
+    "id": "shellbell",
+    "name": "Shell Bell"
   },
   {
     "id": "powerherb",
@@ -303,12 +303,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Buginium Z"
   },
   {
-    "id": "ghostiumz",
-    "name": "Ghostium Z"
-  },
-  {
     "id": "leppaberry",
     "name": "Leppa Berry"
+  },
+  {
+    "id": "ghostiumz",
+    "name": "Ghostium Z"
   },
   {
     "id": "pechaberry",
@@ -395,12 +395,12 @@ export const GEN7_HELD_ITEMS = [
     "name": "Psychic Seed"
   },
   {
-    "id": "earthplate",
-    "name": "Earth Plate"
-  },
-  {
     "id": "mistyseed",
     "name": "Misty Seed"
+  },
+  {
+    "id": "earthplate",
+    "name": "Earth Plate"
   },
   {
     "id": "aloraichiumz",
@@ -467,16 +467,16 @@ export const GEN7_HELD_ITEMS = [
     "name": "Colbur Berry"
   },
   {
+    "id": "shucaberry",
+    "name": "Shuca Berry"
+  },
+  {
     "id": "cheriberry",
     "name": "Cheri Berry"
   },
   {
     "id": "dreadplate",
     "name": "Dread Plate"
-  },
-  {
-    "id": "shucaberry",
-    "name": "Shuca Berry"
   },
   {
     "id": "pokeball",
@@ -1191,6 +1191,10 @@ export const GEN7_HELD_ITEMS = [
     "name": "Sport Ball"
   },
   {
+    "id": "tyranitarite",
+    "name": "Tyranitarite"
+  },
+  {
     "id": "oldamber",
     "name": "Old Amber"
   },
@@ -1201,10 +1205,6 @@ export const GEN7_HELD_ITEMS = [
   {
     "id": "lucarionite",
     "name": "Lucarionite"
-  },
-  {
-    "id": "tyranitarite",
-    "name": "Tyranitarite"
   },
   {
     "id": "upgrade",
@@ -1275,6 +1275,10 @@ export const GEN7_HELD_ITEMS = [
     "name": "Big Nugget"
   },
   {
+    "id": "magmarizer",
+    "name": "Magmarizer"
+  },
+  {
     "id": "mimikiumz",
     "name": "Mimikium Z"
   },
@@ -1301,10 +1305,6 @@ export const GEN7_HELD_ITEMS = [
   {
     "id": "jawfossil",
     "name": "Jaw Fossil"
-  },
-  {
-    "id": "magmarizer",
-    "name": "Magmarizer"
   },
   {
     "id": "lycaniumz",
