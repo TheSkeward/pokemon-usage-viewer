@@ -55,7 +55,7 @@ Changes to the scoring engine, its mechanical/data inputs, its generators, the
 calibration harness, or dependencies trigger the scoring-calibration CI
 workflow. Such changes must pass both `npm test` and
 `npm run validate:calibration`; UI-only and documentation-only changes do not
-pay for the 19-bucket optimizer run.
+pay for the expensive calibration run.
 
 The app is fully static. Runtime data is checked in under `site-data/data/`,
 and generated JS modules are checked in under `src/generated/`, so ordinary
