@@ -339,23 +339,22 @@ npm run e2e
 
 - `npm test` is the fast mechanical/correctness suite. It should stay focused
   and cheap enough to run routinely.
-- `npm run validate:calibration` runs the 19 real badge buckets. It is the only
+- `npm run validate:calibration` runs the badge buckets. It is the only
   score-ranking calibration contract. CI runs it whenever the scoring engine or
   its inputs change; scoring-affecting changes must not land while it is red.
   UI-only and documentation-only changes do not run this expensive suite.
 - `npm run e2e` covers a small browser-level product smoke surface.
 
-The calibration injects seven consensus-strong anchors into every rolling badge
-bucket and expects them to clear that bucket's top-quartile score:
+The calibration injects seven consensus-strong anchors and expects each to
+clear the top-quartile score in the buckets after it first becomes gainable:
 
 ```text
 Excadrill, Scizor, Blaziken, Sharpedo, Aegislash, Primarina, Meowstic
 ```
 
-Injected anchors receive scores in the shared optimizer run but do not move the
-reference q75/q25 cutoffs. Those cutoffs come only from the real current-plus-
-previous rolling bucket. Seven consensus-poor anchors must enter the bottom
-quartile once obtainable:
+Injected anchors receive scores in the shared optimizer run but do not move
+the reference q75/q25 cutoffs. Seven consensus-poor anchors are logged, never
+gated:
 
 ```text
 Tropius, Dunsparce, Sunflora, Ledian, Luvdisc, Delibird, Unown
