@@ -1,5 +1,5 @@
 {
-  "finishedAt": "2026-09-08T16:02:35.907Z",
+  "finishedAt": "2026-09-09T16:12:56.508Z",
   "results": [
     {
       "script": "scrape-pkmn-teams.mjs",
@@ -24,10 +24,7 @@
       "script": "scrape-tournament-teams.mjs",
       "exitCode": 0,
       "outputTail": [
-        "tournament dump https://www.smogon.com/forums/threads/smbs-spl-x-team-dump.3650390/: FAILED — 403 https://www.smogon.com/forums/threads/smbs-spl-x-team-dump.3650390/",
-        "tournament dump https://www.smogon.com/forums/threads/upl-vii-dump.3650684/: FAILED — 403 https://www.smogon.com/forums/threads/upl-vii-dump.3650684/",
-        "tournament listing https://www.smogon.com/forums/forums/ruins-of-alph.281/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/upl-vii-dump.3650684/",
-        "tournament listing https://www.smogon.com/forums/forums/smogon-classic.334/: FAILED — Smogon requests paused after 403 https://www.smogon.com/forums/threads/upl-vii-dump.3650684/",
+        "  thread 3611697: 403 https://www.smogon.com/forums/threads/oras-ou-role-compendium-v2.3541745/",
         "tournament: +0 paste teams, +0 replays"
       ]
     },
@@ -35,29 +32,29 @@
       "script": "scrape-forum-teams.mjs",
       "exitCode": 0,
       "outputTail": [
-        "forum listing https://www.smogon.com/forums/forums/gen-7-competitive-discussion.249/: FAILED — 403 https://www.smogon.com/forums/forums/gen-7-competitive-discussion.249/",
-        "forums: page budget — 0 listing, 0 new-thread, 0 resume, 0 bumped, 0 recheck (0 deferred to next run, thread cap 50)",
-        "forums: +0 teams this run"
+        "forum gen7ou: archive 1660",
+        "forums: page budget — 2 listing, 2 new-thread, 4 resume, 0 bumped, 0 recheck (21 deferred to next run, thread cap 50)",
+        "forums: +46 teams this run"
       ]
     },
     {
       "script": "scrape-replay-teams.mjs",
       "exitCode": 0,
       "outputTail": [
-        "gen7anythinggoes: +300 (archive 15300)",
-        "gen7ubers: +300 (archive 15305)",
-        "gen7ou: +300 (archive 15300)",
-        "gen7uu: +300 (archive 15300)",
-        "gen7ru: +300 (archive 15300)",
-        "gen7nu: +300 (archive 15300)",
-        "gen7pu: +300 (archive 15300)",
-        "gen7zu: +300 (archive 15300)",
+        "gen7anythinggoes: +300 (archive 15600)",
+        "gen7ubers: +300 (archive 15605)",
+        "gen7ou: +300 (archive 15600)",
+        "gen7uu: +300 (archive 15600)",
+        "gen7ru: +300 (archive 15600)",
+        "gen7nu: +300 (archive 15600)",
+        "gen7pu: +300 (archive 15600)",
+        "gen7zu: +300 (archive 15600)",
         "gen7nfe: +0 (archive 1368)",
-        "gen7lc: +300 (archive 15300)",
-        "gen7doublesubers: +300 (archive 15300)",
+        "gen7lc: +300 (archive 15600)",
+        "gen7doublesubers: +300 (archive 15600)",
         "  skip gen7doublesou-2560475408: 404 https://replay.pokemonshowdown.com/gen7doublesou-2560475408.json",
-        "gen7doublesou: +300 (archive 15309)",
-        "gen7doublesuu: +300 (archive 15300)"
+        "gen7doublesou: +300 (archive 15609)",
+        "gen7doublesuu: +300 (archive 15600)"
       ]
     }
   ]
